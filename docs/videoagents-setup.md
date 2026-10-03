@@ -48,7 +48,7 @@ npm run studio:stop
 ## 自动生产
 
 1. 在「设置」分别配置编剧、配音、导演、剪辑和审核的 CLI 提供方、模型名称和超时，并启用需要的角色。当前仅支持 Codex CLI 与 Claude Code CLI；模型留空使用对应 CLI 默认模型。需要自动检索时另配置 Tavily。
-2. 配置字节配音：选择 `byte_http`，填写声音 ID、资源 ID 和 API Key；旧鉴权也支持 App ID 与 Access Token。具体资源须与用户已复刻的声音匹配。
+2. 配置字节配音：按新版 SOP 选择「字节 WebSocket 双向流式」，填写声音 ID、资源 ID 和 API Key。声音复刻 2.0 使用 `seed-icl-2.0`，语音合成模型默认 `seed-tts-2.0-standard`；资源及音色权限须由实际账号验证。旧 HTTP 接口仍可选择，兼容 API Key 或 App ID + Access Token。
 3. 创建任务，输入主题或文案，设定受众、用途、画幅、帧率和来源链接。
 4. 执行生产，按编剧 → 配音 → 导演 → 渲染 → 审核推进。缺服务、缺授权记录或缺真实时间戳时，会显示待补充信息。
 5. 在各阶段查看、编辑文案与素材。修改会递增版本并使相关产物和审核失效。
@@ -56,7 +56,11 @@ npm run studio:stop
 
 `READY_FOR_PUBLISH` 表示本系统的发布前检查完成，实际平台的审核结果由平台决定。本版本产出可下载视频，不自动发布。
 
-字节 v3 使用流式音频接口；只有终止成功码与完整音频确认后才记录完成。若请求已提交但响应超时或中断，操作进入 `UNKNOWN` 并暂停，避免重复付费提交。API 的请求 ID 没有被当作服务商承诺的幂等保证。官方协议参考：[字节大模型语音合成](https://www.volcengine.com/docs/6561/1598757?lang=zh)。
+字节 WebSocket 使用固定官方地址 `wss://openspeech.bytedance.com/api/v3/tts/bidirection`，以 `X-Api-Key` 和 `X-Api-Resource-Id` 鉴权，不需要 App ID。合成模型与五角色的 CLI 模型分别配置；标准模型也可改为账号支持的原始语音模型 ID。音频输出为 24 kHz MP3，开启 `enable_subtitle`，收取服务端单词时间戳；字幕可能晚于音频，所以持续接收到当前会话的 `SessionFinished`。只有会话完成且收到音频才记录调用完成；随后仍检查音频能否解码、真实时长与全文对齐。缺少有效时间戳时保留已生成音频，等待真实对齐，不按字数猜时间。[官方调用 SOP](https://docs.volcengine.com/docs/DoubaoVoice/bidirectional-streaming-text-to-speech-websocket?lang=zh)。
+
+连接/启动会话阶段没有提交正文，失败记为 `REJECTED`，修正配置后可用新命令重试。在发送正文前先持久化提交状态；之后超时、取消、服务错误或断流都按 `UNKNOWN` 暂停。同一版本更换 HTTP/WebSocket、音色或模型不能绕过未知提交；可对账或导入服务商已生成的真实音频。请求 ID 不代表服务商承诺的幂等保证。WebSocket 支持接收期间取消；旧 HTTP 的取消仍在节点边界生效。旧 HTTP 要求流终止成功码与音频，协议见[字节 HTTP 文档](https://www.volcengine.com/docs/6561/1598757?lang=zh)。
+
+如果本机代理使用 `198.18.0.0/15` 虚拟 DNS 地址，WebSocket 仅在系统返回全部属于该网段时，使用固定 Cloudflare 公网入口的加密 DNS 查询获得字节域名的真实公网地址。查询只包含固定公开域名，不包含密钥、音色或文案；最终连接仍校验字节官方域名的 TLS 证书。其他私网地址和混合解析继续拒绝，不修改系统 DNS。[Cloudflare DNS over HTTPS](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/)。
 
 ## 每个角色的模型设置
 

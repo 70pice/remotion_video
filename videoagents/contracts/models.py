@@ -346,13 +346,14 @@ class SettingsPatch(Contract):
     role_models: dict[RoleId, RoleModelConfig] | None = None
     search_provider: Literal["none", "tavily"] | None = None
     search_api_key: str | None = None
-    voice_provider: Literal["none", "byte_http"] | None = None
+    voice_provider: Literal["none", "byte_http", "byte_ws"] | None = None
     voice_app_id: str | None = None
     voice_access_token: str | None = None
     voice_api_key: str | None = None
     voice_resource_id: str | None = None
     voice_id: str | None = None
     voice_endpoint: str | None = None
+    voice_model: str | None = Field(default=None, max_length=200)
     aligner_url: str | None = None
     aligner_api_key: str | None = None
     capture_enabled: bool | None = None

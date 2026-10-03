@@ -1306,7 +1306,8 @@
             {
               "enum": [
                 "none",
-                "byte_http"
+                "byte_http",
+                "byte_ws"
               ],
               "type": "string"
             },
@@ -1388,6 +1389,19 @@
           ],
           "default": null,
           "title": "Voice Endpoint"
+        },
+        "voice_model": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Voice Model"
         },
         "aligner_url": {
           "anyOf": [

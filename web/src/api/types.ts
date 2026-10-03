@@ -36,6 +36,9 @@ export type Decision = ResumeRequest["decision"];
 export type RoleId = keyof RoleModels;
 export type ModelProvider = RoleModelConfig["provider"];
 export interface Settings extends Record<string, unknown> {
+  voice_api_key_configured?: boolean;
+  voice_access_token_configured?: boolean;
+  voice_configured?: boolean;
   role_models?: Partial<RoleModels>;
   cli_availability?: Partial<Record<ModelProvider, { available: boolean }>>;
 }

@@ -49,6 +49,7 @@ type Field = FieldLabel &
           | "voice_app_id"
           | "voice_resource_id"
           | "voice_id"
+          | "voice_model"
           | "voice_access_token"
           | "voice_api_key"
           | "search_api_key"
@@ -65,19 +66,24 @@ const sections: { title: string; description: string; fields: Field[] }[] = [
     fields: [
       { key: "voice_endpoint", label: "配音接口地址", type: "url" },
       { key: "voice_app_id", label: "应用 ID" },
-      { key: "voice_resource_id", label: "资源 ID" },
+      {
+        key: "voice_resource_id",
+        label: "资源 ID（新版声音复刻）",
+        placeholder: "seed-icl-2.0（按账号实际资源填写）",
+      },
       { key: "voice_id", label: "音色 ID" },
+      { key: "voice_model", label: "语音合成模型" },
       {
         key: "voice_access_token",
         label: "访问令牌",
         secret: true,
-        configured: "voice_configured",
+        configured: "voice_access_token_configured",
       },
       {
         key: "voice_api_key",
         label: "新鉴权 API Key（按你的接口填写）",
         secret: true,
-        configured: "voice_configured",
+        configured: "voice_api_key_configured",
       },
     ],
   },
@@ -115,6 +121,33 @@ const sections: { title: string; description: string; fields: Field[] }[] = [
   },
 ];
 
+export function voiceProviderPatch(
+  provider: NonNullable<SettingsPatch["voice_provider"]>,
+): Pick<SettingsPatch, "voice_provider" | "voice_endpoint"> {
+  if (provider === "byte_ws") {
+    return {
+      voice_provider: provider,
+      voice_endpoint: "wss://openspeech.bytedance.com/api/v3/tts/bidirection",
+    };
+  }
+  if (provider === "byte_http") {
+    return {
+      voice_provider: provider,
+      voice_endpoint:
+        "https://openspeech.bytedance.com/api/v3/tts/unidirectional",
+    };
+  }
+  return { voice_provider: provider };
+}
+
+function showVoiceField(key: string, provider: unknown): boolean {
+  if (key === "voice_model") return provider === "byte_ws";
+  return (
+    provider !== "byte_ws" ||
+    !["voice_app_id", "voice_access_token"].includes(key)
+  );
+}
+
 export function createSettingsPayload(
   values: Settings,
   saved: Settings,
@@ -122,7 +155,10 @@ export function createSettingsPayload(
   const payload: SettingsPatch = {};
   for (const section of sections) {
     for (const field of section.fields) {
-      const value = values[field.key];
+      if (!showVoiceField(field.key, values.voice_provider)) continue;
+      const value =
+        values[field.key] ??
+        (field.key === "voice_model" ? "seed-tts-2.0-standard" : undefined);
       if (field.secret && !value) continue; // Blank preserves the configured secret.
       if (field.type === "number") {
         if (typeof value === "number") payload[field.key] = value;
@@ -131,7 +167,11 @@ export function createSettingsPayload(
       }
     }
   }
-  if (values.voice_provider === "none" || values.voice_provider === "byte_http")
+  if (
+    values.voice_provider === "none" ||
+    values.voice_provider === "byte_http" ||
+    values.voice_provider === "byte_ws"
+  )
     payload.voice_provider = values.voice_provider;
   if (values.search_provider === "none" || values.search_provider === "tavily")
     payload.search_provider = values.search_provider;
@@ -405,13 +445,21 @@ export function SettingsForm({
                 <label>
                   配音服务
                   <select
+                    aria-label="配音服务"
                     value={String(values.voice_provider ?? "none")}
-                    onChange={(event) =>
-                      onChange("voice_provider", event.target.value)
-                    }
+                    onChange={(event) => {
+                      const patch = voiceProviderPatch(
+                        event.target.value as NonNullable<
+                          SettingsPatch["voice_provider"]
+                        >,
+                      );
+                      for (const [key, value] of Object.entries(patch))
+                        onChange(key, value);
+                    }}
                   >
                     <option value="none">暂未接入</option>
                     <option value="byte_http">字节 HTTP 接口</option>
+                    <option value="byte_ws">字节 WebSocket 双向流式</option>
                   </select>
                 </label>
               )}
@@ -429,39 +477,59 @@ export function SettingsForm({
                   </select>
                 </label>
               )}
-              {section.fields.map((field) => (
-                <label key={field.key}>
-                  {field.label}
-                  {field.secret && (
-                    <span className="field-hint">
-                      {saved[field.configured ?? ""]
-                        ? " ● 已配置"
-                        : " ○ 未配置"}
-                    </span>
-                  )}
-                  <input
-                    type={field.secret ? "password" : (field.type ?? "text")}
-                    min={field.type === "number" ? 1 : undefined}
-                    value={String(values[field.key] ?? "")}
-                    autoComplete={field.secret ? "new-password" : "off"}
-                    placeholder={
-                      field.secret
-                        ? saved[field.configured ?? ""]
-                          ? "•••••••• · 留空保留现有密钥"
-                          : "输入密钥（保存后不再显示）"
-                        : field.placeholder
-                    }
-                    onChange={(event) =>
-                      onChange(
-                        field.key,
-                        field.type === "number"
-                          ? Number(event.target.value)
-                          : event.target.value,
-                      )
-                    }
-                  />
-                </label>
-              ))}
+              {section.fields
+                .filter((field) =>
+                  showVoiceField(field.key, values.voice_provider),
+                )
+                .map((field) => (
+                  <label key={field.key}>
+                    {field.label}
+                    {field.secret && (
+                      <span className="field-hint">
+                        {saved[field.configured ?? ""]
+                          ? " ● 已配置"
+                          : " ○ 未配置"}
+                      </span>
+                    )}
+                    <input
+                      aria-label={field.label}
+                      type={field.secret ? "password" : (field.type ?? "text")}
+                      min={field.type === "number" ? 1 : undefined}
+                      maxLength={field.key === "voice_model" ? 200 : undefined}
+                      required={field.key === "voice_model"}
+                      value={String(
+                        values[field.key] ??
+                          (field.key === "voice_model"
+                            ? "seed-tts-2.0-standard"
+                            : ""),
+                      )}
+                      autoComplete={field.secret ? "new-password" : "off"}
+                      placeholder={
+                        field.secret
+                          ? saved[field.configured ?? ""]
+                            ? "•••••••• · 留空保留现有密钥"
+                            : "输入密钥（保存后不再显示）"
+                          : field.placeholder
+                      }
+                      onChange={(event) =>
+                        onChange(
+                          field.key,
+                          field.type === "number"
+                            ? Number(event.target.value)
+                            : event.target.value,
+                        )
+                      }
+                    />
+                  </label>
+                ))}
+              {section.title === "你的声音" && (
+                <p className="muted small">
+                  新版声音复刻默认资源为
+                  seed-icl-2.0，请按账号实际开通的资源填写。
+                  {values.voice_provider === "byte_ws" &&
+                    "语音合成模型用于字节生成声音，与配音角色的 CLI 指导模型独立。"}
+                </p>
+              )}
               {section.title === "检索与时间对齐" && (
                 <label className="check-label">
                   <input

@@ -11,6 +11,7 @@ DEFAULT_SETTINGS = {
     "role_models": RoleModels().model_dump(), "search_provider": "none",
     "voice_provider": "none", "voice_app_id": "", "voice_resource_id": "", "voice_id": "",
     "voice_endpoint": "https://openspeech.bytedance.com/api/v3/tts/unidirectional",
+    "voice_model": "seed-tts-2.0-standard",
     "aligner_url": "", "capture_enabled": False, "max_llm_calls": 12,
     "max_voice_chars": 10000, "render_timeout_seconds": 1800,
 }

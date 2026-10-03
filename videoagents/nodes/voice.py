@@ -7,7 +7,7 @@ from videoagents.providers.aligner import align
 from videoagents.providers.byte_voice import synthesize
 from videoagents.providers.llm import JsonModel
 from videoagents.services.jobs import JobService
-from videoagents.services.settings import SettingsService
+from videoagents.services.settings import SettingsService, voice_fingerprint
 from videoagents.storage import Repository
 from videoagents.storage.repository import fingerprint
 from videoagents.tools.media import audio_duration
@@ -81,7 +81,6 @@ class VoiceNode:
     def run(self, job: Job, command_id: str = "", prefer_generation: bool = False) -> tuple[Asset, Alignment, float]:
         script_hash = fingerprint([{"segment_id": item.segment_id, "narration": item.narration} for item in job.script.segments])
         settings = SettingsService(self.repo).internal()
-        voice_hash = fingerprint({"voice_id": settings.get("voice_id"), "resource_id": settings.get("voice_resource_id"), "app_id": settings.get("voice_app_id")})
         audio = None
         selected = self.repo.active_audio(job.job_id)
         candidates = [asset for asset in reversed(job.assets) if asset.role == "audio" and (not selected or asset.asset_id == selected)]
@@ -98,10 +97,14 @@ class VoiceNode:
             blocked = [item.message for item in advice.findings if item.blocking or item.severity == "error"]
             if blocked:
                 raise ValueError("配音模型预检未通过：" + "；".join(blocked))
+        # Guidance can take long enough for settings to change. Filter existing
+        # audio with the configuration at selection, then attach generated audio
+        # with the provider's actual request fingerprint.
+        voice_hash = voice_fingerprint(SettingsService(self.repo).internal())
         if not (prefer_generation and SettingsService(self.repo).public()["voice_configured"]):
             for candidate in candidates:
                 metadata = self.repo.asset_metadata(candidate.asset_id)
-                if metadata.get("origin") == "byte_http" and (metadata.get("script_fingerprint") != script_hash or metadata.get("voice_fingerprint") != voice_hash):
+                if metadata.get("origin") in {"byte_http", "byte_ws"} and (metadata.get("script_fingerprint") != script_hash or metadata.get("voice_fingerprint") != voice_hash):
                     continue
                 audio = candidate
                 break
@@ -117,7 +120,8 @@ class VoiceNode:
                 self.repo.update_asset_metadata(audio.asset_id, metadata)
             return audio, alignment, duration
         text = "\n".join(segment.narration for segment in job.script.segments)
-        value = synthesize(self.repo, job.job_id, job.revision, text, command_id)
+        value = synthesize(self.repo, job.job_id, job.revision, text, command_id,
+                           cancelled=lambda: self.repo.get_job(job.job_id).status == "CANCELLED")
         from pathlib import Path
         path = Path(value["path"])
         duration = audio_duration(path)
@@ -128,8 +132,8 @@ class VoiceNode:
                       license_note="用户配置的自有复刻音色；最终需核验内容完整性", artifact_id=artifact.artifact_id,
                       url=artifact.url, timeline_src=f"videoagents/{job.job_id}/assets/{asset_id}.mp3")
         alignment = from_byte_sentences(job, audio.sha256, value.get("sentences", []))
-        metadata = {"origin": "byte_http", "duration_seconds": duration,
-                    "script_fingerprint": script_hash, "voice_fingerprint": voice_hash}
+        metadata = {"origin": value.get("origin", "byte_http"), "duration_seconds": duration,
+                    "script_fingerprint": script_hash, "voice_fingerprint": value.get("voice_fingerprint", voice_hash)}
         if alignment:
             metadata["alignment"] = alignment.model_dump()
         self.service.freeze_asset(audio)

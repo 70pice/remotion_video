@@ -328,6 +328,52 @@ def test_201_measured_byte_words_fit_alignment_contract():
     assert result is not None and len(result.segments) == 201
 
 
+@pytest.mark.parametrize("existing_generated", [False, True])
+def test_voice_preflight_settings_change_records_actual_provider_fingerprint(manual_job, monkeypatch, existing_generated):
+    from videoagents.nodes.voice import VoiceNode
+    from videoagents.providers.llm import CapabilityMissing
+    from videoagents.services.settings import voice_fingerprint
+    from videoagents.storage.repository import fingerprint
+
+    repo, service, job, old_audio = manual_job
+    job = repo.update_job(job.job_id, script=Script(title="TEST preflight", origin="user", revision=job.revision,
+        segments=[ScriptSegment(segment_id="s1", narration=job.brief.script_text)]))
+    settings = SettingsService(repo)
+    settings.patch(SettingsPatch(voice_provider="byte_ws", voice_api_key="UNIT-secret", voice_id="UNIT-own-voice", voice_resource_id="seed-icl-2.0"))
+    old_hash = voice_fingerprint(settings.internal())
+    if existing_generated:
+        repo.update_asset_metadata(old_audio.asset_id, {**repo.asset_metadata(old_audio.asset_id), "origin": "byte_ws",
+            "voice_fingerprint": old_hash, "script_fingerprint": fingerprint([
+                {"segment_id": item.segment_id, "narration": item.narration} for item in job.script.segments])})
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.available", lambda *args: True)
+    def advice(*args, **kwargs):
+        settings.patch(SettingsPatch(voice_model="seed-tts-2.0-expressive"))
+        return {"delivery_notes": [], "pronunciation_notes": [], "findings": []}
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", advice)
+    path = repo.root / "UNIT-preflight-test-tone.wav"
+    path.write_bytes(_tone())
+    def provider(*args, **kwargs):
+        # A measured TEST tone stands in for audio; this is metadata/coverage
+        # regression evidence, not a claim of actual speech or clone quality.
+        return {"path": str(path), "origin": "byte_ws", "voice_fingerprint": voice_fingerprint(settings.internal()),
+            "sentences": [{"words": [{"word": job.script.segments[0].narration, "startTime": 0, "endTime": 1.8}]}]}
+    monkeypatch.setattr("videoagents.nodes.voice.synthesize", provider)
+    audio, _, _ = VoiceNode(repo, service).run(job, "UNIT-preflight-command", prefer_generation=not existing_generated)
+    assert audio.asset_id != old_audio.asset_id
+    actual_hash = repo.asset_metadata(audio.asset_id)["voice_fingerprint"]
+    assert actual_hash == voice_fingerprint(settings.internal()) and actual_hash != old_hash
+    settings.patch(SettingsPatch(voice_model="seed-tts-2.0-standard"))
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.available", lambda *args: False)
+    calls = []
+    def new_provider(*args, **kwargs):
+        calls.append(args[3])
+        raise CapabilityMissing("UNIT old configuration requires fresh synthesis")
+    monkeypatch.setattr("videoagents.nodes.voice.synthesize", new_provider)
+    with pytest.raises(CapabilityMissing):
+        VoiceNode(repo, service).run(repo.get_job(job.job_id), "UNIT-return-to-old-config")
+    assert calls == [job.script.segments[0].narration]
+
+
 def test_human_confirmation_reruns_hard_checks_and_cannot_waive_failure(manual_job, monkeypatch):
     install_isolated_review_doubles(monkeypatch)
     repo, service, job, _ = manual_job

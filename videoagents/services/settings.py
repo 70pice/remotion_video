@@ -12,6 +12,16 @@ from videoagents.contracts import RoleModels, SettingsPatch
 from videoagents.default_config import DEFAULT_SETTINGS, SECRET_FIELDS
 from videoagents.providers.network import validate_url
 from videoagents.storage import Repository
+from videoagents.storage.repository import fingerprint
+
+
+def voice_fingerprint(config: dict[str, Any]) -> str:
+    identity = {"voice_id": config.get("voice_id"), "resource_id": config.get("voice_resource_id")}
+    if config.get("voice_provider") == "byte_ws":
+        identity.update(provider="byte_ws", model=config.get("voice_model"))
+    else:
+        identity["app_id"] = config.get("voice_app_id")
+    return fingerprint(identity)
 
 
 def protect(value: str) -> str:
@@ -78,8 +88,12 @@ class SettingsService:
             "llm_configured": any(value["enabled"] for value in settings["role_models"].values()),
             "cli_availability": cli_availability(),
             "search_configured": settings.get("search_provider") == "tavily" and bool(settings.get("search_api_key")),
-            "voice_configured": settings.get("voice_provider") == "byte_http" and bool(settings.get("voice_id")) and bool(settings.get("voice_resource_id")) and bool(
-                settings.get("voice_api_key") or (settings.get("voice_app_id") and settings.get("voice_access_token"))),
+            "voice_api_key_configured": bool(settings.get("voice_api_key")),
+            "voice_access_token_configured": bool(settings.get("voice_access_token")),
+            "voice_configured": settings.get("voice_provider") in {"byte_http", "byte_ws"}
+            and bool(settings.get("voice_id")) and bool(settings.get("voice_resource_id")) and bool(
+                settings.get("voice_api_key") or (settings.get("voice_provider") == "byte_http"
+                                                 and settings.get("voice_app_id") and settings.get("voice_access_token"))),
             "aligner_configured": bool(settings.get("aligner_url")),
         })
         return result
@@ -94,12 +108,22 @@ class SettingsService:
         for key in {"aligner_url"}:
             if values.get(key):
                 validate_url(values[key], local_provider=True)
-        if "voice_endpoint" in values:
-            if values["voice_endpoint"] not in {
-                "https://openspeech.bytedance.com/api/v3/tts/unidirectional",
-                "https://openspeech.bytedance.com/api/v3/tts/unidirectional/sse",
-            }:
-                raise ValueError("字节接口必须使用官方 HTTP 流式地址")
+        if "voice_endpoint" in values or "voice_provider" in values:
+            voice = {**self.internal(), **values}
+            ws_endpoint = "wss://openspeech.bytedance.com/api/v3/tts/bidirection"
+            http_endpoints = {"https://openspeech.bytedance.com/api/v3/tts/unidirectional",
+                              "https://openspeech.bytedance.com/api/v3/tts/unidirectional/sse"}
+            if "voice_endpoint" not in values:
+                if voice["voice_provider"] == "byte_ws" and voice["voice_endpoint"] != ws_endpoint:
+                    values["voice_endpoint"] = ws_endpoint
+                elif voice["voice_provider"] == "byte_http" and voice["voice_endpoint"] not in http_endpoints:
+                    values["voice_endpoint"] = DEFAULT_SETTINGS["voice_endpoint"]
+                voice.update(values)
+            allowed = {ws_endpoint} if voice["voice_provider"] == "byte_ws" else http_endpoints
+            if voice["voice_provider"] == "none":
+                allowed |= {ws_endpoint}
+            if voice["voice_endpoint"] not in allowed:
+                raise ValueError("字节接口必须使用与所选配音服务匹配的官方 HTTP 或 WebSocket 地址")
         self.repo.write_settings({key: protect(value) if key in SECRET_FIELDS else json.dumps(value, ensure_ascii=False)
                                   for key, value in values.items()})
         if os.name != "nt":

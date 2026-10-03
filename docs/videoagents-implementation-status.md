@@ -2,6 +2,20 @@
 
 2026-10-03。React 前端、FastAPI API、独立 worker、持久 LangGraph 工作流和 Remotion 生产入口已实现并完成本机联调。设计记录见 [原方案](videoagents-design.md)，操作见 [使用说明](videoagents-setup.md)，接口见 [共享契约](videoagents-implementation-contract.md)。
 
+## 字节双向 WebSocket 配音更新
+
+按用户提供的[新版 SOP](https://docs.volcengine.com/docs/DoubaoVoice/bidirectional-streaming-text-to-speech-websocket?lang=zh)接入 `byte_ws`：API Key +资源 ID 鉴权、可配置语音模型、24 kHz MP3 和真实字幕事件 364。保留旧 HTTP。React 声音卡独立配置语音合成模型，隐藏 WebSocket 不使用的旧 App ID/令牌；五角色 CLI 配置保持独立。用户凭据只写入 Windows DPAPI 保护的运行数据库，公开 API 仅返回已配置状态。
+
+正文发送前持久化台账并再次检查取消；会话匹配的 152 与非空音频确认调用完成，随后由现有解码/时长/全文对齐检查决定是否交给导演。发送后不确定结果按 UNKNOWN 暂停，切换 HTTP/WebSocket 或模型不能绕过。配音指导期间修改配置的两处指纹竞态已修复：选择旧音频前刷新配置，新音频使用 provider 实际请求指纹。
+
+本机代理 DNS 将字节域名映射到 `198.18.0.9`，原公共地址检查在正文提交前正确拒绝。已增加仅针对全部 `198.18.0.0/15` 结果的固定 Cloudflare DoH 回退，仍要求全部真实公网答案与字节原域名 TLS 验证。没有修改系统 DNS，也不向 DNS 服务发送密钥、音色或文案。联调还识别并清理了同工作区遗留旧 worker；它没有创建外部配音提交。
+
+Fresh 验证：**179 Python、43 React、10 Remotion 时间轴测试通过**；Ruff、根 typecheck/lint、React typecheck/build、契约一致性、Python 依赖检查通过。两条独立审查为 **APPROVE / CLEAR**，取消与指纹两项 P2 已关闭，DoH 增量独立审查通过。
+
+真实短语音任务 `88b8e95c2bdd4629bf166fccbfd9cf42` 已成功调用用户提供的音色，收到会话完成并保留 **22893 bytes、2.856 秒、单声道 24000 Hz MP3**，FFprobe 解码信息有效。只发送过一条短正文；首次网络失败明确发生于连接阶段，修正网络后以新命令恢复，同一个操作的第二次连接成功。字幕返回 8 个词，两个置信度低于既有 0.8 阈值（约 0.168 / 0.740），所以任务正确停在 **NEEDS_INPUT / alignment**，没有进入剪辑或降低门槛。音频及服务商真实时间戳已保留，可配置可靠对齐服务或人工试听核对后继续，恢复时复用已完成的配音。
+
+截图：`out/videoagents-byte-ws-settings-review.png`；私有运行收据：`.runtime/videoagents/byte-ws-live-evidence.json`；音频在该任务的 operations 目录。音色听感需由用户试听，短调用成功不等于完整视频发布审核通过。
+
 ## 自由选择模型更新
 
 五张角色卡新增 Codex 模型下拉框：CLI 默认、本机缓存中的所有模型（含隐藏项）、自定义模型 ID。模型名称没有固定允许名单，保存和运行仍使用原始 ID。Claude 保留自由输入；选择、刷新或更换提供方不会自动改写其他角色。缓存读取单独使用受会话保护的 `GET /api/models/{provider}`，不启动 CLI，不读 auth/config，不发生成请求。缓存生成时间和权限边界在页面显示；读取失败仍可输入模型名称。
@@ -105,7 +119,7 @@ D:\remotion_video\
 
 ## 已声明边界与后续事项
 
-1. 真实 LLM、Tavily、字节自有复刻音色和自动对齐 provider 尚未使用真实凭据进行付费端到端验证。配置后需要用实际样片核验协议、音色、时间戳和成本；未接入的能力明确暂停，不返回假成功。
+1. 真实 LLM、Tavily 和自动对齐 provider 尚未付费端到端验证。字节自有音色已完成一次真实短配音验证，字幕因两个低置信度词暂停在对齐关卡，尚未用该音色完成视频全流程。未接入或未可靠验证的能力明确暂停，不返回假成功。
 2. 自动内容检查不能代替完整人耳/人眼复核，也不能承诺平台最终审核或版权授权；发布平台与用途必须明确。本版本生成发布包，不执行平台上传发布。
 3. Windows Job Object 的硬终止回归证明**挂接后**的进程树清理；`Popen` 到挂接仍有极窄窗口。后续可用挂起启动、挂接后恢复消除窗口。
 4. 渲染完成到 checkpoint 提交之间崩溃允许重新计算本机视频，可能留下无引用的 render 目录；后续补运行目录清理。付费 provider 有独立持久台账，不依赖这类本机重算。

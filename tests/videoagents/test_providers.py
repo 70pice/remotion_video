@@ -77,7 +77,8 @@ def test_known_rejection_can_retry_only_a_new_explicit_command(configured, monke
     assert repeated["path"] == result["path"] and len(calls) == 2
 
 
-def test_generated_voice_with_changed_script_is_not_reused(monkeypatch, tmp_path):
+@pytest.mark.parametrize("origin", ["byte_http", "byte_ws"])
+def test_generated_voice_with_changed_script_is_not_reused(monkeypatch, tmp_path, origin):
     from videoagents.contracts import Asset, Brief, Script, ScriptSegment
     from videoagents.nodes.voice import VoiceNode
     from videoagents.services.jobs import JobService
@@ -88,7 +89,7 @@ def test_generated_voice_with_changed_script_is_not_reused(monkeypatch, tmp_path
         sha256="a" * 64, artifact_id="old-artifact", url="/api/artifacts/old-artifact", timeline_src=f"videoagents/{job.job_id}/assets/old.mp3")
     changed = Script(title="test", revision=1, origin="user", segments=[ScriptSegment(segment_id="s1", narration="New script")])
     repo.update_job(job.job_id, script=changed, assets=[old])
-    repo.update_asset_metadata(old.asset_id, {"origin": "byte_http", "script_fingerprint": "obsolete", "voice_fingerprint": "obsolete"})
+    repo.update_asset_metadata(old.asset_id, {"origin": origin, "script_fingerprint": "obsolete", "voice_fingerprint": "obsolete"})
     repo.select_audio(job.job_id, old.asset_id)
     calls = []
     def request(*args, **kwargs):
@@ -98,6 +99,48 @@ def test_generated_voice_with_changed_script_is_not_reused(monkeypatch, tmp_path
     with pytest.raises(CapabilityMissing):
         VoiceNode(repo, service).run(repo.get_job(job.job_id), "new-command")
     assert calls == ["New script"]
+
+
+@pytest.mark.parametrize("status", ["UNKNOWN", "SUBMITTING"])
+def test_ws_unsettled_submission_cannot_be_bypassed_by_http(configured, monkeypatch, status):
+    operation = configured.start_operation("job-test", "old-ws-input", "byte_ws", {"revision": 1, "request_id": "unit-request"})
+    configured.finish_operation(operation["operation_id"], status, {"revision": 1, "request_id": "unit-request"})
+    monkeypatch.setattr("videoagents.providers.byte_voice.httpx.Client", lambda *a, **k: pytest.fail("unsettled WS reached HTTP"))
+    SettingsService(configured).patch(SettingsPatch(voice_id="different-unit-voice"))
+    with pytest.raises(SubmissionUnknown) as failure:
+        synthesize(configured, "job-test", 1, "new text", "new-command")
+    assert failure.value.operation_id == operation["operation_id"]
+    assert failure.value.request_id == "unit-request"
+
+
+def test_ws_model_change_invalidates_generated_audio(monkeypatch, tmp_path):
+    from videoagents.contracts import Asset, Brief, Script, ScriptSegment
+    from videoagents.nodes.voice import VoiceNode
+    from videoagents.services.jobs import JobService
+    from videoagents.storage.repository import fingerprint
+
+    repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(voice_provider="byte_ws", voice_id="unit-voice", voice_resource_id="seed-icl-2.0"))
+    service = JobService(repo, tmp_path / "project")
+    job = repo.create_job(Brief(topic="TEST model invalidation"))
+    script = Script(title="TEST", revision=1, origin="user", segments=[ScriptSegment(segment_id="s1", narration="Same narration")])
+    old = Asset(asset_id="old-ws", name="old.mp3", role="audio", mime_type="audio/mpeg", size_bytes=1,
+        sha256="a" * 64, artifact_id="old-artifact", url="/api/artifacts/old-artifact", timeline_src=f"videoagents/{job.job_id}/assets/old.mp3")
+    repo.update_job(job.job_id, script=script, assets=[old])
+    repo.update_asset_metadata(old.asset_id, {"origin": "byte_ws",
+        "script_fingerprint": fingerprint([{"segment_id": "s1", "narration": "Same narration"}]),
+        "voice_fingerprint": fingerprint({"voice_id": "unit-voice", "resource_id": "seed-icl-2.0", "provider": "byte_ws", "model": "seed-tts-2.0-standard"})})
+    repo.select_audio(job.job_id, old.asset_id)
+    SettingsService(repo).patch(SettingsPatch(voice_model="seed-tts-2.0-expressive"))
+    calls = []
+    def request(*args, **kwargs):
+        calls.append(args[3])
+        assert kwargs["cancelled"]() is False
+        raise CapabilityMissing("TEST new synthesis needed")
+    monkeypatch.setattr("videoagents.nodes.voice.synthesize", request)
+    with pytest.raises(CapabilityMissing):
+        VoiceNode(repo, service).run(repo.get_job(job.job_id), "new-model-command")
+    assert calls == ["Same narration"]
 
 
 def test_tcp_validation_pins_public_resolution_and_rejects_rebinding(monkeypatch):

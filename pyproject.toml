@@ -16,6 +16,7 @@ dependencies = [
   "httpx>=0.28,<1",
   "python-multipart>=0.0.20,<1",
   "playwright>=1.55,<2",
+  "websockets>=16.1.1,<17",
 ]
 
 [dependency-groups]

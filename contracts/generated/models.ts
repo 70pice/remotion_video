@@ -198,13 +198,14 @@ export interface SettingsPatch {
   role_models?: Partial<Record<"screenwriter" | "voice" | "director" | "editing" | "review", Partial<RoleModelConfig>>> | null;
   search_provider?: "none" | "tavily" | null;
   search_api_key?: string | null;
-  voice_provider?: "none" | "byte_http" | null;
+  voice_provider?: "none" | "byte_http" | "byte_ws" | null;
   voice_app_id?: string | null;
   voice_access_token?: string | null;
   voice_api_key?: string | null;
   voice_resource_id?: string | null;
   voice_id?: string | null;
   voice_endpoint?: string | null;
+  voice_model?: string | null;
   aligner_url?: string | null;
   aligner_api_key?: string | null;
   capture_enabled?: boolean | null;

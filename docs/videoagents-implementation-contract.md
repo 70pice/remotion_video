@@ -29,6 +29,12 @@ All routes under `/api`. JSON errors use `{"detail":"human readable reason"}`. M
 - `GET /catalog` => ComponentEntry[].
 - `GET /settings` => sanitized settings and `configured` booleans. `PATCH /settings` => sanitized settings. Secrets are write-only and never in job/event/response/log. Model configuration supports only per-role CLI providers; voice/search/alignment outbound requests must be validated.
 
+Voice settings accept `voice_provider:"none"|"byte_http"|"byte_ws"`, `voice_model` (maximum 200 chars; default `seed-tts-2.0-standard`), voice/resource IDs, and write-only credentials. The WS endpoint is fixed to `wss://openspeech.bytedance.com/api/v3/tts/bidirection`; switching protocols without supplying an endpoint selects the corresponding official default. Public settings expose `voice_api_key_configured`, `voice_access_token_configured`, and aggregate `voice_configured`. WS requires API Key + voice ID + resource ID; legacy App ID/Access Token are HTTP-only. Blank credential fields are omitted by the frontend to preserve encrypted values.
+
+WS uses official binary events 1/50, 100/150, 200/102, audio 352, subtitle 364, and matched completion 152. A durable `task_submitting` record precedes any text send. Failures before that point settle REJECTED; uncertainty after it settles UNKNOWN, including cancellation. Pending operations block both voice protocols within the revision. Only matched 152 and nonempty audio settle COMPLETED; decoding and text/timing coverage remain downstream gates. Credentials never enter ledger bodies. Request/connect/session IDs are diagnostic identifiers, not supplier idempotency guarantees.
+
+WS DNS rejects non-public destinations. An all-`198.18.0.0/15` TUN resolution alone permits a bounded DoH lookup of the fixed vendor hostname via literal `1.1.1.1` with `cloudflare-dns.com` certificate/Host validation. The response is limited to 16 KiB, must answer that A question, and must contain only public addresses. Mixed/other private system resolutions still fail. This does not pass credentials or task content to DNS, follow redirects, change system DNS, or relax final vendor TLS validation.
+
 ### Per-role CLI model settings
 
 `GET /models/{provider}?refresh=true` returns canonical `ModelCatalog`:
