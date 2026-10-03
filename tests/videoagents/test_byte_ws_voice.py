@@ -171,6 +171,89 @@ def metric(repo):
         return db.execute("SELECT value FROM run_metrics WHERE metric='voice_chars'").fetchone()
 
 
+def test_expressive_style_additions_are_a_json_string_and_narration_is_unchanged(configured, monkeypatch):
+    repo, config = configured
+    config.update(voice_model="seed-tts-2.0-expressive", voice_style="自然有情绪，开头有疑问。", voice_speech_rate=-12)
+    connection = FixtureConnection()
+    fixture_transport(monkeypatch, connection)
+    result = ws.synthesize(repo, "unit-job", 1, "测试", "command-one", delivery_style="重点词稍重，句末自然收束。")
+    params = connection.sent[1][2]["req_params"]
+    assert isinstance(params["additions"], str)
+    assert json.loads(params["additions"]) == {"context_texts": ["自然有情绪，开头有疑问。\n重点词稍重，句末自然收束。"]}
+    assert params["audio_params"]["speech_rate"] == -12
+    assert connection.sent[2][2]["req_params"] == {"text": "测试"}
+    assert result["voice_fingerprint"] == ws.voice_fingerprint(config)
+
+
+@pytest.mark.parametrize("rate", [-50, 100])
+def test_speech_rate_accepts_documented_integer_boundaries(configured, monkeypatch, rate):
+    repo, config = configured
+    config["voice_speech_rate"] = rate
+    connection = FixtureConnection()
+    fixture_transport(monkeypatch, connection)
+    ws.synthesize(repo, "unit-job", 1, "测试", "command-one")
+    assert connection.sent[1][2]["req_params"]["audio_params"]["speech_rate"] == rate
+
+
+@pytest.mark.parametrize("change", [{"voice_style": "有情绪起伏。"}, {"voice_speech_rate": -15}])
+def test_performance_change_cannot_reuse_completed_flat_receipt(configured, monkeypatch, change):
+    repo, config = configured
+    config["voice_model"] = "seed-tts-2.0-expressive"
+    calls = fixture_transport(monkeypatch, FixtureConnection())
+    flat = ws.synthesize(repo, "unit-job", 1, "测试", "command-one")
+    config.update(change)
+    expressive = ws.synthesize(repo, "unit-job", 1, "测试", "command-two")
+    assert len(calls) == 2 and expressive["path"] != flat["path"]
+    assert expressive["voice_fingerprint"] != flat["voice_fingerprint"]
+
+
+def test_unknown_barrier_survives_style_and_rate_change(configured, monkeypatch):
+    repo, config = configured
+    config["voice_model"] = "seed-tts-2.0-expressive"
+    calls = fixture_transport(monkeypatch, FixtureConnection("partial_send"))
+    with pytest.raises(SubmissionUnknown) as first:
+        ws.synthesize(repo, "unit-job", 1, "测试", "command-one")
+    config.update(voice_style="新的朗读风格。", voice_speech_rate=20)
+    with pytest.raises(SubmissionUnknown) as second:
+        ws.synthesize(repo, "unit-job", 1, "测试", "command-two", delivery_style="新的建议。")
+    assert first.value.operation_id == second.value.operation_id and len(calls) == 1
+
+
+def test_standard_model_does_not_silently_ignore_explicit_style(configured, monkeypatch):
+    repo, config = configured
+    config["voice_style"] = "有情绪起伏。"
+    monkeypatch.setattr(ws, "_open_websocket", lambda *a: pytest.fail("unsupported style reached provider"))
+    with pytest.raises(CapabilityMissing, match="expressive"):
+        ws.synthesize(repo, "unit-job", 1, "测试", "command-one")
+    assert operation(repo) is None and metric(repo) is None
+
+
+def test_user_style_has_priority_when_guidance_exceeds_length_limit(configured, monkeypatch):
+    repo, config = configured
+    config.update(voice_model="seed-tts-2.0-expressive", voice_style="用户风格" * 400)
+    connection = FixtureConnection()
+    fixture_transport(monkeypatch, connection)
+    ws.synthesize(repo, "unit-job", 1, "测试", "command-one", delivery_style="额外建议" * 3000)
+    style = json.loads(connection.sent[1][2]["req_params"]["additions"])["context_texts"]
+    assert len(style) == 1 and style[0].startswith(config["voice_style"]) and len(style[0]) <= 2000
+
+
+def test_request_fingerprint_records_performance_config_snapshot(configured, monkeypatch):
+    repo, config = configured
+    config.update(voice_model="seed-tts-2.0-expressive", voice_style="原风格。", voice_speech_rate=-10)
+    actual_fingerprint = ws.voice_fingerprint(config)
+    connection = FixtureConnection()
+    def open_transport(*args):
+        config.update(voice_style="请求期间改变的风格。", voice_speech_rate=30)
+        return connection
+    monkeypatch.setattr(ws, "_open_websocket", open_transport)
+    result = ws.synthesize(repo, "unit-job", 1, "测试", "command-one")
+    params = connection.sent[1][2]["req_params"]
+    assert json.loads(params["additions"])["context_texts"] == ["原风格。"]
+    assert params["audio_params"]["speech_rate"] == -10
+    assert result["voice_fingerprint"] == actual_fingerprint != ws.voice_fingerprint(config)
+
+
 def test_official_golden_binary_frames_and_event_fields():
     assert ws.encode_request(ws.Event.START_CONNECTION, {}).hex() == "1114100000000001000000027b7d"
     fixtures = [

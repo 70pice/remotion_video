@@ -64,3 +64,20 @@ def test_ws_requires_api_key_even_when_legacy_auth_is_present(client):
     assert response.json()["voice_configured"] is False
     assert response.json()["voice_access_token_configured"] is True
     assert "test-only-token" not in response.text
+
+
+def test_voice_performance_settings_round_trip_and_defaults(client):
+    defaults = client.get("/api/settings").json()
+    assert defaults["voice_style"] == "" and defaults["voice_speech_rate"] == 0
+    result = client.patch("/api/settings", json={"voice_style": "自然、有情绪起伏，开头突出疑问。", "voice_speech_rate": -12})
+    assert result.status_code == 200
+    saved = client.get("/api/settings").json()
+    assert saved["voice_style"] == "自然、有情绪起伏，开头突出疑问。" and saved["voice_speech_rate"] == -12
+
+
+@pytest.mark.parametrize("patch", [{"voice_style": "字" * 2001}, {"voice_speech_rate": -51},
+    {"voice_speech_rate": 101}, {"voice_speech_rate": True}, {"voice_speech_rate": 0.5}, {"voice_speech_rate": "10"}])
+def test_voice_performance_settings_reject_invalid_values_atomically(client, patch):
+    before = client.get("/api/settings").json()
+    assert client.patch("/api/settings", json=patch).status_code == 422
+    assert client.get("/api/settings").json() == before

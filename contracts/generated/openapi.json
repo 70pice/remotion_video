@@ -2011,6 +2011,31 @@
             ],
             "title": "Voice Model"
           },
+          "voice_style": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Voice Style"
+          },
+          "voice_speech_rate": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": -50.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Voice Speech Rate"
+          },
           "aligner_url": {
             "anyOf": [
               {

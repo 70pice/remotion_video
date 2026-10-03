@@ -48,18 +48,23 @@ def decode_objects(chunks: Iterator[str]) -> Iterator[dict]:
 
 
 def synthesize(repository: Repository, job_id: str, revision: int, text: str, command_id: str = "",
-               cancelled=lambda: False) -> dict[str, Any]:
+               cancelled=lambda: False, *, delivery_style: str = "") -> dict[str, Any]:
     if cancelled():
         raise RenderCancelled("任务已取消")
     config = SettingsService(repository).internal()
     if config.get("voice_provider") == "byte_ws":
         from videoagents.providers.byte_ws_voice import synthesize as synthesize_ws
-        return synthesize_ws(repository, job_id, revision, text, command_id, cancelled=cancelled)
+        options = {"delivery_style": delivery_style} if delivery_style else {}
+        return synthesize_ws(repository, job_id, revision, text, command_id, cancelled=cancelled, **options)
     for provider in ("byte_http", "byte_ws"):
         unsettled = repository.unsettled_operation(job_id, provider, revision)
         if unsettled:
             raise SubmissionUnknown("当前版本的配音提交状态未知；切换接口或音色不会重提，请对账或导入已取得音频", ["voice_operation"],
                                     operation_id=unsettled["operation_id"], request_id=unsettled.get("request_id"))
+    if config.get("voice_style", "").strip() or delivery_style:
+        raise CapabilityMissing("当前风格指导仅支持字节 WebSocket 的 seed-tts-2.0-expressive，请切换服务与模型", ["voice_provider", "voice_model", "voice_style"])
+    if config.get("voice_speech_rate", 0):
+        raise CapabilityMissing("当前语速设置仅接入字节 WebSocket，请切换服务或恢复默认语速", ["voice_provider", "voice_speech_rate"])
     if config.get("voice_provider") != "byte_http" or not config.get("voice_id") or not config.get("voice_resource_id"):
         raise CapabilityMissing("请配置你自己的字节复刻音色和匹配的资源 ID，或导入真实音频与实测时间轴", ["voice", "audio", "alignment"])
     if not config.get("voice_api_key") and not (config.get("voice_app_id") and config.get("voice_access_token")):

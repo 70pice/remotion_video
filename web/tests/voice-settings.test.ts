@@ -44,6 +44,8 @@ describe("ByteDance voice transport settings", () => {
     expect(voiceProviderPatch("byte_http")).toEqual({
       voice_provider: "byte_http",
       voice_endpoint: httpEndpoint,
+      voice_style: "",
+      voice_speech_rate: 0,
     });
     expect(voiceProviderPatch("none")).toEqual({ voice_provider: "none" });
     const switched = { ...current, ...voiceProviderPatch("byte_ws") };
@@ -69,6 +71,8 @@ describe("ByteDance voice transport settings", () => {
       voice_resource_id: "account-specific-resource",
       voice_id: "existing-cloned-voice",
       voice_model: "seed-tts-2.0-standard",
+      voice_style: "",
+      voice_speech_rate: 0,
     });
     expect(values.voice_access_token).toBe("unused-test-token");
   });
@@ -90,6 +94,8 @@ describe("ByteDance voice transport settings", () => {
       voice_provider: "byte_ws",
       voice_model: "custom-synthesis-id",
       voice_api_key: "new-test-key",
+      voice_style: "",
+      voice_speech_rate: 0,
       role_models: { voice: { model: "cli-guidance-id" } },
     });
   });
@@ -108,7 +114,10 @@ describe("ByteDance voice transport settings", () => {
     expect(markup).toContain('aria-label="配音接口地址" type="url"');
     expect(markup).toContain(`value="${wsEndpoint}"`);
     expect(markup).toContain('aria-label="语音合成模型"');
+    expect(markup).toContain('value="seed-tts-2.0-expressive"');
     expect(markup).toContain('value="seed-tts-2.0-standard"');
+    expect(markup).toContain('aria-label="讲述风格"');
+    expect(markup).toContain('aria-label="语速调整"');
     expect(markup).toContain("与配音角色的 CLI 指导模型独立");
     expect(markup).toContain("seed-icl-2.0（按账号实际资源填写）");
     expect(markup).toContain('value="account-specific-resource"');
@@ -118,6 +127,26 @@ describe("ByteDance voice transport settings", () => {
     expect(apiField).toContain('value=""');
     expect(markup).not.toContain("应用 ID");
     expect(markup).not.toContain("访问令牌");
+  });
+
+
+
+  it("clears hidden WebSocket performance values when switching to HTTP", () => {
+    const values: Settings = {
+      ...voiceProviderPatch("byte_ws"),
+      voice_model: "seed-tts-2.0-expressive",
+      voice_style: "像面对观众讲解，重点处加重",
+      voice_speech_rate: 18,
+      ...voiceProviderPatch("byte_http"),
+    };
+
+    expect(createSettingsPayload(values, {})).toEqual({
+      voice_provider: "byte_http",
+      voice_endpoint: httpEndpoint,
+      voice_style: "",
+      voice_speech_rate: 0,
+    });
+    expect(voiceProviderPatch("none")).toEqual({ voice_provider: "none" });
   });
 
   it("retains HTTP legacy fields and reports each credential independently of aggregate readiness", () => {
@@ -138,6 +167,8 @@ describe("ByteDance voice transport settings", () => {
       "○ 未配置",
     );
     expect(markup).not.toContain('aria-label="语音合成模型"');
+    expect(markup).not.toContain('aria-label="讲述风格"');
+    expect(markup).not.toContain('aria-label="语速调整"');
     const payload = createSettingsPayload(
       {
         ...values,
@@ -153,6 +184,8 @@ describe("ByteDance voice transport settings", () => {
       voice_endpoint: httpEndpoint,
       voice_app_id: "legacy-app-id",
       voice_access_token: "updated-test-token",
+      voice_style: "",
+      voice_speech_rate: 0,
     });
   });
 });

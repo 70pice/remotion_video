@@ -1776,6 +1776,33 @@
           "default": null,
           "title": "Voice Model"
         },
+        "voice_style": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Voice Style"
+        },
+        "voice_speech_rate": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": -50,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Voice Speech Rate"
+        },
         "aligner_url": {
           "anyOf": [
             {

@@ -21,7 +21,16 @@ def voice_fingerprint(config: dict[str, Any]) -> str:
         identity.update(provider="byte_ws", model=config.get("voice_model"))
     else:
         identity["app_id"] = config.get("voice_app_id")
+    style, rate = config.get("voice_style", "").strip(), config.get("voice_speech_rate", 0)
+    if style or rate:
+        # 空风格和默认语速保持旧指纹，兼容已有音频；新配置使旧配音失效。
+        identity.update(style=style, speech_rate=rate)
     return fingerprint(identity)
+
+
+def supports_voice_style(config: dict[str, Any]) -> bool:
+    # standard 不保证应用 context_texts 的风格指导，不能声称已生效。
+    return config.get("voice_provider") == "byte_ws" and config.get("voice_model") == "seed-tts-2.0-expressive"
 
 
 def protect(value: str) -> str:

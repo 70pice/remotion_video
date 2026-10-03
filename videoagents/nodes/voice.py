@@ -9,7 +9,7 @@ from videoagents.providers.aligner import align
 from videoagents.providers.byte_voice import synthesize
 from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.jobs import JobService
-from videoagents.services.settings import SettingsService, voice_fingerprint
+from videoagents.services.settings import SettingsService, supports_voice_style, voice_fingerprint
 from videoagents.state import VideoState
 from videoagents.storage import Repository
 from videoagents.storage.repository import fingerprint
@@ -101,23 +101,29 @@ class VoiceNode:
         audio = None
         selected = self.repo.active_audio(job.job_id)
         candidates = [asset for asset in reversed(job.assets) if asset.role == "audio" and (not selected or asset.asset_id == selected)]
+        delivery_style = ""
         if self.model.available("voice"):
             value = self.model.call(job.job_id, job.revision, "voice",
                 "作为配音指导，在实际配音/对齐前检查原文朗读风险、专名和多音字、停顿重音、情绪与受众匹配；给出delivery_notes和pronunciation_notes及findings。"
-                "保持旁白原文；建议仅供人工核验，不能改写文案、伪造或修改实测时间戳、声称已听到音频、生成音频、执行代码或请求额外工具。"
+                "保持旁白原文；delivery_notes 用自然语言描述朗读方式，只在支持的 expressive 配音中作为 context_texts 指导，其他情况仅供人工核验。"
+                "不要输出 SSML 或 CoT 模板，不能改写文案、伪造或修改实测时间戳、声称已听到音频、生成音频、执行代码或请求额外工具。"
                 "发现不能继续配音的文案/音色用途问题须blocking=true。",
                 {"brief": job.brief.model_dump(), "script": job.script.model_dump(),
-                 "voice": {key: settings.get(key) for key in ("voice_provider", "voice_id", "voice_resource_id")}},
+                 "voice": {key: settings.get(key) for key in ("voice_provider", "voice_id", "voice_resource_id", "voice_model", "voice_style", "voice_speech_rate")}},
                 command_id, output_schema=VoiceAdvice.model_json_schema())
             advice = VoiceAdvice.model_validate(value)
             self.service.write_json(job, "voice_guidance.json", advice.model_dump(), "voice_guidance")
             blocked = [item.message for item in advice.findings if item.blocking or item.severity == "error"]
             if blocked:
                 raise ValueError("配音模型预检未通过：" + "；".join(blocked))
+            delivery_style = "\n".join(advice.delivery_notes)[:2000]
         # Guidance can take long enough for settings to change. Filter existing
         # audio with the configuration at selection, then attach generated audio
         # with the provider's actual request fingerprint.
-        voice_hash = voice_fingerprint(SettingsService(self.repo).internal())
+        settings = SettingsService(self.repo).internal()
+        if settings.get("voice_style", "").strip() and not supports_voice_style(settings):
+            raise CapabilityMissing("当前风格指导仅支持字节 WebSocket 的 seed-tts-2.0-expressive；请切换服务与模型，或清空风格后使用人工指导", ["voice_provider", "voice_model", "voice_style"])
+        voice_hash = voice_fingerprint(settings)
         if not (prefer_generation and SettingsService(self.repo).public()["voice_configured"]):
             for candidate in candidates:
                 metadata = self.repo.asset_metadata(candidate.asset_id)
@@ -137,8 +143,11 @@ class VoiceNode:
                 self.repo.update_asset_metadata(audio.asset_id, metadata)
             return audio, alignment, duration
         text = "\n".join(segment.narration for segment in job.script.segments)
-        value = synthesize(self.repo, job.job_id, job.revision, text, command_id,
-                           cancelled=lambda: self.repo.get_job(job.job_id).status == "CANCELLED")
+        options: dict[str, Any] = {"cancelled": lambda: self.repo.get_job(job.job_id).status == "CANCELLED"}
+        # 已有同配置音频照常复用；只有实际新合成才附加指导，用户风格由供应商配置快照优先合并。
+        if delivery_style and supports_voice_style(settings):
+            options["delivery_style"] = delivery_style
+        value = synthesize(self.repo, job.job_id, job.revision, text, command_id, **options)
         from pathlib import Path
         path = Path(value["path"])
         duration = audio_duration(path)
@@ -151,6 +160,7 @@ class VoiceNode:
         alignment = from_byte_sentences(job, audio.sha256, value.get("sentences", []))
         metadata = {"origin": value.get("origin", "byte_http"), "duration_seconds": duration,
                     "script_fingerprint": script_hash, "voice_fingerprint": value.get("voice_fingerprint", voice_hash)}
+        metadata.update({key: value[key] for key in ("voice_model", "voice_style", "voice_speech_rate") if key in value})
         if alignment:
             metadata["alignment"] = alignment.model_dump()
         self.service.freeze_asset(audio)

@@ -157,6 +157,8 @@ describe("independent role model settings", () => {
     expect(createSettingsPayload(values, saved)).toEqual({
       voice_provider: "byte_http",
       voice_api_key: "new-voice-key",
+      voice_style: "",
+      voice_speech_rate: 0,
       search_provider: "tavily",
       google_search_engine_id: "unit-cx",
       research_platforms: ["web", "youtube"],
@@ -164,7 +166,6 @@ describe("independent role model settings", () => {
       capture_enabled: true,
     });
   });
-
 
 
   it("sends WebSocket expressive voice performance controls and hides them for HTTP", () => {
@@ -188,13 +189,7 @@ describe("independent role model settings", () => {
         { ...values, voice_provider: "byte_http", voice_speech_rate: 20 },
         saved,
       ),
-    ).not.toHaveProperty("voice_style");
-    expect(
-      createSettingsPayload(
-        { ...values, voice_provider: "byte_http", voice_speech_rate: 20 },
-        saved,
-      ),
-    ).not.toHaveProperty("voice_speech_rate");
+    ).toMatchObject({ voice_style: "", voice_speech_rate: 0 });
   });
 
   it("patches script discussion settings only when they changed", () => {
@@ -267,7 +262,6 @@ describe("role settings form", () => {
   });
 
 
-
   it("renders WebSocket-only expressive style and speech-rate controls", () => {
     const wsMarkup = renderForm(false, { voice_provider: "byte_ws" });
     expect(wsMarkup).toContain('aria-label="讲述风格"');
@@ -276,8 +270,8 @@ describe("role settings form", () => {
     expect(wsMarkup).toContain('aria-label="语速调整"');
     expect(wsMarkup).toContain('min="-50"');
     expect(wsMarkup).toContain('max="100"');
-    expect(wsMarkup).toContain('value="seed-tts-2.0-expressive"');
     expect(wsMarkup).toContain('value="seed-tts-2.0-standard"');
+    expect(wsMarkup).toContain('value="seed-tts-2.0-expressive"');
     expect(wsMarkup).toContain('seed-tts-2.0-standard');
     expect(wsMarkup).toContain('不支持情绪或表演指导');
     expect(wsMarkup).toContain('seed-tts-2.0-expressive');
@@ -307,4 +301,3 @@ describe("role settings form", () => {
     expect(renderForm(false)).not.toContain('disabled=""');
   });
 });
-

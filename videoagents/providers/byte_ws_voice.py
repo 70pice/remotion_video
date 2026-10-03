@@ -28,7 +28,7 @@ from websockets.sync.client import connect
 
 from videoagents.providers.byte_voice import SubmissionUnknown
 from videoagents.providers.llm import CapabilityMissing
-from videoagents.services.settings import SettingsService, voice_fingerprint
+from videoagents.services.settings import SettingsService, supports_voice_style, voice_fingerprint
 from videoagents.storage import Repository
 from videoagents.storage.repository import fingerprint
 from worker.process_manager import RenderCancelled
@@ -423,7 +423,7 @@ def _cleanup(connection, connection_id: str | None, session_id: str, session_sta
 
 
 def synthesize(repository: Repository, job_id: str, revision: int, text: str, command_id: str = "",
-               cancelled: Callable[[], bool] = lambda: False) -> dict[str, Any]:
+               cancelled: Callable[[], bool] = lambda: False, *, delivery_style: str = "") -> dict[str, Any]:
     _check_cancelled(cancelled)
     config = dict(SettingsService(repository).internal())
     if config.get("voice_provider") != "byte_ws" or config.get("voice_endpoint") != ENDPOINT:
@@ -438,8 +438,24 @@ def synthesize(repository: Repository, job_id: str, revision: int, text: str, co
                                     operation_id=unsettled["operation_id"], request_id=unsettled.get("request_id"))
     if not isinstance(text, str) or not text.strip():
         raise CapabilityMissing("请提供非空旁白正文后生成配音", ["script"])
+    configured_style, rate = config.get("voice_style", ""), config.get("voice_speech_rate", 0)
+    if not isinstance(configured_style, str) or len(configured_style) > 2000 or not isinstance(delivery_style, str):
+        raise CapabilityMissing("配音风格必须是最多 2000 字的自然语言说明", ["voice_style"])
+    if type(rate) is not int or not -50 <= rate <= 100:
+        raise CapabilityMissing("配音语速必须为 -50 到 100 的整数", ["voice_speech_rate"])
+    style = configured_style.strip()
+    notes = delivery_style.strip()
+    if notes:
+        style = (style + "\n" + notes if style else notes)[:2000]
+    if style and not supports_voice_style(config):
+        raise CapabilityMissing("当前风格指导仅支持字节 WebSocket 的 seed-tts-2.0-expressive；standard 不会应用此风格", ["voice_model", "voice_style"])
     request = {"event": int(Event.START_SESSION), "namespace": "BidirectionalTTS", "req_params": {"model": config.get("voice_model", "seed-tts-2.0-standard"),
                "speaker": config["voice_id"], "audio_params": {"format": "mp3", "sample_rate": 24000, "enable_subtitle": True}}}
+    if style:
+        # additions 是 JSON 对象的字符串，context_texts 只发送合并后的一条。
+        request["req_params"]["additions"] = json.dumps({"context_texts": [style]}, ensure_ascii=False)
+    if rate:
+        request["req_params"]["audio_params"]["speech_rate"] = rate
     input_hash = fingerprint({"text": text, "request": request, "resource_id": config["voice_resource_id"]})
     used_voice_fingerprint = voice_fingerprint(config)
     previous = repository.operation(job_id, input_hash, "byte_ws")
@@ -452,6 +468,8 @@ def synthesize(repository: Repository, job_id: str, revision: int, text: str, co
                                     operation_id=previous["operation_id"], request_id=previous.get("request_id"))
     ledger = {"request_id": str(uuid.uuid4()), "session_id": str(uuid.uuid4()), "revision": revision,
               "command_id": command_id, "phase": "connecting"}
+    if style or rate:
+        ledger.update(voice_model=config.get("voice_model"), voice_style=style, voice_speech_rate=rate)
     try:
         task_frame = encode_request(Event.TASK_REQUEST, {"event": int(Event.TASK_REQUEST), "req_params": {"text": text}}, ledger["session_id"])
     except (TypeError, ValueError):

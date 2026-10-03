@@ -27,7 +27,7 @@ import type {
 } from "../api/types";
 import { Notice, PageHeading } from "../components/ui";
 
-const defaultVoiceModel = "seed-tts-2.0-expressive";
+const defaultVoiceModel = "seed-tts-2.0-standard";
 const voiceModelSuggestions = [
   {
     value: "seed-tts-2.0-expressive",
@@ -37,11 +37,6 @@ const voiceModelSuggestions = [
 ];
 const defaultVoiceStyle =
   "像面对观众讲解：开头好奇、重点加重、句间自然停顿，避免播报腔";
-
-type VoicePerformancePatch = {
-  voice_style?: string | null;
-  voice_speech_rate?: number | null;
-};
 
 interface FieldLabel {
   label: string;
@@ -155,7 +150,10 @@ const sections: { title: string; description: string; fields: Field[] }[] = [
 
 export function voiceProviderPatch(
   provider: NonNullable<SettingsPatch["voice_provider"]>,
-): Pick<SettingsPatch, "voice_provider" | "voice_endpoint"> {
+): Pick<
+  SettingsPatch,
+  "voice_provider" | "voice_endpoint" | "voice_style" | "voice_speech_rate"
+> {
   if (provider === "byte_ws") {
     return {
       voice_provider: provider,
@@ -167,6 +165,8 @@ export function voiceProviderPatch(
       voice_provider: provider,
       voice_endpoint:
         "https://openspeech.bytedance.com/api/v3/tts/unidirectional",
+      voice_style: "",
+      voice_speech_rate: 0,
     };
   }
   return { voice_provider: provider };
@@ -200,14 +200,16 @@ function clampVoiceSpeechRate(value: unknown): number {
 }
 
 function voiceStyleValue(values: Settings): string {
-  return typeof values.voice_style === "string" ? values.voice_style : "";
+  return typeof values.voice_style === "string"
+    ? values.voice_style.slice(0, 2000)
+    : "";
 }
 
 export function createSettingsPayload(
   values: Settings,
   saved: Settings,
-): SettingsPatch & VoicePerformancePatch {
-  const payload: SettingsPatch & VoicePerformancePatch = {};
+): SettingsPatch {
+  const payload: SettingsPatch = {};
   for (const section of sections) {
     for (const field of section.fields) {
       if (!showVoiceField(field.key, values.voice_provider)) continue;
@@ -231,6 +233,10 @@ export function createSettingsPayload(
   if (values.voice_provider === "byte_ws") {
     payload.voice_style = voiceStyleValue(values);
     payload.voice_speech_rate = clampVoiceSpeechRate(values.voice_speech_rate);
+  }
+  if (values.voice_provider === "byte_http") {
+    payload.voice_style = "";
+    payload.voice_speech_rate = 0;
   }
   if (
     values.search_provider === "none" ||

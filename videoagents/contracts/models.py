@@ -445,6 +445,8 @@ class SettingsPatch(Contract):
     voice_id: str | None = None
     voice_endpoint: str | None = None
     voice_model: str | None = Field(default=None, max_length=200)
+    voice_style: str | None = Field(default=None, max_length=2000)  # 自然语言配音风格，不修改旁白正文。
+    voice_speech_rate: int | None = Field(default=None, ge=-50, le=100)  # 字节语速百分比调整，0 为默认语速。
     aligner_url: str | None = None
     aligner_api_key: str | None = None
     capture_enabled: bool | None = None

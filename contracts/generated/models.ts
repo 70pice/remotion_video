@@ -259,6 +259,8 @@ export interface SettingsPatch {
   voice_id?: string | null;
   voice_endpoint?: string | null;
   voice_model?: string | null;
+  voice_style?: string | null;
+  voice_speech_rate?: number | null;
   aligner_url?: string | null;
   aligner_api_key?: string | null;
   capture_enabled?: boolean | null;

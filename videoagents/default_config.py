@@ -17,6 +17,7 @@ DEFAULT_SETTINGS = {
     "voice_provider": "none", "voice_app_id": "", "voice_resource_id": "", "voice_id": "",
     "voice_endpoint": "https://openspeech.bytedance.com/api/v3/tts/unidirectional",
     "voice_model": "seed-tts-2.0-standard",
+    "voice_style": "", "voice_speech_rate": 0,
     "aligner_url": "", "capture_enabled": True, "max_llm_calls": 12,
     "max_voice_chars": 10000, "render_timeout_seconds": 1800,
 }
