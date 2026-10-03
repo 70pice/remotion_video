@@ -60,6 +60,63 @@ class Script(Contract):
         return self
 
 
+class ScriptCritiqueIssue(Contract):
+    segment_id: str = Field(default="", max_length=100)
+    category: Literal["fact", "logic", "hook", "clarity", "visual", "rights"]
+    concern: str = Field(min_length=1, max_length=1500)
+    suggestion: str = Field(min_length=1, max_length=1500)
+
+
+class ScriptCritique(Contract):
+    decision: Literal["APPROVE", "REVISE"]
+    summary: str = Field(min_length=1, max_length=1500)
+    strengths: list[str] = Field(default_factory=list, max_length=20)
+    issues: list[ScriptCritiqueIssue] = Field(default_factory=list, max_length=30)
+
+    @field_validator("strengths")
+    @classmethod
+    def readable_strengths(cls, values: list[str]) -> list[str]:
+        if any(not value.strip() or len(value) > 500 for value in values):
+            raise ValueError("文案优点须为非空文本，每条最多 500 字")
+        return values
+
+    @model_validator(mode="after")
+    def decision_matches_issues(self) -> "ScriptCritique":
+        if (self.decision == "REVISE") != bool(self.issues):
+            raise ValueError("要求修改必须指出具体问题；通过时不能保留未解决问题")
+        return self
+
+
+class ScriptRewrite(Contract):
+    script: Script
+    response: str = Field(min_length=1, max_length=3000)
+
+
+class ScriptDiscussionRound(Contract):
+    round: int = Field(ge=1, le=5)
+    script: Script
+    response: str = Field(default="", max_length=3000)
+    critique: ScriptCritique | None = None
+
+
+class ScriptDiscussion(Contract):
+    run_id: str = Field(min_length=1, max_length=200)
+    revision: int = Field(ge=1)
+    enabled: bool = False
+    max_rounds: int = Field(default=2, ge=1, le=5)
+    status: Literal["DISABLED", "DISCUSSING", "APPROVED", "EXHAUSTED"] = "DISABLED"
+    rounds: list[ScriptDiscussionRound] = Field(default_factory=list, max_length=5)
+
+    @model_validator(mode="after")
+    def ordered_rounds(self) -> "ScriptDiscussion":
+        if len(self.rounds) > self.max_rounds or any(
+            item.round != index + 1 or item.script.revision != self.revision
+            for index, item in enumerate(self.rounds)
+        ):
+            raise ValueError("讨论轮数、顺序或文案版本不一致")
+        return self
+
+
 class Asset(Contract):
     asset_id: str
     name: str
@@ -227,7 +284,7 @@ class ComponentEntry(Contract):
 
 
 Status = Literal["DRAFT", "QUEUED", "RUNNING", "NEEDS_INPUT", "NEEDS_HUMAN", "READY_FOR_PUBLISH", "REJECTED", "FAILED", "CANCELLED"]
-Stage = Literal["idle", "script", "voice", "director", "render", "review", "complete"]
+Stage = Literal["idle", "materials", "script", "voice", "director", "render", "review", "complete"]
 
 
 class Job(Contract):
@@ -241,6 +298,7 @@ class Job(Contract):
     updated_at: str
     brief: Brief
     script: Script | None = None
+    script_discussion: ScriptDiscussion | None = None
     timeline: Timeline | None = None
     assets: list[Asset] = Field(default_factory=list)
     artifacts: list[Artifact] = Field(default_factory=list)
@@ -270,7 +328,7 @@ class ResumeRequest(Contract):
     pending_token: str = Field(min_length=16, max_length=100)
 
 
-RoleId = Literal["screenwriter", "voice", "director", "editing", "review"]
+RoleId = Literal["materials", "screenwriter", "script_reviewer", "voice", "director", "editing", "review"]
 ModelProvider = Literal["codex_cli", "claude_code_cli"]
 
 
@@ -298,7 +356,9 @@ class RoleModelConfig(Contract):
 
 
 class RoleModels(Contract):
+    materials: RoleModelConfig = Field(default_factory=RoleModelConfig)
     screenwriter: RoleModelConfig = Field(default_factory=RoleModelConfig)
+    script_reviewer: RoleModelConfig = Field(default_factory=RoleModelConfig)
     voice: RoleModelConfig = Field(default_factory=RoleModelConfig)
     director: RoleModelConfig = Field(default_factory=RoleModelConfig)
     editing: RoleModelConfig = Field(default_factory=RoleModelConfig)
@@ -308,7 +368,7 @@ class RoleModels(Contract):
 class ModelFinding(Contract):
     severity: Literal["error", "warning", "info"]
     message: str = Field(min_length=1, max_length=1500)
-    owner: Literal["screenwriter", "voice", "director", "editing", "review", "user"]
+    owner: Literal["materials", "screenwriter", "voice", "director", "editing", "review", "user"]
     blocking: bool
 
 
@@ -342,10 +402,41 @@ class ContentReviewAdvice(Contract):
     findings: list[ModelFinding] = Field(default_factory=list, max_length=30)
 
 
+class MaterialPlan(Contract):
+    """素材模型只规划检索问题，不能在采集前生成事实或虚构图片。"""
+
+    query: str = Field(min_length=1, max_length=2000)
+    focus_notes: list[str] = Field(default_factory=list, max_length=10)
+    ambiguities: list[str] = Field(default_factory=list, max_length=10)
+
+    @field_validator("query")
+    @classmethod
+    def readable_query(cls, value: str) -> str:
+        if not value.strip() or any(ord(char) < 32 for char in value):
+            raise ValueError("检索词须为非空单行文本")
+        return value.strip()
+
+    @field_validator("focus_notes", "ambiguities")
+    @classmethod
+    def readable_notes(cls, values: list[str]) -> list[str]:
+        if any(not value.strip() or len(value) > 500 for value in values):
+            raise ValueError("研究重点与歧义说明须为非空文本，每条最多 500 字")
+        return values
+
+
 class SettingsPatch(Contract):
     role_models: dict[RoleId, RoleModelConfig] | None = None
-    search_provider: Literal["none", "tavily"] | None = None
+    script_discussion_enabled: bool | None = None
+    script_discussion_max_rounds: int | None = Field(default=None, ge=1, le=5)
+    search_provider: Literal["none", "opencli_google", "tavily", "google_cse"] | None = None
     search_api_key: str | None = None
+    google_search_engine_id: str | None = Field(default=None, max_length=200)
+    research_platforms: list[str] | None = Field(default=None, min_length=1, max_length=40)
+    research_results_per_platform: int | None = Field(default=None, ge=1, le=5)
+    research_max_searches: int | None = Field(default=None, ge=1, le=32)
+    research_max_sources: int | None = Field(default=None, ge=1, le=30)
+    research_max_visuals: int | None = Field(default=None, ge=0, le=20)
+    research_download_images: bool | None = None
     voice_provider: Literal["none", "byte_http", "byte_ws"] | None = None
     voice_app_id: str | None = None
     voice_access_token: str | None = None
@@ -360,3 +451,14 @@ class SettingsPatch(Contract):
     max_llm_calls: int | None = Field(default=None, ge=1, le=100)
     max_voice_chars: int | None = Field(default=None, ge=1, le=100000)
     render_timeout_seconds: int | None = Field(default=None, ge=30, le=7200)
+
+    @field_validator("research_platforms")
+    @classmethod
+    def supported_platforms(cls, values: list[str] | None) -> list[str] | None:
+        if values is None:
+            return None
+        from videoagents.tools.research import PLATFORM_CATALOG
+        known = {item["id"] for item in PLATFORM_CATALOG}
+        if len(set(values)) != len(values) or not set(values) <= known:
+            raise ValueError("素材平台必须来自工具目录，且不能重复")
+        return values

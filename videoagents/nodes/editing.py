@@ -1,12 +1,15 @@
 """Freeze verified media, render a real MP4 and register inspectable outputs."""
 
 import uuid
+from typing import Any
 
-from videoagents.agents.reviewers import dependency_fingerprint
 from videoagents.contracts import EditingAdvice, Job
-from videoagents.providers.llm import JsonModel
+from videoagents.nodes.common import request_input, start_stage, state_context
+from videoagents.nodes.reviewers import dependency_fingerprint
+from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
+from videoagents.state import VideoState
 from videoagents.storage import Repository
 from videoagents.tools.timeline import validate_timeline
 from worker.process_manager import render
@@ -17,7 +20,19 @@ class EditingNode:
         self.repo, self.service = repository, service
         self.model = JsonModel(repository)
 
-    def run(self, job: Job, mode: str) -> None:
+    def __call__(self, state: VideoState) -> dict[str, Any]:
+        job = start_stage(self.repo, state, "render", "剪辑正在冻结素材并调用 Remotion")
+        mode = "preview" if state["action"] == "preview" else "final"
+        try:
+            self.render_video(job, mode)
+        except (CapabilityMissing, ValueError, TimeoutError) as exc:
+            return request_input(self.repo, state, "render", [str(exc)], getattr(exc, "fields", ["render"]), exc)
+        if mode == "preview":
+            job = self.repo.update_job(job.job_id, job.revision, status="DRAFT", message="真实预览已渲染，可试听并调整分镜", stage="render", progress=1)
+            return state_context(self.repo, state, route="end")
+        return state_context(self.repo, state, route="reviewers")
+
+    def render_video(self, job: Job, mode: str) -> None:
         if not job.timeline:
             raise ValueError("没有可执行分镜")
         validate_timeline(job.timeline, job)

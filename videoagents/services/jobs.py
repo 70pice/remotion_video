@@ -13,7 +13,7 @@ from videoagents.storage import Repository
 from videoagents.tools.media import audio_duration, detect_media, probe, sha256
 from videoagents.tools.timeline import validate_timeline
 
-INVALIDATED = {"preview", "final", "cover", "timeline", "review", "package", "captions", "storyboard"}
+INVALIDATED = {"preview", "final", "cover", "timeline", "review", "package", "captions", "storyboard", "script_discussion"}
 
 
 class JobService:
@@ -27,9 +27,10 @@ class JobService:
         def edit(job: Job) -> Job:
             new_revision = job.revision + 1
             if request.brief:
+                brief_changed = request.brief.script_text != job.brief.script_text or request.brief.topic != job.brief.topic
                 if not request.brief.topic.strip() and not request.brief.script_text.strip():
                     raise ValueError("主题和文案不能同时为空")
-                if request.brief.script_text != job.brief.script_text or request.brief.topic != job.brief.topic:
+                if brief_changed:
                     job.script = None
                 job.brief = request.brief
             if request.script:
@@ -45,8 +46,10 @@ class JobService:
             if job.script:
                 job.script.revision = new_revision
             job.revision = new_revision
+            job.script_discussion = None
             job.review, job.pending_input, job.progress = None, None, None
-            job.artifacts = [item for item in job.artifacts if item.kind not in INVALIDATED]
+            invalidated = INVALIDATED | ({"research", "source"} if request.brief and brief_changed else set())
+            job.artifacts = [item for item in job.artifacts if item.kind not in invalidated]
             job.status, job.stage, job.message = "DRAFT", "idle", "新版草稿已保存，下游渲染与审核已失效"
             return job
         return self.repo.edit_job(job_id, request.base_revision, edit)
@@ -140,6 +143,7 @@ class JobService:
             raise ValueError("对齐超出实测音频时长")
         def edit(current: Job) -> Job:
             current.revision += 1
+            current.script_discussion = None
             if current.script:
                 current.script.revision = current.revision
             current.timeline, current.review, current.pending_input = None, None, None

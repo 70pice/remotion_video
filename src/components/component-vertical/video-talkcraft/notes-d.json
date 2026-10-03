@@ -1,0 +1,218 @@
+[
+  {
+    "slug": "whip-pan-transition",
+    "title": "横甩转场",
+    "variant": "whip",
+    "durationInFrames": 84,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "从一屏甩到下一屏"
+  },
+  {
+    "slug": "caret-wipe-transition",
+    "title": "光标擦除",
+    "variant": "caret",
+    "durationInFrames": 103,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "边界走过就是新画面"
+  },
+  {
+    "slug": "chapter-progress-list",
+    "title": "章节进度",
+    "variant": "chapter",
+    "durationInFrames": 111,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "竖屏阅读版章节表"
+  },
+  {
+    "slug": "line-carry-transition",
+    "title": "线条接力",
+    "variant": "line-carry",
+    "durationInFrames": 204,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "上一段把问题交给下一段"
+  },
+  {
+    "slug": "long-take-world",
+    "title": "长镜头世界",
+    "variant": "world",
+    "durationInFrames": 213,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "纵向流程画布持续推进"
+  },
+  {
+    "slug": "impact-open-title",
+    "title": "冲击开场",
+    "variant": "impact",
+    "durationInFrames": 97,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "第一秒抓住注意力"
+  },
+  {
+    "slug": "keyword-pop-highlight",
+    "title": "关键词弹出",
+    "variant": "keyword",
+    "durationInFrames": 42,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "口播里突然站出来的重点"
+  },
+  {
+    "slug": "slab-punch-title",
+    "title": "重点放大",
+    "variant": "slab",
+    "durationInFrames": 91,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "一块一块砸出主标题"
+  },
+  {
+    "slug": "title-demote-to-label",
+    "title": "标题降格成标签",
+    "variant": "demote",
+    "durationInFrames": 189,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "大标题退到角落变成栏目名"
+  },
+  {
+    "slug": "type-contrast-emphasis",
+    "title": "字体对比重音",
+    "variant": "contrast",
+    "durationInFrames": 67,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "用大小和粗细制造重音"
+  },
+  {
+    "slug": "word-slot-cycle",
+    "title": "词槽轮换",
+    "variant": "slot",
+    "durationInFrames": 206,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "中间词槽按节奏切换"
+  },
+  {
+    "slug": "alt-block-lines",
+    "title": "双色块对句",
+    "variant": "blocks",
+    "durationInFrames": 91,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "适合观点对比或两句金句"
+  },
+  {
+    "slug": "count-badge-title",
+    "title": "数字重音标题",
+    "variant": "badge",
+    "durationInFrames": 112,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "数字先出现再带出标题"
+  },
+  {
+    "slug": "error-retype",
+    "title": "打字改口",
+    "variant": "retype",
+    "durationInFrames": 177,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "先删掉错误判断再打出新结论"
+  },
+  {
+    "slug": "lead-word-zoom-assemble",
+    "title": "首词占满补句",
+    "variant": "lead",
+    "durationInFrames": 156,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "首词大到占屏再补齐句子"
+  },
+  {
+    "slug": "line-by-line-slide",
+    "title": "逐行滑入",
+    "variant": "lines",
+    "durationInFrames": 120,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "一行一个信息点"
+  },
+  {
+    "slug": "outline-box-title",
+    "title": "描边框标题",
+    "variant": "outline",
+    "durationInFrames": 103,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "用框线收住主标题"
+  },
+  {
+    "slug": "per-character-rise",
+    "title": "逐字升起",
+    "variant": "chars",
+    "durationInFrames": 85,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "字从基线下方逐个升起"
+  },
+  {
+    "slug": "quote-bracket-pull",
+    "title": "引号夹句",
+    "variant": "brackets",
+    "durationInFrames": 119,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "引号把金句拉到中心"
+  },
+  {
+    "slug": "quote-card",
+    "title": "金句大字卡",
+    "variant": "quote",
+    "durationInFrames": 123,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "适合结论页和转折页"
+  },
+  {
+    "slug": "soft-blur-in",
+    "title": "柔焦淡入",
+    "variant": "blur",
+    "durationInFrames": 92,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "从模糊慢慢清晰"
+  },
+  {
+    "slug": "speed-slab-title",
+    "title": "速度块标题",
+    "variant": "speed",
+    "durationInFrames": 98,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "快速色块推出标题"
+  },
+  {
+    "slug": "tracking-in",
+    "title": "字距收拢",
+    "variant": "tracking",
+    "durationInFrames": 90,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "字距从松散收成标题"
+  },
+  {
+    "slug": "typewriter-reveal",
+    "title": "打字机档案戳",
+    "variant": "typewriter",
+    "durationInFrames": 187,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "文字像档案一样逐字出现"
+  },
+  {
+    "slug": "countdown-arc-scatter",
+    "title": "数字弧落标题",
+    "variant": "countdown",
+    "durationInFrames": 162,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "数字从弧线上落成标题"
+  },
+  {
+    "slug": "flying-words",
+    "title": "关键词隧道",
+    "variant": "flying",
+    "durationInFrames": 192,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "深色背景中的 AI 词汇穿梭"
+  },
+  {
+    "slug": "split-text-stagger",
+    "title": "逐字裂升",
+    "variant": "split",
+    "durationInFrames": 156,
+    "layout": "native 1080x1920 portrait composition",
+    "note": "标题逐字从裁切盒升起"
+  }
+]

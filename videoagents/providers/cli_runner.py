@@ -107,15 +107,19 @@ def _codex_event(line: str) -> tuple[dict[str, Any] | None, dict[str, Any] | Non
     kind = event.get("type")
     if kind in {"item.started", "item.updated", "item.completed"}:
         item = event.get("item", {})
-        if not isinstance(item, dict) or item.get("type") not in {"reasoning", "agent_message"}:
+        # Error items carry CLI configuration/deprecation/reroute notices;
+        # todo lists are local planning metadata. Neither executes a tool.
+        if not isinstance(item, dict) or item.get("type") not in {"reasoning", "agent_message", "error", "todo_list"}:
             raise CliFailure("unexpected_tool_event")
         if kind == "item.completed" and item.get("type") == "agent_message":
             return _business_object(json.loads(item.get("text", ""))), None
     elif kind == "turn.completed":
         return None, event.get("usage")
-    elif kind in {"error", "turn.failed"}:
+    elif kind == "turn.failed":
         raise CliFailure("cli_reported_error")
-    elif kind not in {"thread.started", "turn.started"}:
+    # Top-level errors can be recoverable server notifications. Discard their
+    # text; run_cli still requires structured output, turn completion and exit 0.
+    elif kind not in {"thread.started", "turn.started", "error"}:
         raise CliFailure("unexpected_cli_event")
     return None, None
 

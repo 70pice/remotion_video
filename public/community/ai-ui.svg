@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" rx="24" fill="#101827"/>
+  <rect width="1280" height="54" rx="24" fill="#1f2937"/>
+  <circle cx="30" cy="27" r="7" fill="#ef4444"/><circle cx="54" cy="27" r="7" fill="#fbbf24"/><circle cx="78" cy="27" r="7" fill="#34d399"/>
+  <text x="116" y="34" fill="#cbd5e1" font-family="Arial,sans-serif" font-size="20">AI Assistant - DEMO</text>
+  <rect x="30" y="88" width="230" height="594" rx="16" fill="#1f2937"/>
+  <text x="54" y="134" fill="#e2e8f0" font-family="Arial,sans-serif" font-size="23">New conversation</text>
+  <rect x="50" y="163" width="188" height="14" rx="7" fill="#475569"/><rect x="50" y="198" width="151" height="14" rx="7" fill="#334155"/>
+  <text x="310" y="154" fill="#f8fafc" font-family="Arial,sans-serif" font-size="36">How does an AI agent work?</text>
+  <rect x="310" y="198" width="860" height="80" rx="18" fill="#334155"/>
+  <text x="338" y="246" fill="#f8fafc" font-family="Arial,sans-serif" font-size="24">Explain the process with a simple example.</text>
+  <text x="320" y="337" fill="#34d399" font-family="Arial,sans-serif" font-size="24">1. Understand the goal</text>
+  <text x="320" y="390" fill="#93c5fd" font-family="Arial,sans-serif" font-size="24">2. Choose a tool and act</text>
+  <text x="320" y="443" fill="#c4b5fd" font-family="Arial,sans-serif" font-size="24">3. Check the result</text>
+  <rect x="310" y="561" width="900" height="90" rx="20" fill="#1f2937" stroke="#475569" stroke-width="2"/>
+  <text x="340" y="615" fill="#94a3b8" font-family="Arial,sans-serif" font-size="23">Ask a follow-up question...</text>
+  <circle cx="1160" cy="606" r="26" fill="#34d399"/><path d="M1148 610l12-13 12 13M1160 598v23" stroke="#101827" fill="none" stroke-width="4"/>
+</svg>

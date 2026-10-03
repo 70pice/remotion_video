@@ -2,6 +2,56 @@
 
 2026-10-03。React 前端、FastAPI API、独立 worker、持久 LangGraph 工作流和 Remotion 生产入口已实现并完成本机联调。设计记录见 [原方案](videoagents-design.md)，操作见 [使用说明](videoagents-setup.md)，接口见 [共享契约](videoagents-implementation-contract.md)。
 
+## 素材节点优先与跨平台研究更新
+
+起点调整为 `START → materials → screenwriter`。新增独立素材模型配置（Codex CLI / Claude Code CLI），角色总数七个。素材节点采集来源正文、真实图片和网页截图，冻结研究包后交给编剧；导演同时读取出处、说明和知识摘录匹配素材。编剧自身的采集逻辑已移除，文案讨论和人工审核继续保留。完整 **32 项平台目录**、配置、数据交接与素材人工审核示例见 [素材节点](videoagents-materials.md)。
+
+前端增加平台勾选、预算、图片/截图开关及默认素材研究页签。检索方式、结果数、不可用/失败/预算耗尽、来源快照、登记图片与出处可查看。原生工具和公开索引分开记录；未接入账号原生能力的平台不声称已登录可用。Google 检索支持本机 OpenCLI，Tavily/已有 Google CSE 保留。
+
+最终全量 **300 Python、60 React 测试通过**；Ruff、共享契约一致性、根 TypeScript/lint、React typecheck/build 通过。新回归覆盖图顺序、素材暂停/恢复、来源与视觉交接、部分失败、域名过滤、图片归属、失败图片兜底、冻结重放、UNKNOWN 结果限额变化保护、原生子进程取消及提交水位竞态。独立静态审查提出的三个 P2 已修复并通过定向回归。
+
+真实只读联调使用“Muse是什么”：Google 原生 OpenCLI 和 Reddit 的 Google 公开索引均返回结果；读取 4268 字符来源正文并登记网页截图。首轮成功下载真实 JPEG，复测时同 CDN 返回 ConnectError，失败按实记录，截图继续可用。该联调限定两个平台、一个来源、两个视觉尝试，证明本机获取链路，不代表 32 个平台全部可访问，也没有调用语言模型、配音或渲染。联调收据在 `out/videoagents-materials-live-evidence.json`，使用独立测试运行库。
+
+正式工作台已刷新于 `http://127.0.0.1:8000`，首页 200、worker 心跳正常；公开设置返回七角色和 32 项工具，无原始密钥。已配置本机 OpenCLI Google、截图和真实图片下载；原有各角色模型及配音设置未被替换。
+
+浏览器联调确认 32 个平台控件、素材独立模型和实际研究包/登记图片加载，无浏览器运行错误。素材页面使用独立联调任务的真实回执作为只读 fixture，没有在正式库创建示例任务。界面截图为 `out/videoagents-materials-settings-review.png` 与 `out/videoagents-materials-workspace-review.png`。独立复审重新执行四项修复回归通过，三个 P2 均已关闭。
+
+## VideoState 通用上下文更新
+
+`VideoState` 扩展为贯穿全部节点的业务上下文：任务要求、文案与讨论、研究来源、素材和媒体元信息、音频/对齐、朗读与剪辑指导、分镜、产物、审核与人工记录、公开设置及操作/预算记录都在同一字典中。`extras` 接收自定义 JSON 数据并浅合并，遗漏保留、显式 null 留值。真实媒体保存引用，密钥和运行时连接留在服务/节点对象中。字段、调用和自定义节点示例见 [通用上下文](videoagents-context.md)。
+
+内置节点入口将上下文中的合法 `brief/script/timeline/assets` 增量先保存，再推进阶段或人工待办；完成后返回最新完整上下文。身份、版本、状态、审批与提交凭据由持久化流程管理，SQL 领先 checkpoint 时复用已提交结果，旧精简 checkpoint 在节点入口补全。业务变更使旧下游产物失效；已冻结讨论或人工待办必须通过新版本修改。新执行不会复用上一次执行的讨论策略。素材增量必须绑定当前任务的已登记文件、hash/大小/MIME/URL、受控路径及音频实测元信息。
+
+Fresh 验证：新增 **26 项上下文回归**，全量 **270 Python 测试通过**；Ruff、生成契约一致性、React typecheck 通过。覆盖真实 LangGraph 自定义节点部分交接、SQLite 关闭重开、旧 checkpoint、SQL 领先、版本/取消、清空字段、JSON 限制、公开配置、指导与人审回执，以及合法/缺失/跨任务/篡改素材。独立审查发现的素材归属 P2 已修复并回归，最终无遗留可行动问题；正式判定为 COMMENT，因为该 lane 不提供 LSP，采用 Ruff、Python 编译与定向回归验证。
+
+确认没有 PENDING/CLAIMED 命令后重启本机 API/worker。首页 HTTP 200、API health 和 worker 心跳正常；受会话保护的设置接口仍返回六角色且不包含密钥。本次未调用实际 CLI 模型、配音或渲染服务，HTTP Job 契约及前端界面保持兼容。
+
+## 编剧与文案审查讨论更新
+
+参考同级 TradingAgents 的多空辩论：节点顺序交替，将历史写入共享 state，并用计数限制轮次。新增 `nodes/script_reviewer.py`，与 `ScreenwriterNode` 在文案阶段循环；审查给出结构化问题，编剧读取历史及意见生成完整修改稿和回应。通过后进入原有来源/素材硬检查，达到上限仍需修改则暂停。默认关闭，启用后默认 2 轮，可配置 1–5 轮；编剧与文案审查各自选择 CLI 和任意模型 ID。源码、状态和操作见 [文案讨论说明](videoagents-script-discussion.md)。
+
+React 设置页增加第六张模型卡及讨论配置，文案工作区显示每轮完整稿件、来源/素材引用、意见、建议、回应和已完成审查轮数。开关及轮数在本次执行首次调用模型前冻结；模型设置仍影响后续实际调用，UNKNOWN 继续阻止同角色/版本重复提交。讨论和稿件保存为不可变 JSON，SQL 已保存但 checkpoint 未保存的恢复会复用已有轮次。编辑、素材导入或对齐形成新版本时清空旧讨论。
+
+Fresh 验证：本次新增 **21 项后端回归**（18 项讨论、2 项节点保护、1 项设置 API），全量 **244 Python、56 React 测试通过**；Ruff、契约一致性、React typecheck/build、根 typecheck/lint 和 10 项 Remotion 时间轴测试通过。覆盖真实改稿、1/5 轮上限、缺模型恢复、矛盾审查输出、假来源拒绝、来源硬检查、UNKNOWN 模型切换、冻结开关/轮数、首稿/改稿/审查保存后的 checkpoint 崩溃重放及版本清空。独立审查发现同版本自动改稿后的旧视频引用问题，修复后回归验证仅改稿时清空当前下游引用；审查最终 **APPROVE，无遗留可行动问题**。
+
+本机服务已重启，首页 HTTP 200、API health 和 worker 心跳正常；受会话保护的设置接口实测返回六角色、讨论默认关闭及最多 2 轮。本次未调用真实 CLI 模型、配音或渲染服务。前端验证采用组件测试和构建，浏览器 CDP 连接超时，未把该次浏览器检查算作成功。
+
+## 节点代码合并更新
+
+删除 `videoagents/agents/`，编剧、配音、导演、剪辑和审核统一为 `videoagents/nodes/` 下的 callable 节点类。各类的 `__call__(state)` 直接完成阶段执行、保存和路由；图中不再有 `node_*` 包装方法及动态 `getattr` 注册，只保留明确的 `add_node`、连线、checkpoint 和命令执行/恢复。检查节点集中在 `nodes/gates.py`，等待输入及最终人工确认在 `nodes/await_input.py`；可编排人工审核保持原入口。结构与调用说明见 [节点说明](videoagents-nodes.md)。
+
+保持原有节点名、路由和状态契约，CLI 角色配置及外部操作台账不变。新增加 **23 项节点独立调用及版本/取消回归**，全量 **223 Python、51 React 测试通过**；Ruff、契约一致性、React typecheck/build 通过。已有人工审核、崩溃恢复与 UNKNOWN 测试继续通过。服务在确认无等待/执行命令后重启；本次没有执行实际模型、配音或视频渲染调用。
+
+五角色业务方法的 AST 对比确认搬迁前后语句一致；独立代码审查无可行动问题，95 项定向回归、Ruff 及 Python 编译检查通过。审查环境没有 `lsp_diagnostics` / `ast_grep_search`，使用上述检查替代；审查正式标记为 COMMENT，没有声称完成不可用工具的验证。重启后首页 HTTP 200、API health 及 worker 心跳正常。
+
+## 可编排人工审核节点更新
+
+新增独立 `HumanReviewNode` 和 `add_human_review()` 注册入口。默认图增加 `human_review`，没有接入主流程；用户可替换任意阶段的成功分支，配置标题、检查清单、阶段、说明长度和通过后的节点，也可串联多个审核点。编排示例见 [人工审核节点](videoagents-human-review.md)。确认继续，返工停止等待版本编辑，取消结束；确认通向 END 时任务回到 DRAFT，阶段确认不会生成发布资格。
+
+复用现有 SQLite checkpoint、恢复 API 和 interrupt ID/token 绑定。待审输入覆盖当前文案、分镜、素材、真实文件 hash 及音频对齐元数据；内容、版本或审核要求变化后的旧回复不能通过。审核记录使用稳定文件及 artifact ID，恢复不会重复生成记录。React 工作台顶层提供阶段审核卡，无需已生成成片；最终成片审核继续保留。
+
+Fresh 验证：新增 **21 项后端、8 项前端测试**，总计 **200 Python、51 React 测试通过**；Ruff、契约一致性及 React typecheck/build 通过。回归覆盖默认流程不变、暂停后重建图恢复、confirm/revise/cancel、短说明新待办、过期 token、内容/配置/文件/对齐元数据变更、串联两个审核点，以及 SQL 保存后 checkpoint 前的确认和新问题崩溃恢复。现有认证 API 可恢复阶段审核并读取记录；React SSR 验证无需成片也显示审核卡且隐藏最终成片确认。未发起实际模型、配音或渲染调用。生产服务已重启，HTTP 200 和 worker 健康检查通过。
+
 ## 字节双向 WebSocket 配音更新
 
 按用户提供的[新版 SOP](https://docs.volcengine.com/docs/DoubaoVoice/bidirectional-streaming-text-to-speech-websocket?lang=zh)接入 `byte_ws`：API Key +资源 ID 鉴权、可配置语音模型、24 kHz MP3 和真实字幕事件 364。保留旧 HTTP。React 声音卡独立配置语音合成模型，隐藏 WebSocket 不使用的旧 App ID/令牌；五角色 CLI 配置保持独立。用户凭据只写入 Windows DPAPI 保护的运行数据库，公开 API 仅返回已配置状态。
@@ -54,9 +104,8 @@ D:\remotion_video\
 ├─ server/                      FastAPI、会话/CSRF、上传、媒体 Range
 ├─ worker/                      持久命令领取、租约、恢复、进程管理
 ├─ videoagents/
-│  ├─ graph/video_graph.py       StateGraph、条件边、interrupt、恢复
-│  ├─ agents/                   编剧、导演、审核
-│  ├─ nodes/                    配音及 Remotion 剪辑节点
+│  ├─ graph/video_graph.py       StateGraph 注册、条件边、checkpoint 与恢复
+│  ├─ nodes/                    六角色、阶段检查、人工审核及等待输入节点
 │  ├─ contracts/                canonical Pydantic 契约
 │  ├─ providers/                LLM、搜索、字节、对齐、出站校验
 │  ├─ services/                 版本编辑、导入及 write-only 设置
@@ -70,7 +119,7 @@ D:\remotion_video\
 └─ package.json + package-lock.json
 ```
 
-推荐阅读顺序：`web/src/pages/JobWorkspacePage.tsx` → `web/src/api/client.ts` → `server/main.py` → `worker/runner.py` → `videoagents/graph/video_graph.py` → 五个角色 → `src/video-production/VideoFromTimeline.tsx`。React 学习入口另见 [前端说明](../web/README.md)。
+推荐阅读顺序：`web/src/pages/JobWorkspacePage.tsx` → `web/src/api/client.ts` → `server/main.py` → `worker/runner.py` → `videoagents/graph/video_graph.py` → `videoagents/nodes/` → `src/video-production/VideoFromTimeline.tsx`。节点修改与调用入口见 [节点说明](videoagents-nodes.md)，React 学习入口另见 [前端说明](../web/README.md)。
 
 运行数据位于 `.runtime/videoagents/jobs/<job_id>/`；受控渲染素材在 `public/videoagents/<job_id>/`。运行数据库、密钥、日志、上传文件和测试输出不加入 Git。
 

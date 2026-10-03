@@ -1,0 +1,86 @@
+[
+  {
+    "repo": "remocn",
+    "commit": "8ae853e4c08108105684d4b8cac7f22400840d2a",
+    "sourcePath": "registry/remocn/animated-line-chart/index.tsx",
+    "localPath": "src/components/community/remocn/animated-line-chart/index.tsx",
+    "upstreamSha256": "4aa9fabbbac77697fb74b93698b9f01dc859bab3ef2b0225f0c09fc71c6cc69f"
+  },
+  {
+    "repo": "remocn",
+    "commit": "8ae853e4c08108105684d4b8cac7f22400840d2a",
+    "sourcePath": "registry/remocn/code-morph/index.tsx",
+    "localPath": "src/components/community/remocn/code-morph/index.tsx",
+    "upstreamSha256": "2c53b4946b1839c804a4e07fe3687f95fb06b0ad0a21b72c0452245e4692c5d4"
+  },
+  {
+    "repo": "remocn",
+    "commit": "8ae853e4c08108105684d4b8cac7f22400840d2a",
+    "sourcePath": "registry/remocn-ui/caret/index.tsx",
+    "localPath": "src/components/community/remocn/caret/index.tsx",
+    "upstreamSha256": "5ddc5cd51db5e76afe706ee39f739605faaf56a06de1fb106c43db67762010f5"
+  },
+  {
+    "repo": "remocn",
+    "commit": "8ae853e4c08108105684d4b8cac7f22400840d2a",
+    "sourcePath": "registry/remocn-ui/core/color.ts",
+    "localPath": "src/components/community/remocn/lib/color.ts",
+    "upstreamSha256": "18ce7758f5c07d269318d364c5ad14f08e1d731f44493d0a49c98fed3e7f612b"
+  },
+  {
+    "repo": "remocn",
+    "commit": "8ae853e4c08108105684d4b8cac7f22400840d2a",
+    "sourcePath": "registry/remocn-ui/core/index.ts",
+    "localPath": "src/components/community/remocn/lib/index.ts",
+    "upstreamSha256": "62894a26d250a7b75c296fd878f01f58f4c3c505a54a305da9de1236b16556fd"
+  },
+  {
+    "repo": "remocn",
+    "commit": "8ae853e4c08108105684d4b8cac7f22400840d2a",
+    "sourcePath": "registry/remocn-ui/core/motion.ts",
+    "localPath": "src/components/community/remocn/lib/motion.ts",
+    "upstreamSha256": "88ce1d54284b92cb86aa44b3243119cbec6c46a844af67b33f9deaedf1624d63"
+  },
+  {
+    "repo": "remocn",
+    "commit": "8ae853e4c08108105684d4b8cac7f22400840d2a",
+    "sourcePath": "registry/remocn-ui/core/theme.ts",
+    "localPath": "src/components/community/remocn/lib/theme.ts",
+    "upstreamSha256": "f5ad2238a38b4bd19b2c1f301c600b679f39d157298aae0c3f5ad2da99e03dfa"
+  },
+  {
+    "repo": "remocn",
+    "commit": "8ae853e4c08108105684d4b8cac7f22400840d2a",
+    "sourcePath": "registry/remocn-ui/core/timeline.ts",
+    "localPath": "src/components/community/remocn/lib/timeline.ts",
+    "upstreamSha256": "fe4c4b49e2d0b1679dc11cc57c643f1752cf465d8024c69a970c5be05e34b49e"
+  },
+  {
+    "repo": "remocn",
+    "commit": "8ae853e4c08108105684d4b8cac7f22400840d2a",
+    "sourcePath": "registry/remocn-ui/core/types.ts",
+    "localPath": "src/components/community/remocn/lib/types.ts",
+    "upstreamSha256": "ca814016a40fde2b109daeb4504b603b0ca3b9036a7d64cebf2963346fc7e6e2"
+  },
+  {
+    "repo": "remocn",
+    "commit": "8ae853e4c08108105684d4b8cac7f22400840d2a",
+    "sourcePath": "registry/remocn/chat-gpt/index.tsx",
+    "localPath": "src/components/community/remocn/chat-gpt/index.tsx",
+    "upstreamSha256": "689ce2ce156b36422f518f5af2e3077a8b68704b474f2c80e12a233955d83636"
+  },
+  {
+    "repo": "remocn",
+    "commit": "8ae853e4c08108105684d4b8cac7f22400840d2a",
+    "sourcePath": "registry/remocn/agent-run/index.tsx",
+    "localPath": "src/components/community/remocn/agent-run/index.tsx",
+    "upstreamSha256": "be55a6186893441f4375857650546a57cd3f7ffde6d024a29087772f8e17bcc5"
+  },
+  {
+    "repo": "remocn",
+    "commit": "8ae853e4c08108105684d4b8cac7f22400840d2a",
+    "sourcePath": "registry/remocn/search-reveal/index.tsx",
+    "localPath": "src/components/community/remocn/search-reveal/index.tsx",
+    "upstreamSha256": "39bc2f276a0fa772ec6a689d79c8ffebdef7a18efebec8440cf5ebca2c538723"
+  }
+]

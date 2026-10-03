@@ -133,11 +133,14 @@ class Repository:
         with self.connection(immediate=True) as db:
             return self._save(db, job, "created")
 
-    def update_job(self, job_id: str, expected_revision: int | None = None, **changes: Any) -> Job:
+    def update_job(self, job_id: str, expected_revision: int | None = None,
+                   expected_event_id: int | None = None, **changes: Any) -> Job:
         with self.connection(immediate=True) as db:
             job = self._get(db, job_id)
             if expected_revision is not None and job.revision != expected_revision:
                 raise Conflict("任务版本已变化，请刷新后重试")
+            if expected_event_id is not None and job.latest_event_id != expected_event_id:
+                raise Conflict("上下文提交期间任务已变化，请恢复最新上下文")
             if job.status == "CANCELLED" and changes.get("status") not in {"CANCELLED", None}:
                 raise Conflict("任务已取消")
             for key, value in changes.items():
@@ -266,9 +269,10 @@ class Repository:
                            (job_id, asset.asset_id))
             job.assets.append(asset)
             job.revision += 1
+            job.script_discussion = None
             job.status, job.stage, job.message = "DRAFT", "idle", "素材已导入，旧成片审核已失效"
             job.review, job.pending_input, job.timeline = None, None, None
-            job.artifacts = [a for a in job.artifacts if a.kind not in {"preview", "final", "cover", "timeline", "review", "package"}]
+            job.artifacts = [a for a in job.artifacts if a.kind not in {"preview", "final", "cover", "timeline", "review", "package", "script_discussion"}]
             job.artifacts.append(artifact)
             if job.script:
                 job.script.revision = job.revision
@@ -354,14 +358,17 @@ class Repository:
                              (job_id, input_hash, provider)).fetchone()
         return {"operation_id": row[0], "status": row[1], **json.loads(row[2])} if row else None
 
-    def unsettled_operation(self, job_id: str, provider: str, revision: int) -> dict[str, Any] | None:
+    def unsettled_operation(self, job_id: str, provider: str, revision: int,
+                            search_scope: str | None = None) -> dict[str, Any] | None:
         """Unknown logical role submission is a barrier even if evidence refreshed."""
         with self.connection() as db:
             rows = db.execute("SELECT operation_id,status,body FROM operations WHERE job_id=? AND provider=? AND status IN ('SUBMITTING','UNKNOWN')",
                               (job_id, provider)).fetchall()
         for row in rows:
             body = json.loads(row[2])
-            if body.get("revision", revision) == revision:
+            if body.get("revision", revision) == revision and (
+                search_scope is None or body.get("search_scope", search_scope) == search_scope
+            ):
                 return {"operation_id": row[0], "status": row[1], **body}
         return None
 

@@ -1,0 +1,68 @@
+[
+  {
+    "file": "public/community/fonts/inter-latin-400-normal.woff2",
+    "package": "@fontsource/inter@5.3.0",
+    "archiveIntegrity": "sha512-RofMylZmjlJEfELXeNHFWBRcSs75rGU/6bV2S2jfnvv/3rPXPGe0LgUJTklcHZ9lM4OZmAVFhcJPnACfb91A3g==",
+    "sha256": "8909904ab6c872eb994093482a88a28eca2cd95912d7b6fecd72103b0dc07edc",
+    "bytes": 23664,
+    "subset": "latin",
+    "weight": "400",
+    "style": "normal",
+    "license": "OFL-1.1"
+  },
+  {
+    "file": "public/community/fonts/inter-latin-500-normal.woff2",
+    "package": "@fontsource/inter@5.3.0",
+    "archiveIntegrity": "sha512-RofMylZmjlJEfELXeNHFWBRcSs75rGU/6bV2S2jfnvv/3rPXPGe0LgUJTklcHZ9lM4OZmAVFhcJPnACfb91A3g==",
+    "sha256": "f3779f1efccc4bdcdf9c0a02ab95bf6bd092ed09c48c08cedc725889edd1d19f",
+    "bytes": 24272,
+    "subset": "latin",
+    "weight": "500",
+    "style": "normal",
+    "license": "OFL-1.1"
+  },
+  {
+    "file": "public/community/fonts/inter-latin-600-normal.woff2",
+    "package": "@fontsource/inter@5.3.0",
+    "archiveIntegrity": "sha512-RofMylZmjlJEfELXeNHFWBRcSs75rGU/6bV2S2jfnvv/3rPXPGe0LgUJTklcHZ9lM4OZmAVFhcJPnACfb91A3g==",
+    "sha256": "f9a06e79cd3a2a20951c0f0e28f66dd0e6d3fda73911d640a2125c8fcb78f21a",
+    "bytes": 24452,
+    "subset": "latin",
+    "weight": "600",
+    "style": "normal",
+    "license": "OFL-1.1"
+  },
+  {
+    "file": "public/community/fonts/inter-latin-700-normal.woff2",
+    "package": "@fontsource/inter@5.3.0",
+    "archiveIntegrity": "sha512-RofMylZmjlJEfELXeNHFWBRcSs75rGU/6bV2S2jfnvv/3rPXPGe0LgUJTklcHZ9lM4OZmAVFhcJPnACfb91A3g==",
+    "sha256": "6f56409fd3d64bb85f7d070bce20749db2d66b6d63cec586cc22d1c761be2491",
+    "bytes": 24356,
+    "subset": "latin",
+    "weight": "700",
+    "style": "normal",
+    "license": "OFL-1.1"
+  },
+  {
+    "file": "public/community/fonts/source-serif-4-latin-400-normal.woff2",
+    "package": "@fontsource/source-serif-4@5.3.0",
+    "archiveIntegrity": "sha512-yQz8xmIgMzks8zQbpuca3UYtjxK798XCyQAGdDXmzBgvV7sdoK6d0YvE9F9kiYxORCEMRBgGZDZsSYcXj5KvwA==",
+    "sha256": "02194deb92d3975dd30e11a3824a1f1db32b48c93654e60560cb81ce8e7b5f95",
+    "bytes": 20088,
+    "subset": "latin",
+    "weight": "400",
+    "style": "normal",
+    "license": "OFL-1.1"
+  },
+  {
+    "file": "public/community/fonts/source-serif-4-latin-600-normal.woff2",
+    "package": "@fontsource/source-serif-4@5.3.0",
+    "archiveIntegrity": "sha512-yQz8xmIgMzks8zQbpuca3UYtjxK798XCyQAGdDXmzBgvV7sdoK6d0YvE9F9kiYxORCEMRBgGZDZsSYcXj5KvwA==",
+    "sha256": "f2b7e1cf1d277b7608231868135648f8ad8e2b58d8e97ca088bee15dc357bee7",
+    "bytes": 21532,
+    "subset": "latin",
+    "weight": "600",
+    "style": "normal",
+    "license": "OFL-1.1"
+  }
+]

@@ -1,13 +1,16 @@
 """Use real imported/Byte audio and verified timestamps, with strict text coverage."""
 
 import uuid
+from typing import Any
 
 from videoagents.contracts import Alignment, AlignmentSegment, Asset, Job, VoiceAdvice
+from videoagents.nodes.common import request_input, start_stage, state_context
 from videoagents.providers.aligner import align
 from videoagents.providers.byte_voice import synthesize
-from videoagents.providers.llm import JsonModel
+from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService, voice_fingerprint
+from videoagents.state import VideoState
 from videoagents.storage import Repository
 from videoagents.storage.repository import fingerprint
 from videoagents.tools.media import audio_duration
@@ -78,7 +81,21 @@ class VoiceNode:
         self.repo, self.service = repository, service
         self.model = JsonModel(repository)
 
-    def run(self, job: Job, command_id: str = "", prefer_generation: bool = False) -> tuple[Asset, Alignment, float]:
+    def __call__(self, state: VideoState) -> dict[str, Any]:
+        job = start_stage(self.repo, state, "voice", "配音正在核验真实音频与实测时间轴")
+        try:
+            audio, alignment, duration = self.prepare_audio(job, state.get("resume_command_id", state["run_id"]), state["action"] == "voice")
+            self.service.write_json(job, "alignment.json", alignment.model_dump(), "alignment")
+            self.service.write_json(job, "audio_report.json", {"audio_sha256": audio.sha256, "duration_seconds": duration,
+                                    "origin": self.repo.asset_metadata(audio.asset_id).get("origin"), "alignment_origin": alignment.origin,
+                                    "verified": alignment.verified}, "audio_report")
+            return state_context(self.repo, state, route="audio_gate",
+                                 audio_asset_id=audio.asset_id, alignment=alignment.model_dump(),
+                                 duration_seconds=duration, gate_issues=[])
+        except (CapabilityMissing, ValueError) as exc:
+            return request_input(self.repo, state, "voice", [str(exc)], getattr(exc, "fields", ["audio", "alignment"]), exc)
+
+    def prepare_audio(self, job: Job, command_id: str = "", prefer_generation: bool = False) -> tuple[Asset, Alignment, float]:
         script_hash = fingerprint([{"segment_id": item.segment_id, "narration": item.narration} for item in job.script.segments])
         settings = SettingsService(self.repo).internal()
         audio = None

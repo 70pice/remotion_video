@@ -103,19 +103,26 @@ export interface Job {
   job_id: string;
   revision: number;
   status: "DRAFT" | "QUEUED" | "RUNNING" | "NEEDS_INPUT" | "NEEDS_HUMAN" | "READY_FOR_PUBLISH" | "REJECTED" | "FAILED" | "CANCELLED";
-  stage: "idle" | "script" | "voice" | "director" | "render" | "review" | "complete";
+  stage: "idle" | "materials" | "script" | "voice" | "director" | "render" | "review" | "complete";
   message: string;
   progress: number | null;
   created_at: string;
   updated_at: string;
   brief: Brief;
   script: Script | null;
+  script_discussion: ScriptDiscussion | null;
   timeline: Timeline | null;
   assets: Array<Asset>;
   artifacts: Array<Artifact>;
   review: Review | null;
   pending_input: Record<string, unknown> | null;
   latest_event_id: number;
+}
+
+export interface MaterialPlan {
+  query: string;
+  focus_notes: Array<string>;
+  ambiguities: Array<string>;
 }
 
 export interface ModelCatalog {
@@ -137,7 +144,7 @@ export interface ModelChoice {
 export interface ModelFinding {
   severity: "error" | "warning" | "info";
   message: string;
-  owner: "screenwriter" | "voice" | "director" | "editing" | "review" | "user";
+  owner: "materials" | "screenwriter" | "voice" | "director" | "editing" | "review" | "user";
   blocking: boolean;
 }
 
@@ -166,7 +173,9 @@ export interface RoleModelConfig {
 }
 
 export interface RoleModels {
+  materials: RoleModelConfig;
   screenwriter: RoleModelConfig;
+  script_reviewer: RoleModelConfig;
   voice: RoleModelConfig;
   director: RoleModelConfig;
   editing: RoleModelConfig;
@@ -186,6 +195,41 @@ export interface Script {
   revision: number;
 }
 
+export interface ScriptCritique {
+  decision: "APPROVE" | "REVISE";
+  summary: string;
+  strengths: Array<string>;
+  issues: Array<ScriptCritiqueIssue>;
+}
+
+export interface ScriptCritiqueIssue {
+  segment_id: string;
+  category: "fact" | "logic" | "hook" | "clarity" | "visual" | "rights";
+  concern: string;
+  suggestion: string;
+}
+
+export interface ScriptDiscussion {
+  run_id: string;
+  revision: number;
+  enabled: boolean;
+  max_rounds: number;
+  status: "DISABLED" | "DISCUSSING" | "APPROVED" | "EXHAUSTED";
+  rounds: Array<ScriptDiscussionRound>;
+}
+
+export interface ScriptDiscussionRound {
+  round: number;
+  script: Script;
+  response: string;
+  critique: ScriptCritique | null;
+}
+
+export interface ScriptRewrite {
+  script: Script;
+  response: string;
+}
+
 export interface ScriptSegment {
   segment_id: string;
   narration: string;
@@ -195,9 +239,18 @@ export interface ScriptSegment {
 }
 
 export interface SettingsPatch {
-  role_models?: Partial<Record<"screenwriter" | "voice" | "director" | "editing" | "review", Partial<RoleModelConfig>>> | null;
-  search_provider?: "none" | "tavily" | null;
+  role_models?: Partial<Record<"materials" | "screenwriter" | "script_reviewer" | "voice" | "director" | "editing" | "review", Partial<RoleModelConfig>>> | null;
+  script_discussion_enabled?: boolean | null;
+  script_discussion_max_rounds?: number | null;
+  search_provider?: "none" | "opencli_google" | "tavily" | "google_cse" | null;
   search_api_key?: string | null;
+  google_search_engine_id?: string | null;
+  research_platforms?: Array<string> | null;
+  research_results_per_platform?: number | null;
+  research_max_searches?: number | null;
+  research_max_sources?: number | null;
+  research_max_visuals?: number | null;
+  research_download_images?: boolean | null;
   voice_provider?: "none" | "byte_http" | "byte_ws" | null;
   voice_app_id?: string | null;
   voice_access_token?: string | null;

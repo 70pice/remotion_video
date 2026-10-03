@@ -1,0 +1,170 @@
+[
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/components/AnimatedCounter.tsx",
+    "localPath": "src/components/community/bits/core/components/AnimatedCounter.tsx",
+    "upstreamSha256": "b41dd6c31c332c3472ee7eecce89f3551f21f16524d650589e7bf608e5b45c86"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/components/Scene3D/Element3D.tsx",
+    "localPath": "src/components/community/bits/core/components/Scene3D/Element3D.tsx",
+    "upstreamSha256": "e6430c79449e14048dd277cff8ebefdebb95976a0f2957500884be08e3580553"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/components/Scene3D/Scene3D.tsx",
+    "localPath": "src/components/community/bits/core/components/Scene3D/Scene3D.tsx",
+    "upstreamSha256": "314ce607375a6e19e6b120cc6838cdea246a62563aa903fc1fb89334c43b5046"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/components/Scene3D/Step.tsx",
+    "localPath": "src/components/community/bits/core/components/Scene3D/Step.tsx",
+    "upstreamSha256": "36d77c1c7f98bc2cd928830f9d0e0f32b922f6e4634e1dc42ade77ecf4222a0a"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/components/Scene3D/StepResponsive.tsx",
+    "localPath": "src/components/community/bits/core/components/Scene3D/StepResponsive.tsx",
+    "upstreamSha256": "818af25c1afb51821d99317d193350c657916ca00bfd6c8de9bdce0f2e411808"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/components/Scene3D/context.ts",
+    "localPath": "src/components/community/bits/core/components/Scene3D/context.ts",
+    "upstreamSha256": "8a750695be8dd9e8b998c1fcf410cc6772333e69cb671954fd61e2baab5abeb0"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/components/Scene3D/index.ts",
+    "localPath": "src/components/community/bits/core/components/Scene3D/index.ts",
+    "upstreamSha256": "73fc20d6060ed14714e5417ab7c4afedf8873bdf846051d812a622cf10c7da97"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/components/Scene3D/types.ts",
+    "localPath": "src/components/community/bits/core/components/Scene3D/types.ts",
+    "upstreamSha256": "7475c0c4d630b4e3aa5066edc1f2225f4c4929c9d1df485f7fccd8e7c6cb6a91"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/components/StaggeredMotion.tsx",
+    "localPath": "src/components/community/bits/core/components/StaggeredMotion.tsx",
+    "upstreamSha256": "14ca33fcc4259235a97dd6b50d91573c0ba36df6ae18659b0226be3cfaab4aea"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/hooks/useViewportRect.ts",
+    "localPath": "src/components/community/bits/core/hooks/useViewportRect.ts",
+    "upstreamSha256": "6389c8e2a20804b557e571e4d73062f35fcd80ef030569d86561f9f10c62b2e1"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/utils/StepContext.ts",
+    "localPath": "src/components/community/bits/core/utils/StepContext.ts",
+    "upstreamSha256": "347fa31ab9c4275862164843c6657accd48bb873adaff63073e239c5c810c020"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/utils/color.ts",
+    "localPath": "src/components/community/bits/core/utils/color.ts",
+    "upstreamSha256": "acc03be091c19780411249c2eea92ca7f5712d8cd181a46225df3084c67760c1"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/utils/geometry.ts",
+    "localPath": "src/components/community/bits/core/utils/geometry.ts",
+    "upstreamSha256": "8ab8b95a177fa6e7bbe8627c20a48606c4e59392261a93e22c4a23f4527a3eb5"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/utils/gradient.ts",
+    "localPath": "src/components/community/bits/core/utils/gradient.ts",
+    "upstreamSha256": "7147fb40f0723a37b99660f86dc1d6864747966c53c3e685a4348b49cc24257a"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/utils/index.ts",
+    "localPath": "src/components/community/bits/core/utils/index.ts",
+    "upstreamSha256": "7204007f85abceb4e33e0ce2201e7ce4b4b7371c4f1915b9db4c025b7890226a"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/utils/interpolate.ts",
+    "localPath": "src/components/community/bits/core/utils/interpolate.ts",
+    "upstreamSha256": "52f6dc639466ef7c3374fbbc6bee5c39b281152338b22df9759a1b3e8cebc582"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/utils/interpolate3d.ts",
+    "localPath": "src/components/community/bits/core/utils/interpolate3d.ts",
+    "upstreamSha256": "cf2179d02eff82a24f584148a4fde6334b61a99201ecd760c9a95daf88e78718"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/utils/motion/index.ts",
+    "localPath": "src/components/community/bits/core/utils/motion/index.ts",
+    "upstreamSha256": "7c489a56bef228dc45362e9b91c3e7ad6f177e72b4fcaf8951d70b187a1c66ca"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/utils/random.ts",
+    "localPath": "src/components/community/bits/core/utils/random.ts",
+    "upstreamSha256": "49a6100f613689ad31eaf838a0d5cefff8a6953044e122fd8eac86b040b80bb2"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "src/utils/transform3d.ts",
+    "localPath": "src/components/community/bits/core/utils/transform3d.ts",
+    "upstreamSha256": "aec11ae5743b7c1094f74676399098de48c12e8c220725cbb1d487412f60be85"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "docs/src/bits/examples/staggered-motion/ChatConversation.tsx",
+    "localPath": "src/components/community/bits/examples/ChatConversation.tsx",
+    "upstreamSha256": "884363481ecc655896f466d915133761650186f3e27bfc0960277bf1a5d96ba7"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "docs/src/bits/examples/animated-counter/StatRings.tsx",
+    "localPath": "src/components/community/bits/examples/StatRings.tsx",
+    "upstreamSha256": "f4d26a04670e5ee31a6a913098ebfc729ae8bfc7910e65a99d5cdf2bf87e1e31"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "docs/src/bits/examples/scene-3d/CursorFlyover.tsx",
+    "localPath": "src/components/community/bits/examples/CursorFlyover.tsx",
+    "upstreamSha256": "ad9d39930d0d1dedc5dfe4654e83a77a97cc014f581487676054ac2aea708efb"
+  },
+  {
+    "repo": "remotion-bits",
+    "commit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "sourcePath": "docs/src/bits/examples/scene-3d/KenBurns.tsx",
+    "localPath": "src/components/community/bits/examples/KenBurns.tsx",
+    "upstreamSha256": "e9f9d78d1362f28e8ca03ef5b93fdb1173c8d0e947901b48bc9e587a0fa4dbf4"
+  }
+]

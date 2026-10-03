@@ -2,6 +2,8 @@
 
 日期：2026-10-03。这是实施前通过审查的设计记录，保留当时的源码和外部资料核验结论。当前实现、实际测试及边界见 [实现与验证记录](videoagents-implementation-status.md)，启动操作见 [使用说明](videoagents-setup.md)。设计中的未来扩展不能当作已实测功能。
 
+最新实现已将素材独立为第一个节点：`materials → screenwriter`，并增加文案审查讨论。历史方案中的编剧采集职责已迁入素材节点；当前交接与平台能力见 [素材研究节点](videoagents-materials.md)。
+
 ## 1. 目标与设计决定
 
 沿用用户的五个岗位：**编剧 → 配音 → 导演 → 剪辑 → 审核**。使用 Python LangGraph 管理交接、状态、返工和恢复，继续使用当前 TypeScript/Remotion 项目负责画面渲染。
@@ -382,14 +384,17 @@ D:\remotion_video\
 │  │  ├─ setup.py                   # StateGraph 节点和边
 │  │  ├─ conditional_logic.py       # 检查、返工、预算、恢复路由
 │  │  └─ propagation.py             # 执行和恢复图
-│  ├─ agents/
-│  │  ├─ screenwriter.py
-│  │  ├─ director.py
-│  │  └─ reviewers.py
 │  ├─ nodes/
+│  │  ├─ screenwriter.py            # 编剧：业务与节点入口合并
+│  │  ├─ script_reviewer.py         # 文案审查：讨论、反馈与收敛
 │  │  ├─ voice.py                   # 配音服务和对齐的确定性节点
+│  │  ├─ director.py                # 导演：分镜与节点入口合并
 │  │  ├─ editing.py                 # timeline 校验与渲染节点
-│  │  └─ gates.py                   # 阶段检查、人工复核和汇总
+│  │  ├─ reviewers.py               # 审核：媒体与内容检查
+│  │  ├─ gates.py                   # 阶段检查与最终审核入口
+│  │  ├─ human_review.py            # 可编排的阶段人工审核
+│  │  ├─ await_input.py             # 等待输入与最终人工确认
+│  │  └─ common.py                  # 共用任务校验与状态更新
 │  ├─ services/                     # API/CLI 共用的任务命令与版本规则
 │  ├─ contracts/                    # 产物模型与运行时验证的定义源
 │  ├─ providers/                    # llm/search/byte_voice/aligner

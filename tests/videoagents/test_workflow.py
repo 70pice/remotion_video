@@ -6,9 +6,11 @@ import wave
 
 import pytest
 
-from videoagents.agents.reviewers import dependency_fingerprint
 from videoagents.contracts import Brief, Finding, Review, Script, ScriptSegment, SettingsPatch
 from videoagents.graph import VideoProductionGraph
+from videoagents.nodes.common import request_input
+from videoagents.nodes.gates import TimelineGateNode
+from videoagents.nodes.reviewers import ReviewersNode, dependency_fingerprint
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.storage import Repository
@@ -203,8 +205,8 @@ def install_isolated_review_doubles(monkeypatch):
             finding_id="unit-human", severity="warning", category="human_full_review", owner="user", blocking=True, message="UNIT TEST DOUBLE: verify simulated transition")],
             media_sha256=final.sha256, dependency_fingerprint=dependency_fingerprint(job),
             coverage=["unit_test_double"], human_confirmed=human_confirmed)
-    monkeypatch.setattr("videoagents.nodes.editing.EditingNode.run", edit)
-    monkeypatch.setattr("videoagents.agents.reviewers.Reviewers.run", review)
+    monkeypatch.setattr("videoagents.nodes.editing.EditingNode.render_video", edit)
+    monkeypatch.setattr("videoagents.nodes.reviewers.ReviewersNode.review", review)
 
 
 def resume(repo, job, decision, note="", key="resume-command"):
@@ -239,14 +241,14 @@ def test_resume_reclaim_does_not_answer_a_new_interrupt(manual_job, monkeypatch)
     install_isolated_review_doubles(monkeypatch)
     repo, service, job, _ = manual_job
     # Force an initial configuration gate before actual rendering.
-    original = VideoProductionGraph.node_timeline_gate
+    original = TimelineGateNode.__call__
     first = [True]
     def initially_blocked(self, state):
         if first[0]:
             first[0] = False
-            return self.blocked(state, "render", ["UNIT TEST: configure render"], ["render"])
+            return request_input(self.repo, state, "render", ["UNIT TEST: configure render"], ["render"])
         return original(self, state)
-    monkeypatch.setattr(VideoProductionGraph, "node_timeline_gate", initially_blocked)
+    monkeypatch.setattr(TimelineGateNode, "__call__", initially_blocked)
     worker = Worker(repo, service.project_root)
     enqueue(repo, job)
     worker.once()
@@ -304,7 +306,7 @@ def test_reviewer_provider_failure_has_real_resumable_interrupt(manual_job, monk
     from videoagents.providers.llm import CapabilityMissing
     failure = CapabilityMissing("UNIT TEST missing model", ["llm"], operation_status="UNKNOWN" if unknown else None,
         operation_id="unit-unknown-operation" if unknown else None)
-    monkeypatch.setattr("videoagents.agents.reviewers.Reviewers.run", lambda *args, **kwargs: (_ for _ in ()).throw(failure))
+    monkeypatch.setattr("videoagents.nodes.reviewers.ReviewersNode.review", lambda *args, **kwargs: (_ for _ in ()).throw(failure))
     repo, service, job, _ = manual_job
     enqueue(repo, job)
     Worker(repo, service.project_root).once()
@@ -358,7 +360,7 @@ def test_voice_preflight_settings_change_records_actual_provider_fingerprint(man
         return {"path": str(path), "origin": "byte_ws", "voice_fingerprint": voice_fingerprint(settings.internal()),
             "sentences": [{"words": [{"word": job.script.segments[0].narration, "startTime": 0, "endTime": 1.8}]}]}
     monkeypatch.setattr("videoagents.nodes.voice.synthesize", provider)
-    audio, _, _ = VoiceNode(repo, service).run(job, "UNIT-preflight-command", prefer_generation=not existing_generated)
+    audio, _, _ = VoiceNode(repo, service).prepare_audio(job, "UNIT-preflight-command", prefer_generation=not existing_generated)
     assert audio.asset_id != old_audio.asset_id
     actual_hash = repo.asset_metadata(audio.asset_id)["voice_fingerprint"]
     assert actual_hash == voice_fingerprint(settings.internal()) and actual_hash != old_hash
@@ -370,7 +372,7 @@ def test_voice_preflight_settings_change_records_actual_provider_fingerprint(man
         raise CapabilityMissing("UNIT old configuration requires fresh synthesis")
     monkeypatch.setattr("videoagents.nodes.voice.synthesize", new_provider)
     with pytest.raises(CapabilityMissing):
-        VoiceNode(repo, service).run(repo.get_job(job.job_id), "UNIT-return-to-old-config")
+        VoiceNode(repo, service).prepare_audio(repo.get_job(job.job_id), "UNIT-return-to-old-config")
     assert calls == [job.script.segments[0].narration]
 
 
@@ -382,15 +384,11 @@ def test_human_confirmation_reruns_hard_checks_and_cannot_waive_failure(manual_j
     worker.once()
     paused = repo.get_job(job.job_id)
     assert paused.status == "NEEDS_HUMAN"
-    original = VideoProductionGraph.__init__
-    def with_new_hard_failure(self, *args, **kwargs):
-        original(self, *args, **kwargs)
-        def fail_review(job, **kwargs):
-            return Review(status="REVISE", findings=[Finding(finding_id="changed-media", severity="error", category="media_hash",
-                owner="editing", blocking=True, message="UNIT TEST: final media changed after first review")],
-                media_sha256="new-hash", dependency_fingerprint=dependency_fingerprint(job), human_confirmed=False)
-        self.reviewers.run = fail_review
-    monkeypatch.setattr(VideoProductionGraph, "__init__", with_new_hard_failure)
+    def fail_review(self, job, **kwargs):
+        return Review(status="REVISE", findings=[Finding(finding_id="changed-media", severity="error", category="media_hash",
+            owner="editing", blocking=True, message="UNIT TEST: final media changed after first review")],
+            media_sha256="new-hash", dependency_fingerprint=dependency_fingerprint(job), human_confirmed=False)
+    monkeypatch.setattr(ReviewersNode, "review", fail_review)
     resume(repo, paused, "confirm", "UNIT TEST完整播放并核验事实、声音、画面与素材许可。")
     worker.once()
     current = repo.get_job(job.job_id)

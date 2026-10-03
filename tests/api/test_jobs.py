@@ -104,9 +104,9 @@ def test_settings_write_only_credentials_and_validation_never_echoes_them(client
     assert secret.encode() not in raw  # Windows DPAPI; no plaintext SQL credential.
 
 
-def test_five_role_defaults_and_partial_settings_merge(client):
+def test_seven_role_defaults_and_partial_settings_merge(client):
     initial = client.get("/api/settings").json()
-    roles = {"screenwriter", "voice", "director", "editing", "review"}
+    roles = {"materials", "screenwriter", "script_reviewer", "voice", "director", "editing", "review"}
     assert set(initial["role_models"]) == roles
     assert all(value == {"enabled": False, "provider": "codex_cli", "model": "", "timeout_seconds": 300}
                for value in initial["role_models"].values())
@@ -128,6 +128,29 @@ def test_five_role_defaults_and_partial_settings_merge(client):
                     {"role_models": {"voice": {"model": "x" * 201}}},
                     {"llm_base_url": "https://example.com"}, {"llm_model": "old-http"}, {"llm_api_key": "unit-secret"}):
         assert client.patch("/api/settings", json=payload).status_code == 422
+
+
+def test_discussion_settings_persist_without_overwriting_writer_or_starting_calls(client):
+    initial = client.get("/api/settings").json()
+    assert initial["script_discussion_enabled"] is False
+    assert initial["script_discussion_max_rounds"] == 2
+    response = client.patch("/api/settings", json={
+        "script_discussion_enabled": True, "script_discussion_max_rounds": 3,
+        "role_models": {"script_reviewer": {"enabled": True, "provider": "claude_code_cli", "model": "review-model"}},
+    })
+    assert response.status_code == 200
+    saved = client.get("/api/settings").json()
+    assert saved["script_discussion_enabled"] is True
+    assert saved["script_discussion_max_rounds"] == 3
+    assert saved["role_models"]["screenwriter"] == initial["role_models"]["screenwriter"]
+    assert saved["role_models"]["script_reviewer"]["model"] == "review-model"
+    for value in (0, 6, 2.5, "2", True):
+        assert client.patch("/api/settings", json={"script_discussion_max_rounds": value}).status_code == 422
+    assert client.get("/api/settings").json()["script_discussion_max_rounds"] == 3
+    assert create(client)["script_discussion"] is None
+    with client.app.state.repository.connection() as db:
+        assert db.execute("SELECT COUNT(*) FROM commands").fetchone()[0] == 0
+        assert db.execute("SELECT COUNT(*) FROM operations").fetchone()[0] == 0
 
 
 def test_legacy_http_credentials_remain_stored_but_are_unused_and_private(client):

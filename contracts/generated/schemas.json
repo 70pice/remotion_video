@@ -388,6 +388,7 @@
         },
         "owner": {
           "enum": [
+            "materials",
             "screenwriter",
             "voice",
             "director",
@@ -879,6 +880,179 @@
       "title": "Review",
       "type": "object"
     },
+    "ScriptCritique": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "enum": [
+            "APPROVE",
+            "REVISE"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "summary": {
+          "maxLength": 1500,
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        },
+        "strengths": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Strengths",
+          "type": "array"
+        },
+        "issues": {
+          "items": {
+            "$ref": "#/$defs/ScriptCritiqueIssue"
+          },
+          "maxItems": 30,
+          "title": "Issues",
+          "type": "array"
+        }
+      },
+      "required": [
+        "decision",
+        "summary"
+      ],
+      "title": "ScriptCritique",
+      "type": "object"
+    },
+    "ScriptCritiqueIssue": {
+      "additionalProperties": false,
+      "properties": {
+        "segment_id": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Segment Id",
+          "type": "string"
+        },
+        "category": {
+          "enum": [
+            "fact",
+            "logic",
+            "hook",
+            "clarity",
+            "visual",
+            "rights"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "concern": {
+          "maxLength": 1500,
+          "minLength": 1,
+          "title": "Concern",
+          "type": "string"
+        },
+        "suggestion": {
+          "maxLength": 1500,
+          "minLength": 1,
+          "title": "Suggestion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "category",
+        "concern",
+        "suggestion"
+      ],
+      "title": "ScriptCritiqueIssue",
+      "type": "object"
+    },
+    "ScriptDiscussion": {
+      "additionalProperties": false,
+      "properties": {
+        "run_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Run Id",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "max_rounds": {
+          "default": 2,
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Max Rounds",
+          "type": "integer"
+        },
+        "status": {
+          "default": "DISABLED",
+          "enum": [
+            "DISABLED",
+            "DISCUSSING",
+            "APPROVED",
+            "EXHAUSTED"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "rounds": {
+          "items": {
+            "$ref": "#/$defs/ScriptDiscussionRound"
+          },
+          "maxItems": 5,
+          "title": "Rounds",
+          "type": "array"
+        }
+      },
+      "required": [
+        "run_id",
+        "revision"
+      ],
+      "title": "ScriptDiscussion",
+      "type": "object"
+    },
+    "ScriptDiscussionRound": {
+      "additionalProperties": false,
+      "properties": {
+        "round": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Round",
+          "type": "integer"
+        },
+        "script": {
+          "$ref": "#/$defs/Script"
+        },
+        "response": {
+          "default": "",
+          "maxLength": 3000,
+          "title": "Response",
+          "type": "string"
+        },
+        "critique": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScriptCritique"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "round",
+        "script"
+      ],
+      "title": "ScriptDiscussionRound",
+      "type": "object"
+    },
     "Job": {
       "additionalProperties": false,
       "properties": {
@@ -908,6 +1082,7 @@
         "stage": {
           "enum": [
             "idle",
+            "materials",
             "script",
             "voice",
             "director",
@@ -949,6 +1124,17 @@
           "anyOf": [
             {
               "$ref": "#/$defs/Script"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "script_discussion": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScriptDiscussion"
             },
             {
               "type": "null"
@@ -1022,6 +1208,39 @@
         "brief"
       ],
       "title": "Job",
+      "type": "object"
+    },
+    "MaterialPlan": {
+      "additionalProperties": false,
+      "description": "素材模型只规划检索问题，不能在采集前生成事实或虚构图片。",
+      "properties": {
+        "query": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "focus_notes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 10,
+          "title": "Focus Notes",
+          "type": "array"
+        },
+        "ambiguities": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 10,
+          "title": "Ambiguities",
+          "type": "array"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "title": "MaterialPlan",
       "type": "object"
     },
     "ModelChoice": {
@@ -1192,7 +1411,13 @@
     "RoleModels": {
       "additionalProperties": false,
       "properties": {
+        "materials": {
+          "$ref": "#/$defs/RoleModelConfig"
+        },
         "screenwriter": {
+          "$ref": "#/$defs/RoleModelConfig"
+        },
+        "script_reviewer": {
           "$ref": "#/$defs/RoleModelConfig"
         },
         "voice": {
@@ -1246,6 +1471,26 @@
       "title": "RunRequest",
       "type": "object"
     },
+    "ScriptRewrite": {
+      "additionalProperties": false,
+      "properties": {
+        "script": {
+          "$ref": "#/$defs/Script"
+        },
+        "response": {
+          "maxLength": 3000,
+          "minLength": 1,
+          "title": "Response",
+          "type": "string"
+        }
+      },
+      "required": [
+        "script",
+        "response"
+      ],
+      "title": "ScriptRewrite",
+      "type": "object"
+    },
     "SettingsPatch": {
       "additionalProperties": false,
       "properties": {
@@ -1257,7 +1502,9 @@
               },
               "propertyNames": {
                 "enum": [
+                  "materials",
                   "screenwriter",
+                  "script_reviewer",
                   "voice",
                   "director",
                   "editing",
@@ -1273,12 +1520,40 @@
           "default": null,
           "title": "Role Models"
         },
+        "script_discussion_enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Script Discussion Enabled"
+        },
+        "script_discussion_max_rounds": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Script Discussion Max Rounds"
+        },
         "search_provider": {
           "anyOf": [
             {
               "enum": [
                 "none",
-                "tavily"
+                "opencli_google",
+                "tavily",
+                "google_cse"
               ],
               "type": "string"
             },
@@ -1300,6 +1575,104 @@
           ],
           "default": null,
           "title": "Search Api Key"
+        },
+        "google_search_engine_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Google Search Engine Id"
+        },
+        "research_platforms": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 40,
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Research Platforms"
+        },
+        "research_results_per_platform": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Research Results Per Platform"
+        },
+        "research_max_searches": {
+          "anyOf": [
+            {
+              "maximum": 32,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Research Max Searches"
+        },
+        "research_max_sources": {
+          "anyOf": [
+            {
+              "maximum": 30,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Research Max Sources"
+        },
+        "research_max_visuals": {
+          "anyOf": [
+            {
+              "maximum": 20,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Research Max Visuals"
+        },
+        "research_download_images": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Research Download Images"
         },
         "voice_provider": {
           "anyOf": [

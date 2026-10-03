@@ -1118,6 +1118,7 @@
             "type": "string",
             "enum": [
               "idle",
+              "materials",
               "script",
               "voice",
               "director",
@@ -1157,6 +1158,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/Script"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "script_discussion": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScriptDiscussion"
               },
               {
                 "type": "null"
@@ -1519,6 +1530,178 @@
         ],
         "title": "Script"
       },
+      "ScriptCritique": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REVISE"
+            ],
+            "title": "Decision"
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 1500,
+            "minLength": 1,
+            "title": "Summary"
+          },
+          "strengths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Strengths"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/ScriptCritiqueIssue"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Issues"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "decision",
+          "summary"
+        ],
+        "title": "ScriptCritique"
+      },
+      "ScriptCritiqueIssue": {
+        "properties": {
+          "segment_id": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Segment Id",
+            "default": ""
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "fact",
+              "logic",
+              "hook",
+              "clarity",
+              "visual",
+              "rights"
+            ],
+            "title": "Category"
+          },
+          "concern": {
+            "type": "string",
+            "maxLength": 1500,
+            "minLength": 1,
+            "title": "Concern"
+          },
+          "suggestion": {
+            "type": "string",
+            "maxLength": 1500,
+            "minLength": 1,
+            "title": "Suggestion"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "category",
+          "concern",
+          "suggestion"
+        ],
+        "title": "ScriptCritiqueIssue"
+      },
+      "ScriptDiscussion": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Run Id"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Revision"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "max_rounds": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Max Rounds",
+            "default": 2
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DISABLED",
+              "DISCUSSING",
+              "APPROVED",
+              "EXHAUSTED"
+            ],
+            "title": "Status",
+            "default": "DISABLED"
+          },
+          "rounds": {
+            "items": {
+              "$ref": "#/components/schemas/ScriptDiscussionRound"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Rounds"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "run_id",
+          "revision"
+        ],
+        "title": "ScriptDiscussion"
+      },
+      "ScriptDiscussionRound": {
+        "properties": {
+          "round": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Round"
+          },
+          "script": {
+            "$ref": "#/components/schemas/Script"
+          },
+          "response": {
+            "type": "string",
+            "maxLength": 3000,
+            "title": "Response",
+            "default": ""
+          },
+          "critique": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScriptCritique"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "round",
+          "script"
+        ],
+        "title": "ScriptDiscussionRound"
+      },
       "ScriptSegment": {
         "properties": {
           "segment_id": {
@@ -1574,7 +1757,9 @@
                 },
                 "propertyNames": {
                   "enum": [
+                    "materials",
                     "screenwriter",
+                    "script_reviewer",
                     "voice",
                     "director",
                     "editing",
@@ -1589,13 +1774,39 @@
             ],
             "title": "Role Models"
           },
+          "script_discussion_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Script Discussion Enabled"
+          },
+          "script_discussion_max_rounds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 5.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Script Discussion Max Rounds"
+          },
           "search_provider": {
             "anyOf": [
               {
                 "type": "string",
                 "enum": [
                   "none",
-                  "tavily"
+                  "opencli_google",
+                  "tavily",
+                  "google_cse"
                 ]
               },
               {
@@ -1614,6 +1825,97 @@
               }
             ],
             "title": "Search Api Key"
+          },
+          "google_search_engine_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Google Search Engine Id"
+          },
+          "research_platforms": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 40,
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Research Platforms"
+          },
+          "research_results_per_platform": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 5.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Research Results Per Platform"
+          },
+          "research_max_searches": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 32.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Research Max Searches"
+          },
+          "research_max_sources": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 30.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Research Max Sources"
+          },
+          "research_max_visuals": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 20.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Research Max Visuals"
+          },
+          "research_download_images": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Research Download Images"
           },
           "voice_provider": {
             "anyOf": [

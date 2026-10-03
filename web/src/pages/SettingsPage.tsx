@@ -27,6 +27,22 @@ import type {
 } from "../api/types";
 import { Notice, PageHeading } from "../components/ui";
 
+const defaultVoiceModel = "seed-tts-2.0-expressive";
+const voiceModelSuggestions = [
+  {
+    value: "seed-tts-2.0-expressive",
+    label: "Expressive：支持自然语言表演指导",
+  },
+  { value: "seed-tts-2.0-standard", label: "Standard：普通合成，不支持情绪指导" },
+];
+const defaultVoiceStyle =
+  "像面对观众讲解：开头好奇、重点加重、句间自然停顿，避免播报腔";
+
+type VoicePerformancePatch = {
+  voice_style?: string | null;
+  voice_speech_rate?: number | null;
+};
+
 interface FieldLabel {
   label: string;
   placeholder?: string;
@@ -38,7 +54,13 @@ type Field = FieldLabel &
     | {
         key: keyof Pick<
           SettingsPatch,
-          "max_llm_calls" | "max_voice_chars" | "render_timeout_seconds"
+          | "max_llm_calls"
+          | "research_results_per_platform"
+          | "research_max_searches"
+          | "research_max_sources"
+          | "research_max_visuals"
+          | "max_voice_chars"
+          | "render_timeout_seconds"
         >;
         type: "number";
       }
@@ -53,6 +75,7 @@ type Field = FieldLabel &
           | "voice_access_token"
           | "voice_api_key"
           | "search_api_key"
+          | "google_search_engine_id"
           | "aligner_url"
           | "aligner_api_key"
         >;
@@ -93,10 +116,11 @@ const sections: { title: string; description: string; fields: Field[] }[] = [
     fields: [
       {
         key: "search_api_key",
-        label: "Tavily 检索密钥",
+        label: "检索密钥",
         secret: true,
         configured: "search_configured",
       },
+      { key: "google_search_engine_id", label: "Google CSE 搜索引擎 ID" },
       { key: "aligner_url", label: "时间对齐服务地址", type: "url" },
       {
         key: "aligner_api_key",
@@ -111,6 +135,14 @@ const sections: { title: string; description: string; fields: Field[] }[] = [
     description: "控制每条视频的调用与渲染上限。",
     fields: [
       { key: "max_llm_calls", label: "模型调用次数上限", type: "number" },
+      {
+        key: "research_results_per_platform",
+        label: "每个平台结果数",
+        type: "number",
+      },
+      { key: "research_max_searches", label: "素材检索调用上限", type: "number" },
+      { key: "research_max_sources", label: "来源读取上限", type: "number" },
+      { key: "research_max_visuals", label: "图片/截图采集尝试上限", type: "number" },
       { key: "max_voice_chars", label: "配音字数上限", type: "number" },
       {
         key: "render_timeout_seconds",
@@ -148,17 +180,40 @@ function showVoiceField(key: string, provider: unknown): boolean {
   );
 }
 
+function discussionEnabled(settings: Settings): boolean {
+  return settings.script_discussion_enabled === true;
+}
+
+function discussionMaxRounds(settings: Settings): number {
+  const value = settings.script_discussion_max_rounds;
+  return typeof value === "number" && Number.isFinite(value) ? value : 2;
+}
+
+function clampDiscussionRounds(value: number): number {
+  if (!Number.isFinite(value)) return 2;
+  return Math.min(5, Math.max(1, Math.round(value)));
+}
+
+function clampVoiceSpeechRate(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return 0;
+  return Math.min(100, Math.max(-50, Math.round(value)));
+}
+
+function voiceStyleValue(values: Settings): string {
+  return typeof values.voice_style === "string" ? values.voice_style : "";
+}
+
 export function createSettingsPayload(
   values: Settings,
   saved: Settings,
-): SettingsPatch {
-  const payload: SettingsPatch = {};
+): SettingsPatch & VoicePerformancePatch {
+  const payload: SettingsPatch & VoicePerformancePatch = {};
   for (const section of sections) {
     for (const field of section.fields) {
       if (!showVoiceField(field.key, values.voice_provider)) continue;
       const value =
         values[field.key] ??
-        (field.key === "voice_model" ? "seed-tts-2.0-standard" : undefined);
+        (field.key === "voice_model" ? defaultVoiceModel : undefined);
       if (field.secret && !value) continue; // Blank preserves the configured secret.
       if (field.type === "number") {
         if (typeof value === "number") payload[field.key] = value;
@@ -173,15 +228,43 @@ export function createSettingsPayload(
     values.voice_provider === "byte_ws"
   )
     payload.voice_provider = values.voice_provider;
-  if (values.search_provider === "none" || values.search_provider === "tavily")
+  if (values.voice_provider === "byte_ws") {
+    payload.voice_style = voiceStyleValue(values);
+    payload.voice_speech_rate = clampVoiceSpeechRate(values.voice_speech_rate);
+  }
+  if (
+    values.search_provider === "none" ||
+    values.search_provider === "opencli_google" ||
+    values.search_provider === "tavily" ||
+    values.search_provider === "google_cse"
+  )
     payload.search_provider = values.search_provider;
   if (typeof values.capture_enabled === "boolean")
     payload.capture_enabled = values.capture_enabled;
+  if (typeof values.research_download_images === "boolean")
+    payload.research_download_images = values.research_download_images;
+  if (Array.isArray(values.research_platforms))
+    payload.research_platforms = values.research_platforms.filter(
+      (item): item is string => typeof item === "string",
+    );
   const roles = buildRoleModelsPatch(
     readRoleModels(values),
     readRoleModels(saved),
   );
   if (Object.keys(roles).length) payload.role_models = roles;
+  if (
+    typeof values.script_discussion_enabled === "boolean" &&
+    values.script_discussion_enabled !== saved.script_discussion_enabled
+  )
+    payload.script_discussion_enabled = values.script_discussion_enabled;
+  if (
+    typeof values.script_discussion_max_rounds === "number" &&
+    values.script_discussion_max_rounds !==
+      saved.script_discussion_max_rounds
+  )
+    payload.script_discussion_max_rounds = clampDiscussionRounds(
+      values.script_discussion_max_rounds,
+    );
   return payload;
 }
 
@@ -218,7 +301,7 @@ export function SettingsForm({
     <form onSubmit={onSubmit} aria-busy={busy}>
       <fieldset className="editor-fieldset" disabled={busy}>
         <div className="settings-section-heading">
-          <h2>五个角色的模型</h2>
+          <h2>七个角色的模型</h2>
           <p className="muted small">
             各角色独立选择本机 CLI 和模型。留空模型名称时使用该 CLI 的默认模型。
             检测只确认是否安装；运行前请在本机完成相应 CLI 登录。
@@ -432,6 +515,48 @@ export function SettingsForm({
             );
           })}
         </div>
+        <section className="panel form-panel script-discussion-settings">
+          <div className="inline-spread">
+            <div>
+              <h2>文案讨论</h2>
+              <p className="muted small">
+                启用后编剧和文案审查会交替工作，审查通过后继续后续节点；达到上限仍需修改时，流程会暂停等待处理。
+              </p>
+            </div>
+            <label className="check-label">
+              <input
+                type="checkbox"
+                aria-label="启用文案讨论"
+                checked={discussionEnabled(values)}
+                onChange={(event) =>
+                  onChange("script_discussion_enabled", event.target.checked)
+                }
+              />
+              {discussionEnabled(values) ? "已启用" : "未启用"}
+            </label>
+          </div>
+          <label>
+            最大审查轮数
+            <input
+              aria-label="文案讨论最大审查轮数"
+              type="number"
+              min={1}
+              max={5}
+              step={1}
+              value={discussionMaxRounds(values)}
+              onChange={(event) =>
+                onChange(
+                  "script_discussion_max_rounds",
+                  clampDiscussionRounds(Number(event.target.value)),
+                )
+              }
+            />
+          </label>
+          <p className="muted small">
+            这个开关不会自动启用任何 CLI
+            模型，也不会对已有任务发起请求；每个角色仍按上面的独立模型配置执行。
+          </p>
+        </section>
         <div className="settings-section-heading">
           <h2>声音与服务</h2>
           <p className="muted small">配置真实配音、素材检索与音频时间对齐。</p>
@@ -473,7 +598,9 @@ export function SettingsForm({
                     }
                   >
                     <option value="none">使用手动来源</option>
+                    <option value="opencli_google">OpenCLI Google（本机浏览器）</option>
                     <option value="tavily">Tavily</option>
+                    <option value="google_cse">Google CSE</option>
                   </select>
                 </label>
               )}
@@ -494,14 +621,18 @@ export function SettingsForm({
                     <input
                       aria-label={field.label}
                       type={field.secret ? "password" : (field.type ?? "text")}
-                      min={field.type === "number" ? 1 : undefined}
+                      min={field.key === "research_max_visuals" ? 0 : field.type === "number" ? 1 : undefined}
+                      max={field.key === "research_results_per_platform" ? 5 : field.key === "research_max_searches" ? 32 : field.key === "research_max_sources" ? 30 : field.key === "research_max_visuals" ? 20 : undefined}
                       maxLength={field.key === "voice_model" ? 200 : undefined}
+                      list={
+                        field.key === "voice_model"
+                          ? "voice-model-suggestions"
+                          : undefined
+                      }
                       required={field.key === "voice_model"}
                       value={String(
                         values[field.key] ??
-                          (field.key === "voice_model"
-                            ? "seed-tts-2.0-standard"
-                            : ""),
+                          (field.key === "voice_model" ? defaultVoiceModel : ""),
                       )}
                       autoComplete={field.secret ? "new-password" : "off"}
                       placeholder={
@@ -520,27 +651,136 @@ export function SettingsForm({
                         )
                       }
                     />
+                    {field.key === "voice_model" && (
+                      <datalist id="voice-model-suggestions">
+                        {voiceModelSuggestions.map((suggestion) => (
+                          <option
+                            key={suggestion.value}
+                            value={suggestion.value}
+                            label={suggestion.label}
+                          />
+                        ))}
+                      </datalist>
+                    )}
                   </label>
                 ))}
+              {section.title === "你的声音" &&
+                values.voice_provider === "byte_ws" && (
+                  <>
+                    <label>
+                      讲述风格
+                      <textarea
+                        aria-label="讲述风格"
+                        maxLength={2000}
+                        value={voiceStyleValue(values)}
+                        placeholder={defaultVoiceStyle}
+                        onChange={(event) =>
+                          onChange("voice_style", event.target.value)
+                        }
+                      />
+                    </label>
+                    <label>
+                      语速调整
+                      <input
+                        aria-label="语速调整"
+                        type="number"
+                        min={-50}
+                        max={100}
+                        step={1}
+                        value={clampVoiceSpeechRate(values.voice_speech_rate)}
+                        onChange={(event) =>
+                          onChange(
+                            "voice_speech_rate",
+                            clampVoiceSpeechRate(Number(event.target.value)),
+                          )
+                        }
+                      />
+                    </label>
+                    <p className="muted small">
+                      讲述风格只在本项目的 WebSocket expressive
+                      声音复刻调用中生效；seed-tts-2.0-standard
+                      不支持情绪或表演指导，seed-tts-2.0-expressive
+                      支持自然语言指导。
+                    </p>
+                  </>
+                )}
               {section.title === "你的声音" && (
                 <p className="muted small">
                   新版声音复刻默认资源为
                   seed-icl-2.0，请按账号实际开通的资源填写。
                   {values.voice_provider === "byte_ws" &&
-                    "语音合成模型用于字节生成声音，与配音角色的 CLI 指导模型独立。"}
+                    "语音合成模型可从 expressive/standard 建议中选择，也可自由填写账号支持的模型 ID；该模型与配音角色的 CLI 指导模型独立。"}
                 </p>
               )}
               {section.title === "检索与时间对齐" && (
-                <label className="check-label">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(values.capture_enabled)}
-                    onChange={(event) =>
-                      onChange("capture_enabled", event.target.checked)
-                    }
-                  />
-                  启用网页截图
-                </label>
+                <>
+                  {values.search_provider === "opencli_google" && (
+                    <p className="muted small">
+                      通过本机 OpenCLI 的 Google 公开搜索检索各平台被索引的页面，无需搜索 API Key。
+                      需要 OpenCLI 浏览器扩展连接；页面登录或验证码限制会记录为未完成项。
+                    </p>
+                  )}
+                  {values.search_provider === "google_cse" && (
+                    <p className="muted small">
+                      Google CSE 使用 Custom Search JSON API。Google
+                      官方已提示该产品不再接受新客户，既有客户需在 2027-01-01
+                      前迁移；这里保留给已有 CSE 的账号使用。
+                    </p>
+                  )}
+                  <div className="research-tool-list">
+                    {(values.research_tools ?? []).map((tool) => {
+                      const selected = (
+                        (values.research_platforms as string[] | undefined) ??
+                        []
+                      ).includes(tool.id);
+                      return (
+                        <label className="check-label research-tool" key={tool.id}>
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={(event) => {
+                              const current = Array.isArray(
+                                values.research_platforms,
+                              )
+                                ? (values.research_platforms as string[])
+                                : [];
+                              onChange(
+                                "research_platforms",
+                                event.target.checked
+                                  ? [...current, tool.id]
+                                  : current.filter((item) => item !== tool.id),
+                              );
+                            }}
+                          />
+                          <span>
+                            {tool.label}
+                            <small>{tool.detail}</small>
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <label className="check-label">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(values.capture_enabled)}
+                      onChange={(event) =>
+                        onChange("capture_enabled", event.target.checked)
+                      }
+                    />
+                    启用网页截图
+                  </label>
+                  <label className="check-label">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(values.research_download_images)}
+                      onChange={(event) =>
+                        onChange("research_download_images", event.target.checked)
+                      }
+                    />
+                    下载来源页面与搜索结果中的真实图片
+                  </label>
+                </>
               )}
             </section>
           ))}
@@ -639,7 +879,7 @@ export function SettingsPage() {
   return (
     <>
       <PageHeading eyebrow="MAKE IT YOURS" title="系统设置">
-        为编剧、配音、导演、剪辑和审核分别选择本机模型，配置你的音色与素材服务。
+        为素材、编剧、文案审查、配音、导演、剪辑和审核分别选择本机模型，配置你的音色与素材服务。
       </PageHeading>
       {error && <Notice tone="error">{error}</Notice>}
       {success && <Notice tone="success">{success}</Notice>}

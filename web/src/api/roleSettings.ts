@@ -8,9 +8,19 @@ import type {
 
 export const modelRoles = [
   {
+    id: "materials",
+    label: "素材",
+    description: "检索各平台知识、来源图片和网页截图，给后续文案与导演使用。",
+  },
+  {
     id: "screenwriter",
     label: "编剧",
     description: "整理主题和事实来源，生成短视频文案。",
+  },
+  {
+    id: "script_reviewer",
+    label: "文案审查",
+    description: "审查编剧稿件的事实、钩子、逻辑、画面与版权风险。",
   },
   {
     id: "voice",
@@ -49,7 +59,9 @@ function defaultRole(): RoleModelConfig {
 
 export function readRoleModels(settings: Settings): RoleModels {
   const roles: RoleModels = {
+    materials: defaultRole(),
     screenwriter: defaultRole(),
+    script_reviewer: defaultRole(),
     voice: defaultRole(),
     director: defaultRole(),
     editing: defaultRole(),

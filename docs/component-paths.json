@@ -1,0 +1,1372 @@
+{
+  "components": [
+    {
+      "compositionId": "Snapcn-TextReveal",
+      "name": "Snapcn / TextReveal",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/text-reveal.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/text-reveal.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/text-reveal/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-TextBuild",
+      "name": "Snapcn / TextBuild",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/text-build.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/text-build.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/text-build/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-TextHighlight",
+      "name": "Snapcn / TextHighlight",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/text-highlight.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/text-highlight.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/text-highlight/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-TextRewrite",
+      "name": "Snapcn / TextRewrite",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/text-rewrite.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/text-rewrite.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/text-rewrite/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-TextSwap",
+      "name": "Snapcn / TextSwap",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/text-swap.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/text-swap.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/text-swap/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-WordFlip",
+      "name": "Snapcn / WordFlip",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/word-flip.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/word-flip.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/word-flip/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-WordCaptions",
+      "name": "Snapcn / WordCaptions",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/word-captions.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/word-captions.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/word-captions/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-KaraokeCaptions",
+      "name": "Snapcn / KaraokeCaptions",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/karaoke-captions.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/karaoke-captions.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/karaoke-captions/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-SearchTyping",
+      "name": "Snapcn / SearchTyping",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/search-typing.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/search-typing.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/search-typing/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-PromptSend",
+      "name": "Snapcn / PromptSend",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/prompt-send.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/prompt-send.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/prompt-send/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-PromptZoom",
+      "name": "Snapcn / PromptZoom",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/prompt-zoom.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/prompt-zoom.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/prompt-zoom/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-AnswerStream",
+      "name": "Snapcn / AnswerStream",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/answer-stream.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/answer-stream.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/answer-stream/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-AnswerHighlight",
+      "name": "Snapcn / AnswerHighlight",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/answer-highlight.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/answer-highlight.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/answer-highlight/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-AgentSteps",
+      "name": "Snapcn / AgentSteps",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/agent-steps.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/agent-steps.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/agent-steps/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-TerminalSimulator",
+      "name": "Snapcn / TerminalSimulator",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/terminal-simulator.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/terminal-simulator.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/terminal-simulator/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-ChannelThread",
+      "name": "Snapcn / ChannelThread",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/channel-thread.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/channel-thread.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/channel-thread/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-PhoneFrame",
+      "name": "Snapcn / PhoneFrame",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/phone-frame.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/phone-frame.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/phone-frame/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-LaptopFrame",
+      "name": "Snapcn / LaptopFrame",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/laptop-frame.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/laptop-frame.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/laptop-frame/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-ScreenRecording",
+      "name": "Snapcn / ScreenRecording",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/screen-recording.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/screen-recording.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/screen-recording/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-CursorTrack",
+      "name": "Snapcn / CursorTrack",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/cursor-track.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/cursor-track.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/cursor-track/index.tsx"
+    },
+    {
+      "compositionId": "Snapcn-MoodboardReveal",
+      "name": "Snapcn / MoodboardReveal",
+      "library": "Snapcn",
+      "verticalPath": "src/components/component-vertical/snapcn/entries/moodboard-reveal.tsx",
+      "horizontalPath": "src/components/component-horizontal/snapcn/entries/moodboard-reveal.tsx",
+      "verticalSourcePath": "src/components/component-vertical/snapcn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/snapcn/moodboard-reveal/index.tsx"
+    },
+    {
+      "compositionId": "Rve-QuoteCard",
+      "name": "RVE / Quote Card",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/quote-card.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/quote-card.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/quote-card.tsx"
+    },
+    {
+      "compositionId": "Rve-ChartAnimation",
+      "name": "RVE / Bar Chart",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/chart-animation.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/chart-animation.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/chart-animation.tsx"
+    },
+    {
+      "compositionId": "Rve-LineChart",
+      "name": "RVE / Line Chart",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/line-chart.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/line-chart.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/line-chart.tsx"
+    },
+    {
+      "compositionId": "Rve-PieChart",
+      "name": "RVE / Pie Chart",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/pie-chart.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/pie-chart.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/pie-chart.tsx"
+    },
+    {
+      "compositionId": "Rve-DonutChart",
+      "name": "RVE / Donut Chart",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/donut-chart.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/donut-chart.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/donut-chart.tsx"
+    },
+    {
+      "compositionId": "Rve-StatCounter",
+      "name": "RVE / Stat Counter",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/stat-counter.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/stat-counter.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/stat-counter.tsx"
+    },
+    {
+      "compositionId": "Rve-ProgressBars",
+      "name": "RVE / Progress Bars",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/progress-bars.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/progress-bars.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/progress-bars.tsx"
+    },
+    {
+      "compositionId": "Rve-ProgressSteps",
+      "name": "RVE / Progress Steps",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/progress-steps.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/progress-steps.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/progress-steps.tsx"
+    },
+    {
+      "compositionId": "Rve-ComparisonChart",
+      "name": "RVE / Comparison Chart",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/comparison-chart.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/comparison-chart.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/comparison-chart.tsx"
+    },
+    {
+      "compositionId": "Rve-SplitScreen",
+      "name": "RVE / Split Screen",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/split-screen.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/split-screen.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/split-screen.tsx"
+    },
+    {
+      "compositionId": "Rve-ImageComparisonSlider",
+      "name": "RVE / Image Comparison Slider",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/image-comparison-slider.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/image-comparison-slider.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/image-comparison-slider.tsx"
+    },
+    {
+      "compositionId": "Remocn-AnimatedLineChart",
+      "name": "Remocn / Animated Line Chart",
+      "library": "Remocn",
+      "verticalPath": "src/components/component-vertical/remocn/entries/remocn-animated-line-chart.tsx",
+      "horizontalPath": "src/components/component-horizontal/remocn/entries/remocn-animated-line-chart.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remocn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remocn/animated-line-chart/index.tsx"
+    },
+    {
+      "compositionId": "Remocn-CodeMorph",
+      "name": "Remocn / Code Morph",
+      "library": "Remocn",
+      "verticalPath": "src/components/component-vertical/remocn/entries/remocn-code-morph.tsx",
+      "horizontalPath": "src/components/component-horizontal/remocn/entries/remocn-code-morph.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remocn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remocn/code-morph/index.tsx"
+    },
+    {
+      "compositionId": "Remocn-ChatGpt",
+      "name": "Remocn / ChatGPT",
+      "library": "Remocn",
+      "verticalPath": "src/components/component-vertical/remocn/entries/remocn-chat-gpt.tsx",
+      "horizontalPath": "src/components/component-horizontal/remocn/entries/remocn-chat-gpt.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remocn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remocn/chat-gpt/index.tsx"
+    },
+    {
+      "compositionId": "Remocn-AgentRun",
+      "name": "Remocn / Agent Run",
+      "library": "Remocn",
+      "verticalPath": "src/components/component-vertical/remocn/entries/remocn-agent-run.tsx",
+      "horizontalPath": "src/components/component-horizontal/remocn/entries/remocn-agent-run.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remocn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remocn/agent-run/index.tsx"
+    },
+    {
+      "compositionId": "Remocn-SearchReveal",
+      "name": "Remocn / Search Reveal",
+      "library": "Remocn",
+      "verticalPath": "src/components/component-vertical/remocn/entries/remocn-search-reveal.tsx",
+      "horizontalPath": "src/components/component-horizontal/remocn/entries/remocn-search-reveal.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remocn/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remocn/search-reveal/index.tsx"
+    },
+    {
+      "compositionId": "RemotionUI-DataFlowPipes",
+      "name": "RemotionUI / Data Flow Pipes",
+      "library": "RemotionUI",
+      "verticalPath": "src/components/component-vertical/remotion-ui/entries/remotion-ui-data-flow-pipes.tsx",
+      "horizontalPath": "src/components/component-horizontal/remotion-ui/entries/remotion-ui-data-flow-pipes.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remotion-ui/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remotion-ui/scenes/data-flow-pipes/index.tsx"
+    },
+    {
+      "compositionId": "RemotionUI-CodeReveal",
+      "name": "RemotionUI / Code Reveal",
+      "library": "RemotionUI",
+      "verticalPath": "src/components/component-vertical/remotion-ui/entries/remotion-ui-code-reveal.tsx",
+      "horizontalPath": "src/components/component-horizontal/remotion-ui/entries/remotion-ui-code-reveal.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remotion-ui/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remotion-ui/scenes/code-reveal/index.tsx"
+    },
+    {
+      "compositionId": "RemotionUI-AnimatedBarChart",
+      "name": "RemotionUI / Animated Bar Chart",
+      "library": "RemotionUI",
+      "verticalPath": "src/components/component-vertical/remotion-ui/entries/remotion-ui-animated-bar-chart.tsx",
+      "horizontalPath": "src/components/component-horizontal/remotion-ui/entries/remotion-ui-animated-bar-chart.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remotion-ui/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remotion-ui/scenes/animated-bar-chart/index.tsx"
+    },
+    {
+      "compositionId": "Bits-ChatConversation",
+      "name": "Bits / Chat Conversation",
+      "library": "Bits",
+      "verticalPath": "src/components/component-vertical/bits/entries/bits-chat-conversation.tsx",
+      "horizontalPath": "src/components/component-horizontal/bits/entries/bits-chat-conversation.tsx",
+      "verticalSourcePath": "src/components/component-vertical/bits/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/bits/examples/ChatConversation.tsx"
+    },
+    {
+      "compositionId": "Bits-StatRings",
+      "name": "Bits / Stat Rings",
+      "library": "Bits",
+      "verticalPath": "src/components/component-vertical/bits/entries/bits-stat-rings.tsx",
+      "horizontalPath": "src/components/component-horizontal/bits/entries/bits-stat-rings.tsx",
+      "verticalSourcePath": "src/components/component-vertical/bits/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/bits/examples/StatRings.tsx"
+    },
+    {
+      "compositionId": "Bits-CursorFlyover",
+      "name": "Bits / Cursor Flyover",
+      "library": "Bits",
+      "verticalPath": "src/components/component-vertical/bits/entries/bits-cursor-flyover.tsx",
+      "horizontalPath": "src/components/component-horizontal/bits/entries/bits-cursor-flyover.tsx",
+      "verticalSourcePath": "src/components/component-vertical/bits/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/bits/examples/CursorFlyover.tsx"
+    },
+    {
+      "compositionId": "Bits-KenBurns",
+      "name": "Bits / Ken Burns Effect",
+      "library": "Bits",
+      "verticalPath": "src/components/component-vertical/bits/entries/bits-ken-burns.tsx",
+      "horizontalPath": "src/components/component-horizontal/bits/entries/bits-ken-burns.tsx",
+      "verticalSourcePath": "src/components/component-vertical/bits/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/bits/examples/KenBurns.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-focus-dim-spotlight",
+      "name": "Talkcraft / 聚焦压暗切换",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/focus-dim-spotlight.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/focus-dim-spotlight.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/focus-dim-spotlight.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/focus-dim-spotlight.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-hand-drawn-ellipse",
+      "name": "Talkcraft / 手绘圈重点",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/hand-drawn-ellipse.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/hand-drawn-ellipse.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/hand-drawn-ellipse.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/hand-drawn-ellipse.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-highlighter-sweep",
+      "name": "Talkcraft / 荧光笔高亮扫过",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/highlighter-sweep.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/highlighter-sweep.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/highlighter-sweep.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/highlighter-sweep.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-scribble-annotation",
+      "name": "Talkcraft / 手绘圈注箭头",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/scribble-annotation.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/scribble-annotation.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/scribble-annotation.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/scribble-annotation.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-callout-line-label",
+      "name": "Talkcraft / 标注引出线",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/callout-line-label.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/callout-line-label.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/callout-line-label.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/callout-line-label.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-converging-arrows",
+      "name": "Talkcraft / 双箭头聚焦",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/converging-arrows.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/converging-arrows.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/converging-arrows.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/converging-arrows.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-corner-bracket-frame",
+      "name": "Talkcraft / 对角角框",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/corner-bracket-frame.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/corner-bracket-frame.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/corner-bracket-frame.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/corner-bracket-frame.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-crash-zoom-punch",
+      "name": "Talkcraft / 急推特写",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/crash-zoom-punch.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/crash-zoom-punch.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/crash-zoom-punch.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/crash-zoom-punch.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-ink-underline",
+      "name": "Talkcraft / 墨迹下划线",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/ink-underline.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/ink-underline.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/ink-underline.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/ink-underline.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-magnifier-detail",
+      "name": "Talkcraft / 局部放大镜",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/magnifier-detail.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/magnifier-detail.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/magnifier-detail.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/magnifier-detail.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-quote-hold-arrow",
+      "name": "Talkcraft / 金句停留",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/quote-hold-arrow.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/quote-hold-arrow.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/quote-hold-arrow.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/quote-hold-arrow.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-scanline-annotate",
+      "name": "Talkcraft / 扫描线逐处点名",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/scanline-annotate.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/scanline-annotate.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/scanline-annotate.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/scanline-annotate.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-strike-and-replace",
+      "name": "Talkcraft / 划线纠错替换",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/strike-and-replace.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/strike-and-replace.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/strike-and-replace.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/strike-and-replace.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-reticle-lock-on",
+      "name": "Talkcraft / 准星咬合",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/reticle-lock-on.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/reticle-lock-on.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/reticle-lock-on.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/reticle-lock-on.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-lower-third-nameplate",
+      "name": "Talkcraft / 人名条展示牌",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/lower-third-nameplate.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/lower-third-nameplate.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/lower-third-nameplate.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/lower-third-nameplate.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-parallel-items-with-host",
+      "name": "Talkcraft / 并列句排版（人物在场）",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/parallel-items-with-host.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/parallel-items-with-host.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/parallel-items-with-host.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/parallel-items-with-host.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-behind-text-title",
+      "name": "Talkcraft / 人后大字视差",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/behind-text-title.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/behind-text-title.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/behind-text-title.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/behind-text-title.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-chevron-lower-third",
+      "name": "Talkcraft / 动态人名条",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/chevron-lower-third.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/chevron-lower-third.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/chevron-lower-third.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/chevron-lower-third.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-danmu-bubble-praise",
+      "name": "Talkcraft / 弹幕气泡",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/danmu-bubble-praise.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/danmu-bubble-praise.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/danmu-bubble-praise.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/danmu-bubble-praise.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-douyin-follow-card",
+      "name": "Talkcraft / 抖音主页关注卡",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/douyin-follow-card.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/douyin-follow-card.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/douyin-follow-card.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/douyin-follow-card.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-host-card-glass-board",
+      "name": "Talkcraft / 人物竖卡玻璃台",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/host-card-glass-board.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/host-card-glass-board.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/host-card-glass-board.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/host-card-glass-board.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-host-shrink-to-chip",
+      "name": "Talkcraft / 人物缩位让台",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/host-shrink-to-chip.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/host-shrink-to-chip.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/host-shrink-to-chip.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/host-shrink-to-chip.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-subscribe-cta",
+      "name": "Talkcraft / 多平台关注 CTA",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/subscribe-cta.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/subscribe-cta.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/subscribe-cta.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/subscribe-cta.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-x-follow-card",
+      "name": "Talkcraft / 关注卡弹出",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/x-follow-card.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/x-follow-card.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/x-follow-card.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/x-follow-card.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-bar-chart-growth",
+      "name": "Talkcraft / 柱状增长",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/bar-chart-growth.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/bar-chart-growth.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/bar-chart-growth.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/bar-chart-growth.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-chart-grow",
+      "name": "Talkcraft / 图表生长",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/chart-grow.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/chart-grow.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/chart-grow.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/chart-grow.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-line-chart-story-draw",
+      "name": "Talkcraft / 折线分段推演",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/line-chart-story-draw.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/line-chart-story-draw.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/line-chart-story-draw.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/line-chart-story-draw.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-metric-with-sparkline",
+      "name": "Talkcraft / 数字带趋势",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/metric-with-sparkline.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/metric-with-sparkline.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/metric-with-sparkline.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/metric-with-sparkline.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-number-counter",
+      "name": "Talkcraft / 数字滚动计数",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/number-counter.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/number-counter.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/number-counter.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/number-counter.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-number-slab-pop",
+      "name": "Talkcraft / 数字弹出",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/number-slab-pop.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/number-slab-pop.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/number-slab-pop.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/number-slab-pop.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-unit-grid-proportion",
+      "name": "Talkcraft / 点阵比例图",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/unit-grid-proportion.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/unit-grid-proportion.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/unit-grid-proportion.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/unit-grid-proportion.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-chip-grid-single-select",
+      "name": "Talkcraft / 五选一反黑",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/chip-grid-single-select.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/chip-grid-single-select.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/chip-grid-single-select.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/chip-grid-single-select.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-info-term-card",
+      "name": "Talkcraft / 名词解释悬浮卡",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/info-term-card.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/info-term-card.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/info-term-card.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/info-term-card.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-map-route-pin",
+      "name": "Talkcraft / 地图路线图钉",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/map-route-pin.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/map-route-pin.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/map-route-pin.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/map-route-pin.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-numbered-step-stack",
+      "name": "Talkcraft / 编号步骤堆入",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/numbered-step-stack.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/numbered-step-stack.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/numbered-step-stack.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/numbered-step-stack.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-step-timeline-vertical",
+      "name": "Talkcraft / 竖向步骤线",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/step-timeline-vertical.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/step-timeline-vertical.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/step-timeline-vertical.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/step-timeline-vertical.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-ui-prop-theater",
+      "name": "Talkcraft / 界面道具剧场",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/ui-prop-theater.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/ui-prop-theater.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/ui-prop-theater.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/ui-prop-theater.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-source-converge",
+      "name": "Talkcraft / 多源汇聚",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/source-converge.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/source-converge.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/source-converge.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/source-converge.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-bed-echo-blur",
+      "name": "Talkcraft / 同源模糊底床",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/bed-echo-blur.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/bed-echo-blur.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/bed-echo-blur.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/bed-echo-blur.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-chat-message-flow",
+      "name": "Talkcraft / 聊天记录自演",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/chat-message-flow.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/chat-message-flow.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/chat-message-flow.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/chat-message-flow.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-cursor-actor-demo",
+      "name": "Talkcraft / 光标演员演示",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/cursor-actor-demo.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/cursor-actor-demo.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/cursor-actor-demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/cursor-actor-demo.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-evidence-scroll-tour",
+      "name": "Talkcraft / 证据长页慢滚",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/evidence-scroll-tour.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/evidence-scroll-tour.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/evidence-scroll-tour.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/evidence-scroll-tour.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-media-pop-in",
+      "name": "Talkcraft / 素材弹入堆叠",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/media-pop-in.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/media-pop-in.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/media-pop-in.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/media-pop-in.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-news-card-desk",
+      "name": "Talkcraft / 新闻卡片划重点",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/news-card-desk.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/news-card-desk.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/news-card-desk.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/news-card-desk.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-split-compare-slider",
+      "name": "Talkcraft / 对比双分屏（滑动揭示）",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/split-compare-slider.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/split-compare-slider.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/split-compare-slider.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/split-compare-slider.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-still-layout-relay",
+      "name": "Talkcraft / 多图排版 + 焦点接力",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/still-layout-relay.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/still-layout-relay.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/still-layout-relay.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/still-layout-relay.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-ui-flow-theater",
+      "name": "Talkcraft / 界面流程剧场",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/ui-flow-theater.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/ui-flow-theater.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/ui-flow-theater.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/ui-flow-theater.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-chat-gpt",
+      "name": "Talkcraft / ChatGPT 对话框",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/chat-gpt.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/chat-gpt.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/chat-gpt.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/chat-gpt.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-claude-code",
+      "name": "Talkcraft / 编码智能体终端",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/claude-code.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/claude-code.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/claude-code.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/claude-code.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-doc-park-left-pill-deal",
+      "name": "Talkcraft / 文档驻留发牌",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/doc-park-left-pill-deal.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/doc-park-left-pill-deal.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/doc-park-left-pill-deal.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/doc-park-left-pill-deal.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-filmstrip-conveyor",
+      "name": "Talkcraft / 传送带列举 + 减速停靠",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/filmstrip-conveyor.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/filmstrip-conveyor.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/filmstrip-conveyor.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/filmstrip-conveyor.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-gallery-wall-dolly",
+      "name": "Talkcraft / 照片墙推轨",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/gallery-wall-dolly.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/gallery-wall-dolly.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/gallery-wall-dolly.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/gallery-wall-dolly.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-glass-code-walk",
+      "name": "Talkcraft / 玻璃代码走读",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/glass-code-walk.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/glass-code-walk.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/glass-code-walk.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/glass-code-walk.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-gooey-morph",
+      "name": "Talkcraft / 图块拼入",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/gooey-morph.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/gooey-morph.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/gooey-morph.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/gooey-morph.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-grid-to-hero",
+      "name": "Talkcraft / 网格收成主角",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/grid-to-hero.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/grid-to-hero.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/grid-to-hero.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/grid-to-hero.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-info-card-assemble",
+      "name": "Talkcraft / 信息卡逐字段自建",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/info-card-assemble.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/info-card-assemble.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/info-card-assemble.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/info-card-assemble.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-logo-enter",
+      "name": "Talkcraft / Logo 登场",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/logo-enter.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/logo-enter.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/logo-enter.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/logo-enter.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-motion-blur-slam-in",
+      "name": "Talkcraft / 模糊甩入急停",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/motion-blur-slam-in.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/motion-blur-slam-in.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/motion-blur-slam-in.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/motion-blur-slam-in.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-pencil-sketch-draw",
+      "name": "Talkcraft / 铅笔手绘揭示",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/pencil-sketch-draw.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/pencil-sketch-draw.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/pencil-sketch-draw.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/pencil-sketch-draw.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-rack-focus-pair",
+      "name": "Talkcraft / 焦点接力",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/rack-focus-pair.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/rack-focus-pair.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/rack-focus-pair.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/rack-focus-pair.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-split-60-40-story",
+      "name": "Talkcraft / 60/40 主从分屏",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/split-60-40-story.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/split-60-40-story.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/split-60-40-story.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/split-60-40-story.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-stack-fan-out",
+      "name": "Talkcraft / 卡堆扇形展开",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/stack-fan-out.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/stack-fan-out.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/stack-fan-out.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/stack-fan-out.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-terminal-typing-log",
+      "name": "Talkcraft / 终端逐行推进",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/terminal-typing-log.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/terminal-typing-log.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/terminal-typing-log.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/terminal-typing-log.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-timeline-photo-strip",
+      "name": "Talkcraft / 时间线照片带",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/timeline-photo-strip.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/timeline-photo-strip.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/timeline-photo-strip.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/timeline-photo-strip.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-word-relay-filmstrip",
+      "name": "Talkcraft / 动词接力胶片",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/word-relay-filmstrip.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/word-relay-filmstrip.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/word-relay-filmstrip.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/word-relay-filmstrip.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-slow-pull-reveal",
+      "name": "Talkcraft / 缓拉全貌",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/slow-pull-reveal.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/slow-pull-reveal.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/slow-pull-reveal.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/slow-pull-reveal.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-slow-push-in",
+      "name": "Talkcraft / 缓推特写",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/slow-push-in.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/slow-push-in.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/slow-push-in.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/slow-push-in.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-cursor-locked-zoom",
+      "name": "Talkcraft / 光标锁定跟拍",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/cursor-locked-zoom.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/cursor-locked-zoom.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/cursor-locked-zoom.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/cursor-locked-zoom.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-orbit-drift",
+      "name": "Talkcraft / 环绕微漂",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/orbit-drift.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/orbit-drift.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/orbit-drift.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/orbit-drift.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-pip-zoom-box",
+      "name": "Talkcraft / 画中画放大",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/pip-zoom-box.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/pip-zoom-box.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/pip-zoom-box.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/pip-zoom-box.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-stage-keyframe-tour",
+      "name": "Talkcraft / 长页兴趣点巡游",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/stage-keyframe-tour.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/stage-keyframe-tour.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/stage-keyframe-tour.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/stage-keyframe-tour.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-sway-parallax",
+      "name": "Talkcraft / 左右摇移",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/sway-parallax.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/sway-parallax.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/sway-parallax.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/sway-parallax.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-tilt-3d-page",
+      "name": "Talkcraft / 3D 立面展示",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/tilt-3d-page.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/tilt-3d-page.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/tilt-3d-page.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/tilt-3d-page.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-black-slam-transition",
+      "name": "Talkcraft / 黑震切转场",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/black-slam-transition.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/black-slam-transition.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/black-slam-transition.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/black-slam-transition.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-chapter-title-card",
+      "name": "Talkcraft / 章节标题卡",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/chapter-title-card.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/chapter-title-card.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/chapter-title-card.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/chapter-title-card.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-color-slam-beat-card",
+      "name": "Talkcraft / 纯色硬切节拍卡",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/color-slam-beat-card.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/color-slam-beat-card.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/color-slam-beat-card.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/color-slam-beat-card.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-overexpose-flip-transition",
+      "name": "Talkcraft / 过曝翻页转场",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/overexpose-flip-transition.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/overexpose-flip-transition.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/overexpose-flip-transition.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/overexpose-flip-transition.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-particle-weld-transition",
+      "name": "Talkcraft / 粒子溶接转场",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/particle-weld-transition.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/particle-weld-transition.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/particle-weld-transition.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/particle-weld-transition.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-pullback-cool-transition",
+      "name": "Talkcraft / 后拉冷却转场",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/pullback-cool-transition.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/pullback-cool-transition.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/pullback-cool-transition.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/pullback-cool-transition.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-push-through-transition",
+      "name": "Talkcraft / 推穿转场",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/push-through-transition.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/push-through-transition.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/push-through-transition.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/push-through-transition.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-shape-wipe-transition",
+      "name": "Talkcraft / 色块扫屏转场",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/shape-wipe-transition.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/shape-wipe-transition.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/shape-wipe-transition.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/shape-wipe-transition.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-whip-pan-transition",
+      "name": "Talkcraft / 横甩转场",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/whip-pan-transition.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/whip-pan-transition.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/whip-pan-transition.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/whip-pan-transition.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-caret-wipe-transition",
+      "name": "Talkcraft / 光标擦除转场",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/caret-wipe-transition.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/caret-wipe-transition.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/caret-wipe-transition.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/caret-wipe-transition.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-chapter-progress-list",
+      "name": "Talkcraft / 章节进度",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/chapter-progress-list.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/chapter-progress-list.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/chapter-progress-list.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/chapter-progress-list.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-line-carry-transition",
+      "name": "Talkcraft / 线条接力转场",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/line-carry-transition.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/line-carry-transition.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/line-carry-transition.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/line-carry-transition.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-long-take-world",
+      "name": "Talkcraft / 长镜头世界画布",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/long-take-world.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/long-take-world.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/long-take-world.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/long-take-world.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-impact-open-title",
+      "name": "Talkcraft / 冲击开场",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/impact-open-title.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/impact-open-title.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/impact-open-title.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/impact-open-title.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-keyword-pop-highlight",
+      "name": "Talkcraft / 关键词弹出强调",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/keyword-pop-highlight.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/keyword-pop-highlight.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/keyword-pop-highlight.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/keyword-pop-highlight.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-slab-punch-title",
+      "name": "Talkcraft / 重点放大",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/slab-punch-title.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/slab-punch-title.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/slab-punch-title.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/slab-punch-title.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-title-demote-to-label",
+      "name": "Talkcraft / 标题降格成标签",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/title-demote-to-label.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/title-demote-to-label.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/title-demote-to-label.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/title-demote-to-label.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-type-contrast-emphasis",
+      "name": "Talkcraft / 字体对比重音",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/type-contrast-emphasis.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/type-contrast-emphasis.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/type-contrast-emphasis.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/type-contrast-emphasis.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-word-slot-cycle",
+      "name": "Talkcraft / 词槽轮换",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/word-slot-cycle.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/word-slot-cycle.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/word-slot-cycle.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/word-slot-cycle.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-alt-block-lines",
+      "name": "Talkcraft / 双色块对句",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/alt-block-lines.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/alt-block-lines.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/alt-block-lines.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/alt-block-lines.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-count-badge-title",
+      "name": "Talkcraft / 数字重音标题",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/count-badge-title.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/count-badge-title.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/count-badge-title.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/count-badge-title.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-error-retype",
+      "name": "Talkcraft / 打字改口",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/error-retype.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/error-retype.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/error-retype.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/error-retype.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-lead-word-zoom-assemble",
+      "name": "Talkcraft / 首词占满补句",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/lead-word-zoom-assemble.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/lead-word-zoom-assemble.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/lead-word-zoom-assemble.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/lead-word-zoom-assemble.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-line-by-line-slide",
+      "name": "Talkcraft / 逐行滑入",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/line-by-line-slide.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/line-by-line-slide.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/line-by-line-slide.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/line-by-line-slide.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-outline-box-title",
+      "name": "Talkcraft / 描边框标题",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/outline-box-title.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/outline-box-title.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/outline-box-title.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/outline-box-title.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-per-character-rise",
+      "name": "Talkcraft / 逐字升起",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/per-character-rise.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/per-character-rise.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/per-character-rise.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/per-character-rise.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-quote-bracket-pull",
+      "name": "Talkcraft / 引号夹句",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/quote-bracket-pull.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/quote-bracket-pull.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/quote-bracket-pull.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/quote-bracket-pull.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-quote-card",
+      "name": "Talkcraft / 金句大字卡",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/quote-card.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/quote-card.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/quote-card.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/quote-card.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-soft-blur-in",
+      "name": "Talkcraft / 柔焦淡入",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/soft-blur-in.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/soft-blur-in.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/soft-blur-in.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/soft-blur-in.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-speed-slab-title",
+      "name": "Talkcraft / 速度块标题",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/speed-slab-title.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/speed-slab-title.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/speed-slab-title.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/speed-slab-title.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-tracking-in",
+      "name": "Talkcraft / 字距收拢",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/tracking-in.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/tracking-in.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/tracking-in.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/tracking-in.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-typewriter-reveal",
+      "name": "Talkcraft / 打字机档案戳",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/typewriter-reveal.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/typewriter-reveal.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/typewriter-reveal.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/typewriter-reveal.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-countdown-arc-scatter",
+      "name": "Talkcraft / 数字弧落标题",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/countdown-arc-scatter.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/countdown-arc-scatter.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/countdown-arc-scatter.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/countdown-arc-scatter.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-flying-words",
+      "name": "Talkcraft / 关键词隧道",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/flying-words.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/flying-words.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/flying-words.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/flying-words.tsx"
+    },
+    {
+      "compositionId": "Talkcraft-split-text-stagger",
+      "name": "Talkcraft / 逐字裂升",
+      "library": "Talkcraft",
+      "verticalPath": "src/components/component-vertical/video-talkcraft/entries/split-text-stagger.tsx",
+      "horizontalPath": "src/components/component-horizontal/video-talkcraft/entries/split-text-stagger.tsx",
+      "verticalSourcePath": "src/components/component-vertical/video-talkcraft/split-text-stagger.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/video-talkcraft/cards/split-text-stagger.tsx"
+    }
+  ]
+}

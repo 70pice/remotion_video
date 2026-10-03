@@ -20,6 +20,10 @@ export type {
   RoleModelConfig,
   RoleModels,
   Script,
+  ScriptCritique,
+  ScriptCritiqueIssue,
+  ScriptDiscussion,
+  ScriptDiscussionRound,
   ScriptSegment,
   SettingsPatch,
   Shot,
@@ -41,5 +45,13 @@ export interface Settings extends Record<string, unknown> {
   voice_configured?: boolean;
   role_models?: Partial<RoleModels>;
   cli_availability?: Partial<Record<ModelProvider, { available: boolean }>>;
+  research_tools?: Array<{
+    id: string;
+    label: string;
+    status: string;
+    detail: string;
+    kind?: string;
+    notes?: string;
+  }>;
 }
 export type Alignment = Omit<GeneratedAlignment, "audio_sha256">;

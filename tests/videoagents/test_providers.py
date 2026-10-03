@@ -97,7 +97,7 @@ def test_generated_voice_with_changed_script_is_not_reused(monkeypatch, tmp_path
         raise CapabilityMissing("test missing new voice credentials")
     monkeypatch.setattr("videoagents.nodes.voice.synthesize", request)
     with pytest.raises(CapabilityMissing):
-        VoiceNode(repo, service).run(repo.get_job(job.job_id), "new-command")
+        VoiceNode(repo, service).prepare_audio(repo.get_job(job.job_id), "new-command")
     assert calls == ["New script"]
 
 
@@ -139,7 +139,7 @@ def test_ws_model_change_invalidates_generated_audio(monkeypatch, tmp_path):
         raise CapabilityMissing("TEST new synthesis needed")
     monkeypatch.setattr("videoagents.nodes.voice.synthesize", request)
     with pytest.raises(CapabilityMissing):
-        VoiceNode(repo, service).run(repo.get_job(job.job_id), "new-model-command")
+        VoiceNode(repo, service).prepare_audio(repo.get_job(job.job_id), "new-model-command")
     assert calls == ["Same narration"]
 
 
@@ -193,36 +193,43 @@ def test_llm_rejection_retry_is_explicit_and_unknown_stays_blocked(tmp_path, mon
 
 @pytest.mark.parametrize("supplied_urls", [[], ["https://example.com/source"]])
 def test_unknown_model_cannot_bypass_barrier_by_refreshing_source_receipts(tmp_path, monkeypatch, supplied_urls):
-    from videoagents.agents.screenwriter import Screenwriter
     from videoagents.contracts import Brief
+    from videoagents.nodes.materials import MaterialsNode
+    from videoagents.nodes.screenwriter import ScreenwriterNode
     from videoagents.providers.cli_runner import CliFailure
     from videoagents.services.jobs import JobService
     repo = Repository(tmp_path / "runtime")
     service = JobService(repo, tmp_path / "project")
-    SettingsService(repo).patch(SettingsPatch(role_models={"screenwriter": {"enabled": True, "model": "unit-model"}}))
+    SettingsService(repo).patch(SettingsPatch(role_models={"screenwriter": {"enabled": True, "model": "unit-model"}},
+                                             capture_enabled=False, research_download_images=False))
     job = repo.create_job(Brief(topic="测试来源研究", source_urls=supplied_urls))
-    monkeypatch.setattr("videoagents.agents.screenwriter.search", lambda *args: {"results": [{"url": "https://example.com/source"}]})
+    monkeypatch.setattr("videoagents.nodes.materials.discover", lambda *args, **kwargs: {
+        "results": [{"url": "https://example.com/source"}], "images": [],
+        "tools": [{"platform": "web", "backend": "unit", "status": "ok"}],
+    })
     monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *args: ["unit-cli"])
     fetches, calls = [], []
     def fetch(url, path):
         fetches.append(path)
         path.write_bytes(b"frozen source content UNIT TEST")
         return {"url": url, "final_url": url, "text": "unit source", "retrieved_at": "unique-clock-" + str(len(fetches))}
-    monkeypatch.setattr("videoagents.agents.screenwriter.fetch_source", fetch)
+    monkeypatch.setattr("videoagents.nodes.materials.fetch_source", fetch)
     def handler(*args, **kwargs):
         calls.append(args)
         raise CliFailure("unit_unknown")
     monkeypatch.setattr("videoagents.providers.llm.run_cli", handler)
-    writer = Screenwriter(repo, service)
+    MaterialsNode(repo, service).collect(job)
+    writer = ScreenwriterNode(repo, service)
     with pytest.raises(CapabilityMissing) as first_failure:
-        writer.run(job)
+        writer.write_script(job)
     assert first_failure.value.operation_status == "UNKNOWN"
     first = repo.get_job(job.job_id)
     source = next(item for item in first.artifacts if item.kind == "source")
     original_path = repo.artifact_path(source.artifact_id)[0]
     before = original_path.read_bytes()
     with pytest.raises(CapabilityMissing):
-        writer.run(job)  # Deliberately replay the original stale snapshot.
+        MaterialsNode(repo, service).collect(job)
+        writer.write_script(job)  # Deliberately replay the original stale snapshot.
     assert len(fetches) == 1 and len(calls) == 1
     assert original_path.read_bytes() == before
     posted_context = json.loads(calls[0][3].split("上下文：\n", 1)[1])

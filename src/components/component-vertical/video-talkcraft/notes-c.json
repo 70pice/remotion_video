@@ -1,0 +1,218 @@
+[
+  {
+    "slug": "grid-to-hero",
+    "source": "src/components/community/video-talkcraft/cards/grid-to-hero.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/grid-to-hero.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "2x2 portrait candidate grid grows selected image into a full-width hero, remaining images become a native bottom strip."
+  },
+  {
+    "slug": "info-card-assemble",
+    "source": "src/components/community/video-talkcraft/cards/info-card-assemble.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/info-card-assemble.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Large portrait product card; image, title, pills, price, highlights and swatches assemble in the original stagger order."
+  },
+  {
+    "slug": "logo-enter",
+    "source": "src/components/community/video-talkcraft/cards/logo-enter.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/logo-enter.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Centered portrait logo lockup with badge spring, delayed wordmark and ring draw."
+  },
+  {
+    "slug": "motion-blur-slam-in",
+    "source": "src/components/community/video-talkcraft/cards/motion-blur-slam-in.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/motion-blur-slam-in.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Portrait evidence cards slam from the right over a lower host area, using horizontal blur tied to velocity."
+  },
+  {
+    "slug": "pencil-sketch-draw",
+    "source": "src/components/community/video-talkcraft/cards/pencil-sketch-draw.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/pencil-sketch-draw.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "1080x1920 sketch surface with redrawn card, vehicle outline and underline paths plus pencil tracking."
+  },
+  {
+    "slug": "rack-focus-pair",
+    "source": "src/components/community/video-talkcraft/cards/rack-focus-pair.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/rack-focus-pair.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Two large portrait photo cards overlap vertically and keep the one-clear-one-blurred rack focus rule."
+  },
+  {
+    "slug": "split-60-40-story",
+    "source": "src/components/community/video-talkcraft/cards/split-60-40-story.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/split-60-40-story.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Native vertical split: media top, headline and chips below, preserving left-media/right-text semantics as top-main/bottom-support."
+  },
+  {
+    "slug": "stack-fan-out",
+    "source": "src/components/community/video-talkcraft/cards/stack-fan-out.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/stack-fan-out.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Five large portrait cards stack, fan on an arc, pause, then flatten into a vertical-video row."
+  },
+  {
+    "slug": "terminal-typing-log",
+    "source": "src/components/community/video-talkcraft/cards/terminal-typing-log.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/terminal-typing-log.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Large mobile terminal window with chunked logs and instant line steps, host badge below."
+  },
+  {
+    "slug": "timeline-photo-strip",
+    "source": "src/components/community/video-talkcraft/cards/timeline-photo-strip.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/timeline-photo-strip.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Vertical timeline with alternating photos, camera follows each stop then pulls back to show the whole strip."
+  },
+  {
+    "slug": "word-relay-filmstrip",
+    "source": "src/components/community/video-talkcraft/cards/word-relay-filmstrip.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/word-relay-filmstrip.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Portrait filmstrip scrolls by one card during word switches; word block sits below the strip."
+  },
+  {
+    "slug": "slow-pull-reveal",
+    "source": "src/components/community/video-talkcraft/cards/slow-pull-reveal.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/slow-pull-reveal.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Portrait dashboard camera pulls from a KPI detail to the full mobile page."
+  },
+  {
+    "slug": "slow-push-in",
+    "source": "src/components/community/video-talkcraft/cards/slow-push-in.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/slow-push-in.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Portrait dashboard camera slowly pushes into the page without a fixed 16:9 stage."
+  },
+  {
+    "slug": "cursor-locked-zoom",
+    "source": "src/components/community/video-talkcraft/cards/cursor-locked-zoom.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/cursor-locked-zoom.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Portrait terminal scene uses a camera transform locked to the typing cursor, then returns to full view."
+  },
+  {
+    "slug": "orbit-drift",
+    "source": "src/components/community/video-talkcraft/cards/orbit-drift.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/orbit-drift.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Portrait page floats in 3D with small orbital drift and shadow parallax."
+  },
+  {
+    "slug": "pip-zoom-box",
+    "source": "src/components/community/video-talkcraft/cards/pip-zoom-box.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/pip-zoom-box.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Host scene and zoom box use portrait coordinates; box moves from face detail to lower portrait PiP."
+  },
+  {
+    "slug": "stage-keyframe-tour",
+    "source": "src/components/community/video-talkcraft/cards/stage-keyframe-tour.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/stage-keyframe-tour.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Long portrait landing page tour travels between vertical interest points with zoom and tilt."
+  },
+  {
+    "slug": "sway-parallax",
+    "source": "src/components/community/video-talkcraft/cards/sway-parallax.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/sway-parallax.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Wide workflow board pans inside a portrait viewport with subtle rotateY parallax."
+  },
+  {
+    "slug": "tilt-3d-page",
+    "source": "src/components/community/video-talkcraft/cards/tilt-3d-page.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/tilt-3d-page.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Portrait landing page tilts into a 3D display surface with synchronized shadow."
+  },
+  {
+    "slug": "black-slam-transition",
+    "source": "src/components/community/video-talkcraft/cards/black-slam-transition.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/black-slam-transition.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Full-screen portrait hard cut with freeze, dark flash, shake and pullback."
+  },
+  {
+    "slug": "chapter-title-card",
+    "source": "src/components/community/video-talkcraft/cards/chapter-title-card.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/chapter-title-card.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Full portrait chapter cards wipe in with oversized number, motif-like rule and title reveal."
+  },
+  {
+    "slug": "color-slam-beat-card",
+    "source": "src/components/community/video-talkcraft/cards/color-slam-beat-card.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/color-slam-beat-card.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Full portrait high-saturation beat cards with large type and rising evidence panel."
+  },
+  {
+    "slug": "overexpose-flip-transition",
+    "source": "src/components/community/video-talkcraft/cards/overexpose-flip-transition.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/overexpose-flip-transition.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Full portrait push-to-bright transition, scaled for 9:16 text placement."
+  },
+  {
+    "slug": "particle-weld-transition",
+    "source": "src/components/community/video-talkcraft/cards/particle-weld-transition.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/particle-weld-transition.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Full portrait particle dissolve/regather around large centered typography."
+  },
+  {
+    "slug": "pullback-cool-transition",
+    "source": "src/components/community/video-talkcraft/cards/pullback-cool-transition.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/pullback-cool-transition.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Full portrait cool pullback transition with scale below one on the incoming shot."
+  },
+  {
+    "slug": "push-through-transition",
+    "source": "src/components/community/video-talkcraft/cards/push-through-transition.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/push-through-transition.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Full portrait push-through transition with same-axis outgoing and incoming camera motion."
+  },
+  {
+    "slug": "shape-wipe-transition",
+    "source": "src/components/community/video-talkcraft/cards/shape-wipe-transition.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/shape-wipe-transition.tsx",
+    "preserved": "Copied original card source into portrait file; kept original CONFIG/tween helper structure, props shape, frame pacing and animation sequence.",
+    "changed": "Changed meta to 1080x1920 and applied portrait CSS/coordinate overrides or stage constants where the original source used 960x540 geometry.",
+    "layout": "Full portrait three-layer skewed shape wipe hides the content swap under the middle layer."
+  }
+]

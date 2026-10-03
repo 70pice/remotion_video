@@ -1,0 +1,87 @@
+{
+  "id": "001-ai-coding",
+  "title": "AI 写完代码，就算完成了吗？",
+  "subtitle": "从写代码到交付需求",
+  "sourceTitle": "AI Coding 大厂中的发展历程（三）",
+  "sourceUrl": "https://icnpfyu4nynj.feishu.cn/wiki/Vvp0w8qy9iIqDJkUPu0c88wXn8o",
+  "fps": 30,
+  "width": 1080,
+  "height": 1920,
+  "voice": "zh-CN-YunxiNeural",
+  "voiceRate": "+8%",
+  "transitionFrames": 10,
+  "shots": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "eyebrow": "一个容易忽略的问题",
+      "title": "AI 写完代码\n就算完成了吗？",
+      "narration": "AI写完代码，就算完成任务了吗？还差得远。",
+      "visual": "Snapcn TextBuild 分两行进入；代码生成完成的卡片，随后显示待验收标签。",
+      "sourceNote": "开头问句为改编；区别代码生成和需求交付，依据原文主题及任务看板。"
+    },
+    {
+      "id": "workflow",
+      "type": "workflow",
+      "eyebrow": "拿登录页举个例子",
+      "title": "代码只是\n中间的一步",
+      "narration": "比如给网站加个登录页。写代码只是一步，还要明确需求、拆分任务、运行测试，最后由人验收。",
+      "visual": "竖向流程：明确需求 → 拆任务 → 写代码 → 测试与验收，官方 Arrow 连接。",
+      "sourceNote": "登录页是教学示例，不声称原文包含该真实项目。"
+    },
+    {
+      "id": "graph",
+      "type": "graph",
+      "eyebrow": "原文讨论的方向",
+      "title": "把需求\n连成工作流",
+      "narration": "这篇文章关注需求的全流程：把任务和依赖连起来，让不同的AI角色接力工作。",
+      "visual": "三张角色卡逐步形成依赖图，中央结果卡标注可验证的产物。",
+      "sourceNote": "Graph Engineering 是原作者对该方向的理解，原文明确说尚无统一概念；不作为通用标准术语推广。"
+    },
+    {
+      "id": "roles",
+      "type": "roles",
+      "eyebrow": "AI 小队怎么分工",
+      "title": "拆需求 · 实现 · 审查",
+      "narration": "一个负责拆需求，一个负责实现，一个负责审查。交接的是任务状态和产物，不只是聊天。",
+      "visual": "角色卡与 source-team 原文截图对应；明确人负责最终验收。",
+      "sourceNote": "原文 Multica 小队截图列出 Lead、Engineer、Reviewer 和最终验收的人。"
+    },
+    {
+      "id": "board",
+      "type": "board",
+      "eyebrow": "原文里的真实看板",
+      "title": "看状态\n别只看回答",
+      "narration": "看这个多Agent看板：待办、进行中、审查，再到完成。遇到阻塞，仍然需要人来判断。",
+      "visual": "原文带标注的 Multica 看板全图后轻微放大，底部独立放大状态标签和阻塞提醒。",
+      "sourceNote": "原文截图注明人的介入必不可少；不把这张图当作阿里/华为/美团/字节的内部系统。"
+    },
+    {
+      "id": "cloud",
+      "type": "cloud",
+      "eyebrow": "另一个方向：云端开发",
+      "title": "人离开电脑\n任务继续推进",
+      "narration": "云端开发，则让任务在远程环境继续跑。人可以从手机发起或查看进度，但上云不代表所有任务都能自动完成。",
+      "visual": "手机任务卡 → 远程运行环境 → 结果回传的示意流程；清楚标注概念示意。",
+      "sourceNote": "来自原文云端AI开发一行；个人实践不等于团队全面普及。"
+    },
+    {
+      "id": "evaluation",
+      "type": "evaluation",
+      "eyebrow": "能跑，还要能验证",
+      "title": "记录 → 改进 → 评测",
+      "narration": "但是，能跑不等于做得好。记录过程，整理失败案例，用评测验证修改后是否更好。原文的评测方案，还处于早期验证。",
+      "visual": "过程记录、评测集、工作流优化和再次验证的闭环；MVP 标签，避免虚构已获得提效数据。",
+      "sourceNote": "原文 Langfuse 评测进展：只跑通 MVP，数据清洗和评估器仍有问题；不复述10次降1次为实测成果。"
+    },
+    {
+      "id": "ending",
+      "type": "ending",
+      "eyebrow": "判断 AI Coding 的一个问题",
+      "title": "需求有没有变成\n可验证的结果？",
+      "narration": "所以，值得关注的不只是AI写了多少代码，而是它有没有把需求推进到可验证的结果。",
+      "visual": "Snapcn 动态结论文字，需求卡转成带验收标记的结果卡，展示来源名称和AI配音标识。",
+      "sourceNote": "基于原文整理的编辑性结论。"
+    }
+  ]
+}

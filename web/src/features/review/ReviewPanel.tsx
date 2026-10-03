@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Decision, Job, RunAction } from "../../api/types";
 import { displayedStatus, isPublishReady } from "../../api/jobStatus";
 import { Empty, Notice, StatusBadge } from "../../components/ui";
+import { getStageReviewPending } from "./stageReview";
 
 const ownerNames: Record<string, string> = {
   screenwriter: "编剧",
@@ -30,6 +31,7 @@ export function ReviewPanel({
 }) {
   const [note, setNote] = useState("");
   const [played, setPlayed] = useState(false);
+  const stageReviewPending = getStageReviewPending(job);
   useEffect(() => {
     setPlayed(false);
   }, [
@@ -52,6 +54,18 @@ export function ReviewPanel({
       artifact.revision === job.revision,
   );
   const actualReady = isPublishReady(job);
+  if (stageReviewPending) {
+    return (
+      <div className="feature-section">
+        <div className="section-heading">
+          <div>
+            <h2>审核与复核</h2>
+            <p>当前正在等待阶段人工审核，请使用工作台顶部的审核卡处理。</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="feature-section">
       <div className="section-heading">

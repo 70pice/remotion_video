@@ -1,1 +1,1 @@
-"""Audio, rendering and deterministic production gates."""
+"""Callable production, validation and human review nodes for the video graph."""

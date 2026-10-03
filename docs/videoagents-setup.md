@@ -47,16 +47,16 @@ npm run studio:stop
 
 ## 自动生产
 
-1. 在「设置」分别配置编剧、配音、导演、剪辑和审核的 CLI 提供方、模型名称和超时，并启用需要的角色。当前仅支持 Codex CLI 与 Claude Code CLI；模型留空使用对应 CLI 默认模型。需要自动检索时另配置 Tavily。
-2. 配置字节配音：按新版 SOP 选择「字节 WebSocket 双向流式」，填写声音 ID、资源 ID 和 API Key。声音复刻 2.0 使用 `seed-icl-2.0`，语音合成模型默认 `seed-tts-2.0-standard`；资源及音色权限须由实际账号验证。旧 HTTP 接口仍可选择，兼容 API Key 或 App ID + Access Token。
+1. 在「设置」分别配置素材、编剧、文案审查、配音、导演、剪辑和审核的 CLI 提供方、模型名称和超时，并启用需要的角色。当前仅支持 Codex CLI 与 Claude Code CLI；模型留空使用对应 CLI 默认模型。自动检索可选择本机 OpenCLI Google、Tavily 或已有 Google CSE，平台和预算见 [素材节点与完整平台目录](videoagents-materials.md)。
+2. 配置字节配音：按新版 SOP 选择「字节 WebSocket 双向流式」，填写声音 ID、资源 ID 和 API Key。声音复刻 2.0 使用 `seed-icl-2.0`，语音合成模型默认 `seed-tts-2.0-standard`；需要有起伏的讲述时，选择 `seed-tts-2.0-expressive` 并填写讲述风格，见 [配音表现力设置](videoagents-voice-performance.md)。资源及音色权限须由实际账号验证。旧 HTTP 接口仍可选择，兼容 API Key 或 App ID + Access Token。
 3. 创建任务，输入主题或文案，设定受众、用途、画幅、帧率和来源链接。
-4. 执行生产，按编剧 → 配音 → 导演 → 渲染 → 审核推进。缺服务、缺授权记录或缺真实时间戳时，会显示待补充信息。
+4. 执行生产，按素材研究 → 编剧及可选文案讨论 → 配音 → 导演 → 渲染 → 审核推进。「素材研究」页签显示来源快照、图片与截图、检索方式及失败项。缺服务、缺授权记录或缺真实时间戳时，会显示待补充信息。
 5. 在各阶段查看、编辑文案与素材。修改会递增版本并使相关产物和审核失效。
 6. 查看成片和审核问题，按问题时间跳转播放，补充材料或修订。明确发布平台与用途、通过硬性检查后，需要人完整观看当前成片并填写复核记录，才进入 `READY_FOR_PUBLISH`。通用画幅选项不能替代具体发布平台。
 
 `READY_FOR_PUBLISH` 表示本系统的发布前检查完成，实际平台的审核结果由平台决定。本版本产出可下载视频，不自动发布。
 
-字节 WebSocket 使用固定官方地址 `wss://openspeech.bytedance.com/api/v3/tts/bidirection`，以 `X-Api-Key` 和 `X-Api-Resource-Id` 鉴权，不需要 App ID。合成模型与五角色的 CLI 模型分别配置；标准模型也可改为账号支持的原始语音模型 ID。音频输出为 24 kHz MP3，开启 `enable_subtitle`，收取服务端单词时间戳；字幕可能晚于音频，所以持续接收到当前会话的 `SessionFinished`。只有会话完成且收到音频才记录调用完成；随后仍检查音频能否解码、真实时长与全文对齐。缺少有效时间戳时保留已生成音频，等待真实对齐，不按字数猜时间。[官方调用 SOP](https://docs.volcengine.com/docs/DoubaoVoice/bidirectional-streaming-text-to-speech-websocket?lang=zh)。
+字节 WebSocket 使用固定官方地址 `wss://openspeech.bytedance.com/api/v3/tts/bidirection`，以 `X-Api-Key` 和 `X-Api-Resource-Id` 鉴权，不需要 App ID。合成模型与各角色的 CLI 模型分别配置；标准模型也可改为账号支持的原始语音模型 ID。音频输出为 24 kHz MP3，开启 `enable_subtitle`，收取服务端单词时间戳；字幕可能晚于音频，所以持续接收到当前会话的 `SessionFinished`。只有会话完成且收到音频才记录调用完成；随后仍检查音频能否解码、真实时长与全文对齐。缺少有效时间戳时保留已生成音频，等待真实对齐，不按字数猜时间。[官方调用 SOP](https://docs.volcengine.com/docs/DoubaoVoice/bidirectional-streaming-text-to-speech-websocket?lang=zh)。
 
 连接/启动会话阶段没有提交正文，失败记为 `REJECTED`，修正配置后可用新命令重试。在发送正文前先持久化提交状态；之后超时、取消、服务错误或断流都按 `UNKNOWN` 暂停。同一版本更换 HTTP/WebSocket、音色或模型不能绕过未知提交；可对账或导入服务商已生成的真实音频。请求 ID 不代表服务商承诺的幂等保证。WebSocket 支持接收期间取消；旧 HTTP 的取消仍在节点边界生效。旧 HTTP 要求流终止成功码与音频，协议见[字节 HTTP 文档](https://www.volcengine.com/docs/6561/1598757?lang=zh)。
 
@@ -64,7 +64,7 @@ npm run studio:stop
 
 ## 每个角色的模型设置
 
-设置页的五张卡独立保存，不共享全局模型。默认全部关闭；启用后，角色运行会启动其选择的本机 CLI。修改配置只影响后续实际调用，不会自动重做已有文案、分镜或成片。配音与剪辑的模型作用如下：
+设置页的七张卡独立保存，不共享全局模型。默认全部关闭；启用后，角色运行会启动其选择的本机 CLI。修改配置只影响后续实际调用，不会自动重做已有文案、分镜或成片。文案讨论开关也默认关闭，启用后默认最多两轮：编剧提交 → 文案审查 → 需要修改时编剧回应并改稿 → 再次审查；通过才进入来源硬检查，达到上限仍未通过则暂停。配置、工作区和恢复说明见 [文案讨论](videoagents-script-discussion.md)。各角色的模型作用如下：
 
 Codex 每张卡可选择「CLI 默认模型」、本机目录中的模型或「自定义模型」。目录从当前用户的 `$CODEX_HOME/models_cache.json` 读取；未设置 `CODEX_HOME` 时使用用户目录下 `.codex`。完整保留缓存中的模型，包括隐藏项，不使用固定模型名单。「重读模型列表」只重新读取本机缓存，不向模型服务发请求；列表刷新不覆盖未保存的角色配置。
 
@@ -72,13 +72,17 @@ Codex 每张卡可选择「CLI 默认模型」、本机目录中的模型或「�
 
 | 角色 | 模型职责 | 后续执行 |
 |---|---|---|
-| 编剧 | 根据冻结的真实来源生成文案 | 本地校验事实来源与素材引用 |
+| 素材 | 规划检索词、研究重点与名称歧义 | 执行平台搜索、读取正文、采集图片和截图 |
+| 编剧 | 根据冻结的真实来源生成初稿，讨论轮读取反馈并改稿 | 本地校验事实来源与素材引用 |
+| 文案审查 | 与编剧讨论事实、逻辑、开头吸引力、口播与画面，给出通过或修改决定 | 继续改稿，或通过后进入来源硬检查；达到上限等待修改 |
 | 配音 | 检查读音、停顿、情绪和文案风险，保存 `voice_guidance` | 字节生成实际音频，或使用导入音频及实测对齐 |
 | 导演 | 按实际音频时间选择镜头、构图与组件 | 验证帧区间、素材白名单和字幕不可被篡改 |
 | 剪辑 | 检查节奏、文字密度与排版风险，保存 `editing_guidance` | Remotion 真实渲染 |
 | 审核 | 核验来源、文案与分镜的语义关系 | 媒体硬检查与完整成片人工复核 |
 
-已有人工文案与人工分镜优先使用，不自动重写。配音/剪辑指导中的阻塞问题会暂停任务，修改对应内容后再执行。模型不能生成假音频、假截图、字幕时间或任意可执行代码。
+已有人工文案与人工分镜优先使用。启用文案讨论后，人工文案也会先送审，需修改时由编剧模型改稿；需要保留人工稿不改时可关闭讨论。配音/剪辑指导中的阻塞问题会暂停任务，修改对应内容后再执行。模型不能生成假音频、假截图、字幕时间或任意可执行代码。
+
+需要在任意阶段增加人工审核时，使用已注册但尚未接入主流程的 `human_review`，或注册多个审核点；编排示例见 [人工审核节点](videoagents-human-review.md)。
 
 CLI 必须安装在启动 API 和 worker 的同一系统用户下，使用 CLI 自己的登录状态。工作台不收取模型 API Key，也不读取或复制 CLI 登录凭据。先用终端的 `codex --version` / `claude --version` 检查安装，再按相应 CLI 的登录流程完成认证，重新启动工作台，使新 PATH 生效。设置页的「可用」仅证明找到了启动文件，不能证明登录、额度或模型访问权限有效。2026-10-03 本机已验证 Codex `0.153.4`，尚未安装 Claude Code。
 
@@ -126,8 +130,7 @@ videoagents/contracts/       Python 数据契约
 videoagents/graph/           LangGraph 节点与路由
 videoagents/providers/       模型、搜索、字节配音与对齐服务
 videoagents/services/        版本编辑、导入与设置
-videoagents/agents/          编剧、导演和审核角色
-videoagents/nodes/           配音及 Remotion 剪辑节点
+videoagents/nodes/           六角色、阶段检查、人工审核及等待输入节点
 videoagents/storage/         SQLite 命令、事件与外部操作台账
 src/video-production/        八个生产适配器与时间轴验证
 contracts/generated/         由 Python 导出的类型、JSON Schema、OpenAPI

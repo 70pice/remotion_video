@@ -1,0 +1,218 @@
+[
+  {
+    "slug": "focus-dim-spotlight",
+    "source": "src/components/community/video-talkcraft/cards/focus-dim-spotlight.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/focus-dim-spotlight.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "hand-drawn-ellipse",
+    "source": "src/components/community/video-talkcraft/cards/hand-drawn-ellipse.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/hand-drawn-ellipse.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "highlighter-sweep",
+    "source": "src/components/community/video-talkcraft/cards/highlighter-sweep.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/highlighter-sweep.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "scribble-annotation",
+    "source": "src/components/community/video-talkcraft/cards/scribble-annotation.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/scribble-annotation.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "callout-line-label",
+    "source": "src/components/community/video-talkcraft/cards/callout-line-label.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/callout-line-label.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "converging-arrows",
+    "source": "src/components/community/video-talkcraft/cards/converging-arrows.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/converging-arrows.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "corner-bracket-frame",
+    "source": "src/components/community/video-talkcraft/cards/corner-bracket-frame.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/corner-bracket-frame.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "crash-zoom-punch",
+    "source": "src/components/community/video-talkcraft/cards/crash-zoom-punch.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/crash-zoom-punch.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "ink-underline",
+    "source": "src/components/community/video-talkcraft/cards/ink-underline.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/ink-underline.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "magnifier-detail",
+    "source": "src/components/community/video-talkcraft/cards/magnifier-detail.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/magnifier-detail.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "quote-hold-arrow",
+    "source": "src/components/community/video-talkcraft/cards/quote-hold-arrow.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/quote-hold-arrow.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "scanline-annotate",
+    "source": "src/components/community/video-talkcraft/cards/scanline-annotate.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/scanline-annotate.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "strike-and-replace",
+    "source": "src/components/community/video-talkcraft/cards/strike-and-replace.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/strike-and-replace.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "reticle-lock-on",
+    "source": "src/components/community/video-talkcraft/cards/reticle-lock-on.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/reticle-lock-on.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "lower-third-nameplate",
+    "source": "src/components/community/video-talkcraft/cards/lower-third-nameplate.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/lower-third-nameplate.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "parallel-items-with-host",
+    "source": "src/components/community/video-talkcraft/cards/parallel-items-with-host.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/parallel-items-with-host.tsx",
+    "layoutDecision": "Copied original card source and retained its host-aware/source-illustration mechanics, then reflowed card/body geometry to 1080x1920 with portrait CSS overrides.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "behind-text-title",
+    "source": "src/components/community/video-talkcraft/cards/behind-text-title.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/behind-text-title.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "chevron-lower-third",
+    "source": "src/components/community/video-talkcraft/cards/chevron-lower-third.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/chevron-lower-third.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "danmu-bubble-praise",
+    "source": "src/components/community/video-talkcraft/cards/danmu-bubble-praise.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/danmu-bubble-praise.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "douyin-follow-card",
+    "source": "src/components/community/video-talkcraft/cards/douyin-follow-card.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/douyin-follow-card.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "host-card-glass-board",
+    "source": "src/components/community/video-talkcraft/cards/host-card-glass-board.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/host-card-glass-board.tsx",
+    "layoutDecision": "Copied original card source and retained its host-aware/source-illustration mechanics, then reflowed card/body geometry to 1080x1920 with portrait CSS overrides.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "host-shrink-to-chip",
+    "source": "src/components/community/video-talkcraft/cards/host-shrink-to-chip.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/host-shrink-to-chip.tsx",
+    "layoutDecision": "Copied original card source and retained its host-aware/source-illustration mechanics, then reflowed card/body geometry to 1080x1920 with portrait CSS overrides.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "subscribe-cta",
+    "source": "src/components/community/video-talkcraft/cards/subscribe-cta.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/subscribe-cta.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "x-follow-card",
+    "source": "src/components/community/video-talkcraft/cards/x-follow-card.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/x-follow-card.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "bar-chart-growth",
+    "source": "src/components/community/video-talkcraft/cards/bar-chart-growth.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/bar-chart-growth.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "chart-grow",
+    "source": "src/components/community/video-talkcraft/cards/chart-grow.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/chart-grow.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  },
+  {
+    "slug": "line-chart-story-draw",
+    "source": "src/components/community/video-talkcraft/cards/line-chart-story-draw.tsx",
+    "portrait": "src/components/community/video-talkcraft/portrait/line-chart-story-draw.tsx",
+    "layoutDecision": "Copied original card source, preserved CONFIG/tween/data/timing logic, removed ordinary host placeholder from the visual layout, and reflowed the main media/card area to native 1080x1920 portrait geometry.",
+    "preserved": "Original duration/fps, exported component architecture, CONFIG constants, easing helpers, data arrays, and frame/timing calculations are retained unless a measured 960x540 geometry constant had to be remeasured for portrait.",
+    "visualInspection": "Rendered frame 45 in the A-only Remotion entry and inspected contact-sheet-all.jpg at phone aspect; portrait card is 1080x1920 and avoids whole 960x540 landscape embedding. Sparse cards retain original mid-animation negative space rather than a host placeholder."
+  }
+]

@@ -101,8 +101,8 @@ function renderForm(overrides: Partial<FormProps> = {}): string {
 describe("dynamic directory form", () => {
   it("renders the entire CLI directory including hidden IDs in each Codex selector", () => {
     const markup = renderForm();
-    expect(markup.match(/value="catalog:future\/model:v2"/g)).toHaveLength(5);
-    expect(markup.match(/value="catalog:custom"/g)).toHaveLength(5);
+    expect(markup.match(/value="catalog:future\/model:v2"/g)).toHaveLength(7);
+    expect(markup.match(/value="catalog:custom"/g)).toHaveLength(7);
     expect(markup).toContain("目录显示名称 · future/model:v2");
     expect(markup).toContain("（目录隐藏项）");
     expect(markup).toContain("CLI 默认模型");

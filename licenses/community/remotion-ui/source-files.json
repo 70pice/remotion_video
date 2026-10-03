@@ -1,0 +1,72 @@
+[
+  {
+    "repo": "remotion-ui",
+    "commit": "b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f",
+    "sourcePath": "apps/web/registry/bases/default/lib/code-syntax.tsx",
+    "localPath": "src/components/community/remotion-ui/lib/code-syntax.tsx",
+    "upstreamSha256": "498e9b91906fd47d844ed0f90a220d944e2bd876f9b2328f55dc356d7cfcd49c"
+  },
+  {
+    "repo": "remotion-ui",
+    "commit": "b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f",
+    "sourcePath": "apps/web/registry/bases/default/lib/layout.ts",
+    "localPath": "src/components/community/remotion-ui/lib/layout.ts",
+    "upstreamSha256": "b6ff0e11d3efaa6b1fe7f56ad0f26878be48b550e27f64cbbd9df6bf7d7c23db"
+  },
+  {
+    "repo": "remotion-ui",
+    "commit": "b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f",
+    "sourcePath": "apps/web/registry/bases/default/lib/motion-tokens.ts",
+    "localPath": "src/components/community/remotion-ui/lib/motion-tokens.ts",
+    "upstreamSha256": "19555333ac18d1ece8b32f8dc157c61e8664197fe2d20103741f0cad9cc1973d"
+  },
+  {
+    "repo": "remotion-ui",
+    "commit": "b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f",
+    "sourcePath": "apps/web/registry/bases/default/lib/path-utils.ts",
+    "localPath": "src/components/community/remotion-ui/lib/path-utils.ts",
+    "upstreamSha256": "511a0a7c068da7056a97cdbc3f59569f2f3e7b5417850a506668cb9e16b6b10e"
+  },
+  {
+    "repo": "remotion-ui",
+    "commit": "b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f",
+    "sourcePath": "apps/web/registry/bases/default/lib/timing.ts",
+    "localPath": "src/components/community/remotion-ui/lib/timing.ts",
+    "upstreamSha256": "44a429f1b845023217cf643cfcd23965f89ef43f66e6d376a8368b81282e5ebb"
+  },
+  {
+    "repo": "remotion-ui",
+    "commit": "b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f",
+    "sourcePath": "apps/web/registry/bases/default/scenes/data-flow-pipes/index.tsx",
+    "localPath": "src/components/community/remotion-ui/scenes/data-flow-pipes/index.tsx",
+    "upstreamSha256": "92e98bb874025cf0b38650deaf49bef9dfc5b20d9846c48d53771bae20c84925"
+  },
+  {
+    "repo": "remotion-ui",
+    "commit": "b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f",
+    "sourcePath": "apps/web/registry/bases/default/lib/ai-composer-utils.tsx",
+    "localPath": "src/components/community/remotion-ui/lib/ai-composer-utils.tsx",
+    "upstreamSha256": "dd4ad6b6d68c9cb5dc8cb9bb5cf84ca3a739094759f0711381fc7f6f61f8ac81"
+  },
+  {
+    "repo": "remotion-ui",
+    "commit": "b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f",
+    "sourcePath": "apps/web/registry/bases/default/scenes/code-reveal/index.tsx",
+    "localPath": "src/components/community/remotion-ui/scenes/code-reveal/index.tsx",
+    "upstreamSha256": "c3fa4aa96d05ef3d3e503675475609e76aaea6b2e2aab015a60164a8789eac9b"
+  },
+  {
+    "repo": "remotion-ui",
+    "commit": "b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f",
+    "sourcePath": "apps/web/registry/bases/default/lib/chart-utils.ts",
+    "localPath": "src/components/community/remotion-ui/lib/chart-utils.ts",
+    "upstreamSha256": "9edebbb19ad20f344adb5f67f6e51f254b4aadf4dfed9f38dd299bdd76e46564"
+  },
+  {
+    "repo": "remotion-ui",
+    "commit": "b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f",
+    "sourcePath": "apps/web/registry/bases/default/scenes/animated-bar-chart/index.tsx",
+    "localPath": "src/components/community/remotion-ui/scenes/animated-bar-chart/index.tsx",
+    "upstreamSha256": "8901e0d4e1f5e403b8bbd723a05da7da57e9bbf81e3ceadb16a4856fcd41c91e"
+  }
+]

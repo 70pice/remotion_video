@@ -14,29 +14,35 @@ import {
 } from "../components/ui";
 import { ScriptEditor } from "../features/script/ScriptEditor";
 import { AssetsPanel } from "../features/assets/AssetsPanel";
+import { MaterialsPanel } from "../features/materials/MaterialsPanel";
 import { VoicePanel } from "../features/voice/VoicePanel";
 import { StoryboardEditor } from "../features/storyboard/StoryboardEditor";
 import { RenderPanel, type SeekTarget } from "../features/render/RenderPanel";
 import { ReviewPanel } from "../features/review/ReviewPanel";
+import { StageReviewPanel } from "../features/review/StageReviewPanel";
+import { getStageReviewPending } from "../features/review/stageReview";
+import { ScriptDiscussionPanel } from "../features/script/ScriptDiscussionPanel";
 
 const tabs = [
-  ["script", "文案", "01"],
-  ["assets", "素材", "02"],
-  ["voice", "配音", "03"],
-  ["storyboard", "分镜", "04"],
-  ["render", "剪辑", "05"],
-  ["review", "审核", "06"],
+  ["materials", "素材研究", "01"],
+  ["script", "文案", "02"],
+  ["assets", "素材库", "03"],
+  ["voice", "配音", "04"],
+  ["storyboard", "分镜", "05"],
+  ["render", "剪辑", "06"],
+  ["review", "审核", "07"],
 ] as const;
 type Tab = (typeof tabs)[number][0];
 
 export function JobWorkspacePage({ jobId }: { jobId: string }) {
   const { job, setJob, error: loadError, live, refresh } = useJob(jobId);
-  const [tab, setTab] = useState<Tab>("script");
+  const [tab, setTab] = useState<Tab>("materials");
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
   const [error, setError] = useState("");
   const [target, setTarget] = useState<SeekTarget | null>(null);
   const commandKeys = useRef(new Map<string, string>());
+  const stageReviewRef = useRef<HTMLDivElement | null>(null);
   const [briefDraft, setBriefDraft] = useState<Brief | null>(null);
   const [briefRevision, setBriefRevision] = useState(0);
   const [scriptDirty, setScriptDirty] = useState(false);
@@ -124,6 +130,12 @@ export function JobWorkspacePage({ jobId }: { jobId: string }) {
       (key) => api.resume(job, decision, note, key),
     );
   };
+  const showStageReview = () => {
+    stageReviewRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
   const seek = (seconds: number) => {
     setTarget({ seconds, request: Date.now() });
     setTab("render");
@@ -168,6 +180,7 @@ export function JobWorkspacePage({ jobId }: { jobId: string }) {
     );
   const active = ["RUNNING", "QUEUED"].includes(job.status);
   const locked = busy || active;
+  const stageReviewPending = getStageReviewPending(job);
   const pendingMessage =
     job.pending_input &&
     [
@@ -216,8 +229,14 @@ export function JobWorkspacePage({ jobId }: { jobId: string }) {
               取消制作
             </button>
           ) : job.status === "NEEDS_HUMAN" ? (
-            <button className="button primary" onClick={() => setTab("review")}>
-              查看审核 →
+            <button
+              className="button primary"
+              onClick={() => {
+                if (stageReviewPending) showStageReview();
+                else setTab("review");
+              }}
+            >
+              {stageReviewPending ? "查看待审核 →" : "查看审核 →"}
             </button>
           ) : (
             <button
@@ -260,6 +279,16 @@ export function JobWorkspacePage({ jobId }: { jobId: string }) {
             <a href="#/settings">查看服务设置 ↗</a>
           </Notice>
         )
+      )}
+      {stageReviewPending && (
+        <div id="stage-review" ref={stageReviewRef}>
+          <StageReviewPanel
+            job={job}
+            pending={stageReviewPending}
+            locked={locked}
+            resume={resume}
+          />
+        </div>
       )}
       <div className="panel workflow-status">
         <div>
@@ -431,6 +460,14 @@ export function JobWorkspacePage({ jobId }: { jobId: string }) {
       </div>
       {/* Keep editors mounted when switching tabs so unsaved work isn't discarded. */}
       <div
+        hidden={tab !== "materials"}
+        role="tabpanel"
+        id="panel-materials"
+        aria-labelledby="tab-materials"
+      >
+        <MaterialsPanel job={job} />
+      </div>
+      <div
         hidden={tab !== "script"}
         role="tabpanel"
         id="panel-script"
@@ -442,6 +479,7 @@ export function JobWorkspacePage({ jobId }: { jobId: string }) {
           locked={locked}
           onDirty={markScriptDirty}
         />
+        <ScriptDiscussionPanel job={job} />
       </div>
       <div
         hidden={tab !== "assets"}

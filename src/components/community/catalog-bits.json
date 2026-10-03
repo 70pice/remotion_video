@@ -1,0 +1,62 @@
+[
+  {
+    "slug": "bits-chat-conversation",
+    "name": "Chat Conversation",
+    "effect": "竖屏左右聊天气泡依次出现，可选择弹出、滑入或上升变清晰。",
+    "useCase": "人机问答、多个 Agent 对话、错误提示词与正确提示词的对比。",
+    "sourcePath": "docs/src/bits/examples/staggered-motion/ChatConversation.tsx",
+    "sourceUrl": "https://github.com/av/remotion-bits/blob/de35fda84b7b6acbe549a0b302a82ef211e8ef1e/docs/src/bits/examples/staggered-motion/ChatConversation.tsx",
+    "sourceCommit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "previewUrl": "https://remotion-bits.dev/docs/bits/chat-conversation/",
+    "localPath": "src/components/component-horizontal/bits/examples/ChatConversation.tsx",
+    "compositionId": "Bits-ChatConversation",
+    "licenseNote": "上游 package.json/README 声明 MIT；独立 LICENSE 缺失，证据和说明见 licenses/community/bits。",
+    "width": 1080,
+    "height": 1920
+  },
+  {
+    "slug": "bits-stat-rings",
+    "name": "Stat Rings",
+    "effect": "三个圆环错开入场，进度弧填充，中心百分比同步增长。",
+    "useCase": "展示比例或覆盖率；默认值明确标注演示数据。",
+    "sourcePath": "docs/src/bits/examples/animated-counter/StatRings.tsx",
+    "sourceUrl": "https://github.com/av/remotion-bits/blob/de35fda84b7b6acbe549a0b302a82ef211e8ef1e/docs/src/bits/examples/animated-counter/StatRings.tsx",
+    "sourceCommit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "previewUrl": "https://remotion-bits.dev/docs/bits/stat-rings/",
+    "localPath": "src/components/component-horizontal/bits/examples/StatRings.tsx",
+    "compositionId": "Bits-StatRings",
+    "licenseNote": "上游 package.json/README 声明 MIT；独立 LICENSE 缺失，证据和说明见 licenses/community/bits。",
+    "width": 1280,
+    "height": 720
+  },
+  {
+    "slug": "bits-cursor-flyover",
+    "name": "Cursor Flyover",
+    "effect": "镜头飞向界面截图的不同区域，指针独立移动、放大并指出位置。",
+    "useCase": "讲解 AI 产品界面、论文截图、浏览器工具；默认使用本地示意素材。",
+    "sourcePath": "docs/src/bits/examples/scene-3d/CursorFlyover.tsx",
+    "sourceUrl": "https://github.com/av/remotion-bits/blob/de35fda84b7b6acbe549a0b302a82ef211e8ef1e/docs/src/bits/examples/scene-3d/CursorFlyover.tsx",
+    "sourceCommit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "previewUrl": "https://remotion-bits.dev/docs/bits/cursor-flyover/",
+    "localPath": "src/components/component-horizontal/bits/examples/CursorFlyover.tsx",
+    "compositionId": "Bits-CursorFlyover",
+    "licenseNote": "上游 package.json/README 声明 MIT；独立 LICENSE 缺失，证据和说明见 licenses/community/bits。",
+    "width": 1280,
+    "height": 720
+  },
+  {
+    "slug": "bits-ken-burns",
+    "name": "Ken Burns Effect",
+    "effect": "图片缓慢推近、平移和切换视角，产生静态图片上的镜头运动。",
+    "useCase": "给真实图片、论文和发布截图增加运动；默认使用本地风景示意。",
+    "sourcePath": "docs/src/bits/examples/scene-3d/KenBurns.tsx",
+    "sourceUrl": "https://github.com/av/remotion-bits/blob/de35fda84b7b6acbe549a0b302a82ef211e8ef1e/docs/src/bits/examples/scene-3d/KenBurns.tsx",
+    "sourceCommit": "de35fda84b7b6acbe549a0b302a82ef211e8ef1e",
+    "previewUrl": "https://remotion-bits.dev/docs/bits/ken-burns/",
+    "localPath": "src/components/component-horizontal/bits/examples/KenBurns.tsx",
+    "compositionId": "Bits-KenBurns",
+    "licenseNote": "上游 package.json/README 声明 MIT；独立 LICENSE 缺失，证据和说明见 licenses/community/bits。",
+    "width": 1280,
+    "height": 720
+  }
+]

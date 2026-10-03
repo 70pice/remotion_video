@@ -1,0 +1,123 @@
+[
+  {
+    "slug": "quote-card",
+    "name": "Quote Card",
+    "effect": "引文、正文与署名依次淡入",
+    "useCase": "展示论文、官方说明和观点引用",
+    "sourcePath": "templates/quote-card.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/quote-card",
+    "localPath": "src/components/component-horizontal/rve/quote-card.tsx",
+    "compositionId": "Rve-QuoteCard",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。"
+  },
+  {
+    "slug": "chart-animation",
+    "name": "Bar Chart",
+    "effect": "柱状条按顺序从底部增长",
+    "useCase": "对比模型表现、成本和延迟",
+    "sourcePath": "templates/chart-animation.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/chart-animation",
+    "localPath": "src/components/component-horizontal/rve/chart-animation.tsx",
+    "compositionId": "Rve-ChartAnimation",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。"
+  },
+  {
+    "slug": "line-chart",
+    "name": "Line Chart",
+    "effect": "折线逐渐绘出并出现数据点",
+    "useCase": "展示模型发展、用户规模或性能趋势",
+    "sourcePath": "templates/line-chart.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/line-chart",
+    "localPath": "src/components/component-horizontal/rve/line-chart.tsx",
+    "compositionId": "Rve-LineChart",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。"
+  },
+  {
+    "slug": "pie-chart",
+    "name": "Pie Chart",
+    "effect": "各颜色环形扇区依次展开",
+    "useCase": "展示构成占比；上游视觉实际为粗环形图",
+    "sourcePath": "templates/pie-chart.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/pie-chart",
+    "localPath": "src/components/component-horizontal/rve/pie-chart.tsx",
+    "compositionId": "Rve-PieChart",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。"
+  },
+  {
+    "slug": "donut-chart",
+    "name": "Donut Chart",
+    "effect": "分段圆环展开，中央数字计数",
+    "useCase": "解释完成率和数据构成",
+    "sourcePath": "templates/donut-chart.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/donut-chart",
+    "localPath": "src/components/component-horizontal/rve/donut-chart.tsx",
+    "compositionId": "Rve-DonutChart",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。"
+  },
+  {
+    "slug": "stat-counter",
+    "name": "Stat Counter",
+    "effect": "数字弹入并从零计数，随后出现辅助指标",
+    "useCase": "突出参数量、用户量和下载量",
+    "sourcePath": "templates/stat-counter.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/stat-counter",
+    "localPath": "src/components/component-horizontal/rve/stat-counter.tsx",
+    "compositionId": "Rve-StatCounter",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。"
+  },
+  {
+    "slug": "progress-bars",
+    "name": "Progress Bars",
+    "effect": "横向指标条逐行填充并显示百分比",
+    "useCase": "展示能力维度和完成度",
+    "sourcePath": "templates/progress-bars.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/progress-bars",
+    "localPath": "src/components/component-horizontal/rve/progress-bars.tsx",
+    "compositionId": "Rve-ProgressBars",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。"
+  },
+  {
+    "slug": "progress-steps",
+    "name": "Progress Steps",
+    "effect": "流程节点依次点亮并连接",
+    "useCase": "解释研发过程、Agent 或内容生产流程",
+    "sourcePath": "templates/progress-steps.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/progress-steps",
+    "localPath": "src/components/component-horizontal/rve/progress-steps.tsx",
+    "compositionId": "Rve-ProgressSteps",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。"
+  },
+  {
+    "slug": "comparison-chart",
+    "name": "Comparison Chart",
+    "effect": "两侧数值与柱条先后增长",
+    "useCase": "展示优化前后和方案 A/B 对比",
+    "sourcePath": "templates/comparison-chart.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/comparison-chart",
+    "localPath": "src/components/component-horizontal/rve/comparison-chart.tsx",
+    "compositionId": "Rve-ComparisonChart",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。"
+  },
+  {
+    "slug": "split-screen",
+    "name": "Split Screen",
+    "effect": "两侧内容分别滑入，中央分隔线淡入",
+    "useCase": "并列对比两个模型、方法或结果",
+    "sourcePath": "templates/split-screen.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/split-screen",
+    "localPath": "src/components/component-horizontal/rve/split-screen.tsx",
+    "compositionId": "Rve-SplitScreen",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。"
+  },
+  {
+    "slug": "image-comparison-slider",
+    "name": "Image Comparison Slider",
+    "effect": "移动分隔线逐渐揭示另一张图片",
+    "useCase": "展示 AI 修图、图像生成和处理前后",
+    "sourcePath": "templates/image-comparison-slider.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/image-comparison-slider",
+    "localPath": "src/components/component-horizontal/rve/image-comparison-slider.tsx",
+    "compositionId": "Rve-ImageComparisonSlider",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。"
+  }
+]

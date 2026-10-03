@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#7dd3fc"/><stop offset="1" stop-color="#f0f9ff"/></linearGradient></defs>
+  <rect width="1280" height="720" fill="url(#sky)"/>
+  <circle cx="990" cy="150" r="72" fill="#fde68a"/>
+  <path d="M0 600L270 210 515 550 750 280 1070 600 1280 390V720H0Z" fill="#64748b"/>
+  <path d="M187 330L270 210 360 335 294 303 269 318 245 294Z" fill="#f8fafc"/>
+  <path d="M0 640L320 470 590 625 920 490 1280 635V720H0Z" fill="#14532d"/>
+  <path d="M0 690Q320 630 640 690T1280 685V720H0Z" fill="#0f766e"/>
+  <text x="48" y="670" font-family="Arial,sans-serif" font-size="24" fill="white">Component preview fixture - original SVG</text>
+</svg>

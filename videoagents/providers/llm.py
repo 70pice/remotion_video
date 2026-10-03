@@ -9,7 +9,7 @@ from videoagents.storage import Repository
 from videoagents.storage.repository import NotFound, fingerprint
 from worker.process_manager import RenderCancelled
 
-ROLE_LABELS = {"screenwriter": "编剧", "voice": "配音", "director": "导演", "editing": "剪辑", "review": "审核"}
+ROLE_LABELS = {"materials": "素材", "screenwriter": "编剧", "script_reviewer": "文案审查", "voice": "配音", "director": "导演", "editing": "剪辑", "review": "审核"}
 LEGACY_ROLES = {"screenwriter": "编剧", "director": "导演", "review": "内容审核"}
 
 

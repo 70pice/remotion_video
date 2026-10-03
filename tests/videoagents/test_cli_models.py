@@ -47,6 +47,70 @@ def test_codex_failures_are_unknown_and_sanitized(tmp_path, monkeypatch, code, r
     assert "secret" not in str(failure.value)
 
 
+@pytest.mark.parametrize("notification", [
+    {"type": "error", "message": "secret reconnect notification"},
+    {"type": "item.completed", "item": {"type": "error", "message": "secret config warning"}},
+    {"type": "item.completed", "item": {"type": "todo_list", "items": [{"text": "secret plan", "completed": True}]}},
+])
+def test_codex_notifications_allow_a_completed_structured_result(tmp_path, monkeypatch, notification):
+    code = f"print(json.dumps({notification!r}))\n"
+    code += "value={'response_json':json.dumps({'text':'ready'})}\n"
+    code += "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(value)}}))\n"
+    code += "print(json.dumps({'type':'turn.completed','usage':{'output_tokens':2}}))\n"
+    fixture_cli(tmp_path, monkeypatch, code)
+    result = run_cli("codex_cli", "", 5, "fixture", {"type": "object"})
+    assert result == CliResult({"text": "ready"}, {"output_tokens": 2})
+    assert "secret" not in repr(result)
+
+
+@pytest.mark.parametrize("ending,reason", [
+    ("", "incomplete_cli_result"),
+    ("sys.exit(3)", "cli_nonzero_exit"),
+    ("time.sleep(30)", "cli_timeout"),
+    ("print(json.dumps({'type':'turn.failed','error':{'message':'secret final failure'}}))", "cli_reported_error"),
+    ("print(json.dumps({'type':'turn.completed'}))", "incomplete_cli_result"),
+    ("print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':'{}'}}))\n"
+     "print(json.dumps({'type':'turn.completed'}))", "missing_structured_output"),
+])
+def test_codex_notification_does_not_hide_terminal_failure(tmp_path, monkeypatch, ending, reason):
+    fixture_cli(tmp_path, monkeypatch, "print(json.dumps({'type':'error','message':'secret notification'}))\n" + ending)
+    with pytest.raises(CliFailure) as failure:
+        run_cli("codex_cli", "", 0.2 if reason == "cli_timeout" else 5, "fixture", {"type": "object"})
+    assert failure.value.reason == reason and failure.value.submitted
+    assert "secret" not in str(failure.value)
+
+
+@pytest.mark.parametrize("kind", ["item.started", "item.updated", "item.completed"])
+@pytest.mark.parametrize("tool", ["command_execution", "file_change", "mcp_tool_call", "web_search", "collab_tool_call"])
+def test_codex_notifications_keep_external_tool_events_blocked(tmp_path, monkeypatch, kind, tool):
+    code = "print(json.dumps({'type':'error','message':'secret notification'}))\n"
+    event = {"type": kind, "item": {"type": tool}}
+    code += f"print(json.dumps({event!r}))\ntime.sleep(30)"
+    fixture_cli(tmp_path, monkeypatch, code)
+    with pytest.raises(CliFailure) as failure:
+        run_cli("codex_cli", "", 5, "fixture", {"type": "object"})
+    assert failure.value.reason == "unexpected_tool_event" and failure.value.submitted
+    assert "secret" not in str(failure.value)
+
+
+@pytest.mark.parametrize("completed,exit_code,reason", [
+    (False, 0, "incomplete_cli_result"),
+    (True, 3, "cli_nonzero_exit"),
+])
+def test_codex_valid_output_still_requires_completed_turn_and_zero_exit(tmp_path, monkeypatch, completed, exit_code, reason):
+    code = "print(json.dumps({'type':'error','message':'secret notification'}))\n"
+    code += "value={'response_json':json.dumps({'text':'ready'})}\n"
+    code += "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(value)}}))\n"
+    if completed:
+        code += "print(json.dumps({'type':'turn.completed'}))\n"
+    code += f"sys.exit({exit_code})"
+    fixture_cli(tmp_path, monkeypatch, code)
+    with pytest.raises(CliFailure) as failure:
+        run_cli("codex_cli", "", 5, "fixture", {"type": "object"})
+    assert failure.value.reason == reason and failure.value.submitted
+    assert "secret" not in str(failure.value)
+
+
 def test_timeout_and_cancellation_terminate_subprocess(tmp_path, monkeypatch):
     fixture_cli(tmp_path, monkeypatch, "time.sleep(30)")
     with pytest.raises(CliFailure, match="cli_timeout"):
@@ -114,7 +178,7 @@ def test_role_routes_and_unknown_survives_provider_change(tmp_path, monkeypatch)
     repo = Repository(tmp_path / "runtime")
     settings = SettingsService(repo)
     configs = {role: {"enabled": True, "model": role + "-model", "provider": "claude_code_cli" if role == "review" else "codex_cli"}
-               for role in ("screenwriter", "voice", "director", "editing", "review")}
+               for role in ("screenwriter", "script_reviewer", "voice", "director", "editing", "review")}
     settings.patch(SettingsPatch(role_models=configs))
     monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *args: ["fixture-cli"])
     calls = []
@@ -125,7 +189,7 @@ def test_role_routes_and_unknown_survives_provider_change(tmp_path, monkeypatch)
         return CliResult({"model": model})
     monkeypatch.setattr("videoagents.providers.llm.run_cli", transport)
     model = JsonModel(repo)
-    for role in ("voice", "director", "editing", "review"):
+    for role in ("script_reviewer", "voice", "director", "editing", "review"):
         assert model.call("fixture-job", 1, role, "test", {}, "command") == {"model": role + "-model"}
     assert calls[-1] == ("claude_code_cli", "review-model", 300)
     with pytest.raises(CapabilityMissing) as first:
@@ -134,7 +198,7 @@ def test_role_routes_and_unknown_survives_provider_change(tmp_path, monkeypatch)
     settings.patch(SettingsPatch(role_models={"screenwriter": {"provider": "claude_code_cli", "model": "different"}}))
     with pytest.raises(CapabilityMissing) as repeat:
         model.call("fixture-job", 1, "screenwriter", "changed", {}, "new-command")
-    assert repeat.value.operation_id == first.value.operation_id and len(calls) == 5
+    assert repeat.value.operation_id == first.value.operation_id and len(calls) == 6
 
 
 def test_missing_cli_does_not_reserve_paid_submission(tmp_path, monkeypatch):
@@ -151,7 +215,8 @@ def test_missing_cli_does_not_reserve_paid_submission(tmp_path, monkeypatch):
 @pytest.mark.parametrize("submitted", [False, True])
 def test_cancelled_role_preserves_job_cancellation_and_submission_receipt(tmp_path, monkeypatch, submitted):
     from videoagents.contracts import Brief, Script, ScriptSegment
-    from videoagents.graph import VideoProductionGraph
+    from videoagents.nodes.voice import VoiceNode
+    from videoagents.services.jobs import JobService
     from worker.process_manager import RenderCancelled
 
     repo = Repository(tmp_path / "runtime")
@@ -164,9 +229,9 @@ def test_cancelled_role_preserves_job_cancellation_and_submission_receipt(tmp_pa
         repo.cancel(job.job_id)
         raise CliFailure("cli_cancelled", submitted=submitted)
     monkeypatch.setattr("videoagents.providers.llm.run_cli", cancel)
-    with VideoProductionGraph(repo, tmp_path / "project") as graph:
-        with pytest.raises(RenderCancelled):
-            graph.node_voice({"job_id": job.job_id, "revision": 1, "run_id": "fixture-command", "action": "produce"})
+    voice = VoiceNode(repo, JobService(repo, tmp_path / "project"))
+    with pytest.raises(RenderCancelled):
+        voice({"job_id": job.job_id, "revision": 1, "run_id": "fixture-command", "action": "produce"})
     assert repo.get_job(job.job_id).status == "CANCELLED"
     with repo.connection() as db:
         row = db.execute("SELECT status,body FROM operations").fetchone()

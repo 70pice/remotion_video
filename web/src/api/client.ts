@@ -161,6 +161,15 @@ export const api = {
       `/jobs/${encodeURIComponent(jobId)}/alignment${assetId ? `?asset_id=${encodeURIComponent(assetId)}` : ""}`,
     ),
   catalog: () => request<ComponentEntry[]>("/catalog"),
+  artifactJson: async <T>(url: string): Promise<T> => {
+    const token = await getSessionToken();
+    const response = await fetch(url, {
+      credentials: "include",
+      headers: { "X-CSRF-Token": token },
+    });
+    if (!response.ok) throw new ApiError(response.status, "产物读取失败。");
+    return response.json() as Promise<T>;
+  },
   settings: () => request<Settings>("/settings"),
   models: (provider: ModelProvider, refresh = false) =>
     request<ModelCatalog>(

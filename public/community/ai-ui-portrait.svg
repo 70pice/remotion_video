@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <rect width="1080" height="1920" fill="#101a2d"/>
+  <g font-family="Arial,Microsoft YaHei,sans-serif">
+    <text x="80" y="200" font-size="48" fill="#9cb3d7">AI KNOWLEDGE</text>
+    <text x="80" y="360" font-size="86" font-weight="700" fill="white">认识 AI 智能体</text>
+    <text x="80" y="450" font-size="44" fill="#abbdd8">从目标，到行动，再到反馈。</text>
+    <rect x="70" y="570" width="940" height="290" rx="34" fill="#233650"/>
+    <text x="110" y="680" font-size="58" font-weight="700" fill="#84b9ff">01　理解目标</text>
+    <text x="110" y="775" font-size="42" fill="#e4edfc">把问题拆成可以执行的步骤。</text>
+    <rect x="70" y="920" width="940" height="290" rx="34" fill="#233650"/>
+    <text x="110" y="1030" font-size="58" font-weight="700" fill="#91e8c7">02　调用工具</text>
+    <text x="110" y="1125" font-size="42" fill="#e4edfc">搜索资料，读取数据，执行操作。</text>
+    <rect x="70" y="1270" width="940" height="290" rx="34" fill="#233650"/>
+    <text x="110" y="1380" font-size="58" font-weight="700" fill="#c5a7ff">03　检查反馈</text>
+    <text x="110" y="1475" font-size="42" fill="#e4edfc">根据结果，决定下一步。</text>
+    <text x="80" y="1730" font-size="38" fill="#91a2bd">示意界面</text>
+  </g>
+</svg>

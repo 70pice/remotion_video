@@ -1,0 +1,1220 @@
+[
+  {
+    "text": "AI",
+    "startMs": 96.291,
+    "endMs": 524.541,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "写完",
+    "startMs": 536.125,
+    "endMs": 848.625,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "代码，",
+    "startMs": 860.166,
+    "endMs": 1323.124,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "就算",
+    "startMs": 1612.5,
+    "endMs": 1890.291,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "完成",
+    "startMs": 1901.833,
+    "endMs": 2144.874,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "任务",
+    "startMs": 2168.041,
+    "endMs": 2364.791,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "了",
+    "startMs": 2364.833,
+    "endMs": 2445.833,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "吗？",
+    "startMs": 2445.833,
+    "endMs": 2688.874,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "还",
+    "startMs": 3206.0,
+    "endMs": 3437.5,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "差",
+    "startMs": 3437.5,
+    "endMs": 3692.125,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "得",
+    "startMs": 3692.125,
+    "endMs": 3784.708,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "远。",
+    "startMs": 3784.708,
+    "endMs": 4143.499,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "比如",
+    "startMs": 5662.957666666666,
+    "endMs": 5998.623666666666,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "给",
+    "startMs": 6021.749666666666,
+    "endMs": 6102.749666666666,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "网站",
+    "startMs": 6114.332666666666,
+    "endMs": 6588.873666666666,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "加",
+    "startMs": 6612.041666666666,
+    "endMs": 6808.791666666666,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "个",
+    "startMs": 6808.791666666666,
+    "endMs": 6866.666666666666,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "登录",
+    "startMs": 6878.249666666667,
+    "endMs": 7132.874666666667,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "页。",
+    "startMs": 7132.874666666667,
+    "endMs": 7445.374666666667,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "写",
+    "startMs": 7962.499666666667,
+    "endMs": 8205.540666666666,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "代码",
+    "startMs": 8205.541666666666,
+    "endMs": 8564.332666666665,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "只是",
+    "startMs": 8587.499666666667,
+    "endMs": 8795.832666666665,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "一",
+    "startMs": 8807.416666666666,
+    "endMs": 8923.166666666666,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "步，",
+    "startMs": 8923.166666666666,
+    "endMs": 9143.082666666665,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "还要",
+    "startMs": 9351.374666666667,
+    "endMs": 9582.874666666667,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "明确",
+    "startMs": 9605.999666666667,
+    "endMs": 9895.332666666665,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "需求、",
+    "startMs": 9906.957666666665,
+    "endMs": 10462.498666666666,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "拆分",
+    "startMs": 10624.541666666666,
+    "endMs": 11087.499666666667,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "任务、",
+    "startMs": 11099.082666666665,
+    "endMs": 11446.290666666666,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "运行",
+    "startMs": 11666.207666666665,
+    "endMs": 12001.873666666666,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "测试，",
+    "startMs": 12013.416666666666,
+    "endMs": 12441.666666666666,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "最后",
+    "startMs": 12615.291666666666,
+    "endMs": 12962.499666666667,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "由",
+    "startMs": 12985.666666666666,
+    "endMs": 13124.541666666666,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "人",
+    "startMs": 13124.541666666666,
+    "endMs": 13251.874666666667,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "验收。",
+    "startMs": 13263.416666666666,
+    "endMs": 13656.916666666666,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "这",
+    "startMs": 15196.291,
+    "endMs": 15358.332,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "篇",
+    "startMs": 15358.333,
+    "endMs": 15474.083,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "文章",
+    "startMs": 15485.666,
+    "endMs": 15937.041,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "关注",
+    "startMs": 16029.625,
+    "endMs": 16318.958,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "需求",
+    "startMs": 16330.541,
+    "endMs": 16643.041,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "的",
+    "startMs": 16643.041,
+    "endMs": 16712.499,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "全",
+    "startMs": 16735.666,
+    "endMs": 16909.249,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "流程：",
+    "startMs": 16909.25,
+    "endMs": 17406.916,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "把",
+    "startMs": 17719.458,
+    "endMs": 17869.916,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "任务",
+    "startMs": 17881.5,
+    "endMs": 18182.416,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "和",
+    "startMs": 18205.541,
+    "endMs": 18286.541,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "依赖",
+    "startMs": 18298.166,
+    "endMs": 18529.666,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "连",
+    "startMs": 18552.791,
+    "endMs": 18714.832,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "起来，",
+    "startMs": 18714.833,
+    "endMs": 19050.499,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "让",
+    "startMs": 19316.666,
+    "endMs": 19490.291,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "不同",
+    "startMs": 19501.833,
+    "endMs": 19791.166,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "的",
+    "startMs": 19791.208,
+    "endMs": 19872.208,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "AI",
+    "startMs": 19883.791,
+    "endMs": 20242.582000000002,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "角色",
+    "startMs": 20254.166,
+    "endMs": 20636.124,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "接力",
+    "startMs": 20659.25,
+    "endMs": 20925.458,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "工作。",
+    "startMs": 20937.041,
+    "endMs": 21261.124,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "一个",
+    "startMs": 22796.291,
+    "endMs": 23027.791,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "负责",
+    "startMs": 23039.333,
+    "endMs": 23282.374,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "拆",
+    "startMs": 23305.541,
+    "endMs": 23537.041,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "需求，",
+    "startMs": 23537.041,
+    "endMs": 24115.749,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "一个",
+    "startMs": 24312.5,
+    "endMs": 24520.833,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "负责",
+    "startMs": 24532.416,
+    "endMs": 24775.457,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "实现，",
+    "startMs": 24787.041,
+    "endMs": 25273.166,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "一个",
+    "startMs": 25481.5,
+    "endMs": 25666.666,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "负责",
+    "startMs": 25689.833,
+    "endMs": 25921.333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "审查。",
+    "startMs": 25932.875,
+    "endMs": 26442.125,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "交接",
+    "startMs": 26970.833,
+    "endMs": 27329.624,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "的",
+    "startMs": 27329.625,
+    "endMs": 27422.208,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "是",
+    "startMs": 27422.208,
+    "endMs": 27642.124,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "任务",
+    "startMs": 27665.291,
+    "endMs": 27896.791,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "状态",
+    "startMs": 27908.333,
+    "endMs": 28267.124,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "和",
+    "startMs": 28290.291,
+    "endMs": 28382.874,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "产物，",
+    "startMs": 28394.458,
+    "endMs": 28857.416,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "不",
+    "startMs": 29088.875,
+    "endMs": 29250.916,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "只是",
+    "startMs": 29250.916,
+    "endMs": 29436.082000000002,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "聊天。",
+    "startMs": 29447.666,
+    "endMs": 29875.916,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "看",
+    "startMs": 31396.291,
+    "endMs": 31604.624,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "这个",
+    "startMs": 31616.208,
+    "endMs": 31778.249,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "多",
+    "startMs": 31789.833,
+    "endMs": 31974.999,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "Agent",
+    "startMs": 31975.0,
+    "endMs": 32368.5,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "看板：",
+    "startMs": 32380.083,
+    "endMs": 32819.916,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "待办、",
+    "startMs": 33097.666,
+    "endMs": 33479.623999999996,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "进行",
+    "startMs": 33676.375,
+    "endMs": 33988.875,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "中、",
+    "startMs": 33988.875,
+    "endMs": 34255.083,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "审查，",
+    "startMs": 34417.125,
+    "endMs": 35007.416,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "再",
+    "startMs": 35192.583,
+    "endMs": 35354.623999999996,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "到",
+    "startMs": 35354.625,
+    "endMs": 35447.208,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "完成。",
+    "startMs": 35458.791,
+    "endMs": 35898.623999999996,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "遇到",
+    "startMs": 36427.333,
+    "endMs": 36658.833,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "阻塞，",
+    "startMs": 36670.375,
+    "endMs": 37202.791,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "仍然",
+    "startMs": 37538.416,
+    "endMs": 37920.373999999996,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "需要",
+    "startMs": 37931.958,
+    "endMs": 38140.291,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "人",
+    "startMs": 38140.291,
+    "endMs": 38209.748999999996,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "来",
+    "startMs": 38221.291,
+    "endMs": 38325.457,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "判断。",
+    "startMs": 38325.458,
+    "endMs": 38730.541,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "云端",
+    "startMs": 40229.62433333333,
+    "endMs": 40542.12433333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "开发，",
+    "startMs": 40553.708333333336,
+    "endMs": 40993.541333333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "则",
+    "startMs": 41236.583333333336,
+    "endMs": 41375.458333333336,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "让",
+    "startMs": 41375.458333333336,
+    "endMs": 41479.62433333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "任务",
+    "startMs": 41491.208333333336,
+    "endMs": 41931.041333333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "在",
+    "startMs": 41954.166333333334,
+    "endMs": 42093.041333333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "远程",
+    "startMs": 42104.62433333333,
+    "endMs": 42440.29033333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "环境",
+    "startMs": 42451.833333333336,
+    "endMs": 42741.166333333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "继续",
+    "startMs": 42764.333333333336,
+    "endMs": 43018.958333333336,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "跑。",
+    "startMs": 43018.99933333333,
+    "endMs": 43227.33233333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "人",
+    "startMs": 43744.458333333336,
+    "endMs": 43952.791333333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "可以",
+    "startMs": 43964.333333333336,
+    "endMs": 44126.37433333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "从",
+    "startMs": 44137.958333333336,
+    "endMs": 44323.12433333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "手机",
+    "startMs": 44346.291333333334,
+    "endMs": 44635.62433333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "发起",
+    "startMs": 44647.208333333336,
+    "endMs": 45133.333333333336,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "或",
+    "startMs": 45237.49933333333,
+    "endMs": 45387.95733333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "查看",
+    "startMs": 45399.541333333334,
+    "endMs": 45688.87433333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "进度，",
+    "startMs": 45700.458333333336,
+    "endMs": 46082.416333333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "但",
+    "startMs": 46452.791333333334,
+    "endMs": 46603.24933333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "上云",
+    "startMs": 46614.833333333336,
+    "endMs": 46950.49933333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "不",
+    "startMs": 46973.62433333333,
+    "endMs": 47054.62433333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "代表",
+    "startMs": 47054.62433333333,
+    "endMs": 47378.70733333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "所有",
+    "startMs": 47401.833333333336,
+    "endMs": 47702.74933333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "任务",
+    "startMs": 47714.333333333336,
+    "endMs": 48049.99933333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "都",
+    "startMs": 48154.166333333334,
+    "endMs": 48293.041333333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "能",
+    "startMs": 48293.041333333334,
+    "endMs": 48420.37433333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "自动",
+    "startMs": 48443.49933333333,
+    "endMs": 48732.83233333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "完成。",
+    "startMs": 48744.458333333336,
+    "endMs": 49195.833333333336,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "但是，",
+    "startMs": 50729.62433333333,
+    "endMs": 51285.16533333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "能",
+    "startMs": 51632.416333333334,
+    "endMs": 51817.58233333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "跑",
+    "startMs": 51817.583333333336,
+    "endMs": 51956.458333333336,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "不",
+    "startMs": 51979.62433333333,
+    "endMs": 52049.08233333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "等于",
+    "startMs": 52049.083333333336,
+    "endMs": 52211.12433333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "做",
+    "startMs": 52234.24933333333,
+    "endMs": 52338.41533333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "得",
+    "startMs": 52338.416333333334,
+    "endMs": 52407.87433333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "好。",
+    "startMs": 52407.87433333333,
+    "endMs": 52720.37433333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "记录",
+    "startMs": 53237.49933333333,
+    "endMs": 53492.12433333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "过程，",
+    "startMs": 53503.708333333336,
+    "endMs": 54001.37433333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "整理",
+    "startMs": 54337.041333333334,
+    "endMs": 54649.541333333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "失败",
+    "startMs": 54672.666333333334,
+    "endMs": 54950.45733333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "案例，",
+    "startMs": 54962.041333333334,
+    "endMs": 55343.99933333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "用",
+    "startMs": 55529.166333333334,
+    "endMs": 55760.666333333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "评测",
+    "startMs": 55772.208333333336,
+    "endMs": 56130.99933333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "验证",
+    "startMs": 56142.583333333336,
+    "endMs": 56443.49933333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "修改",
+    "startMs": 56466.666333333334,
+    "endMs": 56744.45733333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "后",
+    "startMs": 56744.458333333336,
+    "endMs": 57022.24933333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "是否",
+    "startMs": 57045.37433333333,
+    "endMs": 57369.45733333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "更",
+    "startMs": 57380.99933333333,
+    "endMs": 57543.04033333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "好。",
+    "startMs": 57543.041333333334,
+    "endMs": 57774.541333333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "原文",
+    "startMs": 58295.37433333333,
+    "endMs": 58630.99933333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "的",
+    "startMs": 58630.99933333333,
+    "endMs": 58769.87433333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "评测",
+    "startMs": 58793.041333333334,
+    "endMs": 59105.541333333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "方案，",
+    "startMs": 59117.12433333333,
+    "endMs": 59522.20733333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "还",
+    "startMs": 59695.833333333336,
+    "endMs": 59892.583333333336,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "处于",
+    "startMs": 59904.166333333334,
+    "endMs": 60216.666333333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "早期",
+    "startMs": 60239.833333333336,
+    "endMs": 60633.333333333336,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "验证。",
+    "startMs": 60644.916333333334,
+    "endMs": 61003.70733333334,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "所以，",
+    "startMs": 62529.624333333326,
+    "endMs": 63050.45733333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "值得",
+    "startMs": 63386.124333333326,
+    "endMs": 63640.749333333326,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "关注",
+    "startMs": 63652.33333333333,
+    "endMs": 63930.08333333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "的",
+    "startMs": 63930.08333333333,
+    "endMs": 63999.54133333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "不只",
+    "startMs": 64022.66633333333,
+    "endMs": 64254.16633333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "是",
+    "startMs": 64254.16633333333,
+    "endMs": 64589.832333333325,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "AI",
+    "startMs": 64705.54133333333,
+    "endMs": 65226.374333333326,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "写",
+    "startMs": 65237.95833333333,
+    "endMs": 65388.41633333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "了",
+    "startMs": 65388.41633333333,
+    "endMs": 65469.41633333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "多少",
+    "startMs": 65480.999333333326,
+    "endMs": 65770.33233333332,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "代码，",
+    "startMs": 65781.95833333333,
+    "endMs": 66163.91633333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "而是",
+    "startMs": 66511.12433333333,
+    "endMs": 66812.04033333332,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "它",
+    "startMs": 66823.62433333333,
+    "endMs": 66927.79033333332,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "有没有",
+    "startMs": 66950.91633333333,
+    "endMs": 67240.24933333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "把",
+    "startMs": 67251.83333333333,
+    "endMs": 67367.58333333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "需求",
+    "startMs": 67379.16633333333,
+    "endMs": 67911.58233333332,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "推进",
+    "startMs": 67934.70833333333,
+    "endMs": 68235.62433333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "到",
+    "startMs": 68235.66633333333,
+    "endMs": 68339.83233333332,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "可",
+    "startMs": 68362.95833333333,
+    "endMs": 68501.83333333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "验证",
+    "startMs": 68513.41633333333,
+    "endMs": 68814.33233333332,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "的",
+    "startMs": 68814.33333333333,
+    "endMs": 68883.79133333333,
+    "timestampMs": null,
+    "confidence": null
+  },
+  {
+    "text": "结果。",
+    "startMs": 68895.37433333333,
+    "endMs": 69219.45733333332,
+    "timestampMs": null,
+    "confidence": null
+  }
+]

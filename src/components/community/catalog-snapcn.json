@@ -1,0 +1,233 @@
+[
+  {
+    "slug": "text-reveal",
+    "name": "TextReveal",
+    "effect": "大字出现并缩小落位，整句依次展开",
+    "useCase": "开场、章节标题",
+    "sourcePath": "registry/snap-cn/text-reveal/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/text/text-reveal",
+    "localPath": "src/components/component-horizontal/snapcn/text-reveal/index.tsx",
+    "compositionId": "Snapcn-TextReveal",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "text-build",
+    "name": "TextBuild",
+    "effect": "文字逐段加入，已有文字移动保持居中",
+    "useCase": "概念定义、总结",
+    "sourcePath": "registry/snap-cn/text-build/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/text/text-build",
+    "localPath": "src/components/component-horizontal/snapcn/text-build/index.tsx",
+    "compositionId": "Snapcn-TextBuild",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "text-highlight",
+    "name": "TextHighlight",
+    "effect": "荧光笔、下划线或颜色强调关键词",
+    "useCase": "关键概念、核心结论",
+    "sourcePath": "registry/snap-cn/text-highlight/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/text/text-highlight",
+    "localPath": "src/components/component-horizontal/snapcn/text-highlight/index.tsx",
+    "compositionId": "Snapcn-TextHighlight",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "text-rewrite",
+    "name": "TextRewrite",
+    "effect": "文字写出、选中、删除再改写",
+    "useCase": "提示词优化、纠错",
+    "sourcePath": "registry/snap-cn/text-rewrite/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/text/text-rewrite",
+    "localPath": "src/components/component-horizontal/snapcn/text-rewrite/index.tsx",
+    "compositionId": "Snapcn-TextRewrite",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "text-swap",
+    "name": "TextSwap",
+    "effect": "旧文字退出、新文字接替",
+    "useCase": "前后对比、观点替换",
+    "sourcePath": "registry/snap-cn/text-swap/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/text/text-swap",
+    "localPath": "src/components/component-horizontal/snapcn/text-swap/index.tsx",
+    "compositionId": "Snapcn-TextSwap",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "word-flip",
+    "name": "WordFlip",
+    "effect": "主体固定，单词立体翻转替换",
+    "useCase": "能力枚举、关键词轮换",
+    "sourcePath": "registry/snap-cn/word-flip/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/text/word-flip",
+    "localPath": "src/components/component-horizontal/snapcn/word-flip/index.tsx",
+    "compositionId": "Snapcn-WordFlip",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "word-captions",
+    "name": "WordCaptions",
+    "effect": "随时间突出当前字幕词语",
+    "useCase": "配音字幕、重点口播",
+    "sourcePath": "registry/snap-cn/word-captions/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/captions/word-captions",
+    "localPath": "src/components/component-horizontal/snapcn/word-captions/index.tsx",
+    "compositionId": "Snapcn-WordCaptions",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "karaoke-captions",
+    "name": "KaraokeCaptions",
+    "effect": "整行保留，跟读逐词填色",
+    "useCase": "连续讲解、长句字幕",
+    "sourcePath": "registry/snap-cn/karaoke-captions/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/captions/karaoke-captions",
+    "localPath": "src/components/component-horizontal/snapcn/karaoke-captions/index.tsx",
+    "compositionId": "Snapcn-KaraokeCaptions",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "search-typing",
+    "name": "SearchTyping",
+    "effect": "搜索框展开、输入文字、镜头移动",
+    "useCase": "AI 搜索、问题引入",
+    "sourcePath": "registry/snap-cn/search-typing/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/ai-input/search-typing",
+    "localPath": "src/components/component-horizontal/snapcn/search-typing/index.tsx",
+    "compositionId": "Snapcn-SearchTyping",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "prompt-send",
+    "name": "PromptSend",
+    "effect": "输入框展开、输入、鼠标点击发送",
+    "useCase": "向 AI 提问、操作演示",
+    "sourcePath": "registry/snap-cn/prompt-send/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/ai-input/prompt-send",
+    "localPath": "src/components/component-horizontal/snapcn/prompt-send/index.tsx",
+    "compositionId": "Snapcn-PromptSend",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "prompt-zoom",
+    "name": "PromptZoom",
+    "effect": "助手首页切近输入光标",
+    "useCase": "提示词写法、产品介绍",
+    "sourcePath": "registry/snap-cn/prompt-zoom/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/ai-input/prompt-zoom",
+    "localPath": "src/components/component-horizontal/snapcn/prompt-zoom/index.tsx",
+    "compositionId": "Snapcn-PromptZoom",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "answer-stream",
+    "name": "AnswerStream",
+    "effect": "发送按钮切到逐词答案并拉远镜头",
+    "useCase": "AI 输出、回答过程",
+    "sourcePath": "registry/snap-cn/answer-stream/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/ai-input/answer-stream",
+    "localPath": "src/components/component-horizontal/snapcn/answer-stream/index.tsx",
+    "compositionId": "Snapcn-AnswerStream",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "answer-highlight",
+    "name": "AnswerHighlight",
+    "effect": "生成答案后选中句子与关键词",
+    "useCase": "提炼长回答、讲解重点",
+    "sourcePath": "registry/snap-cn/answer-highlight/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/ai-input/answer-highlight",
+    "localPath": "src/components/component-horizontal/snapcn/answer-highlight/index.tsx",
+    "compositionId": "Snapcn-AnswerHighlight",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "agent-steps",
+    "name": "AgentSteps",
+    "effect": "任务日志运行、完成打勾、显示结果",
+    "useCase": "Agent 多步骤工作流",
+    "sourcePath": "registry/snap-cn/agent-steps/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/ai-input/agent-steps",
+    "localPath": "src/components/component-horizontal/snapcn/agent-steps/index.tsx",
+    "compositionId": "Snapcn-AgentSteps",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "terminal-simulator",
+    "name": "TerminalSimulator",
+    "effect": "命令输入、日志输出、停顿滚动与放大",
+    "useCase": "AI Coding、命令行教程",
+    "sourcePath": "registry/snap-cn/terminal-simulator/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/screens/terminal-simulator",
+    "localPath": "src/components/component-horizontal/snapcn/terminal-simulator/index.tsx",
+    "compositionId": "Snapcn-TerminalSimulator",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "channel-thread",
+    "name": "ChannelThread",
+    "effect": "聊天头像、消息、输入状态与滚动",
+    "useCase": "多 Agent 协作、团队对话",
+    "sourcePath": "registry/snap-cn/channel-thread/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/social/channel-thread",
+    "localPath": "src/components/component-horizontal/snapcn/channel-thread/index.tsx",
+    "compositionId": "Snapcn-ChannelThread",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "phone-frame",
+    "name": "PhoneFrame",
+    "effect": "手机外框、设备入场与漂浮运动",
+    "useCase": "手机 AI 应用、竖屏产品",
+    "sourcePath": "registry/snap-cn/phone-frame/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/screens/phone-frame",
+    "localPath": "src/components/component-horizontal/snapcn/phone-frame/index.tsx",
+    "compositionId": "Snapcn-PhoneFrame",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "laptop-frame",
+    "name": "LaptopFrame",
+    "effect": "笔记本打开、漂浮、推进屏幕",
+    "useCase": "桌面 AI 产品、录屏容器",
+    "sourcePath": "registry/snap-cn/laptop-frame/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/screens/laptop-frame",
+    "localPath": "src/components/component-horizontal/snapcn/laptop-frame/index.tsx",
+    "compositionId": "Snapcn-LaptopFrame",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "screen-recording",
+    "name": "ScreenRecording",
+    "effect": "裁切录屏边缘并按时间放大焦点",
+    "useCase": "真实产品操作、界面教程",
+    "sourcePath": "registry/snap-cn/screen-recording/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/screens/screen-recording",
+    "localPath": "src/components/component-horizontal/snapcn/screen-recording/index.tsx",
+    "compositionId": "Snapcn-ScreenRecording",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "cursor-track",
+    "name": "CursorTrack",
+    "effect": "鼠标沿路径移动并显示点击圈",
+    "useCase": "按钮操作、交互指引",
+    "sourcePath": "registry/snap-cn/cursor-track/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/screens/cursor-track",
+    "localPath": "src/components/component-horizontal/snapcn/cursor-track/index.tsx",
+    "compositionId": "Snapcn-CursorTrack",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  },
+  {
+    "slug": "moodboard-reveal",
+    "name": "MoodboardReveal",
+    "effect": "多图飞入、镜头穿过、汇聚主图",
+    "useCase": "案例引入、图像集锦",
+    "sourcePath": "registry/snap-cn/moodboard-reveal/index.tsx",
+    "previewUrl": "https://snapcn.dev/docs/scenes/moodboard-reveal",
+    "localPath": "src/components/component-horizontal/snapcn/moodboard-reveal/index.tsx",
+    "compositionId": "Snapcn-MoodboardReveal",
+    "licenseNote": "MIT，保留原作者版权；本地字体与演示素材适配"
+  }
+]

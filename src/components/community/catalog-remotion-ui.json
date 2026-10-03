@@ -1,0 +1,47 @@
+[
+  {
+    "slug": "remotion-ui-data-flow-pipes",
+    "name": "Data Flow Pipes",
+    "effect": "节点依次出现，管线画出来，数据包沿管线跳转，节点计数并完成打勾。",
+    "useCase": "解释 RAG、AI 自动化、数据处理流程；阶段名称与数据包数量可替换。",
+    "sourcePath": "apps/web/registry/bases/default/scenes/data-flow-pipes/index.tsx",
+    "sourceUrl": "https://github.com/riaz37/remotion-ui/blob/b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f/apps/web/registry/bases/default/scenes/data-flow-pipes/index.tsx",
+    "sourceCommit": "b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f",
+    "previewUrl": "https://remotionui.com/docs/components/data-flow-pipes",
+    "localPath": "src/components/component-horizontal/remotion-ui/scenes/data-flow-pipes/index.tsx",
+    "compositionId": "RemotionUI-DataFlowPipes",
+    "licenseNote": "MIT，原文保存在 licenses/community/remotion-ui/LICENSE.txt；保留版权与许可声明。",
+    "width": 1280,
+    "height": 720
+  },
+  {
+    "slug": "remotion-ui-code-reveal",
+    "name": "Code Reveal",
+    "effect": "编辑器逐字写出彩色代码，光标跟随；完成后关键行高亮，其余行变暗。",
+    "useCase": "讲解简短 API 调用、提示词结构、RAG 示例代码。",
+    "sourcePath": "apps/web/registry/bases/default/scenes/code-reveal/index.tsx",
+    "sourceUrl": "https://github.com/riaz37/remotion-ui/blob/b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f/apps/web/registry/bases/default/scenes/code-reveal/index.tsx",
+    "sourceCommit": "b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f",
+    "previewUrl": "https://remotionui.com/docs/components/code-reveal",
+    "localPath": "src/components/component-horizontal/remotion-ui/scenes/code-reveal/index.tsx",
+    "compositionId": "RemotionUI-CodeReveal",
+    "licenseNote": "MIT，原文保存在 licenses/community/remotion-ui/LICENSE.txt；保留版权与许可声明。",
+    "width": 1280,
+    "height": 720
+  },
+  {
+    "slug": "remotion-ui-animated-bar-chart",
+    "name": "Animated Bar Chart",
+    "effect": "横向条形错开增长，数值同步计数，有刻度轴并突出指定一行。",
+    "useCase": "对比成本、时延或任务指标；默认数据标注为演示，不是模型评测。",
+    "sourcePath": "apps/web/registry/bases/default/scenes/animated-bar-chart/index.tsx",
+    "sourceUrl": "https://github.com/riaz37/remotion-ui/blob/b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f/apps/web/registry/bases/default/scenes/animated-bar-chart/index.tsx",
+    "sourceCommit": "b7e0e6becc3d22b8b03dfef72c064f72ff9fad1f",
+    "previewUrl": "https://remotionui.com/docs/components/animated-bar-chart",
+    "localPath": "src/components/component-horizontal/remotion-ui/scenes/animated-bar-chart/index.tsx",
+    "compositionId": "RemotionUI-AnimatedBarChart",
+    "licenseNote": "MIT，原文保存在 licenses/community/remotion-ui/LICENSE.txt；保留版权与许可声明。",
+    "width": 1280,
+    "height": 720
+  }
+]

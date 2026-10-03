@@ -14,6 +14,7 @@ export const statusLabels: Record<string, string> = {
 };
 export const stageLabels: Record<string, string> = {
   idle: "未开始",
+  materials: "素材",
   script: "编剧",
   voice: "配音",
   director: "导演",
