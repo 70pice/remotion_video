@@ -1,0 +1,1255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "AlignmentSegment": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "maxLength": 72,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "start_ms": {
+          "minimum": 0,
+          "title": "Start Ms",
+          "type": "number"
+        },
+        "end_ms": {
+          "exclusiveMinimum": 0,
+          "title": "End Ms",
+          "type": "number"
+        },
+        "segment_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Segment Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "start_ms",
+        "end_ms",
+        "segment_id"
+      ],
+      "title": "AlignmentSegment",
+      "type": "object"
+    },
+    "Alignment": {
+      "additionalProperties": false,
+      "properties": {
+        "origin": {
+          "enum": [
+            "provider",
+            "manual",
+            "aligner"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "verified": {
+          "title": "Verified",
+          "type": "boolean"
+        },
+        "audio_sha256": {
+          "maxLength": 64,
+          "minLength": 64,
+          "title": "Audio Sha256",
+          "type": "string"
+        },
+        "segments": {
+          "items": {
+            "$ref": "#/$defs/AlignmentSegment"
+          },
+          "maxItems": 5000,
+          "minItems": 1,
+          "title": "Segments",
+          "type": "array"
+        },
+        "note": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "origin",
+        "verified",
+        "audio_sha256",
+        "segments"
+      ],
+      "title": "Alignment",
+      "type": "object"
+    },
+    "Artifact": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "mime_type": {
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "size_bytes": {
+          "title": "Size Bytes",
+          "type": "integer"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "kind",
+        "name",
+        "mime_type",
+        "size_bytes",
+        "sha256",
+        "url",
+        "revision"
+      ],
+      "title": "Artifact",
+      "type": "object"
+    },
+    "Asset": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "evidence",
+            "illustration",
+            "decoration",
+            "audio"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "mime_type": {
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "size_bytes": {
+          "title": "Size Bytes",
+          "type": "integer"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        },
+        "source_url": {
+          "default": "",
+          "title": "Source Url",
+          "type": "string"
+        },
+        "license_note": {
+          "default": "",
+          "title": "License Note",
+          "type": "string"
+        },
+        "artifact_id": {
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "timeline_src": {
+          "title": "Timeline Src",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id",
+        "name",
+        "role",
+        "mime_type",
+        "size_bytes",
+        "sha256",
+        "artifact_id",
+        "url",
+        "timeline_src"
+      ],
+      "title": "Asset",
+      "type": "object"
+    },
+    "Brief": {
+      "additionalProperties": false,
+      "properties": {
+        "topic": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Topic",
+          "type": "string"
+        },
+        "script_text": {
+          "default": "",
+          "maxLength": 30000,
+          "title": "Script Text",
+          "type": "string"
+        },
+        "audience": {
+          "default": "普通观众",
+          "maxLength": 500,
+          "title": "Audience",
+          "type": "string"
+        },
+        "platform": {
+          "default": "通用竖屏",
+          "maxLength": 100,
+          "title": "Platform",
+          "type": "string"
+        },
+        "usage": {
+          "default": "unspecified",
+          "enum": [
+            "personal",
+            "commercial",
+            "unspecified"
+          ],
+          "title": "Usage",
+          "type": "string"
+        },
+        "target_seconds": {
+          "default": 60,
+          "maximum": 1800,
+          "minimum": 1,
+          "title": "Target Seconds",
+          "type": "number"
+        },
+        "width": {
+          "default": 1080,
+          "maximum": 3840,
+          "minimum": 240,
+          "title": "Width",
+          "type": "integer"
+        },
+        "height": {
+          "default": 1920,
+          "maximum": 3840,
+          "minimum": 240,
+          "title": "Height",
+          "type": "integer"
+        },
+        "fps": {
+          "default": 30,
+          "maximum": 60,
+          "minimum": 15,
+          "title": "Fps",
+          "type": "integer"
+        },
+        "source_urls": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Source Urls",
+          "type": "array"
+        }
+      },
+      "title": "Brief",
+      "type": "object"
+    },
+    "Caption": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "maxLength": 72,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "start_ms": {
+          "minimum": 0,
+          "title": "Start Ms",
+          "type": "number"
+        },
+        "end_ms": {
+          "exclusiveMinimum": 0,
+          "title": "End Ms",
+          "type": "number"
+        }
+      },
+      "required": [
+        "text",
+        "start_ms",
+        "end_ms"
+      ],
+      "title": "Caption",
+      "type": "object"
+    },
+    "ComponentEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "component_id": {
+          "title": "Component Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "use_case": {
+          "title": "Use Case",
+          "type": "string"
+        },
+        "orientation": {
+          "title": "Orientation",
+          "type": "string"
+        },
+        "production_ready": {
+          "title": "Production Ready",
+          "type": "boolean"
+        },
+        "min_frames": {
+          "title": "Min Frames",
+          "type": "integer"
+        },
+        "license_note": {
+          "title": "License Note",
+          "type": "string"
+        },
+        "preview_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Preview Url"
+        }
+      },
+      "required": [
+        "component_id",
+        "name",
+        "description",
+        "use_case",
+        "orientation",
+        "production_ready",
+        "min_frames",
+        "license_note"
+      ],
+      "title": "ComponentEntry",
+      "type": "object"
+    },
+    "Script": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "segments": {
+          "items": {
+            "$ref": "#/$defs/ScriptSegment"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Segments",
+          "type": "array"
+        },
+        "origin": {
+          "default": "user",
+          "enum": [
+            "user",
+            "model"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "title",
+        "segments",
+        "revision"
+      ],
+      "title": "Script",
+      "type": "object"
+    },
+    "ScriptSegment": {
+      "additionalProperties": false,
+      "properties": {
+        "segment_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Segment Id",
+          "type": "string"
+        },
+        "narration": {
+          "maxLength": 5000,
+          "minLength": 1,
+          "title": "Narration",
+          "type": "string"
+        },
+        "screen_text": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Screen Text",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "asset_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Asset Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "segment_id",
+        "narration"
+      ],
+      "title": "ScriptSegment",
+      "type": "object"
+    },
+    "Shot": {
+      "additionalProperties": false,
+      "properties": {
+        "shot_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Shot Id",
+          "type": "string"
+        },
+        "start_frame": {
+          "minimum": 0,
+          "title": "Start Frame",
+          "type": "integer"
+        },
+        "end_frame": {
+          "exclusiveMinimum": 0,
+          "title": "End Frame",
+          "type": "integer"
+        },
+        "component_id": {
+          "enum": [
+            "title",
+            "keyword",
+            "evidence",
+            "image_focus",
+            "comparison",
+            "data",
+            "steps",
+            "conclusion"
+          ],
+          "title": "Component Id",
+          "type": "string"
+        },
+        "title": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Title",
+          "type": "string"
+        },
+        "body": {
+          "default": "",
+          "maxLength": 240,
+          "title": "Body",
+          "type": "string"
+        },
+        "asset_src": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asset Src"
+        },
+        "source_label": {
+          "default": "",
+          "maxLength": 160,
+          "title": "Source Label",
+          "type": "string"
+        },
+        "accent_color": {
+          "default": "#8cffb8",
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "title": "Accent Color",
+          "type": "string"
+        },
+        "props": {
+          "additionalProperties": true,
+          "title": "Props",
+          "type": "object"
+        }
+      },
+      "required": [
+        "shot_id",
+        "start_frame",
+        "end_frame",
+        "component_id"
+      ],
+      "title": "Shot",
+      "type": "object"
+    },
+    "Timeline": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "job_id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+          "title": "Job Id",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "width": {
+          "maximum": 3840,
+          "minimum": 240,
+          "title": "Width",
+          "type": "integer"
+        },
+        "height": {
+          "maximum": 3840,
+          "minimum": 240,
+          "title": "Height",
+          "type": "integer"
+        },
+        "fps": {
+          "maximum": 60,
+          "minimum": 15,
+          "title": "Fps",
+          "type": "integer"
+        },
+        "duration_in_frames": {
+          "exclusiveMinimum": 0,
+          "maximum": 108000,
+          "title": "Duration In Frames",
+          "type": "integer"
+        },
+        "audio_src": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Audio Src"
+        },
+        "shots": {
+          "items": {
+            "$ref": "#/$defs/Shot"
+          },
+          "maxItems": 400,
+          "minItems": 1,
+          "title": "Shots",
+          "type": "array"
+        },
+        "captions": {
+          "items": {
+            "$ref": "#/$defs/Caption"
+          },
+          "maxItems": 5000,
+          "title": "Captions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "job_id",
+        "revision",
+        "width",
+        "height",
+        "fps",
+        "duration_in_frames",
+        "shots"
+      ],
+      "title": "Timeline",
+      "type": "object"
+    },
+    "DraftRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "base_revision": {
+          "minimum": 1,
+          "title": "Base Revision",
+          "type": "integer"
+        },
+        "brief": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Brief"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "script": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Script"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "timeline": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timeline"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "base_revision"
+      ],
+      "title": "DraftRequest",
+      "type": "object"
+    },
+    "Finding": {
+      "additionalProperties": false,
+      "properties": {
+        "finding_id": {
+          "title": "Finding Id",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "owner": {
+          "title": "Owner",
+          "type": "string"
+        },
+        "blocking": {
+          "title": "Blocking",
+          "type": "boolean"
+        },
+        "start_frame": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Frame"
+        },
+        "end_frame": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Frame"
+        }
+      },
+      "required": [
+        "finding_id",
+        "severity",
+        "category",
+        "message",
+        "owner",
+        "blocking"
+      ],
+      "title": "Finding",
+      "type": "object"
+    },
+    "Review": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "title": "Status",
+          "type": "string"
+        },
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/Finding"
+          },
+          "title": "Findings",
+          "type": "array"
+        },
+        "media_sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Media Sha256"
+        },
+        "dependency_fingerprint": {
+          "title": "Dependency Fingerprint",
+          "type": "string"
+        },
+        "coverage": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Coverage",
+          "type": "array"
+        },
+        "human_confirmed": {
+          "default": false,
+          "title": "Human Confirmed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "status",
+        "dependency_fingerprint"
+      ],
+      "title": "Review",
+      "type": "object"
+    },
+    "Job": {
+      "additionalProperties": false,
+      "properties": {
+        "job_id": {
+          "title": "Job Id",
+          "type": "string"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "integer"
+        },
+        "status": {
+          "enum": [
+            "DRAFT",
+            "QUEUED",
+            "RUNNING",
+            "NEEDS_INPUT",
+            "NEEDS_HUMAN",
+            "READY_FOR_PUBLISH",
+            "REJECTED",
+            "FAILED",
+            "CANCELLED"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "idle",
+            "script",
+            "voice",
+            "director",
+            "render",
+            "review",
+            "complete"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "progress": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Progress"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "string"
+        },
+        "updated_at": {
+          "title": "Updated At",
+          "type": "string"
+        },
+        "brief": {
+          "$ref": "#/$defs/Brief"
+        },
+        "script": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Script"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "timeline": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timeline"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "assets": {
+          "items": {
+            "$ref": "#/$defs/Asset"
+          },
+          "title": "Assets",
+          "type": "array"
+        },
+        "artifacts": {
+          "items": {
+            "$ref": "#/$defs/Artifact"
+          },
+          "title": "Artifacts",
+          "type": "array"
+        },
+        "review": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Review"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "pending_input": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pending Input"
+        },
+        "latest_event_id": {
+          "default": 0,
+          "title": "Latest Event Id",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "job_id",
+        "revision",
+        "status",
+        "stage",
+        "message",
+        "created_at",
+        "updated_at",
+        "brief"
+      ],
+      "title": "Job",
+      "type": "object"
+    },
+    "ResumeRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "base_revision": {
+          "minimum": 1,
+          "title": "Base Revision",
+          "type": "integer"
+        },
+        "decision": {
+          "enum": [
+            "confirm",
+            "revise",
+            "cancel"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "note": {
+          "default": "",
+          "maxLength": 3000,
+          "title": "Note",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "maxLength": 200,
+          "minLength": 8,
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "pending_token": {
+          "maxLength": 100,
+          "minLength": 16,
+          "title": "Pending Token",
+          "type": "string"
+        }
+      },
+      "required": [
+        "base_revision",
+        "decision",
+        "idempotency_key",
+        "pending_token"
+      ],
+      "title": "ResumeRequest",
+      "type": "object"
+    },
+    "RunRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "base_revision": {
+          "minimum": 1,
+          "title": "Base Revision",
+          "type": "integer"
+        },
+        "action": {
+          "enum": [
+            "produce",
+            "voice",
+            "storyboard",
+            "preview",
+            "final",
+            "review"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "maxLength": 200,
+          "minLength": 8,
+          "title": "Idempotency Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "base_revision",
+        "action",
+        "idempotency_key"
+      ],
+      "title": "RunRequest",
+      "type": "object"
+    },
+    "SettingsPatch": {
+      "additionalProperties": false,
+      "properties": {
+        "llm_base_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Llm Base Url"
+        },
+        "llm_model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Llm Model"
+        },
+        "llm_api_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Llm Api Key"
+        },
+        "search_provider": {
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "tavily"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Search Provider"
+        },
+        "search_api_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Search Api Key"
+        },
+        "voice_provider": {
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "byte_http"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Voice Provider"
+        },
+        "voice_app_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Voice App Id"
+        },
+        "voice_access_token": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Voice Access Token"
+        },
+        "voice_api_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Voice Api Key"
+        },
+        "voice_resource_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Voice Resource Id"
+        },
+        "voice_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Voice Id"
+        },
+        "voice_endpoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Voice Endpoint"
+        },
+        "aligner_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Aligner Url"
+        },
+        "aligner_api_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Aligner Api Key"
+        },
+        "capture_enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Capture Enabled"
+        },
+        "max_llm_calls": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Llm Calls"
+        },
+        "max_voice_chars": {
+          "anyOf": [
+            {
+              "maximum": 100000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Voice Chars"
+        },
+        "render_timeout_seconds": {
+          "anyOf": [
+            {
+              "maximum": 7200,
+              "minimum": 30,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Render Timeout Seconds"
+        }
+      },
+      "title": "SettingsPatch",
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,69 @@
+# VideoAgents implementation contract
+
+Approved design: `.omx/plans/videoagents-langgraph-design-2026-10-03.md`. Frontend MUST be React. This document defines shared interfaces for parallel implementation; production and test outputs must be distinguishable.
+
+## Ownership
+
+- Backend lane: `server/`, `worker/`, `videoagents/`, `tests/api/`, `tests/videoagents/`, `tests/worker/`. Own canonical Python models, persistence, providers and all API routes. Export schemas through a leader-owned script later.
+- Frontend lane: `web/` only. Do not change root package.json or lockfiles. Use React 19 already present; dependency requirements returned to leader.
+- Render lane: `src/video-production/`, `scripts/render-timeline.mjs`, the minimal registration change to `src/Root.tsx`. Do not touch existing demo/card implementations or package files.
+- Leader: root dependency/configuration files, scripts/launchers, generated contracts, docs, fixtures/e2e and integration.
+
+## Stable HTTP interface
+
+All routes under `/api`. JSON errors use `{"detail":"human readable reason"}`. Mutation responses return the complete updated job except settings and upload. Avoid wrappers around list results.
+
+- `GET /health` => `{status:"ok", worker_alive:boolean, version:string}`.
+- `GET /session` => `{csrf_token:string}` plus a HttpOnly SameSite=Strict `videoagents_session` cookie. All protected reads require the session, and mutations additionally require `X-CSRF-Token`. Browser requests include credentials; API checks allowed local Host and Origin.
+- `GET /jobs` => `Job[]`; `POST /jobs` with Brief => Job.
+- `GET /jobs/{job_id}` => Job.
+- `PATCH /jobs/{job_id}/draft` with `{base_revision:number, brief?:Brief, script?:Script, timeline?:Timeline}` => Job; stale revision returns 409. Revision changes invalidate dependent outputs and prior release.
+- `POST /jobs/{job_id}/runs` with `{base_revision:number, action:"produce"|"voice"|"storyboard"|"preview"|"final"|"review", idempotency_key:string}` => Job (202). Duplicate identical commands never enqueue twice; changed payload with same key is 409.
+- `POST /jobs/{job_id}/cancel` => Job.
+- `POST /jobs/{job_id}/resume` with `{base_revision:number, pending_token:string, decision:"confirm"|"revise"|"cancel", note?:string, idempotency_key:string}` => Job. The token binds the specific pending interrupt, including changes within the same revision. Human confirmation only clears appropriate human findings; never bypasses hard errors. A consumed command cannot answer a later interrupt after worker recovery.
+- `GET /jobs/{job_id}/events?after=<event_id>` => SSE events (`id`, `event: progress`, JSON payload). Persist IDs and reconnect replay. Polling the Job is always supported.
+- `POST /jobs/{job_id}/assets` multipart: `file`, `role` (evidence/illustration/decoration/audio), optional `source_url`, `license_note`, optional `alignment` JSON. Return Asset. Uploaded WAV/audio is imported voice, not claimed cloned/generated.
+- `GET /jobs/{job_id}/alignment?asset_id=<id>` => `{asset_id:string|null, alignment:Alignment|null, duration_seconds:number|null}` for the selected or currently active audio.
+- `POST /jobs/{job_id}/alignment` with `{base_revision:number, asset_id:string, alignment:Alignment}` => Job; binds the measured alignment to that audio and invalidates dependent outputs. Empty/omitted audio hash is server-bound; a supplied nonempty hash must match.
+- `GET /artifacts/{artifact_id}` => owned artifact content with Range support for media; no filesystem path input.
+- `GET /catalog` => ComponentEntry[].
+- `GET /settings` => sanitized settings and `configured` booleans. `PATCH /settings` => sanitized settings. Secrets are write-only and never in job/event/response/log. Configuration may set API URLs/model/voice/resource IDs but outbound requests must be validated.
+
+## Job models
+
+Brief: `{topic:string, script_text:string, audience:string, platform:string, usage:"personal"|"commercial"|"unspecified", target_seconds:number, width:number, height:number, fps:number, source_urls:string[]}`. Defaults: topic/script_text empty, audience "普通观众", platform "通用竖屏", usage "unspecified", target_seconds 60, width 1080, height 1920, fps 30, source_urls []. Topic or script_text required at creation.
+
+Job: `{job_id:string, revision:number, status:string, stage:string, message:string, progress:number|null, created_at:string, updated_at:string, brief:Brief, script:Script|null, timeline:Timeline|null, assets:Asset[], artifacts:Artifact[], review:Review|null, pending_input:object|null, latest_event_id:number}`.
+
+Statuses: `DRAFT`, `QUEUED`, `RUNNING`, `NEEDS_INPUT`, `NEEDS_HUMAN`, `READY_FOR_PUBLISH`, `REJECTED`, `FAILED`, `CANCELLED`. Stages: `idle`, `script`, `voice`, `director`, `render`, `review`, `complete`.
+
+Script: `{title:string, segments:[{segment_id:string,narration:string,screen_text:string,source_refs:string[],asset_ids:string[]}], origin:"user"|"model", revision:number}`.
+
+Asset: `{asset_id:string, name:string, role:string, mime_type:string, size_bytes:number, sha256:string, source_url:string, license_note:string, artifact_id:string, url:string,timeline_src:string}`. Artifact: `{artifact_id:string,kind:string,name:string,mime_type:string,size_bytes:number,sha256:string,url:string,revision:number}`. All URLs for browser playback/download use `/api/artifacts/<id>`; raw absolute paths are internal only. `timeline_src` is a validated job-scoped relative source selectable in the editor.
+
+ComponentEntry: `{component_id:string,name:string,description:string,use_case:string,orientation:string,production_ready:boolean,min_frames:number,license_note:string,preview_url:string|null}`. Display existing 152 component catalog and production adapters honestly; demo-only entries cannot be selected for production.
+
+Review: `{status:string, findings:[{finding_id:string,severity:"error"|"warning"|"info",category:string,message:string,owner:string,blocking:boolean,start_frame:number|null,end_frame:number|null}], media_sha256:string|null, dependency_fingerprint:string, coverage:string[], human_confirmed:boolean}`. Missing credentials/capabilities result in explicit pending input, never fake outputs.
+
+## Timeline shared between Python / React / Remotion
+
+Timeline: `{schema_version:"1",job_id:string,revision:number,width:number,height:number,fps:number,duration_in_frames:number,audio_src:string|null,shots:Shot[],captions:Caption[]}`.
+
+Shot: `{shot_id:string,start_frame:number,end_frame:number,component_id:string,title:string,body:string,asset_src:string|null,source_label:string,accent_color:string,props:object}`. Intervals left-closed/right-open; shots cover [0,duration_in_frames) contiguously. Production IDs: `title`, `keyword`, `evidence`, `image_focus`, `comparison`, `data`, `steps`, `conclusion`. Props allow content-specific items but cannot introduce arbitrary code, filesystem paths or unsupported factual values.
+
+Caption: `{text:string,start_ms:number,end_ms:number}`. Timestamps come from the audio provider or verified imported alignment. No automatic equal-character estimates presented as real alignment.
+
+Internal media sources passed to Remotion are job-controlled `videoagents/<job_id>/...` relative asset paths under `public/`; absolute paths, network URLs and traversal are rejected. The backend MUST copy/snapshot approved audio and images into public paths before rendering, not feed browser artifact API URLs requiring an API session into Remotion. Titles are at most 100 characters, bodies 240, source labels 160 and individual captions 72. Each production adapter has a strict props allowlist.
+
+`node scripts/render-timeline.mjs --timeline <absolute-json> --output <absolute-mp4> --mode preview|final [--cover <absolute-png>]`: validate input, reuse frozen inputProps for selectComposition/renderMedia, emit JSON lines `{event:"progress",progress:number}` and final `{event:"complete",output:string,cover:string|null}`. Nonzero exit on validation/render failure. Renderer accepts only local input and controlled relative media paths. Composition ID `VideoFromTimeline`. Preview can scale output; timeline coordinates remain canonical.
+
+## Operating invariants
+
+- API commands persisted before returning; worker consumes separately. Refresh or disconnected SSE never restarts paid work.
+- Paid submission with unknown acceptance is UNKNOWN; do not retry blindly.
+- Revise/replace audio or image invalidates affected artifacts and old review. Pending review binds revision and full dependency fingerprint.
+- Real audio, source screenshots and voice cloning require available providers. App must support manual script/source/asset/audio+alignment input to complete a real workflow without fabricating integrations.
+- Test fixtures can use synthesized test tones and labelled test scripts, never mark output as production ready via fixture bypass.
+- Runtime files live in `.runtime/videoagents/jobs/<job_id>/`; controlled renderer copies live in `public/videoagents/<job_id>/`. Browser artifact URLs are authenticated and support Range requests.
+- Secret configuration is write-only, with Windows DPAPI protection. Provider rejection recovery and UNKNOWN recovery have separate rules; transient source receipt IDs must not change a paid operation's semantic identity.
+- No platform posting, no secret in Git; preserve all preexisting user files.

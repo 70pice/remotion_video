@@ -1,0 +1,52 @@
+{
+  "name": "remotion-ai-science",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": ["web"],
+  "scripts": {
+    "dev": "remotion studio src/index.ts --port=3101 --no-open",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "check:captions": "node scripts/check-captions.mjs",
+    "prepare:episode": "python scripts/prepare_episode.py",
+    "render": "remotion render src/index.ts AiScience out/ai-coding-v1.mp4 --codec=h264 --crf=18 --concurrency=4",
+    "still": "remotion still src/index.ts AiScience out/cover.png --frame=60",
+    "components": "remotion studio src/community.ts --port=3102 --no-open",
+    "check:components": "node scripts/verify-community.mjs",
+    "catalog:components": "node scripts/build-component-catalog.mjs",
+    "check:component-paths": "node scripts/check-component-paths.mjs",
+    "test:timeline": "node --test src/video-production/validation.test.mjs",
+    "web:dev": "npm run dev --workspace=web",
+    "web:build": "npm run build --workspace=web",
+    "web:typecheck": "npm run typecheck --workspace=web",
+    "web:test": "npm run test --workspace=web",
+    "studio:dev": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev.ps1",
+    "studio:start": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start.ps1",
+    "studio:stop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/stop.ps1"
+  },
+  "dependencies": {
+    "@remotion/captions": "4.0.532",
+    "@remotion/media": "4.0.532",
+    "@remotion/paths": "4.0.532",
+    "@remotion/shapes": "4.0.532",
+    "@remotion/transitions": "4.0.532",
+    "culori": "4.0.2",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "remotion": "4.0.532",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@remotion/bundler": "4.0.532",
+    "@remotion/cli": "4.0.532",
+    "@remotion/eslint-config-flat": "4.0.532",
+    "@remotion/renderer": "4.0.532",
+    "@types/culori": "4.0.1",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@types/three": "0.186.0",
+    "eslint": "9.39.5",
+    "typescript": "5.9.3"
+  }
+}

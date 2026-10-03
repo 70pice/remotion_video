@@ -1,0 +1,96 @@
+"""Write-only credentials persisted with Windows DPAPI for this user's account."""
+
+import base64
+import ctypes
+import json
+import os
+from ctypes import wintypes
+from typing import Any
+
+from videoagents.contracts import SettingsPatch
+from videoagents.default_config import DEFAULT_SETTINGS, SECRET_FIELDS
+from videoagents.providers.network import validate_url
+from videoagents.storage import Repository
+
+
+def protect(value: str) -> str:
+    if os.name != "nt":
+        return "local:" + base64.b64encode(value.encode()).decode()
+    class Blob(ctypes.Structure):
+        _fields_ = [("cbData", wintypes.DWORD), ("pbData", ctypes.POINTER(ctypes.c_ubyte))]
+    raw = value.encode("utf-8")
+    buffer = (ctypes.c_ubyte * len(raw)).from_buffer_copy(raw)
+    source, target = Blob(len(raw), buffer), Blob()
+    if not ctypes.windll.crypt32.CryptProtectData(ctypes.byref(source), "VideoAgents credential", None, None, None, 1, ctypes.byref(target)):
+        raise OSError("Windows 凭据加密失败")
+    try:
+        return "dpapi:" + base64.b64encode(ctypes.string_at(target.pbData, target.cbData)).decode()
+    finally:
+        ctypes.windll.kernel32.LocalFree(target.pbData)
+
+
+def unprotect(value: str) -> str:
+    kind, raw = value.split(":", 1)
+    data = base64.b64decode(raw)
+    if kind == "local":
+        return data.decode("utf-8")
+    if os.name != "nt":
+        raise OSError("Windows 保护的凭据只能由原用户恢复")
+    class Blob(ctypes.Structure):
+        _fields_ = [("cbData", wintypes.DWORD), ("pbData", ctypes.POINTER(ctypes.c_ubyte))]
+    buffer = (ctypes.c_ubyte * len(data)).from_buffer_copy(data)
+    source, target = Blob(len(data), buffer), Blob()
+    if not ctypes.windll.crypt32.CryptUnprotectData(ctypes.byref(source), None, None, None, None, 1, ctypes.byref(target)):
+        raise OSError("无法读取当前用户的 Windows 凭据")
+    try:
+        return ctypes.string_at(target.pbData, target.cbData).decode("utf-8")
+    finally:
+        ctypes.windll.kernel32.LocalFree(target.pbData)
+
+
+class SettingsService:
+    def __init__(self, repository: Repository):
+        self.repo = repository
+
+    def internal(self) -> dict[str, Any]:
+        result = dict(DEFAULT_SETTINGS)
+        for key, value in self.repo.setting_values().items():
+            result[key] = unprotect(value) if key in SECRET_FIELDS else json.loads(value)
+        for key in SECRET_FIELDS:
+            env_name = "VIDEOAGENTS_" + key.upper()
+            if os.getenv(env_name):
+                result[key] = os.environ[env_name]
+        return result
+
+    def public(self) -> dict[str, Any]:
+        settings = self.internal()
+        result = {key: value for key, value in settings.items() if key not in SECRET_FIELDS}
+        result.update({
+            "llm_configured": bool(settings.get("llm_model") and settings.get("llm_api_key")),
+            "search_configured": settings.get("search_provider") == "tavily" and bool(settings.get("search_api_key")),
+            "voice_configured": settings.get("voice_provider") == "byte_http" and bool(settings.get("voice_id")) and bool(settings.get("voice_resource_id")) and bool(
+                settings.get("voice_api_key") or (settings.get("voice_app_id") and settings.get("voice_access_token"))),
+            "aligner_configured": bool(settings.get("aligner_url")),
+        })
+        return result
+
+    def patch(self, patch: SettingsPatch) -> dict[str, Any]:
+        values = patch.model_dump(exclude_none=True)
+        for key in {"llm_base_url", "aligner_url"}:
+            if values.get(key):
+                validate_url(values[key], local_provider=True)
+        if "voice_endpoint" in values:
+            if values["voice_endpoint"] not in {
+                "https://openspeech.bytedance.com/api/v3/tts/unidirectional",
+                "https://openspeech.bytedance.com/api/v3/tts/unidirectional/sse",
+            }:
+                raise ValueError("字节接口必须使用官方 HTTP 流式地址")
+        self.repo.write_settings({key: protect(value) if key in SECRET_FIELDS else json.dumps(value, ensure_ascii=False)
+                                  for key, value in values.items()})
+        if os.name != "nt":
+            os.chmod(self.repo.db, 0o600)
+            for suffix in ("-wal", "-shm"):
+                path = self.repo.db.with_name(self.repo.db.name + suffix)
+                if path.exists():
+                    os.chmod(path, 0o600)
+        return self.public()
