@@ -40,9 +40,9 @@ class Director:
         timeline = Timeline(job_id=job.job_id, revision=job.revision, width=job.brief.width, height=job.brief.height,
                             fps=job.brief.fps, duration_in_frames=total, audio_src=audio.timeline_src, shots=shots,
                             captions=[Caption(text=item.text, start_ms=item.start_ms, end_ms=item.end_ms) for item in alignment.segments])
-        if self.model.available():
-            value = self.model.call(job.job_id, job.revision, "导演", "优化镜头构图、选型、主次和文字冲击力。保留给定时间轴帧区间、caption、audio_src、job_id和revision；只用白名单组件与已提供的素材。不得产生新数据或改变旁白。返回完整 Timeline。组件props=" + str(ALLOWED_PROPS),
-                                    {"script": job.script.model_dump(), "timeline": timeline.model_dump(), "assets": [asset.model_dump() for asset in job.assets]})
+        if self.model.available("director"):
+            value = self.model.call(job.job_id, job.revision, "director", "优化镜头构图、选型、主次和文字冲击力。保留给定时间轴帧区间、caption、audio_src、job_id和revision；只用白名单组件与已提供的素材。不得产生新数据或改变旁白。返回完整 Timeline。组件props=" + str(ALLOWED_PROPS),
+                                    {"script": job.script.model_dump(), "timeline": timeline.model_dump(), "assets": [asset.model_dump() for asset in job.assets]}, output_schema=Timeline.model_json_schema())
             candidate = Timeline.model_validate(value)
             immutable = (candidate.audio_src, candidate.captions, [(s.start_frame, s.end_frame) for s in candidate.shots])
             baseline = (timeline.audio_src, timeline.captions, [(s.start_frame, s.end_frame) for s in timeline.shots])

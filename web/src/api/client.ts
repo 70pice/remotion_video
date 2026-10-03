@@ -9,6 +9,7 @@ import type {
   RunAction,
   Script,
   Settings,
+  SettingsPatch,
   Timeline,
 } from "./types";
 
@@ -159,7 +160,7 @@ export const api = {
     ),
   catalog: () => request<ComponentEntry[]>("/catalog"),
   settings: () => request<Settings>("/settings"),
-  saveSettings: (settings: Settings) =>
+  saveSettings: (settings: SettingsPatch) =>
     request<Settings>("/settings", {
       method: "PATCH",
       body: JSON.stringify(settings),

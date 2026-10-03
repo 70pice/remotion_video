@@ -2,9 +2,10 @@
 
 import uuid
 
-from videoagents.contracts import Alignment, AlignmentSegment, Asset, Job
+from videoagents.contracts import Alignment, AlignmentSegment, Asset, Job, VoiceAdvice
 from videoagents.providers.aligner import align
 from videoagents.providers.byte_voice import synthesize
+from videoagents.providers.llm import JsonModel
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.storage import Repository
@@ -75,6 +76,7 @@ def from_byte_sentences(job: Job, audio_hash: str, sentences: list[dict]) -> Ali
 class VoiceNode:
     def __init__(self, repository: Repository, service: JobService):
         self.repo, self.service = repository, service
+        self.model = JsonModel(repository)
 
     def run(self, job: Job, command_id: str = "", prefer_generation: bool = False) -> tuple[Asset, Alignment, float]:
         script_hash = fingerprint([{"segment_id": item.segment_id, "narration": item.narration} for item in job.script.segments])
@@ -83,6 +85,19 @@ class VoiceNode:
         audio = None
         selected = self.repo.active_audio(job.job_id)
         candidates = [asset for asset in reversed(job.assets) if asset.role == "audio" and (not selected or asset.asset_id == selected)]
+        if self.model.available("voice"):
+            value = self.model.call(job.job_id, job.revision, "voice",
+                "作为配音指导，在实际配音/对齐前检查原文朗读风险、专名和多音字、停顿重音、情绪与受众匹配；给出delivery_notes和pronunciation_notes及findings。"
+                "保持旁白原文；建议仅供人工核验，不能改写文案、伪造或修改实测时间戳、声称已听到音频、生成音频、执行代码或请求额外工具。"
+                "发现不能继续配音的文案/音色用途问题须blocking=true。",
+                {"brief": job.brief.model_dump(), "script": job.script.model_dump(),
+                 "voice": {key: settings.get(key) for key in ("voice_provider", "voice_id", "voice_resource_id")}},
+                command_id, output_schema=VoiceAdvice.model_json_schema())
+            advice = VoiceAdvice.model_validate(value)
+            self.service.write_json(job, "voice_guidance.json", advice.model_dump(), "voice_guidance")
+            blocked = [item.message for item in advice.findings if item.blocking or item.severity == "error"]
+            if blocked:
+                raise ValueError("配音模型预检未通过：" + "；".join(blocked))
         if not (prefer_generation and SettingsService(self.repo).public()["voice_configured"]):
             for candidate in candidates:
                 metadata = self.repo.asset_metadata(candidate.asset_id)

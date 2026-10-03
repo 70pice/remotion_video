@@ -151,8 +151,8 @@ class VideoProductionGraph(AbstractContextManager):
         mode = "preview" if state["action"] == "preview" else "final"
         try:
             self.editor.run(job, mode)
-        except (ValueError, TimeoutError) as exc:
-            return self.blocked(state, "render", [str(exc)], ["render"])
+        except (CapabilityMissing, ValueError, TimeoutError) as exc:
+            return self.blocked(state, "render", [str(exc)], getattr(exc, "fields", ["render"]), exc)
         if mode == "preview":
             self.repo.update_job(job.job_id, job.revision, status="DRAFT", message="真实预览已渲染，可试听并调整分镜", stage="render", progress=1)
             return {"route": "end"}

@@ -270,10 +270,64 @@ class ResumeRequest(Contract):
     pending_token: str = Field(min_length=16, max_length=100)
 
 
+RoleId = Literal["screenwriter", "voice", "director", "editing", "review"]
+ModelProvider = Literal["codex_cli", "claude_code_cli"]
+
+
+class RoleModelConfig(Contract):
+    enabled: bool = False
+    provider: ModelProvider = "codex_cli"
+    model: str = Field(default="", max_length=200)
+    timeout_seconds: int = Field(default=300, ge=30, le=1800)
+
+
+class RoleModels(Contract):
+    screenwriter: RoleModelConfig = Field(default_factory=RoleModelConfig)
+    voice: RoleModelConfig = Field(default_factory=RoleModelConfig)
+    director: RoleModelConfig = Field(default_factory=RoleModelConfig)
+    editing: RoleModelConfig = Field(default_factory=RoleModelConfig)
+    review: RoleModelConfig = Field(default_factory=RoleModelConfig)
+
+
+class ModelFinding(Contract):
+    severity: Literal["error", "warning", "info"]
+    message: str = Field(min_length=1, max_length=1500)
+    owner: Literal["screenwriter", "voice", "director", "editing", "review", "user"]
+    blocking: bool
+
+
+class VoiceAdvice(Contract):
+    delivery_notes: list[str] = Field(default_factory=list, max_length=30)
+    pronunciation_notes: list[str] = Field(default_factory=list, max_length=30)
+    findings: list[ModelFinding] = Field(default_factory=list, max_length=30)
+
+    @field_validator("delivery_notes", "pronunciation_notes")
+    @classmethod
+    def readable_notes(cls, values: list[str]) -> list[str]:
+        if any(not value.strip() or len(value) > 500 for value in values):
+            raise ValueError("配音建议须为非空文本，每条最多 500 字")
+        return values
+
+
+class EditingAdvice(Contract):
+    pacing_notes: list[str] = Field(default_factory=list, max_length=30)
+    layout_notes: list[str] = Field(default_factory=list, max_length=30)
+    findings: list[ModelFinding] = Field(default_factory=list, max_length=30)
+
+    @field_validator("pacing_notes", "layout_notes")
+    @classmethod
+    def readable_notes(cls, values: list[str]) -> list[str]:
+        if any(not value.strip() or len(value) > 500 for value in values):
+            raise ValueError("剪辑建议须为非空文本，每条最多 500 字")
+        return values
+
+
+class ContentReviewAdvice(Contract):
+    findings: list[ModelFinding] = Field(default_factory=list, max_length=30)
+
+
 class SettingsPatch(Contract):
-    llm_base_url: str | None = None
-    llm_model: str | None = None
-    llm_api_key: str | None = None
+    role_models: dict[RoleId, RoleModelConfig] | None = None
     search_provider: Literal["none", "tavily"] | None = None
     search_api_key: str | None = None
     voice_provider: Literal["none", "byte_http"] | None = None

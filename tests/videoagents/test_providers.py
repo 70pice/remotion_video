@@ -118,32 +118,33 @@ def test_tcp_validation_pins_public_resolution_and_rejects_rebinding(monkeypatch
     assert connects == ["93.184.216.34"]
 
 
-@pytest.mark.parametrize("initial_status", [401, 500])
-def test_llm_rejection_retry_is_explicit_and_unknown_stays_blocked(tmp_path, monkeypatch, initial_status):
+@pytest.mark.parametrize("submitted", [False, True])
+def test_llm_rejection_retry_is_explicit_and_unknown_stays_blocked(tmp_path, monkeypatch, submitted):
+    from videoagents.providers.cli_runner import CliFailure, CliResult
     from videoagents.providers.llm import JsonModel
     repo = Repository(tmp_path / "runtime")
-    SettingsService(repo).patch(SettingsPatch(llm_model="unit-model", llm_api_key="test-only-unit-secret"))
-    monkeypatch.setattr("videoagents.providers.llm.validate_url", lambda *a, **k: None)
+    SettingsService(repo).patch(SettingsPatch(role_models={"screenwriter": {"enabled": True, "model": "unit-model"}}))
+    monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *a: ["unit-cli"])
     calls = []
-    def handle(request):
-        calls.append(request)
+    def handle(*args, **kwargs):
+        calls.append(args)
         if len(calls) == 1:
-            return httpx.Response(initial_status)
-        return httpx.Response(200, json={"choices": [{"finish_reason": "stop", "message": {"content": '{"text":"unit result"}'}}]})
-    mock_client(monkeypatch, handle)
+            raise CliFailure("unit-test-failure", submitted=submitted)
+        return CliResult({"text": "unit result"})
+    monkeypatch.setattr("videoagents.providers.llm.run_cli", handle)
     model = JsonModel(repo)
     with pytest.raises(CapabilityMissing):
-        model.call("job-test", 1, "unit role", "JSON only", {}, "command-a")
+        model.call("job-test", 1, "screenwriter", "JSON only", {}, "command-a")
     with pytest.raises(CapabilityMissing):
-        model.call("job-test", 1, "unit role", "JSON only", {}, "command-a")
-    if initial_status == 401:
-        assert model.call("job-test", 1, "unit role", "JSON only", {}, "command-b") == {"text": "unit result"}
+        model.call("job-test", 1, "screenwriter", "JSON only", {}, "command-a")
+    if not submitted:
+        assert model.call("job-test", 1, "screenwriter", "JSON only", {}, "command-b") == {"text": "unit result"}
         assert len(calls) == 2
-        assert model.call("job-test", 1, "unit role", "JSON only", {}, "command-c") == {"text": "unit result"}
+        assert model.call("job-test", 1, "screenwriter", "JSON only", {}, "command-c") == {"text": "unit result"}
         assert len(calls) == 2
     else:
         with pytest.raises(CapabilityMissing):
-            model.call("job-test", 1, "unit role", "JSON only", {}, "command-b")
+            model.call("job-test", 1, "screenwriter", "JSON only", {}, "command-b")
         assert len(calls) == 1
 
 
@@ -151,23 +152,24 @@ def test_llm_rejection_retry_is_explicit_and_unknown_stays_blocked(tmp_path, mon
 def test_unknown_model_cannot_bypass_barrier_by_refreshing_source_receipts(tmp_path, monkeypatch, supplied_urls):
     from videoagents.agents.screenwriter import Screenwriter
     from videoagents.contracts import Brief
+    from videoagents.providers.cli_runner import CliFailure
     from videoagents.services.jobs import JobService
     repo = Repository(tmp_path / "runtime")
     service = JobService(repo, tmp_path / "project")
-    SettingsService(repo).patch(SettingsPatch(llm_model="unit-model", llm_api_key="test-only-unit-secret"))
+    SettingsService(repo).patch(SettingsPatch(role_models={"screenwriter": {"enabled": True, "model": "unit-model"}}))
     job = repo.create_job(Brief(topic="测试来源研究", source_urls=supplied_urls))
     monkeypatch.setattr("videoagents.agents.screenwriter.search", lambda *args: {"results": [{"url": "https://example.com/source"}]})
-    monkeypatch.setattr("videoagents.providers.llm.validate_url", lambda *args, **kwargs: None)
+    monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *args: ["unit-cli"])
     fetches, calls = [], []
     def fetch(url, path):
         fetches.append(path)
         path.write_bytes(b"frozen source content UNIT TEST")
         return {"url": url, "final_url": url, "text": "unit source", "retrieved_at": "unique-clock-" + str(len(fetches))}
     monkeypatch.setattr("videoagents.agents.screenwriter.fetch_source", fetch)
-    def handler(request):
-        calls.append(request)
-        return httpx.Response(503)
-    mock_client(monkeypatch, handler)
+    def handler(*args, **kwargs):
+        calls.append(args)
+        raise CliFailure("unit_unknown")
+    monkeypatch.setattr("videoagents.providers.llm.run_cli", handler)
     writer = Screenwriter(repo, service)
     with pytest.raises(CapabilityMissing) as first_failure:
         writer.run(job)
@@ -180,11 +182,11 @@ def test_unknown_model_cannot_bypass_barrier_by_refreshing_source_receipts(tmp_p
         writer.run(job)  # Deliberately replay the original stale snapshot.
     assert len(fetches) == 1 and len(calls) == 1
     assert original_path.read_bytes() == before
-    posted_context = json.loads(json.loads(calls[0].content)["messages"][1]["content"])
+    posted_context = json.loads(calls[0][3].split("上下文：\n", 1)[1])
     assert posted_context["brief"]["source_urls"] == ["https://example.com/source"]
     # Even if metadata/context changes, a logical role/revision UNKNOWN is
     # an independent barrier, not just an exact JSON cache hash.
     from videoagents.providers.llm import JsonModel
     with pytest.raises(CapabilityMissing):
-        JsonModel(repo).call(job.job_id, job.revision, "编剧", "different volatile metadata", {"retrieved_at": "new-clock"}, "new-command")
+        JsonModel(repo).call(job.job_id, job.revision, "screenwriter", "different volatile metadata", {"retrieved_at": "new-clock"}, "new-command")
     assert len(calls) == 1

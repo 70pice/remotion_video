@@ -1,7 +1,7 @@
 """Review binds exact inputs and bytes; human review cannot waive hard failures."""
 
 from videoagents.agents.screenwriter import script_issues
-from videoagents.contracts import Alignment, Finding, Job, Review
+from videoagents.contracts import Alignment, ContentReviewAdvice, Finding, Job, Review
 from videoagents.nodes.voice import validate_alignment
 from videoagents.providers.llm import JsonModel
 from videoagents.services.jobs import JobService
@@ -107,7 +107,7 @@ class Reviewers:
                 decode_check(path)
             except Exception as exc:
                 add("media", "最终视频探测/完整解码失败：" + str(exc)[:400], "editing")
-        if model_review and self.model.available() and job.script:
+        if model_review and self.model.available("review") and job.script:
             sources = {}
             research = next((artifact for artifact in reversed(job.artifacts) if artifact.kind == "research" and artifact.revision == job.revision), None)
             if research:
@@ -116,16 +116,15 @@ class Reviewers:
                     sources = json.loads(self.repo.artifact_path(research.artifact_id)[0].read_text(encoding="utf-8"))
                 except (OSError, ValueError):
                     add("source", "原始来源快照不可读取，无法做来源内容核验", "screenwriter")
-            value = self.model.call(job.job_id, job.revision, "内容审核", "核验文案、分镜与来源之间的语义关系。你不能观看完整成片或声称视觉/发音已通过。只返回 {findings:[{severity:'error'|'warning'|'info',message:string,owner:string}]}。发现事实来源不足、无依据数据必须error。", {
+            value = self.model.call(job.job_id, job.revision, "review", "核验文案、分镜与来源之间的语义关系。你不能观看完整成片或声称视觉/发音已通过。返回结构化 findings，每条含severity、message、owner、blocking。发现事实来源不足、无依据数据必须error并blocking=true。", {
                 "brief": job.brief.model_dump(), "script": job.script.model_dump(),
                 "timeline": job.timeline.model_dump() if job.timeline else None,
                 "assets": [item.model_dump() for item in job.assets],
                 "source_receipts": sources,
-            })
-            for item in value.get("findings", [])[:30]:
-                if item.get("severity") not in {"error", "warning", "info"} or not isinstance(item.get("message"), str):
-                    raise ValueError("审核模型输出格式无效")
-                add("model_content", item["message"][:1500], str(item.get("owner", "screenwriter"))[:100], item["severity"], item["severity"] == "error")
+            }, output_schema=ContentReviewAdvice.model_json_schema())
+            advice = ContentReviewAdvice.model_validate(value)
+            for item in advice.findings:
+                add("model_content", item.message, item.owner, item.severity, item.blocking or item.severity == "error")
             coverage.append("model_content_only")
         if not human_confirmed:
             add("human_full_review", "需完整播放成片并核验事实与截图匹配、旁白漏字/错读、字幕、可读性、素材及字体用途；确认说明必须覆盖这些检查", "user", "warning")

@@ -368,6 +368,65 @@
       "title": "ComponentEntry",
       "type": "object"
     },
+    "ModelFinding": {
+      "additionalProperties": false,
+      "properties": {
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "message": {
+          "maxLength": 1500,
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        },
+        "owner": {
+          "enum": [
+            "screenwriter",
+            "voice",
+            "director",
+            "editing",
+            "review",
+            "user"
+          ],
+          "title": "Owner",
+          "type": "string"
+        },
+        "blocking": {
+          "title": "Blocking",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "severity",
+        "message",
+        "owner",
+        "blocking"
+      ],
+      "title": "ModelFinding",
+      "type": "object"
+    },
+    "ContentReviewAdvice": {
+      "additionalProperties": false,
+      "properties": {
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/ModelFinding"
+          },
+          "maxItems": 30,
+          "title": "Findings",
+          "type": "array"
+        }
+      },
+      "title": "ContentReviewAdvice",
+      "type": "object"
+    },
     "Script": {
       "additionalProperties": false,
       "properties": {
@@ -669,6 +728,37 @@
         "base_revision"
       ],
       "title": "DraftRequest",
+      "type": "object"
+    },
+    "EditingAdvice": {
+      "additionalProperties": false,
+      "properties": {
+        "pacing_notes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Pacing Notes",
+          "type": "array"
+        },
+        "layout_notes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Layout Notes",
+          "type": "array"
+        },
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/ModelFinding"
+          },
+          "maxItems": 30,
+          "title": "Findings",
+          "type": "array"
+        }
+      },
+      "title": "EditingAdvice",
       "type": "object"
     },
     "Finding": {
@@ -979,6 +1069,62 @@
       "title": "ResumeRequest",
       "type": "object"
     },
+    "RoleModelConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "provider": {
+          "default": "codex_cli",
+          "enum": [
+            "codex_cli",
+            "claude_code_cli"
+          ],
+          "title": "Provider",
+          "type": "string"
+        },
+        "model": {
+          "default": "",
+          "maxLength": 200,
+          "title": "Model",
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "default": 300,
+          "maximum": 1800,
+          "minimum": 30,
+          "title": "Timeout Seconds",
+          "type": "integer"
+        }
+      },
+      "title": "RoleModelConfig",
+      "type": "object"
+    },
+    "RoleModels": {
+      "additionalProperties": false,
+      "properties": {
+        "screenwriter": {
+          "$ref": "#/$defs/RoleModelConfig"
+        },
+        "voice": {
+          "$ref": "#/$defs/RoleModelConfig"
+        },
+        "director": {
+          "$ref": "#/$defs/RoleModelConfig"
+        },
+        "editing": {
+          "$ref": "#/$defs/RoleModelConfig"
+        },
+        "review": {
+          "$ref": "#/$defs/RoleModelConfig"
+        }
+      },
+      "title": "RoleModels",
+      "type": "object"
+    },
     "RunRequest": {
       "additionalProperties": false,
       "properties": {
@@ -1017,41 +1163,29 @@
     "SettingsPatch": {
       "additionalProperties": false,
       "properties": {
-        "llm_base_url": {
+        "role_models": {
           "anyOf": [
             {
-              "type": "string"
+              "additionalProperties": {
+                "$ref": "#/$defs/RoleModelConfig"
+              },
+              "propertyNames": {
+                "enum": [
+                  "screenwriter",
+                  "voice",
+                  "director",
+                  "editing",
+                  "review"
+                ]
+              },
+              "type": "object"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "title": "Llm Base Url"
-        },
-        "llm_model": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Llm Model"
-        },
-        "llm_api_key": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Llm Api Key"
+          "title": "Role Models"
         },
         "search_provider": {
           "anyOf": [
@@ -1249,6 +1383,37 @@
         }
       },
       "title": "SettingsPatch",
+      "type": "object"
+    },
+    "VoiceAdvice": {
+      "additionalProperties": false,
+      "properties": {
+        "delivery_notes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Delivery Notes",
+          "type": "array"
+        },
+        "pronunciation_notes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Pronunciation Notes",
+          "type": "array"
+        },
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/ModelFinding"
+          },
+          "maxItems": 30,
+          "title": "Findings",
+          "type": "array"
+        }
+      },
+      "title": "VoiceAdvice",
       "type": "object"
     }
   }

@@ -6,21 +6,28 @@ from .models import (
     Brief,
     Caption,
     ComponentEntry,
+    ContentReviewAdvice,
     DraftRequest,
+    EditingAdvice,
     Finding,
     Job,
+    ModelFinding,
     ResumeRequest,
     Review,
+    RoleModelConfig,
+    RoleModels,
     RunRequest,
     Script,
     ScriptSegment,
     SettingsPatch,
     Shot,
     Timeline,
+    VoiceAdvice,
 )
 
 __all__ = [
     "Alignment", "AlignmentSegment", "Artifact", "Asset", "Brief", "Caption",
     "ComponentEntry", "DraftRequest", "Finding", "Job", "ResumeRequest", "Review",
     "RunRequest", "Script", "ScriptSegment", "SettingsPatch", "Shot", "Timeline",
+    "RoleModelConfig", "RoleModels", "ModelFinding", "VoiceAdvice", "EditingAdvice", "ContentReviewAdvice",
 ]

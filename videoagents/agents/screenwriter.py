@@ -76,8 +76,8 @@ class Screenwriter:
             if not research["sources"]:
                 raise CapabilityMissing("没有取得可读取的原始来源，请补充真实链接/证据素材", ["source_urls", "assets"])
             schema = Script.model_json_schema()
-            value = self.model.call(job.job_id, job.revision, "编剧", "根据来源写口播，不编造数字或引用；每段有 source_refs 和素材 asset_ids，旁白宜每段 <=72字。返回 Script JSON，schema=" + str(schema),
-                                    {"brief": current.brief.model_dump(), "research": research, "assets": [asset.model_dump() for asset in current.assets]})
+            value = self.model.call(job.job_id, job.revision, "screenwriter", "根据来源写口播，不编造数字或引用；每段有 source_refs 和素材 asset_ids，旁白宜每段 <=72字。返回 Script JSON。",
+                                    {"brief": current.brief.model_dump(), "research": research, "assets": [asset.model_dump() for asset in current.assets]}, output_schema=schema)
             value.update(origin="model", revision=job.revision)
             script = Script.model_validate(value)
         return script, research

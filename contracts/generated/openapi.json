@@ -1270,6 +1270,40 @@
         ],
         "title": "Review"
       },
+      "RoleModelConfig": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "codex_cli",
+              "claude_code_cli"
+            ],
+            "title": "Provider",
+            "default": "codex_cli"
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Model",
+            "default": ""
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "maximum": 1800.0,
+            "minimum": 30.0,
+            "title": "Timeout Seconds",
+            "default": 300
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "RoleModelConfig"
+      },
       "RunRequest": {
         "properties": {
           "base_revision": {
@@ -1393,38 +1427,28 @@
       },
       "SettingsPatch": {
         "properties": {
-          "llm_base_url": {
+          "role_models": {
             "anyOf": [
               {
-                "type": "string"
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/RoleModelConfig"
+                },
+                "propertyNames": {
+                  "enum": [
+                    "screenwriter",
+                    "voice",
+                    "director",
+                    "editing",
+                    "review"
+                  ]
+                },
+                "type": "object"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Llm Base Url"
-          },
-          "llm_model": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Llm Model"
-          },
-          "llm_api_key": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Llm Api Key"
+            "title": "Role Models"
           },
           "search_provider": {
             "anyOf": [

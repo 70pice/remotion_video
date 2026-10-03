@@ -71,11 +71,21 @@ export interface ComponentEntry {
   preview_url: string | null;
 }
 
+export interface ContentReviewAdvice {
+  findings: Array<ModelFinding>;
+}
+
 export interface DraftRequest {
   base_revision: number;
   brief?: Brief | null;
   script?: Script | null;
   timeline?: Timeline | null;
+}
+
+export interface EditingAdvice {
+  pacing_notes: Array<string>;
+  layout_notes: Array<string>;
+  findings: Array<ModelFinding>;
 }
 
 export interface Finding {
@@ -108,6 +118,13 @@ export interface Job {
   latest_event_id: number;
 }
 
+export interface ModelFinding {
+  severity: "error" | "warning" | "info";
+  message: string;
+  owner: "screenwriter" | "voice" | "director" | "editing" | "review" | "user";
+  blocking: boolean;
+}
+
 export interface ResumeRequest {
   base_revision: number;
   decision: "confirm" | "revise" | "cancel";
@@ -123,6 +140,21 @@ export interface Review {
   dependency_fingerprint: string;
   coverage: Array<string>;
   human_confirmed: boolean;
+}
+
+export interface RoleModelConfig {
+  enabled: boolean;
+  provider: "codex_cli" | "claude_code_cli";
+  model: string;
+  timeout_seconds: number;
+}
+
+export interface RoleModels {
+  screenwriter: RoleModelConfig;
+  voice: RoleModelConfig;
+  director: RoleModelConfig;
+  editing: RoleModelConfig;
+  review: RoleModelConfig;
 }
 
 export interface RunRequest {
@@ -147,9 +179,7 @@ export interface ScriptSegment {
 }
 
 export interface SettingsPatch {
-  llm_base_url?: string | null;
-  llm_model?: string | null;
-  llm_api_key?: string | null;
+  role_models?: Partial<Record<"screenwriter" | "voice" | "director" | "editing" | "review", Partial<RoleModelConfig>>> | null;
   search_provider?: "none" | "tavily" | null;
   search_api_key?: string | null;
   voice_provider?: "none" | "byte_http" | null;
@@ -191,4 +221,10 @@ export interface Timeline {
   audio_src: string | null;
   shots: Array<Shot>;
   captions: Array<Caption>;
+}
+
+export interface VoiceAdvice {
+  delivery_notes: Array<string>;
+  pronunciation_notes: Array<string>;
+  findings: Array<ModelFinding>;
 }

@@ -13,21 +13,26 @@ sys.path.insert(0, str(ROOT))
 from videoagents.contracts import models  # noqa: E402
 
 
-def ts_type(schema: dict[str, Any]) -> str:
+def ts_type(schema: dict[str, Any], partial_objects: bool = False) -> str:
     if "$ref" in schema:
-        return schema["$ref"].rsplit("/", 1)[-1]
+        reference = schema["$ref"].rsplit("/", 1)[-1]
+        return f"Partial<{reference}>" if partial_objects else reference
     if "const" in schema:
         return json.dumps(schema["const"], ensure_ascii=False)
     if "enum" in schema:
         return " | ".join(json.dumps(value, ensure_ascii=False) for value in schema["enum"])
     if "anyOf" in schema:
-        return " | ".join(dict.fromkeys(ts_type(value) for value in schema["anyOf"]))
+        return " | ".join(dict.fromkeys(ts_type(value, partial_objects) for value in schema["anyOf"]))
     kind = schema.get("type")
     if kind == "array":
         return f"Array<{ts_type(schema.get('items', {}))}>"
     if kind == "object":
         additional = schema.get("additionalProperties")
         if not schema.get("properties"):
+            keys = schema.get("propertyNames", {}).get("enum")
+            if keys and isinstance(additional, dict):
+                names = " | ".join(json.dumps(key) for key in keys)
+                return f"Partial<Record<{names}, {ts_type(additional, partial_objects)}>>"
             return f"Record<string, {ts_type(additional) if isinstance(additional, dict) else 'unknown'}>"
         required = set(schema.get("required", []))
         fields = [f"{json.dumps(key)}{'' if key in required else '?'}: {ts_type(value)}" for key, value in schema["properties"].items()]
@@ -51,7 +56,8 @@ def outputs() -> dict[Path, str]:
         for field, spec in schema.get("properties", {}).items():
             # Responses are full model_dump objects; request defaults remain optional.
             optional = name in requests and field not in required
-            lines.append(f"  {field}{'?' if optional else ''}: {ts_type(spec)};")
+            partial_objects = name == "SettingsPatch" and field == "role_models"
+            lines.append(f"  {field}{'?' if optional else ''}: {ts_type(spec, partial_objects)};")
         lines.extend(["}", ""])
     destination = ROOT / "contracts" / "generated"
     result = {

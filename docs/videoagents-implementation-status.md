@@ -2,6 +2,21 @@
 
 2026-10-03。React 前端、FastAPI API、独立 worker、持久 LangGraph 工作流和 Remotion 生产入口已实现并完成本机联调。设计记录见 [原方案](videoagents-design.md)，操作见 [使用说明](videoagents-setup.md)，接口见 [共享契约](videoagents-implementation-contract.md)。
 
+## 五角色 CLI 模型配置更新
+
+按最新要求，模型入口改为五角色独立设置，仅支持 `codex_cli` / `claude_code_cli`。React 设置页分别控制启用、提供方、模型名称与超时；模型名称为空使用 CLI 默认模型。PATCH 按角色、按变化字段合并，旧 HTTP 模型字段会被拒绝，原加密记录保留但不再读取。配置影响后续实际调用，已有人工文案、分镜与成片不会自动重做。
+
+- 编剧、导演、审核按各自设置调用 CLI；配音与剪辑新增模型预检/指导产物，音频仍使用字节/真实导入对齐，视频仍由 Remotion 渲染。
+- CLI 走固定 argv、UTF-8 stdin、空临时目录、工具限制、取消与超时、输出上限、Windows Job Object。两种 CLI 共用严格 `response_json` 外层，解析后仍由各角色原始 Pydantic 契约验证。
+- 成功调用可重放；切换提供方或模型不能绕过当前角色/版本的 UNKNOWN。取消发生于启动前不会创建 CLI 进程；启动后失败的受理状态无法证明，保守记 UNKNOWN。
+- 本机实际入口检测及 `--version` 验证：Codex CLI **0.153.4 可用**，Claude Code **未安装**。没有读取登录凭据或执行真实付费模型调用。
+
+本次 fresh 验证：**71 Python 测试、30 React 测试、10 Remotion 时间轴测试通过**；Ruff、根 typecheck/lint、React typecheck/build、生成契约一致性检查通过。CLI 协议、中文 stdin、非法 envelope、错误事件、预取消、启动后取消、超时、输出上限均用独立本机进程 fixture 核验；取消保留任务 CANCELLED 终态及正确提交台账。Windows 回归实际运行 CLI runner 后硬终止 owner，确认 fixture CLI 及派生子进程退出。
+
+正式服务重新启动于 `http://127.0.0.1:8000/`。浏览器实测五角色分别保存、刷新后保留、Claude 未安装提示及恢复默认空模型；测试没有启用付费调用。截图：`out/videoagents-role-models-review.png`。最新 HTTP smoke 任务 **3e782cf2ddcc41ca89ebb2c5e2f760f5** 使用 TEST 图片与测试音，实际渲染 **148891 bytes H.264/AAC MP4**，Range **206**，停在 **NEEDS_HUMAN**；这只证明本机视频链路。
+
+两条独立审查 lane 已完成：代码 lane 没有剩余 CRITICAL/HIGH/MEDIUM/LOW，取消边界 MEDIUM 已修复并回归；该 lane 因工具没有提供其角色提示要求的 `lsp_diagnostics` 而保留 COMMENT，采用 tsc/Ruff/测试作为实际证据。架构 lane 为 **WATCH，无 BLOCK**；配置生效范围与 partial PATCH 的两项建议已落实。残留 WATCH 是 CLI `Popen` 到 Job Object 挂接的小窗口，测试没有证明它被消除；与原渲染进程同样保留这一边界。组织 managed hooks/policy 的隔离限制见使用说明。
+
 ## Review 从这里开始
 
 ```text
@@ -46,7 +61,7 @@ D:\remotion_video\
 - 人工回复绑定版本、依赖 fingerprint、媒体 hash、pending token 和 LangGraph interrupt ID。旧配置回复重放不能回答后来的人审；人工确认不能绕过硬失败。
 - 明确的服务拒绝可在修正配置后由新显式命令重试；受理未知则保留 UNKNOWN 台账、阻止盲重提。配音仍可导入实际服务结果与实测对齐进行恢复。
 
-## 最新验证证据
+## 初版验证证据
 
 | 检查 | 实测结果 |
 |---|---|

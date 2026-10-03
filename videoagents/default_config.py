@@ -3,10 +3,12 @@
 import os
 from pathlib import Path
 
+from videoagents.contracts import RoleModels
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_ROOT = Path(os.getenv("VIDEOAGENTS_RUNTIME_DIR", str(PROJECT_ROOT / ".runtime" / "videoagents"))).resolve()
 DEFAULT_SETTINGS = {
-    "llm_base_url": "https://api.openai.com/v1", "llm_model": "", "search_provider": "none",
+    "role_models": RoleModels().model_dump(), "search_provider": "none",
     "voice_provider": "none", "voice_app_id": "", "voice_resource_id": "", "voice_id": "",
     "voice_endpoint": "https://openspeech.bytedance.com/api/v3/tts/unidirectional",
     "aligner_url": "", "capture_enabled": False, "max_llm_calls": 12,

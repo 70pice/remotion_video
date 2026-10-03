@@ -4,10 +4,11 @@ import base64
 import ctypes
 import json
 import os
+from copy import deepcopy
 from ctypes import wintypes
 from typing import Any
 
-from videoagents.contracts import SettingsPatch
+from videoagents.contracts import RoleModels, SettingsPatch
 from videoagents.default_config import DEFAULT_SETTINGS, SECRET_FIELDS
 from videoagents.providers.network import validate_url
 from videoagents.storage import Repository
@@ -53,20 +54,29 @@ class SettingsService:
         self.repo = repository
 
     def internal(self) -> dict[str, Any]:
-        result = dict(DEFAULT_SETTINGS)
+        result = deepcopy(DEFAULT_SETTINGS)
         for key, value in self.repo.setting_values().items():
+            if key in {"llm_api_key", "llm_base_url", "llm_model"}:
+                # Preserve old encrypted rows without decrypting unused HTTP
+                # credentials, including after moving a DB to another user.
+                continue
             result[key] = unprotect(value) if key in SECRET_FIELDS else json.loads(value)
         for key in SECRET_FIELDS:
+            if key == "llm_api_key":
+                continue
             env_name = "VIDEOAGENTS_" + key.upper()
             if os.getenv(env_name):
                 result[key] = os.environ[env_name]
+        result["role_models"] = RoleModels.model_validate(result["role_models"]).model_dump()
         return result
 
     def public(self) -> dict[str, Any]:
         settings = self.internal()
-        result = {key: value for key, value in settings.items() if key not in SECRET_FIELDS}
+        from videoagents.providers.cli_runner import cli_availability
+        result = {key: settings[key] for key in DEFAULT_SETTINGS}
         result.update({
-            "llm_configured": bool(settings.get("llm_model") and settings.get("llm_api_key")),
+            "llm_configured": any(value["enabled"] for value in settings["role_models"].values()),
+            "cli_availability": cli_availability(),
             "search_configured": settings.get("search_provider") == "tavily" and bool(settings.get("search_api_key")),
             "voice_configured": settings.get("voice_provider") == "byte_http" and bool(settings.get("voice_id")) and bool(settings.get("voice_resource_id")) and bool(
                 settings.get("voice_api_key") or (settings.get("voice_app_id") and settings.get("voice_access_token"))),
@@ -75,8 +85,13 @@ class SettingsService:
         return result
 
     def patch(self, patch: SettingsPatch) -> dict[str, Any]:
-        values = patch.model_dump(exclude_none=True)
-        for key in {"llm_base_url", "aligner_url"}:
+        values = patch.model_dump(exclude_none=True, exclude_unset=True)
+        if "role_models" in values:
+            roles = self.internal()["role_models"]
+            for role, updates in values["role_models"].items():
+                roles[role].update(updates)
+            values["role_models"] = RoleModels.model_validate(roles).model_dump()
+        for key in {"aligner_url"}:
             if values.get(key):
                 validate_url(values[key], local_provider=True)
         if "voice_endpoint" in values:

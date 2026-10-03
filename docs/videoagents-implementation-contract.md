@@ -27,7 +27,15 @@ All routes under `/api`. JSON errors use `{"detail":"human readable reason"}`. M
 - `POST /jobs/{job_id}/alignment` with `{base_revision:number, asset_id:string, alignment:Alignment}` => Job; binds the measured alignment to that audio and invalidates dependent outputs. Empty/omitted audio hash is server-bound; a supplied nonempty hash must match.
 - `GET /artifacts/{artifact_id}` => owned artifact content with Range support for media; no filesystem path input.
 - `GET /catalog` => ComponentEntry[].
-- `GET /settings` => sanitized settings and `configured` booleans. `PATCH /settings` => sanitized settings. Secrets are write-only and never in job/event/response/log. Configuration may set API URLs/model/voice/resource IDs but outbound requests must be validated.
+- `GET /settings` => sanitized settings and `configured` booleans. `PATCH /settings` => sanitized settings. Secrets are write-only and never in job/event/response/log. Model configuration supports only per-role CLI providers; voice/search/alignment outbound requests must be validated.
+
+### Per-role CLI model settings
+
+`role_models` contains exactly `screenwriter`, `voice`, `director`, `editing`, `review`. Each config is `{enabled:boolean,provider:"codex_cli"|"claude_code_cli",model:string,timeout_seconds:number}`; defaults are false, codex_cli, empty (CLI default), 300. Timeout range: 30–1800; model maximum: 200 characters. PATCH merges only supplied roles and supplied fields. Unknown roles/providers/fields are rejected. The old `llm_base_url`, `llm_model`, `llm_api_key` write interface is removed; existing encrypted records remain private and unused.
+
+GET adds `cli_availability:{codex_cli:{available:boolean},claude_code_cli:{available:boolean}}` (executable discovery only), and `llm_configured` means at least one role is enabled. An enabled role with no executable blocks when invoked; it is not silently skipped. All five roles use the same durable model call budget and submission ledger. Provider/model changes cannot bypass a logical role/revision UNKNOWN barrier, including older HTTP submissions. Voice/editing models produce validated guidance artifacts; Byte/import alignment and Remotion remain the actual media executors. Human scripts and timelines retain priority.
+
+CLI calls use argv, UTF-8 stdin, isolated temporary directories, bounded output, deadline/cancellation and process-tree cleanup. No model API-key form, no auth-file readback, no raw stderr exposure, no automatic provider fallback. Only a prelaunch failure establishes nonacceptance; any ambiguous postlaunch failure is UNKNOWN. Real CLI model calls require the account's login and access; subprocess protocol fixtures do not prove those external capabilities.
 
 ## Job models
 

@@ -90,7 +90,7 @@ def test_upload_real_audio_range_and_explicit_alignment_hash(client):
 
 def test_settings_write_only_credentials_and_validation_never_echoes_them(client):
     secret = "test-only-secret-not-production"
-    result = client.patch("/api/settings", json={"llm_api_key": secret, "llm_model": "test-model", "voice_api_key": secret})
+    result = client.patch("/api/settings", json={"role_models": {"screenwriter": {"enabled": True, "model": "test-model"}}, "voice_api_key": secret})
     assert result.status_code == 200
     assert secret not in result.text
     assert result.json()["llm_configured"] is True
@@ -102,6 +102,45 @@ def test_settings_write_only_credentials_and_validation_never_echoes_them(client
     assert secret not in invalid.text
     raw = client.app.state.repository.db.read_bytes()
     assert secret.encode() not in raw  # Windows DPAPI; no plaintext SQL credential.
+
+
+def test_five_role_defaults_and_partial_settings_merge(client):
+    initial = client.get("/api/settings").json()
+    roles = {"screenwriter", "voice", "director", "editing", "review"}
+    assert set(initial["role_models"]) == roles
+    assert all(value == {"enabled": False, "provider": "codex_cli", "model": "", "timeout_seconds": 300}
+               for value in initial["role_models"].values())
+    assert initial["llm_configured"] is False
+    assert set(initial["cli_availability"]) == {"codex_cli", "claude_code_cli"}
+    assert all(isinstance(value["available"], bool) for value in initial["cli_availability"].values())
+    first = client.patch("/api/settings", json={"role_models": {"director": {
+        "enabled": True, "provider": "claude_code_cli", "model": "unit-model", "timeout_seconds": 180}}})
+    assert first.status_code == 200 and first.json()["llm_configured"] is True
+    changed = client.patch("/api/settings", json={"role_models": {"director": {"enabled": False}}})
+    assert changed.status_code == 200
+    assert changed.json()["role_models"]["director"] == {
+        "enabled": False, "provider": "claude_code_cli", "model": "unit-model", "timeout_seconds": 180}
+    assert changed.json()["role_models"]["voice"] == initial["role_models"]["voice"]
+    assert changed.json()["llm_configured"] is False
+    for payload in ({"role_models": {"other": {"enabled": True}}},
+                    {"role_models": {"voice": {"provider": "http"}}},
+                    {"role_models": {"voice": {"timeout_seconds": 29}}},
+                    {"role_models": {"voice": {"model": "x" * 201}}},
+                    {"llm_base_url": "https://example.com"}, {"llm_model": "old-http"}, {"llm_api_key": "unit-secret"}):
+        assert client.patch("/api/settings", json=payload).status_code == 422
+
+
+def test_legacy_http_credentials_remain_stored_but_are_unused_and_private(client):
+    repo = client.app.state.repository
+    # An old user-bound encrypted key may not be decryptable on this account.
+    # CLI settings must remain readable without opening or rewriting that row.
+    repo.write_settings({"llm_api_key": "dpapi:unreadable-legacy-credential", "llm_model": '"old-model"',
+                         "llm_base_url": '"https://old-provider.example/v1"'})
+    response = client.get("/api/settings")
+    assert response.status_code == 200
+    assert not ({"llm_api_key", "llm_model", "llm_base_url"} & response.json().keys())
+    assert response.json()["llm_configured"] is False
+    assert repo.setting_values()["llm_api_key"] == "dpapi:unreadable-legacy-credential"
 
 
 def test_draft_revision_invalidates_previous_release(client):
