@@ -168,7 +168,7 @@ describe("role settings form", () => {
     for (const { label } of modelRoles) {
       expect(markup).toContain(`aria-label="启用${label}模型"`);
       expect(markup).toContain(`aria-label="${label}模型提供方"`);
-      expect(markup).toContain(`aria-label="${label}模型名称"`);
+      expect(markup).toContain(`aria-label="${label}模型选择"`);
       expect(markup).toContain(`aria-label="${label}模型超时秒数"`);
     }
     expect(markup.match(/value="claude_code_cli"/g)).toHaveLength(5);
@@ -192,7 +192,7 @@ describe("role settings form", () => {
     );
     for (const { label } of modelRoles) {
       expect(fieldset).toContain(`aria-label="启用${label}模型"`);
-      expect(fieldset).toContain(`aria-label="${label}模型名称"`);
+      expect(fieldset).toContain(`aria-label="${label}模型选择"`);
     }
     expect(fieldset).toContain("新鉴权 API Key");
     expect(fieldset).toContain(

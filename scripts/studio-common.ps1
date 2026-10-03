@@ -9,7 +9,10 @@ function Get-OwnedStudioProcess($Service) {
     if ($null -eq $process) { return $null }
     # PowerShell 7 can deserialize ISO dates as DateTime; Windows PowerShell 5
     # leaves them as strings. Compare UTC ticks rather than culture conversion.
-    $actualStart = $process.StartTime.ToUniversalTime().Ticks
+    # A process may exit between lookup and identity validation during shutdown.
+    $startedAt = $process.StartTime
+    if ($null -eq $startedAt) { return $null }
+    $actualStart = $startedAt.ToUniversalTime().Ticks
     $expectedStart = ([DateTimeOffset]$Service.started_at).UtcDateTime.Ticks
     if ($actualStart -ne $expectedStart) { return $null }
     if ($process.Path -ne $Service.executable) { return $null }

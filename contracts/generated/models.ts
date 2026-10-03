@@ -118,6 +118,22 @@ export interface Job {
   latest_event_id: number;
 }
 
+export interface ModelCatalog {
+  provider: "codex_cli" | "claude_code_cli";
+  status: "ready" | "unavailable" | "error";
+  models: Array<ModelChoice>;
+  message: string;
+  fetched_at: string;
+}
+
+export interface ModelChoice {
+  id: string;
+  display_name: string;
+  description: string;
+  is_default: boolean;
+  hidden: boolean;
+}
+
 export interface ModelFinding {
   severity: "error" | "warning" | "info";
   message: string;

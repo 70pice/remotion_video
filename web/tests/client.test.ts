@@ -6,6 +6,37 @@ afterEach(() => {
 });
 
 describe("authenticated API requests", () => {
+  it("reads and refreshes the CLI catalog without altering the selected model ID in settings", async () => {
+    const catalog = {
+      provider: "codex_cli",
+      status: "ready",
+      models: [],
+      message: "",
+      fetched_at: "",
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(Response.json({ csrf_token: "token" }))
+      .mockResolvedValueOnce(Response.json(catalog))
+      .mockResolvedValueOnce(Response.json(catalog))
+      .mockResolvedValueOnce(Response.json({}));
+    vi.stubGlobal("fetch", fetchMock);
+    const { api } = await import("../src/api/client");
+    await api.models("codex_cli");
+    await api.models("codex_cli", true);
+    await api.saveSettings({
+      role_models: { director: { model: "future/model:v2" } },
+    });
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "/api/session",
+      "/api/models/codex_cli",
+      "/api/models/codex_cli?refresh=true",
+      "/api/settings",
+    ]);
+    expect(JSON.parse(fetchMock.mock.calls[3][1].body)).toEqual({
+      role_models: { director: { model: "future/model:v2" } },
+    });
+  });
   it("binds a human reply to the exact pending token that was displayed", async () => {
     const fetchMock = vi
       .fn()

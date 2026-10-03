@@ -14,6 +14,8 @@ export type {
   ComponentEntry,
   Finding,
   Job,
+  ModelCatalog,
+  ModelChoice,
   Review,
   RoleModelConfig,
   RoleModels,

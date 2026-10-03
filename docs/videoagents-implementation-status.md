@@ -2,6 +2,16 @@
 
 2026-10-03。React 前端、FastAPI API、独立 worker、持久 LangGraph 工作流和 Remotion 生产入口已实现并完成本机联调。设计记录见 [原方案](videoagents-design.md)，操作见 [使用说明](videoagents-setup.md)，接口见 [共享契约](videoagents-implementation-contract.md)。
 
+## 自由选择模型更新
+
+五张角色卡新增 Codex 模型下拉框：CLI 默认、本机缓存中的所有模型（含隐藏项）、自定义模型 ID。模型名称没有固定允许名单，保存和运行仍使用原始 ID。Claude 保留自由输入；选择、刷新或更换提供方不会自动改写其他角色。缓存读取单独使用受会话保护的 `GET /api/models/{provider}`，不启动 CLI，不读 auth/config，不发生成请求。缓存生成时间和权限边界在页面显示；读取失败仍可输入模型名称。
+
+Fresh 验证：**94 Python、38 React、10 Remotion 时间轴测试通过**；Ruff、根 typecheck/lint、React typecheck/build、契约生成一致性检查通过。模型目录新增 23 项回归，覆盖隐藏项、目录外 ID、重复项、可空描述、大小上限、损坏与深层 JSON、UTC 时间、错误脱敏、缓存刷新、凭据文件不读取、会话校验、刷新不写设置及 Claude 自由模型名。
+
+生产页面实际读到本机缓存的 **10 个模型**。浏览器验证不同角色分别选择目录项、隐藏项、自定义 ID 和 Claude 提供方，重读目录保留未保存值，保存后重载保留每角色配置；切换 CLI 仍保留当前自定义 ID。验证后恢复原来的五角色关闭、默认空模型。截图：`out/videoagents-model-selector-review.png`。没有执行真实模型生成，本次模型访问权限尚未付费验证。
+
+本次两条独立审查均 **PASS**，无未解决 P0–P3 或架构阻断。审查发现的 Python 测试同名冲突已通过重命名解决，真实 JSON 深层递归失败已返回固定错误状态。生产服务重启时发现已退出进程的 `StartTime` 为空，补充身份检查保护后，停止/启动脚本与 API、worker 心跳实测通过；PID、启动时间、可执行文件验证保持有效。
+
 ## 五角色 CLI 模型配置更新
 
 按最新要求，模型入口改为五角色独立设置，仅支持 `codex_cli` / `claude_code_cli`。React 设置页分别控制启用、提供方、模型名称与超时；模型名称为空使用 CLI 默认模型。PATCH 按角色、按变化字段合并，旧 HTTP 模型字段会被拒绝，原加密记录保留但不再读取。配置影响后续实际调用，已有人工文案、分镜与成片不会自动重做。

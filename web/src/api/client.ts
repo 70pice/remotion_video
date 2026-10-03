@@ -6,6 +6,8 @@ import type {
   Decision,
   Health,
   Job,
+  ModelCatalog,
+  ModelProvider,
   RunAction,
   Script,
   Settings,
@@ -160,6 +162,10 @@ export const api = {
     ),
   catalog: () => request<ComponentEntry[]>("/catalog"),
   settings: () => request<Settings>("/settings"),
+  models: (provider: ModelProvider, refresh = false) =>
+    request<ModelCatalog>(
+      `/models/${provider}${refresh ? "?refresh=true" : ""}`,
+    ),
   saveSettings: (settings: SettingsPatch) =>
     request<Settings>("/settings", {
       method: "PATCH",

@@ -669,6 +669,29 @@ input[type="file"]::file-selector-button {
 .role-model-grid {
   margin-bottom: 32px;
 }
+.model-catalog-status {
+  padding: 16px 18px;
+  margin-bottom: 24px;
+  border: 1px solid #dfe5ee;
+  border-radius: 8px;
+  background: #f8faff;
+  font-size: 12px;
+}
+.model-catalog-status p:last-child {
+  margin-bottom: 0;
+}
+.catalog-error {
+  color: #946427;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.model-choice-hint {
+  margin-top: -7px;
+  margin-bottom: 19px;
+  color: #7b899d;
+  font-size: 10px;
+  line-height: 1.7;
+}
 .role-model-card .inline-spread h2,
 .role-enable {
   margin-bottom: 0;

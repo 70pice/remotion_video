@@ -62,6 +62,10 @@ npm run studio:stop
 
 设置页的五张卡独立保存，不共享全局模型。默认全部关闭；启用后，角色运行会启动其选择的本机 CLI。修改配置只影响后续实际调用，不会自动重做已有文案、分镜或成片。配音与剪辑的模型作用如下：
 
+Codex 每张卡可选择「CLI 默认模型」、本机目录中的模型或「自定义模型」。目录从当前用户的 `$CODEX_HOME/models_cache.json` 读取；未设置 `CODEX_HOME` 时使用用户目录下 `.codex`。完整保留缓存中的模型，包括隐藏项，不使用固定模型名单。「重读模型列表」只重新读取本机缓存，不向模型服务发请求；列表刷新不覆盖未保存的角色配置。
+
+缓存可能由其他 Codex 版本写入，也可能过时，列表不能证明当前账号的模型权限。缓存不存在、损坏或未列出所需模型时，选择「自定义模型」，填写 CLI 支持的原始模型 ID；工作台不会以目录作为允许名单，保存后原样传给 `--model`。留空使用 CLI 默认模型。Claude Code 当前直接填写模型名称。模型目录读取不启动 CLI、不读取登录凭据、不执行生成请求。[官方缓存格式](https://github.com/openai/codex/blob/3d2ee51ca2d5db578f328aa75e20aa22c0197c9a/codex-rs/models-manager/src/cache.rs#L61-L78)、[官方模型字段](https://github.com/openai/codex/blob/3d2ee51ca2d5db578f328aa75e20aa22c0197c9a/codex-rs/protocol/src/openai_models.rs#L390-L402)。
+
 | 角色 | 模型职责 | 后续执行 |
 |---|---|---|
 | 编剧 | 根据冻结的真实来源生成文案 | 本地校验事实来源与素材引用 |

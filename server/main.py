@@ -17,8 +17,19 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from server.security.session import LocalSession
 from videoagents import __version__
-from videoagents.contracts import Asset, Brief, DraftRequest, Job, ResumeRequest, RunRequest, SettingsPatch
+from videoagents.contracts import (
+    Asset,
+    Brief,
+    DraftRequest,
+    Job,
+    ModelCatalog,
+    ResumeRequest,
+    RunRequest,
+    SettingsPatch,
+)
+from videoagents.contracts.models import ModelProvider
 from videoagents.default_config import PROJECT_ROOT, RUNTIME_ROOT
+from videoagents.providers.model_catalog import ModelCatalogService
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.storage import Conflict, NotFound, Repository
@@ -42,6 +53,7 @@ def create_app(runtime_dir: Path | None = None, project_root: Path | None = None
     app.state.repository = repository
     app.state.service = service
     app.state.sessions = sessions
+    app.state.model_catalog = ModelCatalogService()
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "[::1]", "testserver"])
     app.add_middleware(CORSMiddleware, allow_origins=list(sessions.origins), allow_credentials=True,
                        allow_methods=["GET", "POST", "PATCH", "HEAD", "OPTIONS"],
@@ -203,6 +215,10 @@ def create_app(runtime_dir: Path | None = None, project_root: Path | None = None
     @app.patch("/api/settings", dependencies=protected)
     def patch_settings(patch: SettingsPatch):
         return settings.patch(patch)
+
+    @app.get("/api/models/{provider}", response_model=ModelCatalog, dependencies=protected)
+    def models(provider: ModelProvider, refresh: bool = False):
+        return app.state.model_catalog.get(provider, refresh=refresh)
 
     dist = root / "web" / "dist"
     if (dist / "index.html").is_file():

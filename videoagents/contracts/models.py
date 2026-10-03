@@ -274,6 +274,22 @@ RoleId = Literal["screenwriter", "voice", "director", "editing", "review"]
 ModelProvider = Literal["codex_cli", "claude_code_cli"]
 
 
+class ModelChoice(Contract):
+    id: str = Field(min_length=1, max_length=200)
+    display_name: str = Field(min_length=1, max_length=500)
+    description: str = Field(default="", max_length=3000)
+    is_default: bool = False
+    hidden: bool = False
+
+
+class ModelCatalog(Contract):
+    provider: ModelProvider
+    status: Literal["ready", "unavailable", "error"]
+    models: list[ModelChoice] = Field(default_factory=list, max_length=2000)
+    message: str = Field(max_length=1000)
+    fetched_at: str
+
+
 class RoleModelConfig(Contract):
     enabled: bool = False
     provider: ModelProvider = "codex_cli"

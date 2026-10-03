@@ -1,11 +1,30 @@
-import { useEffect, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import { api, explainError } from "../api/client";
+import {
+  catalogModelChoice,
+  customModelChoice,
+  defaultModelChoice,
+  formatModelCacheTime,
+  modelFromChoice,
+  selectedModelChoice,
+} from "../api/modelChoices";
 import {
   buildRoleModelsPatch,
   modelRoles,
   readRoleModels,
 } from "../api/roleSettings";
-import type { Settings, SettingsPatch } from "../api/types";
+import type {
+  ModelCatalog,
+  RoleId,
+  Settings,
+  SettingsPatch,
+} from "../api/types";
 import { Notice, PageHeading } from "../components/ui";
 
 interface FieldLabel {
@@ -130,6 +149,10 @@ interface SettingsFormProps {
   saved: Settings;
   values: Settings;
   busy: boolean;
+  modelCatalog?: ModelCatalog;
+  catalogLoading?: boolean;
+  catalogError?: string;
+  onRefreshModels?: () => void;
   onChange: (key: string, value: unknown) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }
@@ -138,10 +161,19 @@ export function SettingsForm({
   saved,
   values,
   busy,
+  modelCatalog,
+  catalogLoading = false,
+  catalogError = "",
+  onRefreshModels,
   onChange,
   onSubmit,
 }: SettingsFormProps) {
   const roles = readRoleModels(values);
+  const [customRoles, setCustomRoles] = useState<
+    Partial<Record<RoleId, boolean>>
+  >({});
+  const codexCatalog =
+    modelCatalog?.provider === "codex_cli" ? modelCatalog : undefined;
   return (
     <form onSubmit={onSubmit} aria-busy={busy}>
       <fieldset className="editor-fieldset" disabled={busy}>
@@ -152,6 +184,55 @@ export function SettingsForm({
             检测只确认是否安装；运行前请在本机完成相应 CLI 登录。
             仅影响后续实际调用；已有文案、分镜和产物不会自动重做。
           </p>
+        </div>
+        <div
+          className="model-catalog-status"
+          aria-live="polite"
+          aria-busy={catalogLoading}
+        >
+          <div className="inline-spread">
+            <strong>Codex CLI 本机模型列表</strong>
+            {onRefreshModels && (
+              <button
+                type="button"
+                className="button secondary small"
+                aria-label="重读 Codex 模型列表"
+                disabled={catalogLoading || busy}
+                onClick={onRefreshModels}
+              >
+                {catalogLoading ? "正在读取…" : "重读模型列表"}
+              </button>
+            )}
+          </div>
+          <p className="muted small">
+            {catalogLoading
+              ? "正在读取模型列表；仍可编辑角色配置。"
+              : codexCatalog?.status === "ready"
+                ? `已读取 ${codexCatalog.models.length} 个模型，含隐藏项。`
+                : "目录尚不可用，可选择 CLI 默认模型或填写自定义模型 ID。"}
+          </p>
+          <p className="muted small">
+            从本机 Codex
+            模型缓存读取，重读列表只读取该缓存。可选列表不代表当前账号权限，实际支持以
+            CLI 调用为准。
+          </p>
+          {codexCatalog?.fetched_at && (
+            <p className="muted small">
+              缓存生成时间（本地）：
+              <time dateTime={codexCatalog.fetched_at}>
+                {formatModelCacheTime(codexCatalog.fetched_at)}
+              </time>
+            </p>
+          )}
+          {catalogError ? (
+            <p className="catalog-error">
+              {catalogError}
+              {codexCatalog?.status === "ready" && " 当前保留上次读取的列表。"}
+              角色配置保持不变，可继续使用默认或自定义模型。
+            </p>
+          ) : codexCatalog?.status !== "ready" && codexCatalog?.message ? (
+            <p className="muted small">{codexCatalog.message}</p>
+          ) : null}
         </div>
         <div className="settings-grid role-model-grid">
           {modelRoles.map((role) => {
@@ -166,6 +247,14 @@ export function SettingsForm({
               });
             };
             const statusId = `role-cli-status-${role.id}`;
+            const choice = selectedModelChoice(
+              config.model,
+              codexCatalog,
+              customRoles[role.id],
+            );
+            const selectedEntry = codexCatalog?.models.find(
+              (entry) => entry.id === config.model,
+            );
             return (
               <section
                 className="panel form-panel role-model-card"
@@ -215,19 +304,72 @@ export function SettingsForm({
                       : `尚未取得 ${providerLabel} 的安装检测结果。`}
                 </p>
                 <div className="form-grid">
-                  <label>
-                    模型名称
-                    <input
-                      aria-label={`${role.label}模型名称`}
-                      value={config.model}
-                      maxLength={200}
-                      autoComplete="off"
-                      placeholder="留空使用 CLI 默认模型"
-                      onChange={(event) =>
-                        updateRole({ model: event.target.value })
-                      }
-                    />
-                  </label>
+                  <div>
+                    {config.provider === "codex_cli" && (
+                      <label>
+                        模型
+                        <select
+                          aria-label={`${role.label}模型选择`}
+                          value={choice}
+                          onChange={(event) => {
+                            const nextChoice = event.target.value;
+                            setCustomRoles((current) => ({
+                              ...current,
+                              [role.id]: nextChoice === customModelChoice,
+                            }));
+                            updateRole({
+                              model: modelFromChoice(nextChoice, config.model),
+                            });
+                          }}
+                        >
+                          <option value={defaultModelChoice}>
+                            CLI 默认模型
+                          </option>
+                          {codexCatalog?.models.map((entry) => (
+                            <option
+                              key={entry.id}
+                              value={catalogModelChoice(entry.id)}
+                            >
+                              {entry.display_name || entry.id} · {entry.id}
+                              {entry.is_default ? "（目录默认）" : ""}
+                              {entry.hidden ? "（目录隐藏项）" : ""}
+                            </option>
+                          ))}
+                          <option value={customModelChoice}>自定义模型</option>
+                        </select>
+                      </label>
+                    )}
+                    {(config.provider === "claude_code_cli" ||
+                      choice === customModelChoice) && (
+                      <label>
+                        模型名称
+                        <input
+                          aria-label={`${role.label}模型名称`}
+                          value={config.model}
+                          maxLength={200}
+                          autoComplete="off"
+                          placeholder="留空使用 CLI 默认模型"
+                          onChange={(event) =>
+                            updateRole({ model: event.target.value })
+                          }
+                        />
+                      </label>
+                    )}
+                    {config.provider === "claude_code_cli" ? (
+                      <p className="model-choice-hint">
+                        填写 Claude Code CLI 支持的模型 ID；留空使用其默认模型。
+                      </p>
+                    ) : choice === customModelChoice ? (
+                      <p className="model-choice-hint">
+                        可填写任意本机 CLI 支持的模型
+                        ID；目录外的当前配置会保留。
+                      </p>
+                    ) : selectedEntry?.description ? (
+                      <p className="model-choice-hint">
+                        {selectedEntry.description}
+                      </p>
+                    ) : null}
+                  </div>
                   <label>
                     超时（秒）
                     <input
@@ -354,6 +496,38 @@ export function SettingsPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [modelCatalog, setModelCatalog] = useState<ModelCatalog>();
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [catalogError, setCatalogError] = useState("");
+  const catalogRequest = useRef(0);
+  const loadModels = useCallback(async (refresh = false) => {
+    const requestId = ++catalogRequest.current;
+    setCatalogLoading(true);
+    setCatalogError("");
+    try {
+      const next = await api.models("codex_cli", refresh);
+      if (requestId !== catalogRequest.current) return;
+      if (next.status === "ready") {
+        setModelCatalog(next);
+      } else {
+        setModelCatalog((current) =>
+          current?.status === "ready" ? current : next,
+        );
+        setCatalogError(next.message || "Codex CLI 模型目录暂不可用。");
+      }
+    } catch (cause) {
+      if (requestId === catalogRequest.current)
+        setCatalogError(explainError(cause));
+    } finally {
+      if (requestId === catalogRequest.current) setCatalogLoading(false);
+    }
+  }, []);
+  useEffect(() => {
+    void loadModels();
+    return () => {
+      catalogRequest.current += 1;
+    };
+  }, [loadModels]);
   useEffect(() => {
     let active = true;
     void api
@@ -408,6 +582,12 @@ export function SettingsPage() {
           saved={saved}
           values={values}
           busy={busy}
+          modelCatalog={modelCatalog}
+          catalogLoading={catalogLoading}
+          catalogError={catalogError}
+          onRefreshModels={() => {
+            void loadModels(true);
+          }}
           onChange={update}
           onSubmit={(event) => {
             void save(event);
