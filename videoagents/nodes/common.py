@@ -8,7 +8,14 @@ from typing import Any
 from videoagents.contracts import Artifact, Job, ScriptDiscussion
 from videoagents.services.jobs import INVALIDATED
 from videoagents.services.settings import SettingsService
-from videoagents.state import VideoState, job_context, job_from_state, merge_extras, validate_json
+from videoagents.state import (
+    VideoState,
+    clean_handoff,
+    job_context,
+    job_from_state,
+    merge_extras,
+    validate_json,
+)
 from videoagents.storage import Conflict, NotFound, Repository
 from videoagents.storage.repository import dumps, fingerprint
 from videoagents.tools.media import sha256
@@ -86,7 +93,7 @@ def current_job(repository: Repository, state: VideoState) -> Job:
             invalidated |= {"script", "alignment", "audio_report", "voice_guidance"}
         if "brief" in changes:
             # 制作要求改变后，旧研究与来源产物不再作为当前执行的冻结依据。
-            invalidated |= {"research", "material_plan", "material_discovery", "source"}
+            invalidated |= {"research", "material_skill_manifest", "material_tool_audit", "source"}
             # 主题或原始文案改变，且没有同时提交不同的新稿时，清空旧生成稿。
             if "script" not in changes and (
                 inputs.brief.topic != job.brief.topic or inputs.brief.script_text != job.brief.script_text
@@ -107,13 +114,15 @@ def current_job(repository: Repository, state: VideoState) -> Job:
 
     # 6. 原地补齐共享上下文，让当前节点拿到最新业务数据、配置及阶段回执。
     # 即使没有业务修改，也要刷新 state，兼容旧精简 checkpoint 和 SQL 领先的恢复场景。
-    state.update(state_context(repository, state))
+    refreshed = state_context(repository, state)
+    state.clear()
+    state.update(refreshed)
     # 返回 Job 供本节点的业务方法使用；后续节点之间仍通过 VideoState 交接。
     return job
 
 
-def state_context(repository: Repository, state: VideoState, **overrides: Any) -> dict[str, Any]:
-    """Return one complete context, including committed metadata and stage receipts."""
+def state_context(repository: Repository, state: VideoState, **overrides: Any) -> VideoState:
+    """恢复已提交的最终产物，清理工具过程后交给下一节点。"""
     # Include artifacts registered after the caller's earlier Job snapshot.
     job = repository.get_job(state["job_id"])
     if job.revision != state["revision"]:
@@ -166,16 +175,15 @@ def state_context(repository: Repository, state: VideoState, **overrides: Any) -
     with repository.connection() as db:
         context["metrics"] = {row[0]: row[1] for row in db.execute(
             "SELECT metric,value FROM run_metrics WHERE job_id=? AND revision=?", (job.job_id, job.revision))}
-        operations = db.execute("SELECT operation_id,provider,status,body FROM operations WHERE job_id=?", (job.job_id,)).fetchall()
-    context["operations"] = []
-    for row in operations:
-        body = json.loads(row[3])
-        if body.get("revision", job.revision) == job.revision:
-            context["operations"].append({"operation_id": row[0], "provider": row[1], "status": row[2],
-                **{key: body[key] for key in ("revision", "command_id", "request_id", "attempt", "cli_provider", "model", "reason") if key in body}})
     context.update(overrides)
-    validate_json(context)
-    return context
+    return clean_handoff(context)
+
+
+def agent_state(repository: Repository, job: Job, state: VideoState | None = None) -> VideoState:
+    """图内角色共用传入 state；直接调用业务 helper 时也从相同恢复入口取产物。"""
+    if state is not None:
+        return state
+    return state_context(repository, VideoState(job_id=job.job_id, revision=job.revision))
 
 
 def start_stage(repository: Repository, state: VideoState, stage: str, message: str) -> Job:

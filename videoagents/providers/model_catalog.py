@@ -1,14 +1,15 @@
-"""Read Codex's local model cache without starting a session or reading auth.
+"""Query the active Codex CLI's catalog without starting a generation session.
 
-The cache can be written by another Codex version and does not prove account
-access. Model names remain unrestricted in role settings and CLI argv.
+Fall back to the shared cache when the catalog command is unavailable. Another
+client can overwrite that cache. Model names remain unrestricted in settings.
 """
 
 import json
 import os
+import subprocess
 import threading
 import time
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from videoagents.contracts import ModelCatalog, ModelChoice
@@ -18,19 +19,9 @@ from videoagents.providers.cli_runner import executable_prefix
 MAX_CACHE_BYTES = 4 * 1024 * 1024
 
 
-def read_codex_models(cache_path: Path) -> tuple[list[ModelChoice], str]:
-    with cache_path.open("rb") as stream:
-        data = stream.read(MAX_CACHE_BYTES + 1)
-    if len(data) > MAX_CACHE_BYTES:
-        raise ValueError("model_cache_too_large")
-    value = json.loads(data)
+def _model_choices(value: object) -> list[ModelChoice]:
     if not isinstance(value, dict) or not isinstance(value.get("models"), list):
         raise ValueError("invalid_model_cache")
-    fetched_at = value.get("fetched_at")
-    if not isinstance(fetched_at, str) or len(fetched_at) > 100:
-        raise ValueError("invalid_model_cache_time")
-    if datetime.fromisoformat(fetched_at.replace("Z", "+00:00")).utcoffset() != timedelta(0):
-        raise ValueError("invalid_model_cache_time")
     if len(value["models"]) > 2000:
         raise ValueError("model_cache_too_many_entries")
     choices, seen = [], set()
@@ -49,7 +40,35 @@ def read_codex_models(cache_path: Path) -> tuple[list[ModelChoice], str]:
         if choice.id not in seen:
             choices.append(choice)
             seen.add(choice.id)
+    return choices
+
+
+def read_codex_models(cache_path: Path) -> tuple[list[ModelChoice], str]:
+    with cache_path.open("rb") as stream:
+        data = stream.read(MAX_CACHE_BYTES + 1)
+    if len(data) > MAX_CACHE_BYTES:
+        raise ValueError("model_cache_too_large")
+    value = json.loads(data)
+    choices = _model_choices(value)
+    fetched_at = value.get("fetched_at")
+    if not isinstance(fetched_at, str) or len(fetched_at) > 100:
+        raise ValueError("invalid_model_cache_time")
+    if datetime.fromisoformat(fetched_at.replace("Z", "+00:00")).utcoffset() != timedelta(0):
+        raise ValueError("invalid_model_cache_time")
     return choices, fetched_at
+
+
+def read_cli_models(prefix: list[str]) -> tuple[list[ModelChoice], str]:
+    # 与角色调用使用同一个可执行入口，避免 App/旧 CLI 覆盖共享缓存后丢失新模型。
+    # debug models 只查询目录，不执行 exec、不创建对话、不发起模型生成。
+    result = subprocess.run(
+        [*prefix, "debug", "models"], capture_output=True, check=True, timeout=12,
+        creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+    )
+    if len(result.stdout) > MAX_CACHE_BYTES:
+        raise ValueError("model_catalog_too_large")
+    choices = _model_choices(json.loads(result.stdout))
+    return choices, datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 class ModelCatalogService:
@@ -72,17 +91,24 @@ class ModelCatalogService:
             if not refresh and cached and now - cached[0] < self.cache_seconds:
                 return cached[1].model_copy(deep=True)
             try:
-                choices, fetched_at = read_codex_models(directory / "models_cache.json")
+                choices, fetched_at = read_cli_models(prefix)
                 result = ModelCatalog(
                     provider=provider, status="ready", models=choices, fetched_at=fetched_at,
-                    message="已读取本机 Codex 模型缓存，包含隐藏模型。列表可能由不同 Codex 版本写入；访问权限和实际支持以 CLI 调用为准。",
+                    message="已通过项目实际使用的 Codex CLI 查询模型列表，包含 CLI 隐藏模型。列表不代表调用一定成功，实际支持以模型调用为准。",
                 )
-            except FileNotFoundError:
-                result = ModelCatalog(provider=provider, status="unavailable", fetched_at="",
-                                      message="本机暂无 Codex 模型缓存；可直接填写 CLI 支持的模型名称。使用 Codex 后可重新读取列表。")
-            except (OSError, ValueError, UnicodeError, RecursionError):
-                # Never return cache contents, exception text, paths or auth data.
-                result = ModelCatalog(provider=provider, status="error", fetched_at="",
-                                      message="本机 Codex 模型缓存暂时无法读取；可继续使用自定义模型名称，稍后重新读取列表。")
+            except (OSError, ValueError, UnicodeError, RecursionError, subprocess.SubprocessError):
+                try:
+                    choices, fetched_at = read_codex_models(directory / "models_cache.json")
+                    result = ModelCatalog(
+                        provider=provider, status="ready", models=choices, fetched_at=fetched_at,
+                        message="CLI 模型查询暂时不可用，已回退到本机缓存。缓存可能由其他版本写入；权限和实际支持以 CLI 调用为准，也可填写自定义模型。",
+                    )
+                except FileNotFoundError:
+                    result = ModelCatalog(provider=provider, status="unavailable", fetched_at="",
+                                          message="CLI 暂时无法查询模型，且本机暂无模型缓存；可直接填写 CLI 支持的模型名称。")
+                except (OSError, ValueError, UnicodeError, RecursionError):
+                    # Never return exception text, process output, paths or auth data.
+                    result = ModelCatalog(provider=provider, status="error", fetched_at="",
+                                          message="CLI 模型列表和本机缓存暂时无法读取；可继续使用自定义模型名称，稍后刷新列表。")
             self._cached = {key: (time.monotonic(), result)}
             return result.model_copy(deep=True)

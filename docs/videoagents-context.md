@@ -20,17 +20,17 @@
 | --- | --- |
 | `brief` | 主题、原始文案、受众、平台、用途、视频尺寸和来源链接 |
 | `script`、`script_discussion` | 当前完整稿件，每轮稿件、审查意见、回应和讨论状态 |
-| `research` | 素材节点冻结的检索规划、平台调用、来源正文回执、图片/截图引用及失败记录 |
+| `research` | 素材节点最终研究包：主题歧义、来源正文、图片/截图引用及资料局限；不含工具调用过程 |
 | `assets`、`asset_metadata` | 素材清单、受控 URL、hash、来源、许可、音频时长和对齐元信息 |
 | `audio`、`audio_asset_id` | 当前音频素材及其 ID，音频文件通过 URL 引用 |
 | `alignment`、`duration_seconds`、`audio_report` | 音频字幕时间轴、实测时长和核验报告 |
 | `voice_guidance`、`editing_guidance` | 模型生成的朗读和剪辑建议 |
 | `timeline` | 镜头、帧区间、字幕、音频路径和 Remotion 参数 |
-| `artifacts`、`artifact_metadata`、`render` | 所有当前产物，预览、成片、封面、字幕和发布包引用及核验元信息 |
+| `artifacts`、`artifact_metadata`、`render` | 当前业务产物，预览、成片、封面、字幕和发布包引用及核验元信息；不携带原始供应商回执 |
 | `review` | 成片技术与内容检查结果，以及最终人工确认状态 |
 | `pending_input`、`human_decision`、`human_reviews` | 当前人工待办、最近一次回复、阶段/成片人工记录 |
 | `settings` | 七角色模型、素材工具与制作配置的公开快照，不包含 API Key 或令牌 |
-| `operations`、`metrics` | 当前版本的外部提交状态、模型/请求标识和调用预算计数 |
+| `metrics` | 当前版本的调用预算计数；外部操作台账只保存在数据库，不进入 Agent 共享 state |
 | `extras` | 自定义节点的数据，例如选题评分、讨论摘要、发布标题候选 |
 
 任务身份、版本、执行 ID、路由、阶段、进度和 checkpoint 恢复字段也在同一上下文里。尚未生成的业务对象为 `None`，集合为空列表或字典。节点应通过条件检查处理尚未完成的上游步骤。
@@ -64,6 +64,20 @@ graph.add_edge("audience_analysis", "materials")
 `extras` 使用浅合并：`{"score": 80}` 不会删除之前的 `audience_analysis`；`{"score": None}` 会把 `score` 设置为 `null`。嵌套对象仍整体替换。值只接受字符串、有限数字、布尔值、`None`、列表和字符串键字典；bytes、`Path`、模型客户端、数据库连接、循环引用和 `NaN` 都会被拒绝。文件路径需要使用字符串，媒体通过已登记的素材/产物引用传递。
 
 新增固定顶层字段时，在 `VideoState` 中声明；临时扩展放入 `extras`。LangGraph 只持久化已声明的状态字段。
+
+## Agent 的输入与最终输出
+
+所有调用大模型的角色都使用 `JsonModel.invoke(state, role, PROMPT, fields=...)`。`fields` 选择当前角色需要的最终业务字段，输入来自同一个 `VideoState`；不把 `Job`、查询连接、聊天消息或调用回执传给模型。固定 `PROMPT` 在对应 `nodes/*.py` 文件顶部，编剧改稿另有 `REWRITE_PROMPT`。
+
+素材 → 编剧读取 `research`、`assets`；编剧 → 文案审查读取 `script`、`script_discussion`；审查 → 编剧读取最后一轮 `critique` 再改稿。讨论历史是各轮最终产物，因此保留。配音、导演、剪辑、成片审核同样从 state 选择业务输入，模型返回的最终 JSON 经契约校验、保存后再更新 state。
+
+TradingAgents-astock 的分析师结束后走 `Msg Clear <角色>`：用 `RemoveMessage` 清空 `messages`，保留 state 中的最终报告。本项目 CLI 返回最终 JSON，没有 LangChain 消息通道，因此不用 `RemoveMessage` 或占位消息；在七个模型角色后各注册 `clear_<角色>`，执行 `ClearToolsNode` 后才按原 `route` 路由。文案每次改稿、审查也都经过清理。
+
+`state_context()` 在正常返回和恢复时使用 `clean_handoff()`，模型输入再使用同一清理规则。递归删除 `messages`、`tool_calls`、`tool_results`、`tool_trace`、`intermediate_steps`、`search_results` 等执行历史容器（完整保留字段名见 `state.py` 的 `TOOL_HISTORY_FIELDS`）。`extras` 的合并 reducer 同样清理合并结果，防止省略字段时保留旧工具记录。这些字段名不用于自定义最终业务数据；稿件正文、讨论各轮最终意见、来源和媒体引用继续保留。顶层运行记录及素材研究包中的 `tools`、`operations` 按位置排除；`extras.tools` 可表示最终软件清单、`extras.operations` 可表示制作步骤，不会因同名被删除。自定义节点的执行轨迹统一使用 `tool_trace` 等保留容器，不得伪装为业务清单。
+
+CLI 的事件流不进入 state；研究中的原始工具记录只保存在审计文件，失败转换为资料局限。素材审计及原始清单的产物引用、元信息也不传给下一个角色。研究交接包保留正文、出处、真实视觉素材及 `limitations`，不会把搜索摘要当作已核验知识。数据库的 UNKNOWN 提交台账与私有审计文件保留，供去重和排障；清理节点不删除它们。
+
+自定义节点同样只把最终业务结果放入 `extras`，不要将工具消息、原始 API 响应或调用轨迹存进去。素材节点直接启动 Codex CLI，模型按技能选择检索工具，Python 接收、验证和冻结最终资料；没有单独的规划或固定工具分支。素材审计与原始清单产物不进入下一个 Agent 的共享上下文，其余角色保持无工具的结构化调用。
 
 ## 数据交接、持久化与恢复
 

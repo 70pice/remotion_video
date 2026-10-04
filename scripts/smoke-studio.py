@@ -1,4 +1,4 @@
-"""Exercise the running studio with labelled test media, including an actual final render.
+"""Exercise API/media handling and the disabled-materials-model interrupt with test media.
 
 Run the studio first. This creates a visible TEST task and never confirms publishing.
 """
@@ -80,8 +80,12 @@ def main():
             raise RuntimeError("Use an isolated unconfigured runtime for test fixtures; this smoke test must not call paid providers")
         job = require(client.post("/api/jobs", json={"topic": "TEST 工作台集成验证", "script_text": "观点：测试音用于工作台集成验证。", "platform": "本机集成测试", "usage": "personal", "width": 360, "height": 640, "fps": 30, "target_seconds": 2}))
         job = run(client, job, "produce")
-        if not job.get("script"):
-            raise AssertionError(f"Screenwriter did not produce a script: {job['message']}")
+        if job["status"] != "NEEDS_INPUT" or job["stage"] != "materials":
+            raise AssertionError(f"Disabled materials model did not pause: {job['status']} {job['message']}")
+        script = {"title": "TEST 工作台集成验证", "origin": "user", "revision": job["revision"], "segments": [
+            {"segment_id": "s1", "narration": job["brief"]["script_text"], "asset_ids": [], "source_refs": []},
+        ]}
+        job = require(client.patch(f"/api/jobs/{job['job_id']}/draft", json={"base_revision": job["revision"], "script": script}))
         image = test_image()
         image_asset = require(client.post(f"/api/jobs/{job['job_id']}/assets", files={"file": ("TEST-pattern.png", image, "image/png")}, data={"role": "illustration", "license_note": "本机程序生成的测试图案，仅用于集成测试"}))
         job = require(client.get(f"/api/jobs/{job['job_id']}"))
@@ -93,13 +97,13 @@ def main():
         if len(segments) != 1:
             raise AssertionError("The smoke fixture expects one short script segment")
         alignment = {"origin": "manual", "verified": True, "audio_sha256": hashlib.sha256(audio).hexdigest(), "segments": [{"segment_id": segments[0]["segment_id"], "text": segments[0]["narration"], "start_ms": 0, "end_ms": 2000}], "note": "TEST fixture timing for a two-second test tone; not a real speech alignment"}
-        require(client.post(f"/api/jobs/{job['job_id']}/assets", files={"file": ("TEST-tone.wav", audio, "audio/wav")}, data={"role": "audio", "alignment": json.dumps(alignment, ensure_ascii=False), "license_note": "本机生成的440Hz测试音，不是复刻配音"}))
+        audio_asset = require(client.post(f"/api/jobs/{job['job_id']}/assets", files={"file": ("TEST-tone.wav", audio, "audio/wav")}, data={"role": "audio", "alignment": json.dumps(alignment, ensure_ascii=False), "license_note": "本机生成的440Hz测试音，不是复刻配音"}))
         job = require(client.get(f"/api/jobs/{job['job_id']}"))
         job = run(client, job, "produce")
-        videos = [value for value in job["artifacts"] if value["kind"] == "final"]
-        if not videos:
-            raise AssertionError(f"No actual final video: {job['status']} {job['message']}")
-        response = client.get(videos[-1]["url"], headers={"Range": "bytes=0-31"})
+        if job["status"] != "NEEDS_INPUT" or job["stage"] != "materials":
+            raise AssertionError("Provided script/audio must still go through the materials model")
+        assert not any(value["kind"] in {"research", "final"} for value in job["artifacts"]), "Disabled model must not fabricate research or video"
+        response = client.get(audio_asset["url"], headers={"Range": "bytes=0-31"})
         assert response.status_code == 206 and len(response.content) == 32, "Media Range request failed"
         assert job["status"] != "READY_FOR_PUBLISH", "Test fixture must never automatically approve publishing"
         evidence = {"job_id": job["job_id"], "status": job["status"], "message": job["message"], "artifacts": [{"kind": value["kind"], "sha256": value["sha256"], "size_bytes": value["size_bytes"]} for value in job["artifacts"]], "range_status": response.status_code, "test_only": True, "live_voice_verified": False, "live_llm_verified": False}

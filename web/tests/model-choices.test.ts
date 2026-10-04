@@ -104,29 +104,29 @@ describe("dynamic directory form", () => {
     expect(markup.match(/value="catalog:future\/model:v2"/g)).toHaveLength(7);
     expect(markup.match(/value="catalog:custom"/g)).toHaveLength(7);
     expect(markup).toContain("目录显示名称 · future/model:v2");
-    expect(markup).toContain("（目录隐藏项）");
+    expect(markup).toContain("（CLI 隐藏模型）");
     expect(markup).toContain("CLI 默认模型");
     expect(markup).toContain("自定义模型");
-    expect(markup).toContain("从本机 Codex 模型缓存读取");
+    expect(markup).toContain("向项目实际使用的 Codex CLI 查询模型");
     expect(markup).toContain("可选列表不代表当前账号权限");
-    expect(markup).toContain("重读模型列表");
-    expect(markup).toContain("重读列表只读取该缓存");
+    expect(markup).toContain("刷新模型列表");
+    expect(markup).toContain("查询失败时回退到本机缓存");
     expect(markup).toContain("已读取 2 个模型，含隐藏项");
     expect(markup).toContain('<time dateTime="2026-10-03T00:00:00Z">');
     expect(markup).not.toContain(">2026-10-03T00:00:00Z</time>");
-    expect(markup).toContain("缓存生成时间（本地）");
+    expect(markup).toContain("列表时间（本地）");
   });
 
-  it("uses a local Chinese cache timestamp and avoids repeating a ready catalog message", () => {
+  it("shows the catalog source including fallback and formats a local Chinese timestamp", () => {
     const timestamp = "2026-10-03T12:34:56.123456789Z";
     const markup = renderForm({
       modelCatalog: {
         ...catalog,
-        message: "重复的后端目录来源说明",
+        message: "CLI 查询不可用，已回退到本机缓存",
         fetched_at: timestamp,
       },
     });
-    expect(markup).not.toContain("重复的后端目录来源说明");
+    expect(markup).toContain("CLI 查询不可用，已回退到本机缓存");
     expect(markup).toContain(`dateTime="${timestamp}"`);
     const display = formatModelCacheTime(timestamp);
     expect(display).toContain("年");

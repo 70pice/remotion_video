@@ -22,14 +22,13 @@ function renderResearch(research: ResearchPackage) {
 }
 
 describe("materials research workspace", () => {
-  it("shows ambiguity, actual search backends and partial failures without inventing result counts", () => {
-    const markup = renderResearch({ query: "Muse是什么", plan: { ambiguities: ["可能指乐队或 AI 产品"], focus_notes: ["先识别含义"] },
+  it("shows actual search backends and partial failures without inventing result counts", () => {
+    const markup = renderResearch({ query: "Muse是什么",
       tools: [
         { platform: "zhihu", backend: "opencli_google_indexed", status: "ok", results_count: 2 },
         { platform: "reddit", backend: "search", status: "skipped", error: "search_budget_exhausted" },
         { platform: "x", backend: "search", status: "error", error: "TimeoutError" },
       ] });
-    expect(markup).toContain("可能指乐队或 AI 产品");
     expect(markup).toContain("opencli_google_indexed");
     expect(markup).toContain("2 条命中");
     expect(markup).toContain("检索预算已用完");
@@ -71,5 +70,6 @@ describe("materials research workspace", () => {
     expect(markup).toContain("公开索引检索");
     expect(markup).toContain("X / Twitter");
     expect(markup).toContain('aria-label="图片/截图采集尝试上限"');
+    expect(markup).not.toContain('aria-label="素材研究方式"');
   });
 });

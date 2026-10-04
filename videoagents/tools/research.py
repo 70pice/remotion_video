@@ -65,6 +65,22 @@ NATIVE_TOOLS = {"yt-dlp": ("yt-dlp",), "bili": ("bili",), "gh": ("gh",), "opencl
 NPM_BIN_ENTRIES = {"opencli": ("@jackwener/opencli", "opencli")}
 
 
+def _user_local_bin() -> Path:
+    return Path.home() / ".local" / "bin"
+
+
+def _native_env() -> dict[str, str]:
+    env = os.environ.copy()
+    local_bin = _user_local_bin()
+    path = env.get("PATH") or env.get("Path") or ""
+    if local_bin.is_dir():
+        env["PATH"] = str(local_bin) + os.pathsep + path if path else str(local_bin)
+    if os.name == "nt":
+        env.setdefault("PYTHONUTF8", "1")
+        env.setdefault("PYTHONIOENCODING", "utf-8")
+    return env
+
+
 def _search_ready(settings: dict[str, Any]) -> bool:
     provider = settings.get("search_provider")
     if provider == "opencli_google":
@@ -130,6 +146,10 @@ def _result(url: str, title: str, snippet: str, platform: str, backend: str, ima
 def _command_prefix(name: str) -> list[str] | None:
     found = shutil.which(name)
     if not found:
+        local_bin = _user_local_bin()
+        if local_bin.is_dir():
+            found = shutil.which(name, path=str(local_bin))
+    if not found:
         return None
     path = Path(found).resolve()
     if not path.is_file():
@@ -181,6 +201,7 @@ def _run(args: list[str], timeout: int = 20, *, repository: Repository | None = 
         try:
             with open(output_path, "wb") as stdout:
                 process = subprocess.Popen(args, stdout=stdout, stderr=subprocess.DEVNULL, shell=False,
+                                           env=_native_env(),
                                            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
                                            start_new_session=os.name != "nt")
             try:
@@ -212,7 +233,8 @@ def _run(args: list[str], timeout: int = 20, *, repository: Repository | None = 
 
 
 def _youtube(query: str, limit: int, repository: Repository | None = None, job_id: str = "", revision: int = 1) -> list[dict[str, Any]]:
-    output = _run([*_command_prefix("yt-dlp"), "--dump-json", f"ytsearch{limit}:{_safe_cli_query(query)}"],
+    output = _run([*_command_prefix("yt-dlp"), "--flat-playlist", "--dump-json",
+                   f"ytsearch{limit}:{_safe_cli_query(query)}"],
                   repository=repository, job_id=job_id, revision=revision)
     rows = []
     for line in output.splitlines():
@@ -221,6 +243,10 @@ def _youtube(query: str, limit: int, repository: Repository | None = None, job_i
         except json.JSONDecodeError:
             continue
         image = item.get("thumbnail")
+        if not image:
+            thumbnails = item.get("thumbnails")
+            if isinstance(thumbnails, list) and thumbnails:
+                image = thumbnails[-1].get("url") if isinstance(thumbnails[-1], dict) else None
         images = [{"url": image, "source_url": item.get("webpage_url") or "", "description": item.get("title") or ""}] if image else []
         value = _result(item.get("webpage_url") or item.get("original_url") or "", item.get("title") or "",
                         item.get("description") or "", "youtube", "yt-dlp", images)

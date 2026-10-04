@@ -30,6 +30,22 @@ CODEX_DISABLED = (
     "image_generation", "tool_suggest", "skill_mcp_dependency_install", "skill_search",
     "view_image", "workspace_dependencies",
 )
+CODEX_RESEARCH_DISABLED = (
+    "multi_agent", "apps", "remote_plugin", "plugins", "hooks",
+    "browser_use", "browser_use_external", "browser_use_full_cdp_access", "computer_use",
+    "in_app_browser", "in_app_chat", "in_app_local_automation", "in_app_dictation",
+    "image_generation", "tool_suggest", "skill_mcp_dependency_install",
+)
+CODEX_RESEARCH_TOOLS = {"command_execution", "web_search", "mcp_tool_call", "file_change"}
+CODEX_MANAGED_CONTEXT_ENV = {
+    "CODEX_PERMISSION_PROFILE",
+    "CODEX_INTERNAL_ORIGINATOR_OVERRIDE",
+    "CODEX_SESSION_ID",
+    "CODEX_THREAD_ID",
+    "CODEX_TASK_WORKSPACE_VERIFYING_IDENTITY",
+    "CODEX_APP_TOOLS_PIPE_PATH",
+    "CODEX_WINDOWS_SANDBOX_PACKAGE_FAMILY",
+}
 
 
 class CliFailure(Exception):
@@ -77,13 +93,26 @@ def cli_availability() -> dict[str, dict[str, bool]]:
             for provider in ("codex_cli", "claude_code_cli")}
 
 
-def build_arguments(provider: str, prefix: list[str], model: str, directory: Path, schema: Path) -> list[str]:
+def build_arguments(provider: str, prefix: list[str], model: str, directory: Path, schema: Path, *,
+                    research: bool = False) -> list[str]:
     if provider == "codex_cli":
-        args = [*prefix, "-a", "never", "exec", "--sandbox", "read-only", "--ephemeral",
+        args = [*prefix, "-a", "never", "exec"]
+        if research:
+            # 忽略用户配置也会忽略 Windows 沙盒级别；未显式开启时，
+            # Codex 会将 workspace-write 降为 read-only，研究文件无法落盘。
+            args.extend(["--sandbox", "workspace-write",
                 "--skip-git-repo-check", "--ignore-user-config", "--ignore-rules", "--json",
                 "--color", "never", "--cd", str(directory), "--output-schema", str(schema),
-                "-c", 'web_search="disabled"']
-        for feature in CODEX_DISABLED:
+                "-c", 'windows.sandbox="unelevated"',
+                "-c", "sandbox_workspace_write.network_access=true",
+                "-c", 'web_search="live"',
+            ])
+        else:
+            args.extend(["--sandbox", "read-only", "--ephemeral",
+                "--skip-git-repo-check", "--ignore-user-config", "--ignore-rules", "--json",
+                "--color", "never", "--cd", str(directory), "--output-schema", str(schema),
+                "-c", 'web_search="disabled"'])
+        for feature in CODEX_RESEARCH_DISABLED if research else CODEX_DISABLED:
             args.extend(["--disable", feature])
         if model:
             args.extend(["--model", model])
@@ -100,18 +129,63 @@ def build_arguments(provider: str, prefix: list[str], model: str, directory: Pat
     raise CliFailure("unsupported_cli", submitted=False)
 
 
-def _codex_event(line: str) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+def _research_environment(research: bool) -> dict[str, str] | None:
+    if not research:
+        return None
+    env = os.environ.copy()
+    for name in CODEX_MANAGED_CONTEXT_ENV:
+        env.pop(name, None)
+    env["PYTHONUTF8"] = "1"
+    env["PYTHONIOENCODING"] = "utf-8"
+    local_bin = Path.home() / ".local" / "bin"
+    if not local_bin.is_dir():
+        return env
+    current = env.get("PATH", "")
+    entries = [item for item in current.split(os.pathsep) if item]
+    if str(local_bin) not in entries:
+        env["PATH"] = str(local_bin) + (os.pathsep + current if current else "")
+    return env
+
+
+def _audit_summary(event: dict[str, Any]) -> dict[str, Any] | None:
+    kind = event.get("type")
+    item = event.get("item") if isinstance(event.get("item"), dict) else {}
+    item_type = item.get("type")
+    if kind in {"item.started", "item.updated", "item.completed"} and item_type in CODEX_RESEARCH_TOOLS:
+        result: dict[str, Any] = {"type": kind, "item_type": item_type}
+        for key in ("status", "exit_code", "tool_name"):
+            if key in item and isinstance(item[key], str | int | float | bool | None):
+                result[key] = item[key]
+        return result
+    if kind in {"turn.completed", "turn.failed"}:
+        return {"type": kind, "status": event.get("status")}
+    return None
+
+
+def _write_audit(handle, event: dict[str, Any]) -> None:
+    if handle is None:
+        return
+    summary = _audit_summary(event)
+    if summary is not None:
+        handle.write(json.dumps(summary, ensure_ascii=False) + "\n")
+
+
+def _codex_event(line: str, *, research: bool = False, audit_handle=None) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
     event = json.loads(line)
     if not isinstance(event, dict):
         raise CliFailure("invalid_cli_event")
+    _write_audit(audit_handle, event)
     kind = event.get("type")
     if kind in {"item.started", "item.updated", "item.completed"}:
         item = event.get("item", {})
         # Error items carry CLI configuration/deprecation/reroute notices;
         # todo lists are local planning metadata. Neither executes a tool.
-        if not isinstance(item, dict) or item.get("type") not in {"reasoning", "agent_message", "error", "todo_list"}:
+        allowed = {"reasoning", "agent_message", "error", "todo_list"} | (CODEX_RESEARCH_TOOLS if research else set())
+        if not isinstance(item, dict) or item.get("type") not in allowed:
             raise CliFailure("unexpected_tool_event")
         if kind == "item.completed" and item.get("type") == "agent_message":
+            if research:
+                return {"__raw_agent_message__": item.get("text", "")}, None
             return _business_object(json.loads(item.get("text", ""))), None
     elif kind == "turn.completed":
         return None, event.get("usage")
@@ -144,24 +218,42 @@ def _claude_result(output: str) -> CliResult:
 
 
 def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema: dict[str, Any],
-            cancelled=lambda: False) -> CliResult:
+            cancelled=lambda: False, *, research_directory: Path | None = None,
+            audit_path: Path | None = None) -> CliResult:
     if cancelled():
         raise CliFailure("cli_cancelled", submitted=False)
+    research = research_directory is not None
+    if research and provider != "codex_cli":
+        raise CliFailure("unsupported_research_cli", submitted=False)
     prefix = executable_prefix(provider)
     if prefix is None:
         raise CliFailure("cli_not_installed", submitted=False)
+    if research:
+        research_directory.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="videoagents-cli-") as temporary:
-        directory = Path(temporary)
-        schema = directory / "output-schema.json"
+        control = Path(temporary)
+        directory = research_directory if research else control
+        schema = control / "output-schema.json"
         schema.write_text(json.dumps(WIRE_SCHEMA, ensure_ascii=False), encoding="utf-8")
-        source = directory / "input.txt"
-        transport_prompt = (prompt + "\n业务 JSON schema：\n" + json.dumps(output_schema, ensure_ascii=False)
+        source = control / "input.txt"
+        prefix_text = ""
+        if research:
+            prefix_text = (
+                "这是素材节点的工具研究任务。你可以使用已安装的研究 skill、web_search、shell 命令和工作区文件，"
+                "但只在当前工作目录写入研究过程文件；不要读取密钥，不要把工具日志放进最终 JSON。"
+                "优先使用 agent-reach 等检索 skill，并按用户配置的平台与预算收集可核验来源、图片或截图线索。\n"
+            )
+        transport_prompt = (prefix_text + prompt + "\n业务 JSON schema：\n" + json.dumps(output_schema, ensure_ascii=False)
                             + '\n最终传输格式必须为 {"response_json":"业务 JSON 对象序列化后的字符串"}。'
                             + "response_json 内的对象遵循上面的业务 schema，外层仅有 response_json 一个字段。")
         source.write_text(transport_prompt, encoding="utf-8")
-        args = build_arguments(provider, prefix, model, directory, schema)
+        args = build_arguments(provider, prefix, model, directory, schema, research=research)
         job = WindowsJob()
+        audit_handle = None
         try:
+            if audit_path is not None:
+                audit_path.parent.mkdir(parents=True, exist_ok=True)
+                audit_handle = audit_path.open("w", encoding="utf-8")
             with source.open("rb") as stream:
                 try:
                     if cancelled():
@@ -169,10 +261,13 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                     process = subprocess.Popen(args, cwd=directory, stdin=stream, stdout=subprocess.PIPE,
                                                stderr=subprocess.DEVNULL, shell=False,
                                                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
-                                               start_new_session=os.name != "nt")
+                                               start_new_session=os.name != "nt",
+                                               env=_research_environment(research))
                 except OSError as exc:
                     raise CliFailure("cli_launch_failed", submitted=False) from exc
         except BaseException:
+            if audit_handle is not None:
+                audit_handle.close()
             job.close()
             raise
         lines: queue.Queue = queue.Queue(maxsize=64)
@@ -191,7 +286,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
             finally:
                 enqueue(None)
         reader = threading.Thread(target=read, daemon=True)
-        data, usage, output, size, completed = None, None, [], 0, False
+        data, usage, output, size, completed, last_agent_message = None, None, [], 0, False, None
         try:
             job.assign(process)
             reader.start()
@@ -214,8 +309,11 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 if not decoded:
                     continue
                 if provider == "codex_cli":
-                    item, counts = _codex_event(decoded)
-                    data = item if item is not None else data
+                    item, counts = _codex_event(decoded, research=research, audit_handle=audit_handle)
+                    if isinstance(item, dict) and "__raw_agent_message__" in item:
+                        last_agent_message = item["__raw_agent_message__"]
+                    else:
+                        data = item if item is not None else data
                     usage = counts if counts is not None else usage
                     completed |= json.loads(decoded).get("type") == "turn.completed"
                 else:
@@ -225,6 +323,8 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 raise CliFailure("cli_nonzero_exit")
             if provider == "claude_code_cli":
                 return _claude_result("\n".join(output))
+            if research and last_agent_message is not None:
+                data = _business_object(json.loads(last_agent_message))
             if not completed or data is None:
                 raise CliFailure("incomplete_cli_result")
             return CliResult(data, usage)
@@ -239,3 +339,5 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
             if reader.ident:
                 reader.join(timeout=1)
             process.stdout.close()
+            if audit_handle is not None:
+                audit_handle.close()

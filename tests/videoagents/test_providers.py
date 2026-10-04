@@ -203,22 +203,25 @@ def test_unknown_model_cannot_bypass_barrier_by_refreshing_source_receipts(tmp_p
     SettingsService(repo).patch(SettingsPatch(role_models={"screenwriter": {"enabled": True, "model": "unit-model"}},
                                              capture_enabled=False, research_download_images=False))
     job = repo.create_job(Brief(topic="测试来源研究", source_urls=supplied_urls))
-    monkeypatch.setattr("videoagents.nodes.materials.discover", lambda *args, **kwargs: {
-        "results": [{"url": "https://example.com/source"}], "images": [],
-        "tools": [{"platform": "web", "backend": "unit", "status": "ok"}],
-    })
+    from videoagents.tools.media import sha256
+
     monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *args: ["unit-cli"])
-    fetches, calls = [], []
-    def fetch(url, path):
-        fetches.append(path)
+    reads, calls = [], []
+    materials = MaterialsNode(repo, service)
+
+    def research(state, role, prompt, **kwargs):
+        path = kwargs["research_directory"] / "source.txt"
         path.write_bytes(b"frozen source content UNIT TEST")
-        return {"url": url, "final_url": url, "text": "unit source", "retrieved_at": "unique-clock-" + str(len(fetches))}
-    monkeypatch.setattr("videoagents.nodes.materials.fetch_source", fetch)
+        reads.append(path)
+        return {"sources": [{"url": "https://example.com/source", "title": "unit source", "platform": "web",
+                             "text_file": path.name, "sha256": sha256(path)}], "visuals": [], "limitations": []}
+
+    monkeypatch.setattr(materials.model, "invoke", research)
     def handler(*args, **kwargs):
         calls.append(args)
         raise CliFailure("unit_unknown")
     monkeypatch.setattr("videoagents.providers.llm.run_cli", handler)
-    MaterialsNode(repo, service).collect(job)
+    materials.collect(job)
     writer = ScreenwriterNode(repo, service)
     with pytest.raises(CapabilityMissing) as first_failure:
         writer.write_script(job)
@@ -228,9 +231,9 @@ def test_unknown_model_cannot_bypass_barrier_by_refreshing_source_receipts(tmp_p
     original_path = repo.artifact_path(source.artifact_id)[0]
     before = original_path.read_bytes()
     with pytest.raises(CapabilityMissing):
-        MaterialsNode(repo, service).collect(job)
+        materials.collect(job)
         writer.write_script(job)  # Deliberately replay the original stale snapshot.
-    assert len(fetches) == 1 and len(calls) == 1
+    assert len(reads) == 1 and len(calls) == 1
     assert original_path.read_bytes() == before
     posted_context = json.loads(calls[0][3].split("上下文：\n", 1)[1])
     assert posted_context["brief"]["source_urls"] == ["https://example.com/source"]

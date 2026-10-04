@@ -1,6 +1,7 @@
 """Read-only local catalog fixtures; no model generation or credential reads."""
 
 import json
+import subprocess
 from datetime import datetime
 from pathlib import Path
 
@@ -29,7 +30,61 @@ def local_cache(tmp_path, monkeypatch):
     home = tmp_path / "isolated-codex-cache"
     monkeypatch.setenv("CODEX_HOME", str(home))
     monkeypatch.setattr(model_catalog, "executable_prefix", lambda provider: ["unit-fixture-never-executed"])
+    def unavailable(*args, **kwargs):
+        raise FileNotFoundError("fixture CLI has no catalog command")
+    monkeypatch.setattr(subprocess, "run", unavailable)
     return home / "models_cache.json"
+
+
+def test_active_cli_catalog_wins_over_cache_written_by_older_client(local_cache, monkeypatch):
+    write_cache(local_cache, [choice("old-client-model")])
+    calls = []
+    def query(arguments, **kwargs):
+        calls.append(arguments)
+        assert kwargs["timeout"] <= 15
+        assert kwargs.get("shell", False) is False
+        return subprocess.CompletedProcess(arguments, 0, json.dumps({"models": [
+            choice("gpt-6.1-sol"), choice("gpt-reserve", hidden=True),
+        ]}).encode(), b"")
+    monkeypatch.setattr(subprocess, "run", query)
+    service = ModelCatalogService(cache_seconds=300)
+    first = service.get("codex_cli", refresh=True)
+    assert [item.id for item in first.models] == ["gpt-6.1-sol", "gpt-reserve"]
+    assert first.models[1].hidden is True
+    assert "CLI" in first.message and "查询" in first.message
+    assert calls == [["unit-fixture-never-executed", "debug", "models"]]
+    write_cache(local_cache, [choice("overwritten-again")])
+    assert service.get("codex_cli").models[0].id == "gpt-6.1-sol"
+    assert len(calls) == 1
+    assert service.get("codex_cli", refresh=True).models[0].id == "gpt-6.1-sol"
+    assert len(calls) == 2
+
+
+@pytest.mark.parametrize("failure", [
+    subprocess.TimeoutExpired(["fixture", "debug", "models"], 12),
+    subprocess.CalledProcessError(1, ["fixture", "debug", "models"], stderr=b"private-token"),
+])
+def test_cli_query_failure_falls_back_to_cache_without_exposing_errors(local_cache, monkeypatch, failure):
+    write_cache(local_cache)
+    def query(*args, **kwargs):
+        raise failure
+    monkeypatch.setattr(subprocess, "run", query)
+    result = ModelCatalogService().get("codex_cli", refresh=True)
+    assert result.status == "ready" and result.models[0].id == "fixture-model"
+    assert result.fetched_at == CACHE_TIME
+    assert "回退" in result.message and "缓存" in result.message
+    assert "private-token" not in result.model_dump_json()
+
+
+@pytest.mark.parametrize("output", [b"not-json", b"{}", b"[]", b"x" * (4 * 1024 * 1024 + 1)],
+                         ids=["malformed", "missing-models", "wrong-root", "oversized"])
+def test_invalid_cli_catalog_falls_back_to_valid_cache(local_cache, monkeypatch, output):
+    write_cache(local_cache)
+    monkeypatch.setattr(subprocess, "run", lambda arguments, **kwargs:
+                        subprocess.CompletedProcess(arguments, 0, output, b""))
+    result = ModelCatalogService().get("codex_cli", refresh=True)
+    assert result.status == "ready" and result.models[0].id == "fixture-model"
+    assert "回退" in result.message
 
 
 def test_cache_preserves_hidden_opaque_models_and_first_duplicate(tmp_path):

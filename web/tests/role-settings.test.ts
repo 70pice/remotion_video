@@ -10,6 +10,20 @@ import type { RoleModels, Settings } from "../src/api/types";
 import { createSettingsPayload, SettingsForm } from "../src/pages/SettingsPage";
 
 describe("independent role model settings", () => {
+  it("shows research skills without persisting skill paths or readiness fields", () => {
+    expect(createSettingsPayload({ research_skills: [
+      { name: "agent-reach", installed: true, path: "private-local-path", detail: "search" },
+    ] }, {})).toEqual({});
+    const markup = renderForm(false, { research_skills: [
+      { name: "agent-reach", installed: true, path: "private-local-path", detail: "互联网检索" },
+    ] });
+    expect(markup).not.toContain('aria-label="素材研究方式"');
+    expect(markup).toContain("agent-reach");
+    expect(markup).toContain("已安装");
+    expect(markup).toContain("平台仍可能需要登录、验证码或服务 Key");
+    expect(markup).not.toContain("private-local-path");
+  });
+
   it("starts all seven roles disabled and keeps their defaults independent", () => {
     const roles = readRoleModels({});
     expect(Object.keys(roles)).toEqual([
@@ -264,22 +278,27 @@ describe("role settings form", () => {
 
   it("renders WebSocket-only expressive style and speech-rate controls", () => {
     const wsMarkup = renderForm(false, { voice_provider: "byte_ws" });
-    expect(wsMarkup).toContain('aria-label="讲述风格"');
+    expect(wsMarkup).toContain('aria-label="情感风格预设"');
+    expect(wsMarkup).toContain('aria-label="情感与讲述风格"');
     expect(wsMarkup).toContain('maxLength="2000"');
     expect(wsMarkup).toContain('placeholder="像面对观众讲解：开头好奇、重点加重、句间自然停顿，避免播报腔"');
-    expect(wsMarkup).toContain('aria-label="语速调整"');
-    expect(wsMarkup).toContain('min="-50"');
-    expect(wsMarkup).toContain('max="100"');
+    expect(wsMarkup).toContain('aria-label="语速（倍速）"');
+    expect(wsMarkup).toContain('min="0.5"');
+    expect(wsMarkup).toContain('max="2"');
+    expect(wsMarkup).toContain('step="0.01"');
     expect(wsMarkup).toContain('value="seed-tts-2.0-standard"');
     expect(wsMarkup).toContain('value="seed-tts-2.0-expressive"');
     expect(wsMarkup).toContain('seed-tts-2.0-standard');
-    expect(wsMarkup).toContain('不支持情绪或表演指导');
+    expect(wsMarkup).toContain('语速范围 0.5～2.0 倍');
+    expect(wsMarkup).toContain('情感风格需要');
     expect(wsMarkup).toContain('seed-tts-2.0-expressive');
-    expect(wsMarkup).toContain('支持自然语言指导');
+    expect(wsMarkup).toContain('standard 不支持情感指导');
+    expect(wsMarkup).not.toContain('保存时会转换成后端');
 
     const httpMarkup = renderForm(false, { voice_provider: "byte_http" });
-    expect(httpMarkup).not.toContain('aria-label="讲述风格"');
-    expect(httpMarkup).not.toContain('aria-label="语速调整"');
+    expect(httpMarkup).not.toContain('aria-label="情感与讲述风格"');
+    expect(httpMarkup).not.toContain('aria-label="情感风格预设"');
+    expect(httpMarkup).not.toContain('aria-label="语速（倍速）"');
   });
 
   it("locks all role and service fields while the submitted snapshot is saving", () => {

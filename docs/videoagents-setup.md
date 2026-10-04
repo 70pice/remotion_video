@@ -20,7 +20,7 @@ uv sync --python 3.12
 .venv-videoagents/Scripts/python.exe -m playwright install chromium
 ```
 
-首次 Remotion 渲染会准备 Chrome Headless Shell，需要联网。已准备浏览器后，手工输入文案、导入素材和音频的路径可以在本机运行。
+首次 Remotion 渲染会准备 Chrome Headless Shell，需要联网。素材节点现在统一调用模型，即使已有文案、图片和音频，也需要启用素材角色的 Codex CLI，或已有同版本冻结研究包。
 
 ## 启动与关闭
 
@@ -47,7 +47,7 @@ npm run studio:stop
 
 ## 自动生产
 
-1. 在「设置」分别配置素材、编剧、文案审查、配音、导演、剪辑和审核的 CLI 提供方、模型名称和超时，并启用需要的角色。当前仅支持 Codex CLI 与 Claude Code CLI；模型留空使用对应 CLI 默认模型。自动检索可选择本机 OpenCLI Google、Tavily 或已有 Google CSE，平台和预算见 [素材节点与完整平台目录](videoagents-materials.md)。
+1. 在「设置」分别配置素材、编剧、文案审查、配音、导演、剪辑和审核的 CLI 提供方、模型名称和超时，并启用需要的角色。当前仅支持 Codex CLI 与 Claude Code CLI；模型留空使用对应 CLI 默认模型。素材默认选择「Codex 技能研究」，通过已安装技能检索并保存真实素材；Claude Code 或原有采集方式请选择「固定检索工具」，可使用 OpenCLI Google、Tavily 或已有 Google CSE。平台和预算见 [素材节点与完整平台目录](videoagents-materials.md)，安装清单和当前可用条件见 [研究技能环境](videoagents-research-skills.md)。
 2. 配置字节配音：按新版 SOP 选择「字节 WebSocket 双向流式」，填写声音 ID、资源 ID 和 API Key。声音复刻 2.0 使用 `seed-icl-2.0`，语音合成模型默认 `seed-tts-2.0-standard`；需要有起伏的讲述时，选择 `seed-tts-2.0-expressive` 并填写讲述风格，见 [配音表现力设置](videoagents-voice-performance.md)。资源及音色权限须由实际账号验证。旧 HTTP 接口仍可选择，兼容 API Key 或 App ID + Access Token。
 3. 创建任务，输入主题或文案，设定受众、用途、画幅、帧率和来源链接。
 4. 执行生产，按素材研究 → 编剧及可选文案讨论 → 配音 → 导演 → 渲染 → 审核推进。「素材研究」页签显示来源快照、图片与截图、检索方式及失败项。缺服务、缺授权记录或缺真实时间戳时，会显示待补充信息。
@@ -66,13 +66,13 @@ npm run studio:stop
 
 设置页的七张卡独立保存，不共享全局模型。默认全部关闭；启用后，角色运行会启动其选择的本机 CLI。修改配置只影响后续实际调用，不会自动重做已有文案、分镜或成片。文案讨论开关也默认关闭，启用后默认最多两轮：编剧提交 → 文案审查 → 需要修改时编剧回应并改稿 → 再次审查；通过才进入来源硬检查，达到上限仍未通过则暂停。配置、工作区和恢复说明见 [文案讨论](videoagents-script-discussion.md)。各角色的模型作用如下：
 
-Codex 每张卡可选择「CLI 默认模型」、本机目录中的模型或「自定义模型」。目录从当前用户的 `$CODEX_HOME/models_cache.json` 读取；未设置 `CODEX_HOME` 时使用用户目录下 `.codex`。完整保留缓存中的模型，包括隐藏项，不使用固定模型名单。「重读模型列表」只重新读取本机缓存，不向模型服务发请求；列表刷新不覆盖未保存的角色配置。
+Codex 每张卡可选择「CLI 默认模型」、CLI 模型列表中的模型或「自定义模型」。工作台通过与角色调用相同的可执行入口运行 `codex debug models` 查询目录，完整保留 CLI 返回的模型，包括隐藏项，不使用固定模型名单。「刷新模型列表」重新查询当前 CLI，不发起模型生成；列表刷新不覆盖未保存的角色配置。[官方 CLI 命令说明](https://learn.chatgpt.com/docs/developer-commands?surface=cli)。
 
-缓存可能由其他 Codex 版本写入，也可能过时，列表不能证明当前账号的模型权限。缓存不存在、损坏或未列出所需模型时，选择「自定义模型」，填写 CLI 支持的原始模型 ID；工作台不会以目录作为允许名单，保存后原样传给 `--model`。留空使用 CLI 默认模型。Claude Code 当前直接填写模型名称。模型目录读取不启动 CLI、不读取登录凭据、不执行生成请求。[官方缓存格式](https://github.com/openai/codex/blob/3d2ee51ca2d5db578f328aa75e20aa22c0197c9a/codex-rs/models-manager/src/cache.rs#L61-L78)、[官方模型字段](https://github.com/openai/codex/blob/3d2ee51ca2d5db578f328aa75e20aa22c0197c9a/codex-rs/protocol/src/openai_models.rs#L390-L402)。
+CLI 版本不支持查询命令、查询失败或超时（12 秒）时，回退到 `$CODEX_HOME/models_cache.json`；未设置 `CODEX_HOME` 时使用用户目录下 `.codex`。页面会显示回退原因。共享缓存可能由其他 Codex 版本写入，也可能过时；模型列表不证明调用一定成功。未列出所需模型时仍可选择「自定义模型」，填写 CLI 支持的原始模型 ID；工作台不会以目录作为允许名单，保存后原样传给 `--model`。留空使用 CLI 默认模型。Claude Code 当前直接填写模型名称。工作台不自行读取登录凭据，目录查询由 CLI 管理认证，不创建生成会话。`gpt-reserve` 是 CLI 目录返回的隐藏模型 ID，隐藏标记不代表文件夹，也不证明它对应哪个公开版本。[官方缓存格式](https://github.com/openai/codex/blob/3d2ee51ca2d5db578f328aa75e20aa22c0197c9a/codex-rs/models-manager/src/cache.rs#L61-L78)、[官方模型字段](https://github.com/openai/codex/blob/3d2ee51ca2d5db578f328aa75e20aa22c0197c9a/codex-rs/protocol/src/openai_models.rs#L390-L402)。
 
 | 角色 | 模型职责 | 后续执行 |
 |---|---|---|
-| 素材 | 规划检索词、研究重点与名称歧义 | 执行平台搜索、读取正文、采集图片和截图 |
+| 素材 | 默认由 Codex 读取检索技能，完成跨平台研究、歧义判断与真实文件清单；可切回固定工具规划 | 核验实际正文/图片文件、来源关联与 SHA256，冻结后交给编剧与导演 |
 | 编剧 | 根据冻结的真实来源生成初稿，讨论轮读取反馈并改稿 | 本地校验事实来源与素材引用 |
 | 文案审查 | 与编剧讨论事实、逻辑、开头吸引力、口播与画面，给出通过或修改决定 | 继续改稿，或通过后进入来源硬检查；达到上限等待修改 |
 | 配音 | 检查读音、停顿、情绪和文案风险，保存 `voice_guidance` | 字节生成实际音频，或使用导入音频及实测对齐 |
@@ -84,13 +84,17 @@ Codex 每张卡可选择「CLI 默认模型」、本机目录中的模型或「�
 
 需要在任意阶段增加人工审核时，使用已注册但尚未接入主流程的 `human_review`，或注册多个审核点；编排示例见 [人工审核节点](videoagents-human-review.md)。
 
-CLI 必须安装在启动 API 和 worker 的同一系统用户下，使用 CLI 自己的登录状态。工作台不收取模型 API Key，也不读取或复制 CLI 登录凭据。先用终端的 `codex --version` / `claude --version` 检查安装，再按相应 CLI 的登录流程完成认证，重新启动工作台，使新 PATH 生效。设置页的「可用」仅证明找到了启动文件，不能证明登录、额度或模型访问权限有效。2026-10-03 本机已验证 Codex `0.153.4`，尚未安装 Claude Code。
+CLI 必须安装在启动 API 和 worker 的同一系统用户下，使用 CLI 自己的登录状态。工作台不收取模型 API Key，也不读取或复制 CLI 登录凭据。先用终端的 `codex --version` / `claude --version` 检查安装，再按相应 CLI 的登录流程完成认证，重新启动工作台，使新 PATH 生效。设置页的「可用」仅证明找到了启动文件，不能证明登录、额度或模型访问权限有效。2026-10-04 本机 Codex CLI 已升级到 `0.159.2`，尚未安装 Claude Code。
+
+2026-10-04 核对过一次 App 与 CLI 不一致：App 内置 `0.159.2`，PATH 中的两处 npm 安装均为 `0.153.4`。同一账号、同一个 `gpt-6.1-sol`、同一套工作台隔离参数下，旧版返回「不支持 ChatGPT 账号使用该模型」，新版成功。两处 npm 安装升级到 `0.159.2` 后，工作台实际 `run_cli` 调用也返回了有效结构化结果。这是本机当日验证结果；以后遇到类似问题，应先比较实际执行入口与版本，而不能仅凭模型缓存或错误文案判定账号没有权限。`Get-Command codex -All` 可检查多处安装；升级后的新调用会使用新版，已启动的旧 CLI 会话仍使用原进程。
+
+App 当前对话选中的模型、用户 `config.toml` 的默认模型、工作台七个角色保存的模型是不同的配置位置。工作台使用 `--ignore-user-config` 隔离用户工具和规则，并将每个角色选择的模型通过 `--model` 传入；留空使用隔离调用的 CLI 内置默认值，不继承 App 当前对话的模型。GPT 6.1 的原始模型 ID 为 `gpt-6.1-sol`，可以在 Settings 为各角色分别选择。[官方模型选择说明](https://learn.chatgpt.com/docs/models)。
 
 如果 CLI 不在 PATH，可在启动工作台前设置 `VIDEOAGENTS_CODEX_EXECUTABLE` 或 `VIDEOAGENTS_CLAUDE_EXECUTABLE` 为绝对入口路径。Windows 支持 `.exe`、官方 npm shim 或 `.js` 入口；npm shim 转为 `node.exe + 官方入口`，不执行拼接的 shell 命令。模型名称也作为独立 argv 传入。超时范围为 30–1800 秒，每任务版本的模型调用上限统一由 `max_llm_calls` 控制。
 
 每次调用使用临时空目录及结构化输出，避免加载项目指令。Codex 使用 read-only、ephemeral、忽略用户配置/规则、禁止 shell/多代理/插件/浏览器等功能；登录仍由 `CODEX_HOME` 提供。Claude 禁用内置工具与普通 hooks，限定空 MCP 配置，禁止持久会话。工具事件或未知协议会终止调用。组织管理策略可能施加额外配置或 hooks，这些设置不能被工作台承诺完全覆盖。Codex 的事后工具事件检查也不是工具执行前的完全隔离保证。
 
-成功结果与使用量写入持久台账，相同输入重放复用成功结果；更换模型/CLI不能绕过该角色当前版本的未知提交。仅明确启动前失败允许新显式命令重试。CLI 启动后的超时、取消、错误退出或输出不完整均按 `UNKNOWN` 处理，因为无法证明服务方未计费。工作台不显示未经清理的 CLI 错误输出。真实登录与模型调用尚未付费联调，协议验证使用独立的本机 subprocess fixture。
+成功结果与使用量写入持久台账，相同输入重放复用成功结果；更换模型/CLI不能绕过该角色当前版本的未知提交。仅明确启动前失败允许新显式命令重试。CLI 启动后的超时、取消、错误退出或输出不完整均按 `UNKNOWN` 处理，因为无法证明服务方未计费。工作台不显示未经清理的 CLI 错误输出。协议回归验证使用独立的本机 subprocess fixture；2026-10-04 已通过实际 Codex CLI 验证 `gpt-6.1-sol` 的最小结构化调用，未因此重跑已有视频任务或清除未知提交记录。
 
 实现参考：[Codex 非交互调用](https://developers.openai.com/codex/noninteractive)、[Codex CLI 参数](https://developers.openai.com/codex/cli/reference)、[Claude CLI 参数](https://code.claude.com/docs/en/cli-reference)、[Claude 程序化调用](https://code.claude.com/docs/en/headless)。
 
@@ -164,7 +168,7 @@ npm run web:build
 npm run check:component-paths
 ```
 
-纯本机端到端测试：启动工作台后运行 `.venv-videoagents/Scripts/python.exe scripts/smoke-studio.py`。脚本先确认没有配置模型、搜索、配音或对齐服务，防止测试调用付费服务；它使用标记为 TEST 的程序图案和测试音，生成真实 MP4，并停在 `NEEDS_HUMAN`。测试音与 fixture 字幕不能作为真人口播、复刻声音或发布资格的证明。
+纯本机接口联调：启动隔离且未配置模型、搜索、配音或对齐服务的工作台，运行 `.venv-videoagents/Scripts/python.exe scripts/smoke-studio.py`。脚本验证素材模型关闭时暂停在 `materials`，再导入标记为 TEST 的文案、程序图案和测试音，验证媒体 Range 请求及再次执行仍暂停。它不调用付费服务，也不生成成片；下游流程使用已冻结的测试研究包在 Python 工作流测试中验证。测试音与 fixture 字幕不能作为真人口播、复刻声音或发布资格的证明。
 
 - 端口占用：先执行 `npm run studio:stop`。脚本不会停止不属于本工作台的进程；若仍占用，检查端口对应的应用。
 - 页面显示 worker 离线：查看 `.runtime/videoagents/*worker*.stderr.log`，确认独立 worker 已启动。

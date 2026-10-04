@@ -37,6 +37,33 @@ const voiceModelSuggestions = [
 ];
 const defaultVoiceStyle =
   "像面对观众讲解：开头好奇、重点加重、句间自然停顿，避免播报腔";
+const customVoiceStylePreset = "custom";
+const voiceStylePresets = [
+  {
+    id: "natural",
+    label: "自然",
+    style: defaultVoiceStyle,
+  },
+  {
+    id: "speech",
+    label: "演讲（情感丰富）",
+    style:
+      "像现场演讲一样表达：情绪饱满，关键观点明显加重，转折处放慢，结尾有感染力。",
+  },
+  {
+    id: "enthusiastic",
+    label: "热情",
+    style:
+      "保持热情和兴奋感，语气明亮，重点词上扬，节奏略快但吐字清楚。",
+  },
+  {
+    id: "serious",
+    label: "严肃",
+    style:
+      "语气沉稳克制，降低夸张起伏，重点信息清晰有力，保留自然停顿。",
+  },
+];
+const voiceSpeedSuggestions = ["0.5", "0.8", "1.0", "1.2", "1.3", "1.4", "1.6", "2.0"];
 
 interface FieldLabel {
   label: string;
@@ -199,10 +226,48 @@ function clampVoiceSpeechRate(value: unknown): number {
   return Math.min(100, Math.max(-50, Math.round(value)));
 }
 
+function speechRateToMultiplier(value: unknown): string {
+  const multiplier = 1 + clampVoiceSpeechRate(value) / 100;
+  return Number(multiplier.toFixed(2)).toString();
+}
+
+function speechRateFromMultiplier(value: unknown, fallback: unknown): number {
+  const parsed =
+    typeof value === "string" && value.trim() !== ""
+      ? Number(value)
+      : typeof value === "number"
+        ? value
+        : Number.NaN;
+  if (!Number.isFinite(parsed)) return clampVoiceSpeechRate(fallback);
+  return clampVoiceSpeechRate(Math.round((parsed - 1) * 100));
+}
+
+function voiceSpeedMultiplierValue(values: Settings): string {
+  const draft = values.voice_speed_multiplier;
+  if (typeof draft === "string") return draft;
+  if (typeof draft === "number" && Number.isFinite(draft)) return String(draft);
+  return speechRateToMultiplier(values.voice_speech_rate);
+}
+
 function voiceStyleValue(values: Settings): string {
   return typeof values.voice_style === "string"
     ? values.voice_style.slice(0, 2000)
     : "";
+}
+
+function selectedVoiceStylePreset(values: Settings): string {
+  const draftPreset = values.voice_style_preset;
+  if (
+    typeof draftPreset === "string" &&
+    (draftPreset === customVoiceStylePreset ||
+      voiceStylePresets.some((preset) => preset.id === draftPreset))
+  )
+    return draftPreset;
+  const style = voiceStyleValue(values);
+  return (
+    voiceStylePresets.find((preset) => preset.style === style)?.id ??
+    customVoiceStylePreset
+  );
 }
 
 export function createSettingsPayload(
@@ -232,7 +297,10 @@ export function createSettingsPayload(
     payload.voice_provider = values.voice_provider;
   if (values.voice_provider === "byte_ws") {
     payload.voice_style = voiceStyleValue(values);
-    payload.voice_speech_rate = clampVoiceSpeechRate(values.voice_speech_rate);
+    payload.voice_speech_rate = speechRateFromMultiplier(
+      values.voice_speed_multiplier,
+      values.voice_speech_rate,
+    );
   }
   if (values.voice_provider === "byte_http") {
     payload.voice_style = "";
@@ -325,11 +393,11 @@ export function SettingsForm({
               <button
                 type="button"
                 className="button secondary small"
-                aria-label="重读 Codex 模型列表"
+                aria-label="刷新 Codex 模型列表"
                 disabled={catalogLoading || busy}
                 onClick={onRefreshModels}
               >
-                {catalogLoading ? "正在读取…" : "重读模型列表"}
+                {catalogLoading ? "正在读取…" : "刷新模型列表"}
               </button>
             )}
           </div>
@@ -341,13 +409,12 @@ export function SettingsForm({
                 : "目录尚不可用，可选择 CLI 默认模型或填写自定义模型 ID。"}
           </p>
           <p className="muted small">
-            从本机 Codex
-            模型缓存读取，重读列表只读取该缓存。可选列表不代表当前账号权限，实际支持以
-            CLI 调用为准。
+            向项目实际使用的 Codex CLI 查询模型，查询失败时回退到本机缓存。
+            可选列表不代表当前账号权限，实际支持以 CLI 调用为准。
           </p>
           {codexCatalog?.fetched_at && (
             <p className="muted small">
-              缓存生成时间（本地）：
+              列表时间（本地）：
               <time dateTime={codexCatalog.fetched_at}>
                 {formatModelCacheTime(codexCatalog.fetched_at)}
               </time>
@@ -359,7 +426,7 @@ export function SettingsForm({
               {codexCatalog?.status === "ready" && " 当前保留上次读取的列表。"}
               角色配置保持不变，可继续使用默认或自定义模型。
             </p>
-          ) : codexCatalog?.status !== "ready" && codexCatalog?.message ? (
+          ) : codexCatalog?.message ? (
             <p className="muted small">{codexCatalog.message}</p>
           ) : null}
         </div>
@@ -460,8 +527,8 @@ export function SettingsForm({
                               value={catalogModelChoice(entry.id)}
                             >
                               {entry.display_name || entry.id} · {entry.id}
-                              {entry.is_default ? "（目录默认）" : ""}
-                              {entry.hidden ? "（目录隐藏项）" : ""}
+                              {entry.is_default ? "（列表默认）" : ""}
+                              {entry.hidden ? "（CLI 隐藏模型）" : ""}
                             </option>
                           ))}
                           <option value={customModelChoice}>自定义模型</option>
@@ -595,6 +662,18 @@ export function SettingsForm({
                 </label>
               )}
               {section.title === "检索与时间对齐" && (
+                <>
+                <p className="muted small">
+                  启用素材角色并选择 Codex CLI 后，可调用已安装的检索技能查资料和采集真实画面。
+                  平台仍可能需要登录、验证码或服务 Key。
+                </p>
+                <div className="research-skill-list">
+                  {(values.research_skills ?? []).map((skill) => (
+                    <p className="muted small" key={skill.name}>
+                      <strong>{skill.name}</strong>：{skill.installed ? "已安装" : "未安装"} · {skill.detail}
+                    </p>
+                  ))}
+                </div>
                 <label>
                   检索服务
                   <select
@@ -609,6 +688,7 @@ export function SettingsForm({
                     <option value="google_cse">Google CSE</option>
                   </select>
                 </label>
+                </>
               )}
               {section.fields
                 .filter((field) =>
@@ -674,39 +754,63 @@ export function SettingsForm({
                 values.voice_provider === "byte_ws" && (
                   <>
                     <label>
-                      讲述风格
+                      情感风格预设
+                      <select
+                        aria-label="情感风格预设"
+                        value={selectedVoiceStylePreset(values)}
+                        onChange={(event) => {
+                          const presetId = event.target.value;
+                          onChange("voice_style_preset", presetId);
+                          const preset = voiceStylePresets.find(
+                            (item) => item.id === presetId,
+                          );
+                          if (preset) onChange("voice_style", preset.style);
+                        }}
+                      >
+                        <option value={customVoiceStylePreset}>自定义</option>
+                        {voiceStylePresets.map((preset) => (
+                          <option key={preset.id} value={preset.id}>
+                            {preset.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      情感与讲述风格
                       <textarea
-                        aria-label="讲述风格"
+                        aria-label="情感与讲述风格"
                         maxLength={2000}
                         value={voiceStyleValue(values)}
                         placeholder={defaultVoiceStyle}
-                        onChange={(event) =>
-                          onChange("voice_style", event.target.value)
-                        }
+                        onChange={(event) => {
+                          onChange("voice_style_preset", customVoiceStylePreset);
+                          onChange("voice_style", event.target.value);
+                        }}
                       />
                     </label>
                     <label>
-                      语速调整
+                      语速（倍速）
                       <input
-                        aria-label="语速调整"
+                        aria-label="语速（倍速）"
                         type="number"
-                        min={-50}
-                        max={100}
-                        step={1}
-                        value={clampVoiceSpeechRate(values.voice_speech_rate)}
+                        min={0.5}
+                        max={2}
+                        step={0.01}
+                        list="voice-speed-suggestions"
+                        value={voiceSpeedMultiplierValue(values)}
                         onChange={(event) =>
-                          onChange(
-                            "voice_speech_rate",
-                            clampVoiceSpeechRate(Number(event.target.value)),
-                          )
+                          onChange("voice_speed_multiplier", event.target.value)
                         }
                       />
+                      <datalist id="voice-speed-suggestions">
+                        {voiceSpeedSuggestions.map((value) => (
+                          <option key={value} value={value} />
+                        ))}
+                      </datalist>
                     </label>
                     <p className="muted small">
-                      讲述风格只在本项目的 WebSocket expressive
-                      声音复刻调用中生效；seed-tts-2.0-standard
-                      不支持情绪或表演指导，seed-tts-2.0-expressive
-                      支持自然语言指导。
+                      语速范围 0.5～2.0 倍。情感风格需要
+                      seed-tts-2.0-expressive；standard 不支持情感指导。
                     </p>
                   </>
                 )}
@@ -734,6 +838,10 @@ export function SettingsForm({
                     </p>
                   )}
                   <div className="research-tool-list">
+                    <p className="muted small">
+                      素材 Agent 会按勾选平台尽力研究；下面的工具状态只说明本机已发现的检索入口。
+                      搜索调用上限是指令预算，来源与画面数量由接收端校验。
+                    </p>
                     {(values.research_tools ?? []).map((tool) => {
                       const selected = (
                         (values.research_platforms as string[] | undefined) ??

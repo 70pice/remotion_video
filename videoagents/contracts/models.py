@@ -402,25 +402,39 @@ class ContentReviewAdvice(Contract):
     findings: list[ModelFinding] = Field(default_factory=list, max_length=30)
 
 
-class MaterialPlan(Contract):
-    """素材模型只规划检索问题，不能在采集前生成事实或虚构图片。"""
+class MaterialSourceFile(Contract):
+    """技能读取的真实正文；文件和散列由素材节点再次核验。"""
 
-    query: str = Field(min_length=1, max_length=2000)
-    focus_notes: list[str] = Field(default_factory=list, max_length=10)
-    ambiguities: list[str] = Field(default_factory=list, max_length=10)
+    url: str = Field(min_length=1, max_length=4000)
+    title: str = Field(min_length=1, max_length=500)
+    platform: str = Field(min_length=1, max_length=100)
+    text_file: str = Field(min_length=1, max_length=500)
+    sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
 
-    @field_validator("query")
+
+class MaterialVisualFile(Contract):
+    """实际下载的原图或截图，必须关联已读取的来源。"""
+
+    source_url: str = Field(min_length=1, max_length=4000)
+    kind: Literal["image", "screenshot"]
+    file: str = Field(min_length=1, max_length=500)
+    sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    image_url: str = Field(default="", max_length=4000)
+    description: str = Field(min_length=1, max_length=1000)
+
+
+class MaterialResearch(Contract):
+    """素材 Agent 的最终清单，不包含原始工具对话。"""
+
+    sources: list[MaterialSourceFile] = Field(max_length=30)
+    visuals: list[MaterialVisualFile] = Field(max_length=20)
+    limitations: list[str] = Field(max_length=40)
+
+    @field_validator("limitations")
     @classmethod
-    def readable_query(cls, value: str) -> str:
-        if not value.strip() or any(ord(char) < 32 for char in value):
-            raise ValueError("检索词须为非空单行文本")
-        return value.strip()
-
-    @field_validator("focus_notes", "ambiguities")
-    @classmethod
-    def readable_notes(cls, values: list[str]) -> list[str]:
-        if any(not value.strip() or len(value) > 500 for value in values):
-            raise ValueError("研究重点与歧义说明须为非空文本，每条最多 500 字")
+    def readable_limitations(cls, values: list[str]) -> list[str]:
+        if any(not value.strip() or len(value) > 1000 for value in values):
+            raise ValueError("检索缺口须为非空文本，每条最多 1000 字")
         return values
 
 

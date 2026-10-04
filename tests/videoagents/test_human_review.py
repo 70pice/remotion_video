@@ -17,6 +17,19 @@ from worker.runner import Worker
 NOTE = "UNIT TEST：已核对本阶段文案表达、事实来源及素材。"
 
 
+def seed_completed_research(repo: Repository, project, job) -> None:
+    current = repo.get_job(job.job_id)
+    if any(item.kind == "research" and item.revision == current.revision for item in current.artifacts):
+        return
+    JobService(repo, project).write_json(current, "research.json", {
+        "schema_version": "3",
+        "status": "COMPLETED",
+        "sources": [],
+        "visuals": [],
+        "limitations": ["UNIT TEST：人工审核测试夹具，素材节点研究结果已显式冻结为空。"],
+    }, "research")
+
+
 @pytest.fixture
 def wired_job(tmp_path, monkeypatch):
     repo = Repository(tmp_path / "runtime")
@@ -41,6 +54,7 @@ def wired_job(tmp_path, monkeypatch):
 
 
 def start(repo, project, job, key="UNIT-start"):
+    seed_completed_research(repo, project, job)
     repo.enqueue(job.job_id, {"action": "produce", "base_revision": job.revision, "idempotency_key": key})
     assert Worker(repo, project).once()
     return repo.get_job(job.job_id)

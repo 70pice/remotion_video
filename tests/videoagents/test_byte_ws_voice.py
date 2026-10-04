@@ -183,6 +183,9 @@ def test_expressive_style_additions_are_a_json_string_and_narration_is_unchanged
     assert params["audio_params"]["speech_rate"] == -12
     assert connection.sent[2][2]["req_params"] == {"text": "测试"}
     assert result["voice_fingerprint"] == ws.voice_fingerprint(config)
+    assert result["voice_model"] == "seed-tts-2.0-expressive"
+    assert result["voice_style"] == "自然有情绪，开头有疑问。\n重点词稍重，句末自然收束。"
+    assert result["voice_speech_rate"] == -12
 
 
 @pytest.mark.parametrize("rate", [-50, 100])

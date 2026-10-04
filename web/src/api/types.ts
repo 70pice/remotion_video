@@ -45,6 +45,7 @@ export interface Settings extends Record<string, unknown> {
   voice_configured?: boolean;
   role_models?: Partial<RoleModels>;
   cli_availability?: Partial<Record<ModelProvider, { available: boolean }>>;
+  research_skills?: Array<{ name: string; path: string; installed: boolean; detail: string }>;
   research_tools?: Array<{
     id: string;
     label: string;

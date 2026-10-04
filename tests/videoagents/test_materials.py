@@ -53,269 +53,44 @@ def tone(seconds=2):
     return target.getvalue()
 
 
-def patch_discovery(monkeypatch, *, results, failures=()):
-    """Patch the materials node's public discovery seam; no network calls."""
-    calls = []
-
-    def fake_discover(repository, query, platform_ids, **kwargs):
-        calls.append(("discover", query, tuple(platform_ids), kwargs))
-        rows = [item for item in results if item.get("platform", "web") not in failures]
-        tools = [{"platform": item, "backend": "unit", "status": "error" if item in failures else "ok"} for item in platform_ids]
-        return {"query": query, "results": rows, "images": [], "tools": tools}
-
-    monkeypatch.setattr("videoagents.nodes.materials.discover", fake_discover)
-    return calls
-
-
-def patch_fetch(monkeypatch, text_by_url=None, *, fail_urls=(), images_by_url=None):
-    text_by_url = text_by_url or {}
-    images_by_url = images_by_url or {}
-    calls = []
-
-    def fake_fetch(url, path):
-        calls.append(url)
-        if url in fail_urls:
-            raise RuntimeError("unit fetch failure")
-        text = text_by_url.get(url, "Muse 是测试来源。")
-        path.write_text(f"<html><title>unit</title><body>{text}</body></html>", encoding="utf-8")
-        return {
-            "url": url,
-            "final_url": url,
-            "content_type": "text/html",
-            "retrieved_at": "unit-clock",
-            "sha256": sha256(path),
-            "text": text,
-            "title": "unit source",
-            "images": list(images_by_url.get(url, [])),
-        }
-
-    monkeypatch.setattr("videoagents.nodes.materials.fetch_source", fake_fetch)
-    return calls
-
-
 def patch_valid_image_probe(monkeypatch):
     monkeypatch.setattr("videoagents.nodes.materials.probe",
                         lambda path: {"streams": [{"codec_type": "video", "width": 64, "height": 64}]})
 
 
-def test_materials_node_collects_platform_sources_with_partial_failure_and_visual_receipts(tmp_path, monkeypatch):
-    repo, service = make_repo(tmp_path)
-    SettingsService(repo).patch(SettingsPatch(
-        search_provider="tavily",
-        search_api_key="unit-secret",
-        research_platforms=["web", "reddit", "youtube"],
-        research_download_images=True,
-        research_max_visuals=3,
-        capture_enabled=True,
-    ))
-    job = repo.create_job(Brief(topic="Muse是什么"))
-    calls = patch_discovery(monkeypatch, results=[
-        {"url": "https://example.com/muse", "title": "Muse intro", "snippet": "web", "platform": "web", "backend": "unit",
-         "images": [{"url": "https://cdn.example.com/muse.png", "source_url": "https://example.com/muse", "description": "unit image"}]},
-        {"url": "https://www.youtube.com/watch?v=unit", "title": "Muse video", "snippet": "video", "platform": "youtube", "backend": "unit", "images": []},
-    ], failures={"reddit"})
-    patch_fetch(monkeypatch, {"https://example.com/muse": "Muse 是一个测试来源。", "https://www.youtube.com/watch?v=unit": "视频资料。"})
+def patch_material_model(monkeypatch):
+    calls = []
+
+    def model_call(self, job_id, revision, role, instruction, context, command_id="", output_schema=None, **kwargs):
+        assert role == "materials"
+        calls.append((role, context, output_schema))
+        folder = kwargs["research_directory"]
+        source = folder / "source.txt"
+        source.write_text("Muse is a test source.", encoding="utf-8")
+        image = folder / "image.png"
+        image.write_bytes(PNG_BYTES)
+        return {"sources": [{"url": "https://example.com/muse", "title": "Muse", "platform": "web",
+                             "text_file": source.name, "sha256": sha256(source)}],
+                "visuals": [{"source_url": "https://example.com/muse", "kind": "screenshot",
+                             "file": image.name, "sha256": sha256(image), "description": "Muse"}],
+                "limitations": []}
+
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model_call)
     patch_valid_image_probe(monkeypatch)
-    safe_get_calls = []
-    capture_calls = []
-    monkeypatch.setattr("videoagents.nodes.materials.safe_get",
-                        lambda url, max_bytes=0: safe_get_calls.append(url) or (PNG_BYTES, "image/png", url))
-
-    def fake_capture(url, output):
-        capture_calls.append(url)
-        output.write_bytes(PNG_BYTES)
-
-    monkeypatch.setattr("videoagents.nodes.materials.capture_source", fake_capture)
-
-    result = MaterialsNode(repo, service)(state_for(job))
-    saved = repo.get_job(job.job_id)
-
-    assert result["route"] == "screenwriter"
-    assert saved.stage == "materials"
-    assert {"https://example.com/muse", "https://www.youtube.com/watch?v=unit"} <= set(saved.brief.source_urls)
-    assert len(result["research"]["sources"]) == 2
-    assert any(item.get("platform") == "reddit" for item in result["research"]["failures"]) or any(
-        item.get("platform") == "reddit" and item.get("status") == "error" for item in result["research"].get("tools", [])
-    )
-    assert safe_get_calls == ["https://cdn.example.com/muse.png"]
-    assert capture_calls == ["https://example.com/muse", "https://www.youtube.com/watch?v=unit"]
-    visuals = result["research"]["visuals"]
-    assert {item["kind"] for item in visuals} >= {"image", "screenshot"}
-    visual_asset_ids = {item["asset_id"] for item in visuals}
-    assert visual_asset_ids <= {asset.asset_id for asset in saved.assets}
-    for asset in saved.assets:
-        if asset.asset_id in visual_asset_ids:
-            assert asset.role == "evidence"
-            assert asset.source_url.startswith("https://")
-            assert service.project_root.joinpath("public", asset.timeline_src).is_file()
-            metadata = repo.asset_metadata(asset.asset_id)
-            assert metadata["origin"] in {"capture", "source_image"}
-            assert metadata["source_url"] == asset.source_url
-    assert calls
-
-
-def test_materials_replay_uses_frozen_research_without_repeating_external_calls(tmp_path, monkeypatch):
-    repo, service = make_repo(tmp_path)
-    SettingsService(repo).patch(SettingsPatch(search_provider="tavily", search_api_key="unit-secret",
-                                              research_platforms=["web"], capture_enabled=False,
-                                              research_download_images=False))
-    job = repo.create_job(Brief(topic="Muse是什么"))
-    patch_discovery(monkeypatch, results=[
-        {"url": "https://example.com/muse", "title": "Muse", "snippet": "unit", "platform": "web", "backend": "unit", "images": []},
-    ])
-    fetch_calls = patch_fetch(monkeypatch)
-
-    first = MaterialsNode(repo, service)(state_for(job))
-    monkeypatch.setattr("videoagents.nodes.materials.fetch_source", lambda *args, **kwargs: pytest.fail("frozen research fetched again"))
-    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", lambda *args, **kwargs: pytest.fail("frozen research planned again"))
-    second = MaterialsNode(repo, service)(state_for(job))
-
-    assert fetch_calls == ["https://example.com/muse"]
-    assert second["research"] == first["research"]
-    assert len([item for item in repo.get_job(job.job_id).artifacts if item.kind == "research"]) == 1
+    return calls
 
 
 def test_materials_rejects_tampered_frozen_research(tmp_path, monkeypatch):
     repo, service = make_repo(tmp_path)
-    SettingsService(repo).patch(SettingsPatch(search_provider="tavily", search_api_key="unit-secret",
-                                              research_platforms=["web"], capture_enabled=False,
-                                              research_download_images=False))
-    job = repo.create_job(Brief(topic="Muse是什么"))
-    patch_discovery(monkeypatch, results=[
-        {"url": "https://example.com/muse", "title": "Muse", "snippet": "unit", "platform": "web", "backend": "unit", "images": []},
-    ])
-    patch_fetch(monkeypatch)
+    job = repo.create_job(Brief(topic="Muse"))
+    patch_material_model(monkeypatch)
     MaterialsNode(repo, service)(state_for(job))
     research = next(item for item in repo.get_job(job.job_id).artifacts if item.kind == "research")
     path, _, _ = repo.artifact_path(research.artifact_id)
     path.write_text(json.dumps({"status": "COMPLETED", "sources": []}), encoding="utf-8")
 
-    with pytest.raises(Conflict, match="已改变"):
+    with pytest.raises(Conflict):
         MaterialsNode(repo, service)(state_for(job))
-
-
-def test_materials_reuses_partial_source_receipt_before_research_freeze(tmp_path, monkeypatch):
-    repo, service = make_repo(tmp_path)
-    SettingsService(repo).patch(SettingsPatch(capture_enabled=False, research_download_images=False))
-    job = repo.create_job(Brief(topic="Muse是什么", source_urls=["https://example.com/muse"]))
-    fetch_calls = patch_fetch(monkeypatch)
-    folder = repo.root / "jobs" / job.job_id / "revisions" / str(job.revision) / "sources"
-    folder.mkdir(parents=True)
-    MaterialsNode(repo, service).source(job, "https://example.com/muse", folder, 0)
-    monkeypatch.setattr("videoagents.nodes.materials.fetch_source", lambda *args, **kwargs: pytest.fail("source receipt fetched twice"))
-
-    research = MaterialsNode(repo, service).collect(job)
-
-    assert fetch_calls == ["https://example.com/muse"]
-    assert research["sources"][0]["url"] == "https://example.com/muse"
-    assert len([item for item in repo.get_job(job.job_id).artifacts if item.kind == "source"]) == 1
-    assert len([item for item in repo.get_job(job.job_id).artifacts if item.kind == "research"]) == 1
-
-
-def test_materials_model_plans_query_once_with_own_role_schema(tmp_path, monkeypatch):
-    repo, service = make_repo(tmp_path)
-    SettingsService(repo).patch(SettingsPatch(search_provider="tavily", search_api_key="unit-secret",
-                                              role_models={"materials": {"enabled": True, "model": "unit-materials"}},
-                                              research_platforms=["web"], capture_enabled=False,
-                                              research_download_images=False))
-    job = repo.create_job(Brief(topic="Muse是什么"))
-    model_calls = []
-
-    monkeypatch.setattr("videoagents.providers.llm.JsonModel.available", lambda self, role: role == "materials")
-
-    def model_call(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
-        model_calls.append((role, context, output_schema))
-        return {"query": "Muse AI wearable", "focus_notes": ["产品定位"], "ambiguities": ["Muse 乐队同名"]}
-
-    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model_call)
-    discovery_calls = patch_discovery(monkeypatch, results=[
-        {"url": "https://example.com/muse", "title": "Muse", "snippet": "unit", "platform": "web", "backend": "unit", "images": []},
-    ])
-    patch_fetch(monkeypatch)
-
-    first = MaterialsNode(repo, service)(state_for(job))
-    second = MaterialsNode(repo, service)(state_for(job))
-
-    assert [item[0] for item in model_calls] == ["materials"]
-    assert model_calls[0][2]["title"] == "MaterialPlan"
-    assert first["research"]["plan"]["query"] == "Muse AI wearable"
-    assert any(call[1] == "Muse AI wearable" for call in discovery_calls)
-    assert second["research"] == first["research"]
-    assert len(model_calls) == 1
-
-
-def test_materials_does_not_search_when_manual_url_or_raw_script_is_present(tmp_path, monkeypatch):
-    repo, service = make_repo(tmp_path)
-    SettingsService(repo).patch(SettingsPatch(search_provider="tavily", search_api_key="unit-secret",
-                                              capture_enabled=False, research_download_images=False))
-    manual = repo.create_job(Brief(topic="Muse是什么", source_urls=["https://example.com/muse"]))
-    patch_fetch(monkeypatch)
-    monkeypatch.setattr("videoagents.nodes.materials.discover", lambda *args, **kwargs: pytest.fail("manual URL triggered search"))
-    MaterialsNode(repo, service)(state_for(manual))
-
-    scripted = repo.create_job(Brief(topic="Muse是什么", script_text="观点：我已经有文案。"))
-    monkeypatch.setattr("videoagents.nodes.materials.fetch_source", lambda *args, **kwargs: pytest.fail("raw script fetched sources"))
-    MaterialsNode(repo, service)(state_for(scripted))
-
-
-def test_materials_skips_unrelated_images_and_safe_get_blocks_ssrf(tmp_path, monkeypatch):
-    repo, service = make_repo(tmp_path)
-    SettingsService(repo).patch(SettingsPatch(capture_enabled=False, research_download_images=True))
-    job = repo.create_job(Brief(topic="Muse是什么", source_urls=["https://example.com/muse"]))
-    patch_fetch(monkeypatch, images_by_url={"https://example.com/muse": [
-        {"url": "https://cdn.example.com/unrelated.png", "source_url": "https://other.example.com/page", "description": "skip"},
-        {"url": "http://127.0.0.1/private.png", "source_url": "https://example.com/muse", "description": "blocked"},
-    ]})
-
-    result = MaterialsNode(repo, service)(state_for(job))
-
-    assert result["route"] == "screenwriter"
-    assert result["research"]["visuals"] == []
-    assert result["research"]["failures"] == [{
-        "url": "http://127.0.0.1/private.png",
-        "source_url": "https://example.com/muse",
-        "reason": "ValueError",
-        "stage": "image",
-    }]
-    assert repo.get_job(job.job_id).assets == []
-
-
-def test_materials_cancellation_during_image_download_prevents_asset_commit(tmp_path, monkeypatch):
-    repo, service = make_repo(tmp_path)
-    SettingsService(repo).patch(SettingsPatch(capture_enabled=False, research_download_images=True))
-    job = repo.create_job(Brief(topic="Muse是什么", source_urls=["https://example.com/muse"]))
-    patch_fetch(monkeypatch, images_by_url={"https://example.com/muse": [
-        {"url": "https://cdn.example.com/muse.png", "source_url": "https://example.com/muse", "description": "unit image"},
-    ]})
-    patch_valid_image_probe(monkeypatch)
-
-    def cancel_then_return_image(url, max_bytes=0):
-        repo.cancel(job.job_id)
-        return PNG_BYTES, "image/png", url
-
-    monkeypatch.setattr("videoagents.nodes.materials.safe_get", cancel_then_return_image)
-
-    with pytest.raises(RenderCancelled):
-        MaterialsNode(repo, service)(state_for(job))
-    assert repo.get_job(job.job_id).assets == []
-
-
-def test_image_failure_does_not_skip_later_valid_candidate(tmp_path, monkeypatch):
-    repo, service = make_repo(tmp_path)
-    SettingsService(repo).patch(SettingsPatch(capture_enabled=False, research_max_visuals=2))
-    url = "https://example.com/muse"
-    job = repo.create_job(Brief(topic="Muse是什么", source_urls=[url]))
-    patch_fetch(monkeypatch, images_by_url={url: [
-        {"url": "https://cdn.example.com/bad.png", "source_url": url},
-        {"url": "https://cdn.example.com/good.png", "source_url": url},
-    ]})
-    patch_valid_image_probe(monkeypatch)
-    monkeypatch.setattr("videoagents.nodes.materials.safe_get", lambda image_url, **kwargs:
-                        (b"not an image" if "bad" in image_url else PNG_BYTES, "image/png", image_url))
-    research = MaterialsNode(repo, service).collect(job)
-    assert len(research["failures"]) == 1
-    assert len(research["visuals"]) == 1
-    assert research["visuals"][0]["image_url"] == "https://cdn.example.com/good.png"
 
 
 def test_cancellation_between_active_check_and_material_commit_is_rejected(tmp_path, monkeypatch):
@@ -340,23 +115,23 @@ def test_cancellation_between_active_check_and_material_commit_is_rejected(tmp_p
 
 
 def test_materials_pause_and_resume_reruns_materials_before_screenwriter(tmp_path, monkeypatch):
+    from videoagents.providers.llm import CapabilityMissing, JsonModel
+
     repo, service = make_repo(tmp_path)
-    SettingsService(repo).patch(SettingsPatch(capture_enabled=False, research_download_images=False))
-    job = repo.create_job(Brief(topic="Muse是什么", source_urls=["https://example.com/muse"]))
+    job = repo.create_job(Brief(topic="Muse", source_urls=["https://example.com/muse"]))
+    calls = patch_material_model(monkeypatch)
+    successful_call = JsonModel.call
     attempts = []
 
-    def flaky_fetch(url, path):
-        attempts.append(url)
+    def flaky_call(self, *args, **kwargs):
+        attempts.append(args[2])
         if len(attempts) == 1:
-            raise RuntimeError("unit transient source failure")
-        path.write_text("<html>Muse 是测试来源。</html>", encoding="utf-8")
-        return {"url": url, "final_url": url, "content_type": "text/html", "retrieved_at": "unit-clock",
-                "sha256": sha256(path), "text": "Muse 是测试来源。", "title": "unit", "images": []}
+            raise CapabilityMissing("unit transient model failure", ["role_models"])
+        if args[2] == "screenwriter":
+            raise CapabilityMissing("unit stop after materials", ["script"])
+        return successful_call(self, *args, **kwargs)
 
-    monkeypatch.setattr("videoagents.nodes.materials.fetch_source", flaky_fetch)
-    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", lambda *args, **kwargs: (_ for _ in ()).throw(
-        RuntimeError("screenwriter reached after materials resume")))
-
+    monkeypatch.setattr(JsonModel, "call", flaky_call)
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "produce", "idempotency_key": "unit-produce"})
     assert Worker(repo, service.project_root).once()
     paused = repo.get_job(job.job_id)
@@ -369,9 +144,10 @@ def test_materials_pause_and_resume_reruns_materials_before_screenwriter(tmp_pat
     assert Worker(repo, service.project_root).once()
     current = repo.get_job(job.job_id)
 
-    assert attempts == ["https://example.com/muse", "https://example.com/muse"]
+    assert attempts == ["materials", "materials", "screenwriter"]
+    assert len(calls) == 1
     assert any(item.kind == "research" for item in current.artifacts)
-    assert current.status in {"NEEDS_INPUT", "FAILED"}
+    assert current.status == "NEEDS_INPUT"
     assert current.stage == "script"
 
 
@@ -423,12 +199,7 @@ def test_screenwriter_consumes_frozen_research_and_tamper_is_blocked(tmp_path, m
                                               research_platforms=["web"], capture_enabled=True,
                                               research_download_images=False))
     job = repo.create_job(Brief(topic="Muse是什么"))
-    patch_discovery(monkeypatch, results=[
-        {"url": "https://example.com/muse", "title": "Muse", "snippet": "unit", "platform": "web", "backend": "unit", "images": []},
-    ])
-    patch_fetch(monkeypatch)
-    patch_valid_image_probe(monkeypatch)
-    monkeypatch.setattr("videoagents.nodes.materials.capture_source", lambda url, output: output.write_bytes(PNG_BYTES))
+    patch_material_model(monkeypatch)
     MaterialsNode(repo, service)(state_for(job))
     calls = []
 
@@ -440,7 +211,6 @@ def test_screenwriter_consumes_frozen_research_and_tamper_is_blocked(tmp_path, m
         }]}
 
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model_call)
-    monkeypatch.setattr("videoagents.nodes.materials.fetch_source", lambda *args, **kwargs: pytest.fail("screenwriter fetched sources"))
     result = ScreenwriterNode(repo, service)(state_for(repo.get_job(job.job_id)))
     current = repo.get_job(job.job_id)
 
@@ -453,8 +223,64 @@ def test_screenwriter_consumes_frozen_research_and_tamper_is_blocked(tmp_path, m
     path, _, _ = repo.artifact_path(research_artifact.artifact_id)
     path.write_text(json.dumps({"sources": []}), encoding="utf-8")
     repo.update_job(job.job_id, job.revision, script=None)
-    with pytest.raises(ValueError, match="素材研究记录已改变"):
+    with pytest.raises(Conflict, match="上下文引用的阶段记录已改变"):
         ScreenwriterNode(repo, service).write_script(repo.get_job(job.job_id))
+
+
+def test_screenwriter_helper_reads_shared_final_output_without_reopening_research(tmp_path, monkeypatch):
+    repo, service = make_repo(tmp_path)
+    job = repo.create_job(Brief(topic="数据库原始主题"))
+    node = ScreenwriterNode(repo, service)
+    shared = {
+        **state_for(job),
+        "brief": job.brief.model_copy(update={"topic": "前节点交接的主题"}).model_dump(),
+        "script": None,
+        "assets": [],
+        "research": {
+            "sources": [{"url": "https://example.com/muse", "text": "前节点交接的正文。"}],
+            "visuals": [],
+            "tools": [{"platform": "unit", "status": "ok"}],
+            "search_results": [{"snippet": "搜索过程不是事实依据"}],
+        },
+    }
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+    monkeypatch.setattr(repo, "artifact_path", lambda *args: pytest.fail("Agent reopened research instead of consuming state"))
+
+    def model_call(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        assert set(context) == {"brief", "research", "assets"}
+        assert context["brief"]["topic"] == "前节点交接的主题"
+        assert context["research"]["sources"][0]["text"] == "前节点交接的正文。"
+        assert not {"tools", "search_results"}.intersection(context["research"])
+        return {"title": context["brief"]["topic"], "segments": [{
+            "segment_id": "s1", "narration": "Muse 是来源中的产品。",
+            "source_refs": ["https://example.com/muse"], "asset_ids": [],
+        }]}
+
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model_call)
+
+    script, _ = node.write_script(job, shared)
+
+    assert script.title == "前节点交接的主题"
+    assert script.origin == "model"
+
+
+def test_materials_model_reads_inputs_from_shared_state(tmp_path, monkeypatch):
+    from videoagents.nodes.common import state_context
+
+    repo, service = make_repo(tmp_path)
+    job = repo.create_job(Brief(topic="database topic"))
+    node = MaterialsNode(repo, service)
+    shared = state_context(repo, state_for(job))
+    shared["brief"]["topic"] = "shared topic"
+    calls = patch_material_model(monkeypatch)
+
+    result = node.collect(job, shared)
+
+    assert result["sources"][0]["url"] == "https://example.com/muse"
+    assert len(calls) == 1
+    assert calls[0][1]["brief"]["topic"] == "shared topic"
+    assert set(calls[0][1]) == {"brief", "assets", "settings"}
+    assert calls[0][2]["title"] == "MaterialResearch"
 
 
 def test_director_matches_evidence_by_source_url_when_script_does_not_name_asset(tmp_path):

@@ -10,6 +10,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command
 
 from videoagents.nodes.await_input import AwaitInputNode
+from videoagents.nodes.clear_tools import ClearToolsNode
 from videoagents.nodes.common import state_context
 from videoagents.nodes.director import DirectorNode
 from videoagents.nodes.editing import EditingNode
@@ -33,6 +34,8 @@ class VideoProductionGraph(AbstractContextManager):
         self.connection.execute("PRAGMA journal_mode=WAL")
         self.checkpointer = SqliteSaver(self.connection)
         reviewers = ReviewersNode(repository, self.service)
+        # 与 TradingAgents 的 Msg Clear 一样，每个模型角色后先清理，再路由到下一阶段。
+        # CLI 内部运行工具，图中只交接最终 JSON，不增加 ToolNode 或工具消息循环。
         graph = StateGraph(VideoState)
         graph.add_node("materials", MaterialsNode(repository, self.service))
         graph.add_node("screenwriter", ScreenwriterNode(repository, self.service))
@@ -50,23 +53,30 @@ class VideoProductionGraph(AbstractContextManager):
         self.add_human_review(graph, "human_review", stage="script", title="文案人工审核",
                               confirmation_requirements=("文案表达与事实来源", "截图及素材与文案一致"), next_node="voice")
         graph.add_edge(START, "materials")
-        graph.add_conditional_edges("materials", self.route, {"screenwriter": "screenwriter", "await_input": "await_input"})
-        graph.add_conditional_edges("screenwriter", self.route, {
+        self.add_cleanup_edge(graph, "materials", {"screenwriter": "screenwriter", "await_input": "await_input"})
+        self.add_cleanup_edge(graph, "screenwriter", {
             "script_reviewer": "script_reviewer", "script_gate": "script_gate", "await_input": "await_input",
         })
-        graph.add_conditional_edges("script_reviewer", self.route, {
+        self.add_cleanup_edge(graph, "script_reviewer", {
             "screenwriter": "screenwriter", "script_gate": "script_gate", "await_input": "await_input",
         })
         graph.add_conditional_edges("script_gate", self.route, {"voice": "voice", "await_input": "await_input"})
-        graph.add_conditional_edges("voice", self.route, {"audio_gate": "audio_gate", "await_input": "await_input"})
+        self.add_cleanup_edge(graph, "voice", {"audio_gate": "audio_gate", "await_input": "await_input"})
         graph.add_conditional_edges("audio_gate", self.route, {"director": "director", "await_input": "await_input", "end": END})
-        graph.add_conditional_edges("director", self.route, {"timeline_gate": "timeline_gate", "await_input": "await_input"})
+        self.add_cleanup_edge(graph, "director", {"timeline_gate": "timeline_gate", "await_input": "await_input"})
         graph.add_conditional_edges("timeline_gate", self.route, {"editing": "editing", "await_input": "await_input", "end": END, "reviewers": "reviewers"})
-        graph.add_conditional_edges("editing", self.route, {"reviewers": "reviewers", "await_input": "await_input", "end": END})
-        graph.add_conditional_edges("reviewers", self.route, {"review_gate": "review_gate", "await_input": "await_input"})
+        self.add_cleanup_edge(graph, "editing", {"reviewers": "reviewers", "await_input": "await_input", "end": END})
+        self.add_cleanup_edge(graph, "reviewers", {"review_gate": "review_gate", "await_input": "await_input"})
         graph.add_conditional_edges("review_gate", self.route, {"end": END, "await_input": "await_input"})
         graph.add_conditional_edges("await_input", self.route, {"materials": "materials", "screenwriter": "screenwriter", "script_reviewer": "script_reviewer", "voice": "voice", "director": "director", "editing": "editing", "reviewers": "reviewers", "await_input": "await_input", "end": END})
         self.graph = graph.compile(checkpointer=self.checkpointer)
+
+    def add_cleanup_edge(self, graph: StateGraph, source: str, routes: dict[str, str]) -> None:
+        """角色输出 → 清理工具历史 → 原条件路由；route 标记和业务结果保持不变。"""
+        name = "clear_" + source
+        graph.add_node(name, ClearToolsNode())
+        graph.add_edge(source, name)
+        graph.add_conditional_edges(name, self.route, routes)
 
     def add_human_review(self, graph: StateGraph, name: str, *, stage: str, title: str,
                          confirmation_requirements: tuple[str, ...], next_node: str, min_note_length: int = 10) -> None:

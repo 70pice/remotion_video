@@ -573,7 +573,8 @@ def synthesize(repository: Repository, job_id: str, revision: int, text: str, co
         path = folder / (operation["operation_id"] + ".mp3")
         path.write_bytes(audio)
         result = {**ledger, "path": str(path), "sentences": sentences, "usage": usage, "input_hash": input_hash,
-                  "origin": "byte_ws", "voice_fingerprint": used_voice_fingerprint}
+                  "origin": "byte_ws", "voice_fingerprint": used_voice_fingerprint,
+                  "voice_model": request["req_params"]["model"], "voice_style": style, "voice_speech_rate": rate}
         repository.finish_operation(operation["operation_id"], "COMPLETED", result)
         return result
     except RenderCancelled:

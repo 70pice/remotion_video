@@ -4,8 +4,6 @@ import httpx
 import pytest
 
 from videoagents.contracts import Brief, SettingsPatch
-from videoagents.nodes.materials import MaterialsNode
-from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.storage import Repository
 from videoagents.tools.research import PLATFORM_CATALOG, discover, platform_catalog
@@ -52,39 +50,6 @@ def test_discover_uses_site_filtered_search_and_keeps_partial_failures(tmp_path,
     }]
     assert any(item["platform"] == "reddit" and item["status"] == "error" and item["results_count"] == 0
                for item in result["tools"])
-
-
-def test_materials_node_freezes_sources_before_screenwriter(tmp_path, monkeypatch):
-    repo = Repository(tmp_path / "runtime")
-    service = JobService(repo, tmp_path / "project")
-    SettingsService(repo).patch(SettingsPatch(search_provider="tavily", search_api_key="unit-secret",
-                                              capture_enabled=False, research_platforms=["web"]))
-    job = repo.create_job(Brief(topic="Muse是什么"))
-
-    monkeypatch.setattr("videoagents.nodes.materials.discover", lambda *a, **k: {
-        "results": [{"url": "https://example.com/muse", "title": "Muse", "snippet": "unit",
-                     "platform": "web", "backend": "tavily", "images": []}],
-        "images": [], "tools": [{"platform": "web", "backend": "tavily", "status": "ok"}],
-    })
-
-    def fake_fetch(url, path):
-        path.write_text("<html>Muse 是测试来源。</html>", encoding="utf-8")
-        return {"url": url, "final_url": url, "content_type": "text/html",
-                "retrieved_at": "unit-clock", "sha256": "unit", "text": "Muse 是测试来源。"}
-
-    monkeypatch.setattr("videoagents.nodes.materials.fetch_source", fake_fetch)
-    state = {"job_id": job.job_id, "revision": job.revision, "action": "produce",
-             "run_id": "unit-run", "thread_id": "unit-thread", "extras": {}}
-
-    result = MaterialsNode(repo, service)(state)
-    saved = repo.get_job(job.job_id)
-
-    assert result["route"] == "screenwriter"
-    assert saved.stage == "materials"
-    assert saved.brief.source_urls == ["https://example.com/muse"]
-    assert any(item.kind == "research" for item in saved.artifacts)
-    assert result["research"]["sources"][0]["text"] == "Muse 是测试来源。"
-
 
 
 def test_opencli_google_searches_platform_through_site_filtered_index(tmp_path, monkeypatch):

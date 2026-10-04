@@ -28,7 +28,6 @@ export interface ResearchPackage {
   schema_version?: string;
   status?: string;
   query?: string;
-  plan?: { focus_notes?: string[]; ambiguities?: string[] };
   tools?: Array<Record<string, unknown>>;
   search_results?: Array<Record<string, unknown>>;
   sources?: ResearchSource[];
@@ -62,12 +61,6 @@ export function MaterialsContent({ job, research }: { job: Job; research: Resear
       <span className="badge">{visualAssets.length} 个画面素材</span>
       <span className="muted small">检索词：{research.query || job.brief.topic}</span>
     </div>
-    {!!research.plan?.ambiguities?.length && <Notice tone="info">
-      主题存在歧义：{research.plan.ambiguities.join("；")}
-    </Notice>}
-    {!!research.plan?.focus_notes?.length && <p className="muted small">
-      研究重点：{research.plan.focus_notes.join("；")}
-    </p>}
     {!!research.tools?.length && <div className="materials-block">
       <h3>平台检索</h3>
       <div className="source-list">{research.tools.map((tool, index) => {

@@ -11,7 +11,7 @@ from .models import (
     EditingAdvice,
     Finding,
     Job,
-    MaterialPlan,
+    MaterialResearch,
     ModelCatalog,
     ModelChoice,
     ModelFinding,
@@ -39,6 +39,6 @@ __all__ = [
     "RunRequest", "Script", "ScriptSegment", "SettingsPatch", "Shot", "Timeline",
     "RoleModelConfig", "RoleModels", "ModelFinding", "VoiceAdvice", "EditingAdvice", "ContentReviewAdvice",
     "ModelCatalog", "ModelChoice",
-    "MaterialPlan",
+    "MaterialResearch",
     "ScriptCritique", "ScriptCritiqueIssue", "ScriptDiscussion", "ScriptDiscussionRound", "ScriptRewrite",
 ]

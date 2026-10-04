@@ -116,8 +116,12 @@ describe("ByteDance voice transport settings", () => {
     expect(markup).toContain('aria-label="语音合成模型"');
     expect(markup).toContain('value="seed-tts-2.0-expressive"');
     expect(markup).toContain('value="seed-tts-2.0-standard"');
-    expect(markup).toContain('aria-label="讲述风格"');
-    expect(markup).toContain('aria-label="语速调整"');
+    expect(markup).toContain('aria-label="情感风格预设"');
+    expect(markup).toContain('aria-label="情感与讲述风格"');
+    expect(markup).toContain('aria-label="语速（倍速）"');
+    expect(markup).toContain('语速范围 0.5～2.0 倍');
+    expect(markup).toContain('standard 不支持情感指导');
+    expect(markup).not.toContain('保存时会转换成后端');
     expect(markup).toContain("与配音角色的 CLI 指导模型独立");
     expect(markup).toContain("seed-icl-2.0（按账号实际资源填写）");
     expect(markup).toContain('value="account-specific-resource"');
@@ -130,6 +134,86 @@ describe("ByteDance voice transport settings", () => {
   });
 
 
+
+  it("converts readable speed multipliers to backend speech-rate integers", () => {
+    expect(
+      createSettingsPayload(
+        {
+          voice_provider: "byte_ws",
+          voice_speed_multiplier: "1.2",
+        },
+        {},
+      ),
+    ).toMatchObject({ voice_speech_rate: 20 });
+    expect(
+      createSettingsPayload(
+        {
+          voice_provider: "byte_ws",
+          voice_speed_multiplier: "1.3",
+        },
+        {},
+      ),
+    ).toMatchObject({ voice_speech_rate: 30 });
+    expect(
+      createSettingsPayload(
+        {
+          voice_provider: "byte_ws",
+          voice_speed_multiplier: "1.4",
+        },
+        {},
+      ),
+    ).toMatchObject({ voice_speech_rate: 40 });
+    expect(
+      createSettingsPayload(
+        {
+          voice_provider: "byte_ws",
+          voice_speed_multiplier: "",
+          voice_speech_rate: 18,
+        },
+        {},
+      ),
+    ).toMatchObject({ voice_speech_rate: 18 });
+  });
+
+  it("shows style presets without overwriting existing custom style", () => {
+    const customStyle = "这是我已经保存的自定义讲述方式，不能被预设覆盖。";
+    const customMarkup = renderVoiceSettings({
+      ...voiceProviderPatch("byte_ws"),
+      voice_style: customStyle,
+      voice_speech_rate: 30,
+    });
+    expect(customMarkup).toContain('aria-label="情感风格预设"');
+    expect(customMarkup).toContain('value="custom" selected=""');
+    expect(customMarkup).toContain(customStyle);
+    expect(customMarkup).toContain('value="1.3"');
+    expect(customMarkup).toContain('value="1.2"');
+    expect(customMarkup).toContain('value="1.4"');
+    expect(customMarkup).toContain('value="speech"');
+    expect(customMarkup).toContain('演讲（情感丰富）');
+
+    const presetStyle =
+      "保持热情和兴奋感，语气明亮，重点词上扬，节奏略快但吐字清楚。";
+    const presetMarkup = renderVoiceSettings({
+      ...voiceProviderPatch("byte_ws"),
+      voice_style: presetStyle,
+    });
+    expect(presetMarkup).toContain('value="enthusiastic" selected=""');
+
+    const forcedCustomMarkup = renderVoiceSettings({
+      ...voiceProviderPatch("byte_ws"),
+      voice_style: presetStyle,
+      voice_style_preset: "custom",
+    });
+    expect(forcedCustomMarkup).toContain('value="custom" selected=""');
+    expect(forcedCustomMarkup).toContain(presetStyle);
+    expect(createSettingsPayload(
+      {
+        voice_provider: "byte_ws",
+        voice_style: presetStyle,
+      },
+      {},
+    )).toMatchObject({ voice_style: presetStyle });
+  });
 
   it("clears hidden WebSocket performance values when switching to HTTP", () => {
     const values: Settings = {
@@ -167,8 +251,9 @@ describe("ByteDance voice transport settings", () => {
       "○ 未配置",
     );
     expect(markup).not.toContain('aria-label="语音合成模型"');
-    expect(markup).not.toContain('aria-label="讲述风格"');
-    expect(markup).not.toContain('aria-label="语速调整"');
+    expect(markup).not.toContain('aria-label="情感与讲述风格"');
+    expect(markup).not.toContain('aria-label="情感风格预设"');
+    expect(markup).not.toContain('aria-label="语速（倍速）"');
     const payload = createSettingsPayload(
       {
         ...values,

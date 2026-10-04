@@ -15,6 +15,7 @@ videoagents/
 │  ├─ gates.py           ScriptGateNode / AudioGateNode / TimelineGateNode / ReviewGateNode
 │  ├─ human_review.py    HumanReviewNode：可自行接入的阶段人工审核
 │  ├─ await_input.py     AwaitInputNode：等待补充输入、最终人工复核和发布包
+│  ├─ clear_tools.py     ClearToolsNode：每个模型角色完成后清空工具历史
 │  └─ common.py          共用的版本/取消校验、阶段状态、讨论保存和输入请求
 ├─ graph/
 │  └─ video_graph.py     注册节点、条件边、执行与恢复
@@ -35,7 +36,7 @@ videoagents/
 3. 保存文案及 JSON 产物，用 `state_context()` 返回包含当前业务数据的上下文；开启讨论时路由为 `script_reviewer`，未开启时为 `script_gate`。
 4. 能力或输入不足时，`request_input()` 保存待办并返回 `{"route": "await_input", ...}`。
 
-其他角色也从 `__call__` 开始读。`collect()`、`prepare_audio()`、`plan()`、`render_video()`、`review()` 是所在节点内部的业务步骤，没有独立 Agent 类。当前起点是 `START → materials → screenwriter`，平台清单和交接见 [素材节点](videoagents-materials.md)。
+其他角色也从 `__call__` 开始读。`collect()`、`prepare_audio()`、`plan()`、`render_video()`、`review()` 是所在节点内部的业务步骤，没有独立 Agent 类。当前起点是 `START → materials → clear_materials → screenwriter`，平台清单和交接见 [素材节点](videoagents-materials.md)。
 
 各阶段数据集中在 `VideoState`，自定义节点可以直接读文案、素材、分镜、审核及人工记录，并返回部分业务字段或 `extras`。字段、增量交接、持久化和恢复规则见 [通用上下文](videoagents-context.md)。
 
@@ -43,16 +44,34 @@ videoagents/
 
 ```python
 graph.add_node("screenwriter", ScreenwriterNode(repository, self.service))
-graph.add_conditional_edges("screenwriter", self.route, {
+self.add_cleanup_edge(graph, "screenwriter", {
     "script_reviewer": "script_reviewer",
     "script_gate": "script_gate",
     "await_input": "await_input",
 })
 ```
 
-`ScreenwriterNode(...)` 创建节点对象；`add_node` 把对象注册为 `screenwriter`。工作流到达它时，LangGraph 调用对象的 `__call__(state)`。返回的增量更新共享状态，`self.route(state)` 读取其中的 `route`，条件边再选择下一个节点。
+`ScreenwriterNode(...)` 创建节点对象；`add_node` 把对象注册为 `screenwriter`。工作流到达它时，LangGraph 调用对象的 `__call__(state)`。返回的增量更新共享状态，先进入 `clear_screenwriter` 清理工具历史，然后 `self.route(state)` 读取 `route`，条件边再选择下一个节点。
+
+素材、编剧、文案审查、配音、导演、剪辑、审核七个角色均使用 `add_cleanup_edge()`；检查和等待节点沿用原条件边。自己编排角色后的人工审核时，修改 `add_cleanup_edge()` 的路由映射，保留清理节点。例如让 `script_gate` 路由先进入自定义人工审核；不要另加一条绕过清理的角色条件边。
 
 调整业务去对应的节点文件；调整顺序和分支去图文件。编剧与文案审查的交替、轮数和记录见 [文案讨论](videoagents-script-discussion.md)。插入人工审核仍使用 `add_human_review()`，示例见 [人工审核编排](videoagents-human-review.md)。原有节点和恢复 API 保留；已经执行到文案后阶段的旧 checkpoint 不会补做新讨论，启动新执行后按新配置进入。
+
+## 修改模型提示词
+
+七个模型角色的提示词固定在各自文件顶部的 `PROMPT`，编剧修改稿件使用同文件的 `REWRITE_PROMPT`。不需要到 providers 或另一个 Agent 目录寻找业务提示词。导演的组件参数示例也在固定提示词内；动态 schema 只限制当前稿件的段落 ID、当前任务可用的图片路径等运行条件。
+
+例如编剧的模型调用：
+
+```python
+value = self.model.invoke(
+    state, "screenwriter", PROMPT,
+    fields=("brief", "research", "assets"),
+    output_schema=Script.model_json_schema(),
+)
+```
+
+`JsonModel` 负责 Codex/Claude CLI 的结构化调用及提交台账。节点负责选择 state 输入、校验最终产物、保存和路由；前后角色通过 state 交接。工具过程留在审计文件中，交接清理的规则见 [通用上下文](videoagents-context.md#agent-的输入与最终输出)。
 
 ## 本次精简范围与验证
 

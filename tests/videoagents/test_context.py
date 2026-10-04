@@ -313,8 +313,10 @@ def test_context_contains_public_receipts_without_runtime_secrets(tmp_path):
     assert context["settings"]["search_configured"] is True
     assert context["settings"]["voice_api_key_configured"] is True
     assert context["metrics"] == {"llm_calls": 1}
-    assert context["operations"] == [{"operation_id": "unit-op", "provider": "codex_cli", "status": "DONE",
-                                      "revision": job.revision, "command_id": "cmd", "model": "unit-model"}]
+    assert "operations" not in context
+    # 台账继续用于提交去重和对账，只是不再作为 Agent 间的交接内容。
+    with repo.connection() as db:
+        assert db.execute("SELECT operation_id FROM operations").fetchone()[0] == "unit-op"
     assert "UNIT-search-secret" not in encoded
     assert "UNIT-voice-secret" not in encoded
     assert "UNIT-aligner-secret" not in encoded

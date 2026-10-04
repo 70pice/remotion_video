@@ -2,6 +2,26 @@
 
 2026-10-03。React 前端、FastAPI API、独立 worker、持久 LangGraph 工作流和 Remotion 生产入口已实现并完成本机联调。设计记录见 [原方案](videoagents-design.md)，操作见 [使用说明](videoagents-setup.md)，接口见 [共享契约](videoagents-implementation-contract.md)。
 
+## 2026-10-04：设置与 Agent 共享 state
+
+Settings 增加自然、演讲、热情、严肃和自定义情感风格，语速显示为 0.5～2.0 倍，1.2 / 1.3 / 1.4 对应现有接口参数 20 / 30 / 40；默认仍为 1 倍，保留已有风格。操作见 [配音设置](videoagents-voice-performance.md)。
+
+对照 TradingAgents 的最终报告交接及阶段消息清理方式，七个模型角色统一通过 `JsonModel.invoke(state, ..., fields=...)` 读取共享 state。固定 `PROMPT` 放在各自 `nodes/*.py` 顶部，编剧另有 `REWRITE_PROMPT`；不增加第二套 Agent 目录。素材交接只保留来源正文、出处、视觉素材、研究歧义和资料局限，工具调用、搜索过程及操作台账留在审计文件/数据库。讨论保留各轮最终稿件、意见和回应。恢复旧记录也经过同一清理，提交去重及 UNKNOWN 屏障继续有效。说明见 [节点入口](videoagents-nodes.md) 与 [共享上下文](videoagents-context.md)。
+
+重构前 129 项相关回归通过；完成后全量 **371 Python、65 React 测试通过**。Ruff、Python 编译、根 TypeScript/lint、React typecheck/build、生成契约一致性与 diff 检查通过。新增覆盖共享输入、SQLite 交接、审计记录隔离、同一工具日志变化不重复提交、最终正文变化产生新请求、设置倍速和风格回读。独立只读审查没有阻断问题。
+
+确认正式库没有活动命令后重新加载 API 和 worker；首页 HTTP 200，worker 心跳正常。现有配音仍为 expressive、1 倍，未覆盖用户配置。本轮未调用付费模型/配音或重新制作 Muse 视频。
+
+## 配音表现力更新
+
+针对 Muse 预览配音平淡的问题，接入 `seed-tts-2.0-expressive` 的自然语言表演指令。之前的 standard 不支持这些指令，配音节点的重音和停顿建议也仅保存为产物。现在新合成会将用户讲述风格与 `delivery_notes` 合为一条 `context_texts`，通过 additions JSON 字符串传入字节 WebSocket；旁白正文保持原文。设置页增加讲述风格、-50 到 100 的语速调整及模型建议，合成配置与各角色 CLI 模型仍分别设置。使用说明见 [配音表现力设置](videoagents-voice-performance.md)。
+
+空风格/默认语速保持历史请求和指纹兼容；实际风格和语速变化使旧音频失效。已有同配置和正文的音频继续复用，不因指导意见变化重复付费。standard/HTTP 的显式不支持参数在真实合成前报错，切到 HTTP 时界面清空隐藏的表现力参数。关闭服务仍可使用已导入音频，UNKNOWN 提交仍禁止盲重试。
+
+使用原 Muse 开场 79 字符及用户的现有复刻音色，真实 expressive 请求收到 SessionFinished 并产生 **117357 bytes / 14.664 秒** MP3；全音频解码通过。旧版同段取自原音频实测词边界，保留为对比样音。文件及不含密钥的回执在 `out/muse-voice-comparison/`；试听效果由实际听感判断。原任务保持 revision 3 / NEEDS_INPUT / voice，样音没有替换原视频或人工对齐结果。
+
+本轮全量 **363 Python、63 React 测试通过**，Ruff、契约一致性、React typecheck/build 通过。覆盖实际请求字段、默认兼容、风格与语速缓存失效、配置快照、UNKNOWN 屏障、指导转发、原文保留、复用及关闭服务后导入音频。确认无活动命令后刷新 API/worker；首页 HTTP 200，worker 心跳正常，公开设置不含原始 API Key。
+
 ## 素材节点优先与跨平台研究更新
 
 起点调整为 `START → materials → screenwriter`。新增独立素材模型配置（Codex CLI / Claude Code CLI），角色总数七个。素材节点采集来源正文、真实图片和网页截图，冻结研究包后交给编剧；导演同时读取出处、说明和知识摘录匹配素材。编剧自身的采集逻辑已移除，文案讨论和人工审核继续保留。完整 **32 项平台目录**、配置、数据交接与素材人工审核示例见 [素材节点](videoagents-materials.md)。

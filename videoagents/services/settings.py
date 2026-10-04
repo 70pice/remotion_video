@@ -93,6 +93,7 @@ class SettingsService:
         settings = self.internal()
         from videoagents.providers.cli_runner import cli_availability
         from videoagents.tools.research import platform_catalog
+        from videoagents.tools.research_skills import research_skill_catalog
         result = {key: settings[key] for key in DEFAULT_SETTINGS}
         tools = platform_catalog(settings)
         result.update({
@@ -103,6 +104,7 @@ class SettingsService:
                 settings.get("search_provider") == "tavily" or (
                     settings.get("search_provider") == "google_cse" and bool(settings.get("google_search_engine_id")))),
             "research_tools": tools,
+            "research_skills": research_skill_catalog(),
             "voice_api_key_configured": bool(settings.get("voice_api_key")),
             "voice_access_token_configured": bool(settings.get("voice_access_token")),
             "voice_configured": settings.get("voice_provider") in {"byte_http", "byte_ws"}

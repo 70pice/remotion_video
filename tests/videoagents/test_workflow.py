@@ -27,6 +27,19 @@ def _tone(seconds=2):
     return output.getvalue()
 
 
+def _seed_completed_research(repo: Repository, service: JobService, job) -> None:
+    current = repo.get_job(job.job_id)
+    if any(item.kind == "research" and item.revision == current.revision for item in current.artifacts):
+        return
+    service.write_json(current, "research.json", {
+        "schema_version": "3",
+        "status": "COMPLETED",
+        "sources": [],
+        "visuals": [],
+        "limitations": ["UNIT TEST：下游流程测试夹具，素材节点研究结果已显式冻结为空。"],
+    }, "research")
+
+
 @pytest.fixture
 def manual_job(tmp_path):
     repo = Repository(tmp_path / "runtime")
@@ -35,10 +48,12 @@ def manual_job(tmp_path):
                                 width=240, height=426, fps=15, usage="personal", platform="测试平台"))
     alignment = {"origin": "manual", "verified": True, "segments": [{"segment_id": "s1", "text": "观点：测试流程。", "start_ms": 0, "end_ms": 1800}]}
     asset = service.upload(job.job_id, _tone(), "test-tone.wav", "audio", license_note="自有测试音，仅用于自动化测试", alignment=alignment)
+    _seed_completed_research(repo, service, repo.get_job(job.job_id))
     return repo, service, repo.get_job(job.job_id), asset
 
 
 def enqueue(repo, job, action="produce", key="first-command"):
+    _seed_completed_research(repo, JobService(repo), job)
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": action, "idempotency_key": key})
     return repo.get_job(job.job_id)
 
@@ -117,6 +132,76 @@ def test_voice_role_advice_preserves_narration_and_actual_alignment(manual_job, 
     assert "UNIT TEST" in repo.artifact_path(guidance.artifact_id)[0].read_text(encoding="utf-8")
 
 
+@pytest.mark.parametrize("voice_model", ["seed-tts-2.0-standard", "seed-tts-2.0-expressive"])
+def test_new_voice_synthesis_applies_guidance_only_to_supported_model(manual_job, monkeypatch, voice_model):
+    from videoagents.nodes.voice import VoiceNode
+    from videoagents.services.settings import voice_fingerprint
+
+    repo, service, job, _ = manual_job
+    narration = job.brief.script_text
+    job = repo.update_job(job.job_id, script=Script(title="TEST voice guidance", origin="user", revision=job.revision,
+        segments=[ScriptSegment(segment_id="s1", narration=narration)]))
+    SettingsService(repo).patch(SettingsPatch(voice_provider="byte_ws", voice_api_key="UNIT-secret", voice_id="S_UNIT",
+        voice_resource_id="seed-icl-2.0", voice_model=voice_model))
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.available", lambda *a: True)
+    notes = ["问题带好奇，重点加重。", "句间自然停顿。"]
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", lambda *a, **k: {
+        "delivery_notes": notes, "pronunciation_notes": [], "findings": []})
+    path = repo.root / "UNIT-guidance-test-tone.wav"
+    path.write_bytes(_tone())
+    calls = []
+
+    def provider(repository, job_id, revision, text, command_id, **options):
+        calls.append((text, options))
+        return {"path": str(path), "origin": "byte_ws", "voice_fingerprint": voice_fingerprint(SettingsService(repo).internal()),
+            "voice_model": voice_model, "voice_style": options.get("delivery_style", ""), "voice_speech_rate": 0,
+            "sentences": [{"words": [{"word": text, "startTime": 0, "endTime": 1.8}]}]}
+
+    monkeypatch.setattr("videoagents.nodes.voice.synthesize", provider)
+    audio, alignment, _ = VoiceNode(repo, service).prepare_audio(job, "UNIT-guidance-command", prefer_generation=True)
+    assert len(calls) == 1 and calls[0][0] == narration
+    assert ("delivery_style" in calls[0][1]) == voice_model.endswith("expressive")
+    if voice_model.endswith("expressive"):
+        assert calls[0][1]["delivery_style"] == "\n".join(notes)
+    assert alignment.segments[0].text == narration and repo.get_job(job.job_id).script.segments[0].narration == narration
+    assert repo.asset_metadata(audio.asset_id)["voice_model"] == voice_model
+
+
+def test_matching_expressive_audio_is_reused_when_advice_changes(manual_job, monkeypatch):
+    from videoagents.nodes.voice import VoiceNode
+    from videoagents.services.settings import voice_fingerprint
+    from videoagents.storage.repository import fingerprint
+
+    repo, service, job, audio = manual_job
+    job = repo.update_job(job.job_id, script=Script(title="TEST reuse", origin="user", revision=job.revision,
+        segments=[ScriptSegment(segment_id="s1", narration=job.brief.script_text)]))
+    SettingsService(repo).patch(SettingsPatch(voice_provider="byte_ws", voice_api_key="UNIT-secret", voice_id="S_UNIT",
+        voice_resource_id="seed-icl-2.0", voice_model="seed-tts-2.0-expressive", voice_style="面对观众自然讲解。"))
+    repo.update_asset_metadata(audio.asset_id, {**repo.asset_metadata(audio.asset_id), "origin": "byte_ws",
+        "voice_fingerprint": voice_fingerprint(SettingsService(repo).internal()),
+        "script_fingerprint": fingerprint([{"segment_id": s.segment_id, "narration": s.narration} for s in job.script.segments])})
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.available", lambda *a: True)
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", lambda *a, **k: {
+        "delivery_notes": ["UNIT：新增朗读建议不应让恢复流程重复合成。"], "pronunciation_notes": [], "findings": []})
+    monkeypatch.setattr("videoagents.nodes.voice.synthesize", lambda *a, **k: pytest.fail("matching audio was synthesized again"))
+    selected, alignment, duration = VoiceNode(repo, service).prepare_audio(job, "UNIT-reuse-command")
+    assert selected.asset_id == audio.asset_id and alignment.verified and duration == pytest.approx(2)
+
+
+def test_imported_audio_can_be_used_after_disabling_expressive_service(manual_job, monkeypatch):
+    from videoagents.nodes.voice import VoiceNode
+
+    repo, service, job, audio = manual_job
+    job = repo.update_job(job.job_id, script=Script(title="TEST imported audio", origin="user", revision=job.revision,
+        segments=[ScriptSegment(segment_id="s1", narration=job.brief.script_text)]))
+    # 关闭服务保留风格设置，不能因此拒绝用户导入的真实音频和对齐记录。
+    SettingsService(repo).patch(SettingsPatch(voice_provider="none", voice_model="seed-tts-2.0-expressive", voice_style="自然演讲。"))
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.available", lambda *a: False)
+    monkeypatch.setattr("videoagents.nodes.voice.synthesize", lambda *a, **k: pytest.fail("imported audio unexpectedly reached synthesis"))
+    selected, alignment, _ = VoiceNode(repo, service).prepare_audio(job)
+    assert selected.asset_id == audio.asset_id and alignment.verified
+
+
 @pytest.mark.parametrize("invalid", [False, True])
 def test_voice_model_blocking_or_rewritten_output_cannot_reach_audio_execution(manual_job, monkeypatch, invalid):
     repo, service, job, _ = manual_job
@@ -193,13 +278,13 @@ def test_editing_model_unknown_is_a_real_persisted_interrupt(manual_job, monkeyp
 
 def install_isolated_review_doubles(monkeypatch):
     """No real media claim: these doubles test state transitions/fault windows only."""
-    def edit(self, job, mode):
+    def edit(self, job, mode, state=None):
         path = self.repo.root / (job.job_id + "-synthetic-render-unit-test.mp4")
         path.write_bytes(b"synthetic-render-unit-test-not-a-production-video")
         artifact = self.service.register_artifact(job, path, "final", "video/mp4")
         self.repo.update_artifact_metadata(artifact.artifact_id, {"dependency_fingerprint": dependency_fingerprint(job)})
         self.service.append_artifact(job.job_id, artifact, job.revision)
-    def review(self, job, human_confirmed=False, model_review=True):
+    def review(self, job, human_confirmed=False, model_review=True, state=None):
         final = next(item for item in job.artifacts if item.kind == "final")
         return Review(status="PASS" if human_confirmed else "NEEDS_HUMAN", findings=[] if human_confirmed else [Finding(
             finding_id="unit-human", severity="warning", category="human_full_review", owner="user", blocking=True, message="UNIT TEST DOUBLE: verify simulated transition")],

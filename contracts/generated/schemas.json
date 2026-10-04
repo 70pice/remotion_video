@@ -1210,37 +1210,137 @@
       "title": "Job",
       "type": "object"
     },
-    "MaterialPlan": {
+    "MaterialSourceFile": {
       "additionalProperties": false,
-      "description": "素材模型只规划检索问题，不能在采集前生成事实或虚构图片。",
+      "description": "技能读取的真实正文；文件和散列由素材节点再次核验。",
       "properties": {
-        "query": {
-          "maxLength": 2000,
+        "url": {
+          "maxLength": 4000,
           "minLength": 1,
-          "title": "Query",
+          "title": "Url",
           "type": "string"
         },
-        "focus_notes": {
+        "title": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "platform": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Platform",
+          "type": "string"
+        },
+        "text_file": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Text File",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "title",
+        "platform",
+        "text_file",
+        "sha256"
+      ],
+      "title": "MaterialSourceFile",
+      "type": "object"
+    },
+    "MaterialVisualFile": {
+      "additionalProperties": false,
+      "description": "实际下载的原图或截图，必须关联已读取的来源。",
+      "properties": {
+        "source_url": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Source Url",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "image",
+            "screenshot"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "file": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "File",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "image_url": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Image Url",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_url",
+        "kind",
+        "file",
+        "sha256",
+        "description"
+      ],
+      "title": "MaterialVisualFile",
+      "type": "object"
+    },
+    "MaterialResearch": {
+      "additionalProperties": false,
+      "description": "素材 Agent 的最终清单，不包含原始工具对话。",
+      "properties": {
+        "sources": {
           "items": {
-            "type": "string"
+            "$ref": "#/$defs/MaterialSourceFile"
           },
-          "maxItems": 10,
-          "title": "Focus Notes",
+          "maxItems": 30,
+          "title": "Sources",
           "type": "array"
         },
-        "ambiguities": {
+        "visuals": {
+          "items": {
+            "$ref": "#/$defs/MaterialVisualFile"
+          },
+          "maxItems": 20,
+          "title": "Visuals",
+          "type": "array"
+        },
+        "limitations": {
           "items": {
             "type": "string"
           },
-          "maxItems": 10,
-          "title": "Ambiguities",
+          "maxItems": 40,
+          "title": "Limitations",
           "type": "array"
         }
       },
       "required": [
-        "query"
+        "sources",
+        "visuals",
+        "limitations"
       ],
-      "title": "MaterialPlan",
+      "title": "MaterialResearch",
       "type": "object"
     },
     "ModelChoice": {

@@ -1,16 +1,18 @@
 """Real subprocess protocol fixtures; never invoke a model or use credentials."""
 
+import json
 import os
 import sys
 
 import pytest
 
-from videoagents.contracts import SettingsPatch
+from videoagents.contracts import MaterialResearch, SettingsPatch
 from videoagents.providers import cli_runner
 from videoagents.providers.cli_runner import CliFailure, CliResult, build_arguments, run_cli
 from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.settings import SettingsService
 from videoagents.storage import Repository
+from videoagents.storage.repository import fingerprint
 
 
 def fixture_cli(tmp_path, monkeypatch, code):
@@ -161,6 +163,16 @@ def test_argument_isolation_and_windows_shim_resolution(tmp_path, monkeypatch):
     assert claude[claude.index("--tools") + 1] == ""
     assert "--strict-mcp-config" in claude and "--no-session-persistence" in claude
     assert "--bare" not in claude and "--model" not in claude
+    research = build_arguments("codex_cli", ["exe"], "", tmp_path, schema, research=True)
+    assert research[:4] == ["exe", "-a", "never", "exec"]
+    assert research[research.index("--sandbox") + 1] == "workspace-write"
+    assert "--ephemeral" not in research
+    assert "--ignore-user-config" in research
+    assert 'windows.sandbox="unelevated"' in research
+    assert "sandbox_workspace_write.network_access=true" in research
+    assert 'web_search="live"' in research
+    assert "shell_tool" not in research and "skill_search" not in research
+    assert "multi_agent" in research and "plugins" in research
     if os.name == "nt":
         shim = tmp_path / "codex.cmd"
         shim.write_text("this shell content must never execute")
@@ -172,6 +184,60 @@ def test_argument_isolation_and_windows_shim_resolution(tmp_path, monkeypatch):
         assert cli_runner.executable_prefix("codex_cli") == ["node.exe", str(entry)]
         entry.unlink()
         assert cli_runner.executable_prefix("codex_cli") is None
+
+
+def test_codex_research_mode_allows_tool_events_and_writes_sanitized_audit(tmp_path, monkeypatch):
+    code = "from pathlib import Path\nPath('research-note.txt').write_text('kept workspace file', encoding='utf-8')\n"
+    code += "print(json.dumps({'type':'item.started','item':{'type':'command_execution','status':'running','command':'secret command text'}}))\n"
+    code += "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':'progress only'}}))\n"
+    code += "print(json.dumps({'type':'item.completed','item':{'type':'web_search','status':'completed','query':'secret query'}}))\n"
+    code += "value={'response_json':json.dumps({'text':'final research'})}\n"
+    code += "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(value)}}))\n"
+    code += "print(json.dumps({'type':'turn.completed','usage':{'output_tokens':2}}))\n"
+    fixture_cli(tmp_path, monkeypatch, code)
+    workspace = tmp_path / "research-workspace"
+    audit = tmp_path / "audit" / "events.jsonl"
+    result = run_cli("codex_cli", "", 5, "fixture", {"type": "object"},
+                     research_directory=workspace, audit_path=audit)
+    assert result == CliResult({"text": "final research"}, {"output_tokens": 2})
+    assert (workspace / "research-note.txt").read_text(encoding="utf-8") == "kept workspace file"
+    audit_text = audit.read_text(encoding="utf-8")
+    assert "command_execution" in audit_text and "web_search" in audit_text
+    assert "secret" not in audit_text and "output_tokens" not in audit_text
+
+
+def test_codex_research_mode_requires_last_agent_message_to_be_structured(tmp_path, monkeypatch):
+    code = "value={'response_json':json.dumps({'text':'not final'})}\n"
+    code += "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(value)}}))\n"
+    code += "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':'progress after final'}}))\n"
+    code += "print(json.dumps({'type':'turn.completed'}))\n"
+    fixture_cli(tmp_path, monkeypatch, code)
+    with pytest.raises(CliFailure, match="invalid_cli_output"):
+        run_cli("codex_cli", "", 5, "fixture", {"type": "object"}, research_directory=tmp_path / "research")
+
+
+def test_research_mode_prepends_user_local_bin_without_changing_plain_mode(tmp_path, monkeypatch):
+    local_bin = tmp_path / "home" / ".local" / "bin"
+    local_bin.mkdir(parents=True)
+    monkeypatch.setattr(cli_runner.Path, "home", lambda: tmp_path / "home")
+    monkeypatch.setenv("CODEX_PERMISSION_PROFILE", ":danger-full-access")
+    fixture_cli(tmp_path, monkeypatch,
+                "import os\n"
+                "value={'response_json':json.dumps({'path':os.environ.get('PATH',''),"
+                "'pythonutf8':os.environ.get('PYTHONUTF8',''),"
+                "'pythonioencoding':os.environ.get('PYTHONIOENCODING',''),"
+                "'permission_profile':os.environ.get('CODEX_PERMISSION_PROFILE','')})}\n"
+                "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(value)}}))\n"
+                "print(json.dumps({'type':'turn.completed'}))\n")
+    plain = run_cli("codex_cli", "", 5, "fixture", {"type": "object"}).data
+    research = run_cli("codex_cli", "", 5, "fixture", {"type": "object"},
+                       research_directory=tmp_path / "research").data
+    assert not plain["path"].startswith(str(local_bin) + os.pathsep)
+    assert research["path"].startswith(str(local_bin) + os.pathsep)
+    assert research["pythonutf8"] == "1"
+    assert research["pythonioencoding"] == "utf-8"
+    assert plain["permission_profile"] == ":danger-full-access"
+    assert research["permission_profile"] == ""
 
 
 def test_role_routes_and_unknown_survives_provider_change(tmp_path, monkeypatch):
@@ -199,6 +265,86 @@ def test_role_routes_and_unknown_survives_provider_change(tmp_path, monkeypatch)
     with pytest.raises(CapabilityMissing) as repeat:
         model.call("fixture-job", 1, "screenwriter", "changed", {}, "new-command")
     assert repeat.value.operation_id == first.value.operation_id and len(calls) == 6
+
+
+def test_plain_mode_reuses_legacy_completed_operation_hash_without_mode(tmp_path, monkeypatch):
+    repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(role_models={"screenwriter": {
+        "enabled": True, "provider": "codex_cli", "model": "legacy-model",
+    }}))
+    legacy_hash = fingerprint({"revision": 1, "provider": "codex_cli", "model": "legacy-model",
+                               "instruction": "JSON only", "schema": {"type": "object"}, "context": {}})
+    operation = repo.start_operation("fixture-job", legacy_hash, "llm:screenwriter", {"revision": 1})
+    repo.finish_operation(operation["operation_id"], "COMPLETED", {"result": {"text": "legacy result"}})
+    monkeypatch.setattr("videoagents.providers.llm.run_cli", lambda *args, **kwargs: pytest.fail("legacy result should replay"))
+    assert JsonModel(repo).call("fixture-job", 1, "screenwriter", "JSON only", {}, "command-a") == {"text": "legacy result"}
+
+
+def test_materials_research_uses_codex_tools_without_persisting_workspace_in_operation(tmp_path, monkeypatch):
+    repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(
+        search_provider="opencli_google",
+        research_platforms=["web", "reddit"],
+        role_models={"materials": {"enabled": True, "provider": "codex_cli", "model": "unit-research"}},
+    ))
+    monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *args: ["fixture-cli"])
+    calls = []
+
+    def transport(provider, model, timeout, prompt, schema, **kwargs):
+        calls.append((provider, model, prompt, kwargs))
+        assert schema["title"] == "MaterialResearch" and "plan" not in schema["properties"]
+        return CliResult({"sources": [], "visuals": [], "limitations": ["unit gap"]})
+
+    monkeypatch.setattr("videoagents.providers.llm.run_cli", transport)
+    state = {
+        "job_id": "fixture-job",
+        "revision": 1,
+        "settings": {
+            "research_skills": [{"name": "agent-reach", "path": "C:/unit/agent-reach", "installed": True}],
+            "search_provider": "opencli_google",
+            "research_platforms": ["web", "reddit"],
+            "research_max_searches": 8,
+            "research_max_sources": 12,
+            "research_download_images": True,
+            "search_api_key": "UNIT-secret",
+            "voice_api_key": "UNIT-voice-secret",
+            "voice_style": "不要给素材看",
+        },
+    }
+    workspace = tmp_path / "workspace-a"
+    audit = tmp_path / "audit-a.jsonl"
+    result = JsonModel(repo).invoke(state, "materials", "固定素材 Prompt", fields=("settings",),
+                                   output_schema=MaterialResearch.model_json_schema(),
+                                   command_id="command-a", research_directory=workspace,
+                                   audit_path=audit)
+    assert result == {"sources": [], "visuals": [], "limitations": ["unit gap"]}
+    provider, model, prompt, kwargs = calls[0]
+    assert (provider, model) == ("codex_cli", "unit-research")
+    assert kwargs["research_directory"] == workspace and kwargs["audit_path"] == audit
+    assert "opencli_google" in prompt and "reddit" in prompt and "agent-reach" in prompt
+    assert "UNIT-secret" not in prompt and "不要给素材看" not in prompt
+    with repo.connection() as db:
+        status, body = db.execute("SELECT status,body FROM operations").fetchone()
+    assert status == "COMPLETED"
+    ledger = json.loads(body)
+    assert ledger["mode"] == "research" and ledger["result"]["limitations"] == ["unit gap"]
+    assert str(workspace) not in body and str(audit) not in body
+
+
+def test_research_mode_is_limited_to_materials_codex(tmp_path, monkeypatch):
+    repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(role_models={
+        "materials": {"enabled": True, "provider": "claude_code_cli"},
+        "screenwriter": {"enabled": True, "provider": "codex_cli"},
+    }))
+    monkeypatch.setattr("videoagents.providers.llm.run_cli", lambda *args, **kwargs: pytest.fail("transport should not launch"))
+    model = JsonModel(repo)
+    with pytest.raises(CapabilityMissing, match="工具研究模式仅支持素材角色使用 Codex CLI"):
+        model.call("fixture-job", 1, "materials", "test", {}, "command", research_directory=tmp_path / "r1")
+    with pytest.raises(CapabilityMissing, match="工具研究模式仅支持素材角色使用 Codex CLI"):
+        model.call("fixture-job", 1, "screenwriter", "test", {}, "command", research_directory=tmp_path / "r2")
+    with repo.connection() as db:
+        assert db.execute("SELECT COUNT(*) FROM operations").fetchone()[0] == 0
 
 
 def test_missing_cli_does_not_reserve_paid_submission(tmp_path, monkeypatch):

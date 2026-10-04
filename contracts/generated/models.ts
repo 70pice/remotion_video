@@ -119,10 +119,27 @@ export interface Job {
   latest_event_id: number;
 }
 
-export interface MaterialPlan {
-  query: string;
-  focus_notes: Array<string>;
-  ambiguities: Array<string>;
+export interface MaterialResearch {
+  sources: Array<MaterialSourceFile>;
+  visuals: Array<MaterialVisualFile>;
+  limitations: Array<string>;
+}
+
+export interface MaterialSourceFile {
+  url: string;
+  title: string;
+  platform: string;
+  text_file: string;
+  sha256: string;
+}
+
+export interface MaterialVisualFile {
+  source_url: string;
+  kind: "image" | "screenshot";
+  file: string;
+  sha256: string;
+  image_url: string;
+  description: string;
 }
 
 export interface ModelCatalog {

@@ -51,6 +51,13 @@ def _job(tmp_path, *, evidence: bool = True, text: str = "事实：这条文案�
                       source_url=SOURCE_URL, license_note="UNIT TEST", artifact_id=artifact.artifact_id,
                       url=artifact.url, timeline_src=f"videoagents/{job.job_id}/assets/unit-evidence.png")
         job = repo.update_job(job.job_id, job.revision, assets=[asset], artifacts=[artifact])
+    service.write_json(repo.get_job(job.job_id), "research.json", {
+        "schema_version": "3",
+        "status": "COMPLETED",
+        "sources": [{"url": SOURCE_URL, "title": "UNIT source", "text": "unit source text", "asset_ids": []}],
+        "visuals": [{"asset_id": "asset-evidence", "source_url": SOURCE_URL}] if evidence else [],
+        "limitations": [],
+    }, "research")
     return repo, service, repo.get_job(job.job_id)
 
 
@@ -115,6 +122,7 @@ def test_script_discussion_revise_then_approve_updates_script_and_history(monkey
 
     def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
         calls.append((role, context))
+        assert set(context) == {"brief", "script", "script_discussion", "research", "assets"}
         if role == "script_reviewer" and len(calls) == 1:
             return _critique("REVISE")
         if role == "screenwriter":
@@ -123,8 +131,9 @@ def test_script_discussion_revise_then_approve_updates_script_and_history(monkey
             assert "不能只写“我建议”" in instruction
             return _rewrite()
         if role == "script_reviewer":
-            assert context["writer_response"] == "已按审查意见重写开头，并保留原始来源。"
-            assert context["draft"]["segments"][0]["narration"] == "事实：改成更有冲击力的开头。"
+            turn = context["script_discussion"]["rounds"][-1]
+            assert turn["response"] == "已按审查意见重写开头，并保留原始来源。"
+            assert turn["script"]["segments"][0]["narration"] == "事实：改成更有冲击力的开头。"
             return _critique("APPROVE")
         raise AssertionError(role)
 
@@ -191,12 +200,6 @@ def test_missing_reviewer_model_pauses_and_resume_reuses_saved_draft(monkeypatch
 def test_first_writer_pause_freezes_discussion_policy_before_settings_change(monkeypatch, tmp_path):
     repo, service, job = _job(tmp_path, text="")
     _enable_discussion(repo, screenwriter=False, reviewer=True)
-
-    def fetch_source(url, path):
-        path.write_text("unit source text", encoding="utf-8")
-        return {"url": url, "title": "UNIT source", "retrieved_at": "unit", "text": "unit source text"}
-
-    monkeypatch.setattr("videoagents.nodes.materials.fetch_source", fetch_source)
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "produce", "idempotency_key": "writer-missing"})
 
     assert Worker(repo, service.project_root).once()
@@ -262,9 +265,10 @@ def test_reviewer_schema_and_instruction_use_only_current_draft_ids(monkeypatch,
 
     assert len(calls) == 1 and calls[0][0] == "script_reviewer"
     _, instruction, context, schema = calls[0]
-    assert [item["segment_id"] for item in context["draft"]["segments"]] == segment_ids
+    draft = context["script_discussion"]["rounds"][-1]["script"]
+    assert [item["segment_id"] for item in draft["segments"]] == segment_ids
     assert schema["$defs"]["ScriptCritiqueIssue"]["properties"]["segment_id"]["enum"] == ["", *segment_ids]
-    assert "draft.segments" in instruction and "逐字" in instruction
+    assert "script_discussion.rounds[-1].script.segments" in instruction and "逐字" in instruction
     assert "全稿问题使用空字符串" in instruction and "不得使用范围" in instruction and "新 ID" in instruction
     # Each call narrows its own transport schema, without changing the shared contract.
     assert "enum" not in ScriptCritique.model_json_schema()["$defs"]["ScriptCritiqueIssue"]["properties"]["segment_id"]
@@ -428,12 +432,6 @@ def test_model_approval_cannot_bypass_source_gate(monkeypatch, tmp_path):
     repo, service, job = _job(tmp_path, evidence=False)
     job.brief.source_urls = [SOURCE_URL]
     repo.update_job(job.job_id, job.revision, brief=job.brief)
-
-    def fetch_source(url, path):
-        path.write_text("unit source text", encoding="utf-8")
-        return {"url": url, "title": "UNIT source", "retrieved_at": "unit", "text": "unit source text"}
-
-    monkeypatch.setattr("videoagents.nodes.materials.fetch_source", fetch_source)
     _enable_discussion(repo)
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", lambda *a, **k: _critique("APPROVE"))
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "produce", "idempotency_key": "source-gate"})
@@ -588,7 +586,7 @@ def test_automatic_rewrite_removes_old_media_and_reports_from_current_job(monkey
     def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
         if role == "screenwriter":
             return _rewrite()
-        reviews.append(context["draft"])
+        reviews.append(context["script_discussion"]["rounds"][-1]["script"])
         current_kinds = {item.kind for item in repo.get_job(job_id).artifacts}
         if len(reviews) == 1:
             assert obsolete <= current_kinds  # Unchanged initial draft keeps valid media.
