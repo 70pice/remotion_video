@@ -3,7 +3,7 @@
 本次保留一个 `videoagents/nodes/` 目录，对照 TradingAgents 的 Agent → 最终报告 → 清理阶段消息 → 下一 Agent 方式整理模型节点。无工具的角色继续直接调用模型，素材工具由应用执行。
 
 1. 先运行现有上下文、素材、讨论、配音和导演回归，保护版本校验、取消、来源冻结、人工恢复与实测时间轴。
-2. 每个模型节点顶部固定 `PROMPT`（编剧另有 `REWRITE_PROMPT`）；模型输入统一经 `JsonModel.invoke(state, role, prompt, fields=...)` 从共享 `VideoState` 选择最终业务字段。保留 CLI 提交去重与未知结果保护。
+2. 每个模型角色从 `videoagents/prompts/*.md` 加载固定 `PROMPT`（编剧另有 `REWRITE_PROMPT`）；模型输入统一经 `JsonModel.invoke(state, role, prompt, fields=...)` 从共享 `VideoState` 选择最终业务字段。保留 CLI 提交去重与未知结果保护。
 3. 正常交接与 checkpoint 恢复统一投影最终研究包、媒体元信息；不传递平台工具调用、搜索步骤、原始供应商事件和操作台账。原始记录仍保存在审计文件/数据库，来源正文与出处仍作为最终证据传递。
 4. 不增加第二套 Agent 抽象或无实际工具循环的空消息节点。节点返回最终产物时即清理交接上下文；讨论历史只保留每轮最终稿件、审查意见与回应。
 5. Settings 用倍速显示语速，提供自然、演讲、热情、严肃和自定义情感风格；保存为现有接口参数，不改变已保存配置或默认倍速。

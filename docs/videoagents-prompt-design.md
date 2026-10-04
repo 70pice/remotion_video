@@ -12,18 +12,29 @@
 
 ## 固定 Prompt 的组成与位置
 
-每个 Prompt 包含：角色目标、可读取输入、具体判断方法、不能越过的事实或执行边界、交付验收标准、现有 JSON 契约。编剧的初稿和改稿共享同一个 `NARRATIVE_PROMPT`，避免初稿重视叙事，改稿只会修格式。
+每个 Prompt 包含：角色目标、可读取输入、具体判断方法、不能越过的事实或执行边界、交付验收标准、现有 JSON 契约。编剧的初稿和改稿共享同一个叙事标准（[screenwriter.md](../videoagents/prompts/screenwriter.md)），避免初稿重视叙事，改稿只会修格式。
 
-创作标准写在节点文件里，方便直接修改，不新增 agent 文件夹，也不把 Prompt 藏在模型供应商层。运行时用户要求通过当前节点实际读取的业务字段传入；没有提供的意见不能假装已经收到。
+创作标准现在以独立 Markdown 存放在 [videoagents/prompts/](../videoagents/prompts/)，每个角色一个文件，节点里只保留同名的 `PROMPT` 常量。这样调 Prompt 不需要读节点代码，也能在编辑器里直接 Review diff。不新增 agent 文件夹，也不把 Prompt 藏在模型供应商层。运行时用户要求通过当前节点实际读取的业务字段传入；没有提供的意见不能假装已经收到。
 
-| 节点 | 本次模型读取的业务输入 | 最终产出 | Prompt 入口 |
+| 节点 | 本次模型读取的业务输入 | 最终产出 | Prompt 文件 |
 | --- | --- | --- | --- |
-| 素材 | brief、assets、settings 中的检索配置 | MaterialResearch；实际正文、图片和截图经校验后进入研究与资产清单 | [materials.py](../videoagents/nodes/materials.py) 的 PROMPT |
-| 编剧 | brief、research、assets；讨论改稿再读取 script、script_discussion | Script；改稿为 ScriptRewrite，包括完整 script 和 response | [screenwriter.py](../videoagents/nodes/screenwriter.py) 的 NARRATIVE_PROMPT、PROMPT、REWRITE_PROMPT |
-| 文案审查 | brief、script、script_discussion、research、assets | ScriptCritique：APPROVE 或带具体意见的 REVISE | [script_reviewer.py](../videoagents/nodes/script_reviewer.py) 的 PROMPT |
-| 配音指导 | brief、script、settings 中的声音配置 | VoiceAdvice；其后实际调用语音服务并进行时间对齐 | [voice.py](../videoagents/nodes/voice.py) 的 PROMPT |
-| 导演 | brief、script、实测 timeline、research、assets、asset_metadata | 完整 Timeline | [director.py](../videoagents/nodes/director.py) 的 PROMPT |
-| 剪辑指导 | brief、script、timeline、assets、action | EditingAdvice；通过预检后 Remotion 按既有 Timeline 渲染 | [editing.py](../videoagents/nodes/editing.py) 的 PROMPT |
+| 素材 | brief、assets、settings 中的检索配置 | MaterialResearch；实际正文、图片和截图经校验后进入研究与资产清单 | [materials.md](../videoagents/prompts/materials.md) |
+| 编剧 | brief、research、assets；讨论改稿再读取 script、script_discussion | Script；改稿为 ScriptRewrite，包括完整 script 和 response | [screenwriter.md](../videoagents/prompts/screenwriter.md)、[screenwriter-draft.md](../videoagents/prompts/screenwriter-draft.md)、[screenwriter-rewrite.md](../videoagents/prompts/screenwriter-rewrite.md) |
+| 文案审查 | brief、script、script_discussion、research、assets | ScriptCritique：APPROVE 或带具体意见的 REVISE | [script-reviewer.md](../videoagents/prompts/script-reviewer.md) |
+| 配音指导 | brief、script、settings 中的声音配置 | VoiceAdvice；其后实际调用语音服务并进行时间对齐 | [voice.md](../videoagents/prompts/voice.md) |
+| 导演 | brief、script、实测 timeline、research、assets、asset_metadata | 完整 Timeline | [director.md](../videoagents/prompts/director.md) |
+| 剪辑指导 | brief、script、timeline、assets、action | EditingAdvice；通过预检后 Remotion 按既有 Timeline 渲染 | [editing.md](../videoagents/prompts/editing.md) |
+| 成片复核 | brief、script、timeline、research、assets、reviews | ContentReviewAdvice | [review.md](../videoagents/prompts/review.md) |
+
+### 加载方式
+
+[prompts/__init__.py](../videoagents/prompts/__init__.py) 提供三个函数，节点调用方式和之前的内联常量完全一致：
+
+- `load_prompt(name)`：读取并缓存 `<name>.md`；文件名只允许小写字母、数字、连字符和下划线，拒绝路径穿越。
+- `compose(*names)`：把共享风格圣经与角色 Prompt 用空行拼接；`shared-style.md` 是所有创作节点共用的事实优先、强开头、一屏一意等标准。
+- `render(name, **variables)`：替换 `{{变量}}` 占位符，缺变量或给了用不上的变量都会报错，防止 Prompt 里残留字面花括号。目前只有导演 Prompt 使用，注入 `COMPONENT_PROPS_EXAMPLES` 的紧凑 JSON。
+
+Markdown 位于包目录内，wheel 会原样带上 `videoagents/prompts/*.md`（已用 hatchling 实际构建并核对包内文件清单）。[tests/videoagents/test_prompts.py](../tests/videoagents/test_prompts.py) 覆盖：全部文件可加载、无孤立 Markdown、包数据可被 `importlib.resources` 读取、加载器安全校验、各节点常量不含未渲染占位符，以及契约依赖的关键措辞仍然存在。
 
 节点继续通过同一个 `VideoState` 交接最终业务内容，沿用工具记录清理和契约校验。此轮没有改节点顺序、调用方式、模型配置或数据结构。
 

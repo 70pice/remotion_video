@@ -3,7 +3,7 @@
 素材节点直接启动本机 Codex CLI 的检索技能完成研究。已按后续简化要求删除单独规划和固定工具模式，详见 [collect 简化计划](materials-collect-simplification-plan.md)。
 已有稿件或来源链接也作为模型输入；已冻结研究包继续复用。关闭素材模型或选择尚不支持研究的 Claude Code 时明确暂停并提示能力缺口。
 
-固定 Prompt 保存在 `videoagents/nodes/materials.py`。输入来自共享状态的 brief、assets 和不含密钥的检索设置。
+固定 Prompt 保存在 `videoagents/prompts/materials.md`，由 `videoagents/nodes/materials.py` 加载。输入来自共享状态的 brief、assets 和不含密钥的检索设置。
 Codex 在当前任务版本专属工作目录保存来源正文、原图或截图，最后返回带文件路径与 SHA256 的研究清单。
 Python 验证文件边界、大小、散列、来源和媒体内容后登记素材，冻结最终研究包。
 工具审计单独保存，不进入下一个 Agent 的共享状态。平台覆盖是尽力检索，登录、Key 和预算不足记录为缺口。

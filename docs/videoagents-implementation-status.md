@@ -6,7 +6,7 @@
 
 Settings 增加自然、演讲、热情、严肃和自定义情感风格，语速显示为 0.5～2.0 倍，1.2 / 1.3 / 1.4 对应现有接口参数 20 / 30 / 40；默认仍为 1 倍，保留已有风格。操作见 [配音设置](videoagents-voice-performance.md)。
 
-对照 TradingAgents 的最终报告交接及阶段消息清理方式，七个模型角色统一通过 `JsonModel.invoke(state, ..., fields=...)` 读取共享 state。固定 `PROMPT` 放在各自 `nodes/*.py` 顶部，编剧另有 `REWRITE_PROMPT`；不增加第二套 Agent 目录。素材交接只保留来源正文、出处、视觉素材、研究歧义和资料局限，工具调用、搜索过程及操作台账留在审计文件/数据库。讨论保留各轮最终稿件、意见和回应。恢复旧记录也经过同一清理，提交去重及 UNKNOWN 屏障继续有效。说明见 [节点入口](videoagents-nodes.md) 与 [共享上下文](videoagents-context.md)。
+对照 TradingAgents 的最终报告交接及阶段消息清理方式，七个模型角色统一通过 `JsonModel.invoke(state, ..., fields=...)` 读取共享 state。固定提示词放在 `videoagents/prompts/*.md`，节点顶部只组合成兼容的 `PROMPT` 常量，编剧另有 `REWRITE_PROMPT`；不增加第二套 Agent 目录。素材交接只保留来源正文、出处、视觉素材、研究歧义和资料局限，工具调用、搜索过程及操作台账留在审计文件/数据库。讨论保留各轮最终稿件、意见和回应。恢复旧记录也经过同一清理，提交去重及 UNKNOWN 屏障继续有效。说明见 [节点入口](videoagents-nodes.md) 与 [共享上下文](videoagents-context.md)。
 
 重构前 129 项相关回归通过；完成后全量 **371 Python、65 React 测试通过**。Ruff、Python 编译、根 TypeScript/lint、React typecheck/build、生成契约一致性与 diff 检查通过。新增覆盖共享输入、SQLite 交接、审计记录隔离、同一工具日志变化不重复提交、最终正文变化产生新请求、设置倍速和风格回读。独立只读审查没有阻断问题。
 

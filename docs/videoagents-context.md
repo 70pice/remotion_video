@@ -67,7 +67,7 @@ graph.add_edge("audience_analysis", "materials")
 
 ## Agent 的输入与最终输出
 
-所有调用大模型的角色都使用 `JsonModel.invoke(state, role, PROMPT, fields=...)`。`fields` 选择当前角色需要的最终业务字段，输入来自同一个 `VideoState`；不把 `Job`、查询连接、聊天消息或调用回执传给模型。固定 `PROMPT` 在对应 `nodes/*.py` 文件顶部，编剧改稿另有 `REWRITE_PROMPT`。
+所有调用大模型的角色都使用 `JsonModel.invoke(state, role, PROMPT, fields=...)`。`fields` 选择当前角色需要的最终业务字段，输入来自同一个 `VideoState`；不把 `Job`、查询连接、聊天消息或调用回执传给模型。固定提示词独立保存在 `videoagents/prompts/*.md`，对应 `nodes/*.py` 在导入时组合成兼容的 `PROMPT` 常量；编剧改稿另有 `REWRITE_PROMPT`。
 
 素材 → 编剧读取 `research`、`assets`；编剧 → 文案审查读取 `script`、`script_discussion`；审查 → 编剧读取最后一轮 `critique` 再改稿。讨论历史是各轮最终产物，因此保留。配音、导演、剪辑、成片审核同样从 state 选择业务输入，模型返回的最终 JSON 经契约校验、保存后再更新 state。
 

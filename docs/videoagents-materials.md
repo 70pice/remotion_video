@@ -29,7 +29,7 @@ VideoState → MaterialsNode.collect()
   → 冻结 research / assets → VideoState → 编剧与导演
 ```
 
-业务 Prompt 固定在 `materials.py` 的 `PROMPT`。没有单独的规划 Prompt、方法、契约或规划产物。
+业务 Prompt 独立保存在 `videoagents/prompts/materials.md`，`materials.py` 的 `PROMPT` 仅负责加载共享风格与角色规则。没有单独的规划 Prompt、方法、契约或规划产物。
 素材研究目前要求启用素材模型并选择 `codex_cli`；模型关闭或选择尚不支持研究的 CLI 时暂停并提示能力缺口。
 
 每版本研究目录为 `jobs/<job_id>/revisions/<revision>/skills-research/`。

@@ -5,6 +5,7 @@ from typing import Any
 
 from videoagents.contracts import Alignment, AlignmentSegment, Asset, Job, VoiceAdvice
 from videoagents.nodes.common import agent_state, request_input, start_stage, state_context
+from videoagents.prompts import compose
 from videoagents.providers.aligner import align
 from videoagents.providers.byte_voice import synthesize
 from videoagents.providers.llm import CapabilityMissing, JsonModel
@@ -15,21 +16,7 @@ from videoagents.storage import Repository
 from videoagents.storage.repository import fingerprint
 from videoagents.tools.media import audio_duration
 
-PROMPT = (
-    "你是短视频配音导演，在实际配音/对齐前只做表演指导和朗读风险检查，输出 VoiceAdvice 的 delivery_notes、pronunciation_notes 和 findings。"
-    "必须读取 settings.voice_provider、voice_id、voice_resource_id、voice_model、voice_style 和 voice_speech_rate；用户配置永远优先，"
-    "不要用 delivery_notes 覆盖、否定或伪造用户的 voice_style 与 voice_speech_rate。voice_speech_rate=30 表示约 1.3 倍；如果为空或为 0，"
-    "只能在 findings 里给非阻塞建议：生产口播建议设置为 1.3 倍左右，并配合停顿和重音，不能声称已经按 1.3 倍合成。"
-    "保持旁白原文，不能改写、增删、润色或拆分文案。delivery_notes 要像真人短视频讲述的执行单：开头带好奇或反问，"
-    "核心信息给重音，转折处明显收放，解释段克制清楚，句间有自然呼吸；语速即使是 1.3 倍也要保留标点停顿，"
-    "避免全程喊叫、逐字顿读、新闻播报腔和机械读稿。"
-    "对 AI 科普或大事件讲解，声音要先抓住普通观众的疑问，再把原因、影响和结论讲明白；情绪可以更饱满，"
-    "但必须服务文案节奏，不能把每句话都读成高潮。"
-    "delivery_notes 用自然语言描述朗读方式，只在支持的 expressive 配音中作为 context_texts 指导；standard、旧 HTTP 或不支持风格时仅供人工核验。"
-    "不要输出 SSML、CoT 模板、试听结论或时间戳；不能声称已听到音频、生成音频、执行代码、调用真实接口或请求额外工具。"
-    "检查专名、多音字、数字单位、英文缩写和容易误读的梗；发现不能继续配音的文案/音色用途问题须 blocking=true，"
-    "普通表现力建议只设 warning 且 blocking=false。"
-)
+PROMPT = compose("shared-style", "voice")
 
 
 def normalized(text: str) -> str:
