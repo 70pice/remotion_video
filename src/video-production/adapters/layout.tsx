@@ -1,7 +1,7 @@
 import {useMemo} from 'react';
 import type {CSSProperties, ReactNode} from 'react';
 import {interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
-import type {TimelineShot} from '../types';
+import type {TimelineShot, VideoMetadata} from '../types';
 
 export const productionFont = '"Microsoft YaHei", "Noto Sans SC", sans-serif';
 export const muted = '#A8B6CB';
@@ -9,7 +9,7 @@ export const panel = '#1B2940';
 export const white = '#F4F7FC';
 export const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} as const;
 
-export type AdapterProps = {shot: TimelineShot; durationInFrames: number};
+export type AdapterProps = {shot: TimelineShot; durationInFrames: number; videoMetadata?: Record<string, VideoMetadata>};
 
 export const useLayout = () => {
   const {width, height, fps, durationInFrames} = useVideoConfig();
@@ -18,9 +18,9 @@ export const useLayout = () => {
   const margin = 72 * unit;
   const contentWidth = width - margin * 2;
   // Reserve the subtitle and source regions even for a shot with no captions.
-  const contentHeight = height - (vertical ? 710 : 430) * unit;
-  const headerHeight = (vertical ? 280 : 170) * unit;
-  const bodyHeight = (vertical ? 210 : 120) * unit;
+  const contentHeight = height - (vertical ? 640 : 430) * unit;
+  const headerHeight = (vertical ? 260 : 170) * unit;
+  const bodyHeight = (vertical ? 180 : 120) * unit;
   return {width, height, fps, durationInFrames, unit, vertical, margin, contentWidth, contentHeight, headerHeight, bodyHeight};
 };
 
@@ -40,7 +40,7 @@ const fittedSize = (text: string, width: number, height: number, max: number, mi
     }
     return lines;
   };
-  for (let size = max; size >= min / 2; size -= Math.max(1, max / 80)) {
+  for (let size = max; size >= min; size -= Math.max(1, max / 80)) {
     if (countLines(size) * size * lineHeight <= height * 0.92) return size;
   }
   throw new Error('Text exceeds the safe area. Shorten this field or split it into more shots.');
@@ -69,6 +69,21 @@ export const Motion = ({children, delay = 0, style}: {children: ReactNode; delay
   const entrance = durationInFrames < Math.max(4, Math.round(fps * 0.25)) ? 1 :
     spring({frame: frame - adjustedDelay, fps, durationInFrames: entranceFrames, config: {damping: 200, stiffness: 140}});
   return <div style={{opacity: entrance, transform: `translateY(${(1 - entrance) * 26 * unit}px)`, ...style}}>{children}</div>;
+};
+
+export const CuedMotion = ({children, revealFrame, delay = 0, style}: {
+  children: ReactNode; revealFrame?: number; delay?: number; style?: CSSProperties;
+}) => {
+  const frame = useCurrentFrame();
+  const {fps, unit} = useLayout();
+  // Legacy content keeps its original entrance. Explicit cues are measured local
+  // frames: do not clamp them to the opening animation's short delay window.
+  if (revealFrame === undefined) return <Motion delay={delay} style={style}>{children}</Motion>;
+  const elapsed = frame - revealFrame;
+  const entrance = elapsed < 0 ? 0 : elapsed >= 14 ? 1 : spring({frame: elapsed, fps, durationInFrames: 15,
+    config: {damping: 200, stiffness: 140}});
+  return <div style={{...style, visibility: elapsed < 0 ? 'hidden' : 'visible', opacity: entrance,
+    transform: `translateY(${(1 - entrance) * 26 * unit}px)`}}>{children}</div>;
 };
 
 export const SceneHeader = ({shot}: {shot: TimelineShot}) => {

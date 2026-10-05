@@ -11,6 +11,24 @@ export function ShotPropsEditor({
   disabled: boolean;
 }) {
   const props = shot.props;
+  const setProp = (key: string, value: unknown) => {
+    const next = { ...props };
+    if (value === undefined) delete next[key];
+    else next[key] = value;
+    update(next);
+  };
+  const cueInput = (value: unknown, change: (value: number | undefined) => void) => (
+    <input
+      type="number"
+      min="0"
+      max={Math.max(0, shot.end_frame - shot.start_frame - 15)}
+      step="1"
+      value={String(value ?? "")}
+      placeholder="沿用开场动画"
+      disabled={disabled}
+      onChange={(event) => change(event.target.value === "" ? undefined : Number(event.target.value))}
+    />
+  );
   if (isCommunityComponent(shot.component_id))
     return (
       <small className="muted">
@@ -28,6 +46,34 @@ export function ShotPropsEditor({
       />
     </label>
   );
+  const cropFields = (crop: Record<string, number>, change: (crop: Record<string, number>) => void) => (
+    <div className="form-grid four-columns">
+      {[
+        ["x", "左边位置"],
+        ["y", "上边位置"],
+        ["width", "宽度"],
+        ["height", "高度"],
+      ].map(([key, label]) => (
+        <label key={key}>
+          {label}（0–1）
+          <input
+            type="number"
+            min="0"
+            max="1"
+            step="0.01"
+            value={crop[key]}
+            disabled={disabled}
+            onChange={(event) =>
+              change({
+                ...crop,
+                [key]: Number(event.target.value),
+              })
+            }
+          />
+        </label>
+      ))}
+    </div>
+  );
   if (shot.component_id === "title")
     return field("eyebrow", "标题上方短句", 48);
   if (shot.component_id === "keyword")
@@ -41,29 +87,116 @@ export function ShotPropsEditor({
         {field("right_title", "右侧标题", 48)}
         {field("left_body", "左侧内容", 160)}
         {field("right_body", "右侧内容", 160)}
+        <label>
+          右侧出现帧（镜头内，可留空）
+          {cueInput(props.right_reveal_frame, (value) => setProp("right_reveal_frame", value))}
+        </label>
       </div>
     );
-  if (shot.component_id === "image_focus")
+  if (shot.component_id === "image_focus") {
+    const crop = props.crop as Record<string, number> | undefined;
     return (
-      <div className="form-grid">
-        {["focal_x", "focal_y"].map((key, index) => (
-          <label key={key}>
-            {index ? "垂直聚焦位置" : "水平聚焦位置"}（0–1）
+      <div className="props-items">
+        <div className="form-grid">
+          {["focal_x", "focal_y"].map((key, index) => (
+            <label key={key}>
+              {index ? "垂直聚焦位置" : "水平聚焦位置"}（0–1）
+              <input
+                type="number"
+                min="0"
+                max="1"
+                step="0.01"
+                value={String(props[key] ?? 0.5)}
+                disabled={disabled}
+                onChange={(event) =>
+                  update({ ...props, [key]: Number(event.target.value) })
+                }
+              />
+            </label>
+          ))}
+        </div>
+        <label className="check-label">
+          <input
+            type="checkbox"
+            checked={Boolean(crop)}
+            disabled={disabled}
+            onChange={(event) => {
+              if (event.target.checked)
+                setProp("crop", { x: 0, y: 0, width: 1, height: 1 });
+              else setProp("crop", undefined);
+            }}
+          />
+          手动裁切图片区域
+        </label>
+        {crop && cropFields(crop, (next) => setProp("crop", next))}
+      </div>
+    );
+  }
+  if (shot.component_id === "video") {
+    const crop = props.crop as Record<string, number> | undefined;
+    return (
+      <div className="props-items">
+        <div className="form-grid">
+          <label>
+            视频起始秒
             <input
               type="number"
               min="0"
-              max="1"
               step="0.01"
-              value={String(props[key] ?? 0.5)}
+              value={String(props.start_seconds ?? 0)}
               disabled={disabled}
               onChange={(event) =>
-                update({ ...props, [key]: Number(event.target.value) })
+                setProp("start_seconds", Number(event.target.value))
               }
             />
           </label>
-        ))}
+          <label>
+            视频结束秒（可留空）
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={String(props.end_seconds ?? "")}
+              disabled={disabled}
+              onChange={(event) =>
+                setProp(
+                  "end_seconds",
+                  event.target.value === ""
+                    ? undefined
+                    : Number(event.target.value),
+                )
+              }
+            />
+          </label>
+          <label>
+            填充方式
+            <select
+              value={String(props.fit ?? "contain")}
+              disabled={disabled}
+              onChange={(event) => setProp("fit", event.target.value)}
+            >
+              <option value="contain">完整显示 contain</option>
+              <option value="cover">铺满裁切 cover</option>
+            </select>
+          </label>
+        </div>
+        <label className="check-label">
+          <input
+            type="checkbox"
+            checked={Boolean(crop)}
+            disabled={disabled}
+            onChange={(event) => {
+              if (event.target.checked)
+                setProp("crop", { x: 0, y: 0, width: 1, height: 1 });
+              else setProp("crop", undefined);
+            }}
+          />
+          手动设置视频裁剪框
+        </label>
+        {crop && cropFields(crop, (next) => setProp("crop", next))}
       </div>
     );
+  }
   if (shot.component_id === "evidence") {
     const highlight = props.highlight as Record<string, number> | undefined;
     return (
@@ -121,7 +254,7 @@ export function ShotPropsEditor({
     const isData = shot.component_id === "data";
     const items = (Array.isArray(props.items) ? props.items : []) as Record<
       string,
-      string
+      unknown
     >[];
     const fields = isData
       ? ([
@@ -135,6 +268,16 @@ export function ShotPropsEditor({
         ] as const);
     return (
       <div className="props-items">
+        {!isData && (
+          <label>
+            步骤布局
+            <select value={String(props.layout ?? "cards")} disabled={disabled}
+              onChange={(event) => setProp("layout", event.target.value === "cards" ? undefined : event.target.value)}>
+              <option value="cards">步骤卡片</option>
+              <option value="flow">连接流程</option>
+            </select>
+          </label>
+        )}
         {items.map((item, index) => (
           <div className="props-item" key={index}>
             <span className="number-label">{index + 1}</span>
@@ -142,7 +285,7 @@ export function ShotPropsEditor({
               <label key={key}>
                 {label}
                 <input
-                  value={item[key] ?? ""}
+                  value={String(item[key] ?? "")}
                   maxLength={max}
                   disabled={disabled}
                   onChange={(event) =>
@@ -158,6 +301,19 @@ export function ShotPropsEditor({
                 />
               </label>
             ))}
+            <label>
+              出现帧（镜头内，可留空）
+              {cueInput(item.reveal_frame, (value) => update({
+                ...props,
+                items: items.map((entry, position) => {
+                  if (position !== index) return entry;
+                  const next = {...entry};
+                  if (value === undefined) delete next.reveal_frame;
+                  else next.reveal_frame = value;
+                  return next;
+                }),
+              }))}
+            </label>
             <button
               className="text-button"
               disabled={disabled}
@@ -193,6 +349,7 @@ export function ShotPropsEditor({
         {isData && (
           <small className="muted">数值应来自文案中的已核验事实。</small>
         )}
+        <small className="muted">出现帧按真实口播顺序设置；最后保留 15 帧让内容完整出现。</small>
       </div>
     );
   }

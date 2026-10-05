@@ -110,7 +110,8 @@ def test_script_discussion_default_disabled_never_calls_reviewer(monkeypatch, tm
     assert Worker(repo, service.project_root).once()
 
     current = repo.get_job(job.job_id)
-    assert current.status == "NEEDS_INPUT" and current.stage == "voice"
+    assert current.status == "NEEDS_HUMAN" and current.stage == "script"
+    assert current.pending_input["node_name"] == "human_review_script"
     assert current.script_discussion is None
     assert current.script.segments[0].narration == "事实：这条文案有真实来源。"
 
@@ -127,8 +128,8 @@ def test_script_discussion_revise_then_approve_updates_script_and_history(monkey
             return _critique("REVISE")
         if role == "screenwriter":
             assert "每段 source_refs 必须有真实来源" in instruction
-            assert "narration 必须以“观点：”或“个人感受：”开头" in instruction
-            assert "不能只写“我建议”" in instruction
+            assert "不要单独宣布“我的观点”" in instruction
+            assert "结尾的解释与使用边界同样填写支撑它的真实 source_refs" in instruction
             return _rewrite()
         if role == "script_reviewer":
             turn = context["script_discussion"]["rounds"][-1]
@@ -144,7 +145,8 @@ def test_script_discussion_revise_then_approve_updates_script_and_history(monkey
 
     current = repo.get_job(job.job_id)
     assert [item[0] for item in calls] == ["script_reviewer", "screenwriter", "script_reviewer"]
-    assert current.status == "NEEDS_INPUT" and current.stage == "voice"
+    assert current.status == "NEEDS_HUMAN" and current.stage == "script"
+    assert current.pending_input["node_name"] == "human_review_script"
     assert current.script.segments[0].narration == "事实：改成更有冲击力的开头。"
     assert current.script_discussion.status == "APPROVED"
     assert [item.round for item in current.script_discussion.rounds] == [1, 2]
@@ -345,7 +347,7 @@ def test_rewrite_without_source_or_opinion_prefix_is_rejected(monkeypatch, tmp_p
     current = repo.get_job(job.job_id)
     assert calls == ["script_reviewer", "screenwriter"]
     assert current.status == "NEEDS_INPUT" and current.stage == "script"
-    assert "讨论改稿未通过来源检查" in current.message and "缺少事实来源" in current.message
+    assert "讨论改稿未通过来源检查" in current.message and "缺少支撑本段内容的真实来源" in current.message
     assert len(current.script_discussion.rounds) == 1
     assert current.script_discussion.rounds[0].critique.decision == "REVISE"
     assert current.script.segments[0].narration == job.brief.script_text

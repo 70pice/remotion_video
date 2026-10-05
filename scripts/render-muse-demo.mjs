@@ -26,7 +26,8 @@ export const parseArgs = argv => {
 
 export const validateConfig = config => {
   if (!config || typeof config !== 'object' || !/^[a-zA-Z0-9_-]{1,80}$/.test(config.job_id)) throw new Error('Invalid demo job_id');
-  if (config.width !== 1920 || config.height !== 1080 || ![24, 25, 30, 60].includes(config.fps)) throw new Error('Demo uses 1920×1080 and a supported frame rate');
+  const supportedSize = (config.width === 1920 && config.height === 1080) || (config.width === 1080 && config.height === 1920);
+  if (!supportedSize || ![24, 25, 30, 60].includes(config.fps)) throw new Error('Demo uses 1920×1080 or 1080×1920 and a supported frame rate');
   if (!Number.isFinite(config.duration_seconds) || config.duration_seconds < 5 || config.duration_seconds > 180) throw new Error('Invalid actual audio duration');
   if (!Array.isArray(config.segments) || !config.segments.length || !Array.isArray(config.captions)) throw new Error('Actual timed segments and captions are required');
   const limit = config.duration_seconds * 1000 + 50;
@@ -40,6 +41,17 @@ export const validateConfig = config => {
   checkTimed(config.segments, 'segment');
   checkTimed(config.captions, 'caption');
   if (new Set(config.segments.map(item => item.id)).size !== config.segments.length || config.segments.some(item => typeof item.id !== 'string' || !item.id)) throw new Error('Segments need unique identifiers');
+  const allowedVisualKinds = new Set(['footage', 'plan', 'cloud', 'boundary', 'limitations', 'closing']);
+  for (const segment of config.segments) {
+    if (!segment.visual) continue;
+    const visual = segment.visual;
+    if (!allowedVisualKinds.has(visual.kind) || typeof visual.title !== 'string' || !visual.title.trim() || typeof visual.note !== 'string' || !visual.note.trim()) throw new Error('Invalid portrait visual metadata');
+    if (visual.clip !== undefined && !['japan', 'shopping'].includes(visual.clip)) throw new Error('Invalid portrait visual clip');
+    const hasStart = visual.start_seconds !== undefined;
+    const hasEnd = visual.end_seconds !== undefined;
+    if (hasStart !== hasEnd) throw new Error('Portrait visual clip ranges need start and end seconds');
+    if (hasStart && (!Number.isFinite(visual.start_seconds) || !Number.isFinite(visual.end_seconds) || visual.start_seconds < 0 || visual.end_seconds <= visual.start_seconds)) throw new Error('Invalid portrait visual clip range');
+  }
   return config;
 };
 

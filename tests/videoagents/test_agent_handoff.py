@@ -247,11 +247,13 @@ def test_production_graph_clears_each_completed_role_before_real_input_pause(tmp
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "produce", "idempotency_key": "unit-clear"})
     with VideoProductionGraph(repo, service.project_root) as production:
         result = production.execute(repo.claim(12345))
-        assert visited == ["materials", "script", "voice"]
+        assert visited == ["materials", "script"]
         assert result["extras"] == {"final_summary": "素材已核验"}
         assert result["script"]["segments"][0]["narration"] == job.brief.script_text
         paused = repo.get_job(job.job_id)
-        assert paused.status == "NEEDS_INPUT" and paused.stage == "voice"
+        assert paused.status == "NEEDS_HUMAN" and paused.stage == "script"
+        assert paused.pending_input["kind"] == "stage_review"
+        assert paused.pending_input["node_name"] == "human_review_script"
         config = {"configurable": {"thread_id": paused.pending_input["thread_id"]}}
         saved = production.graph.get_state(config)
         assert saved.interrupts[0].value["pending_token"] == paused.pending_input["pending_token"]

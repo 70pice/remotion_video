@@ -1,5 +1,6 @@
 import type {CSSProperties, ReactNode} from 'react';
 import {AbsoluteFill, Audio, Freeze, interpolate, Loop, OffthreadVideo, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
+import {MuseDemoPortrait} from './MuseDemoPortrait';
 import type {MuseDemoConfig} from './types';
 
 const colors = {paper: '#F4F3EF', ink: '#17222A', subtle: '#66737A', purple: '#6857DB', mint: '#B2F4CC', orange: '#F3AD74'};
@@ -176,7 +177,7 @@ const SceneView = ({scene, config}: {scene: Scene; config: MuseDemoConfig}) => {
   return <AbsoluteFill style={{opacity: fade}}>{scene === 'hook' ? <Hook config={config} /> : scene === 'travel' ? <Travel config={config} /> : scene === 'contrast' ? <Contrast /> : scene === 'plan' ? <Plan /> : scene === 'cloud' ? <Cloud /> : scene === 'shopping' ? <Shopping config={config} /> : scene === 'control' ? <Control config={config} /> : <Closing />}</AbsoluteFill>;
 };
 
-export const MuseDemo = ({config}: {config: MuseDemoConfig}) => {
+const MuseDemoHorizontal = ({config}: {config: MuseDemoConfig}) => {
   const frame = useCurrentFrame();
   const {fps, durationInFrames} = useVideoConfig();
   const nowMs = frame / fps * 1000;
@@ -196,3 +197,7 @@ export const MuseDemo = ({config}: {config: MuseDemoConfig}) => {
     <Audio src={staticFile(config.audio_src)} />
   </AbsoluteFill>;
 };
+
+export const MuseDemo = ({config}: {config: MuseDemoConfig}) => config.width === 1080 && config.height === 1920
+  ? <MuseDemoPortrait config={config} />
+  : <MuseDemoHorizontal config={config} />;

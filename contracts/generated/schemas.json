@@ -224,7 +224,7 @@
           "type": "string"
         },
         "platform": {
-          "default": "通用竖屏",
+          "default": "抖音竖屏",
           "maxLength": 100,
           "title": "Platform",
           "type": "string"
@@ -1276,7 +1276,7 @@
     },
     "MaterialVisualFile": {
       "additionalProperties": false,
-      "description": "实际下载的原图或截图，必须关联已读取的来源。",
+      "description": "实际下载的原图、截图或视频，必须关联已读取的来源。",
       "properties": {
         "source_url": {
           "maxLength": 4000,
@@ -1287,7 +1287,8 @@
         "kind": {
           "enum": [
             "image",
-            "screenshot"
+            "screenshot",
+            "video"
           ],
           "title": "Kind",
           "type": "string"
@@ -1307,6 +1308,12 @@
           "default": "",
           "maxLength": 4000,
           "title": "Image Url",
+          "type": "string"
+        },
+        "media_url": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Media Url",
           "type": "string"
         },
         "description": {

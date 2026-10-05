@@ -43,6 +43,19 @@ const fraction = (value, name) => {
     fail(`${name} must be a number between 0 and 1`);
   }
 };
+const normalizedRect = (value, name, subject) => {
+  const rect = object(value, name);
+  keys(rect, ['x', 'y', 'width', 'height'], name);
+  for (const field of ['x', 'y', 'width', 'height']) fraction(rect[field], `${name}.${field}`);
+  if (rect.width === 0 || rect.height === 0 || rect.x + rect.width > 1 || rect.y + rect.height > 1) {
+    fail(`${name} must be a nonempty rectangle inside the ${subject}`);
+  }
+};
+const seconds = (value, name) => {
+  if (value !== undefined && (typeof value !== 'number' || !Number.isFinite(value) || value < 0)) {
+    fail(`${name} must be a nonnegative number of seconds`);
+  }
+};
 
 export const validateMediaSource = (source, jobId, name = 'media source') => {
   if (source === null) return;
@@ -57,6 +70,16 @@ export const validateMediaSource = (source, jobId, name = 'media source') => {
 
 const validateProps = (shot, name) => {
   const props = object(shot.props, `${name}.props`);
+  const validateCue = (cue, cueName) => integer(cue, cueName, 0, shot.end_frame - shot.start_frame - 15);
+  const validateItemCues = (items) => {
+    let previous = 0;
+    items.forEach((item, index) => {
+      if (item.reveal_frame !== undefined) validateCue(item.reveal_frame, `${name}.props.items[${index}].reveal_frame`);
+      const cue = item.reveal_frame ?? 0;
+      if (cue < previous) fail(`${name}.props.items reveal_frame must be nondecreasing; omitted cues default to 0`);
+      previous = cue;
+    });
+  };
   if (communityComponentIdSet.has(shot.component_id)) {
     keys(props, [], `${name}.props`);
     if (shot.asset_src) fail(`${name}: preset components do not accept asset_src`);
@@ -75,45 +98,60 @@ const validateProps = (shot, name) => {
       keys(props, ['highlight'], `${name}.props`);
       if (!shot.asset_src || !shot.source_label.trim()) fail(`${name}: evidence requires an image and a source label`);
       if (props.highlight !== undefined) {
-        const highlight = object(props.highlight, `${name}.props.highlight`);
-        keys(highlight, ['x', 'y', 'width', 'height'], `${name}.props.highlight`);
-        for (const field of ['x', 'y', 'width', 'height']) fraction(highlight[field], `${name}.props.highlight.${field}`);
-        if (highlight.width === 0 || highlight.height === 0 || highlight.x + highlight.width > 1 || highlight.y + highlight.height > 1) {
-          fail(`${name}.props.highlight must be a nonempty rectangle inside the image`);
-        }
+        normalizedRect(props.highlight, `${name}.props.highlight`, 'image');
       }
       break;
     }
     case 'image_focus':
-      keys(props, ['focal_x', 'focal_y'], `${name}.props`);
+      keys(props, ['focal_x', 'focal_y', 'crop'], `${name}.props`);
       if (!shot.asset_src) fail(`${name}: image_focus requires an image`);
       for (const field of ['focal_x', 'focal_y']) if (props[field] !== undefined) fraction(props[field], `${name}.props.${field}`);
+      if (props.crop !== undefined) {
+        normalizedRect(props.crop, `${name}.props.crop`, 'image');
+      }
       break;
+    case 'video': {
+      keys(props, ['start_seconds', 'end_seconds', 'fit', 'crop'], `${name}.props`);
+      if (!shot.asset_src || !/\.mp4$/i.test(shot.asset_src)) fail(`${name}: video requires an MP4 video asset`);
+      seconds(props.start_seconds, `${name}.props.start_seconds`);
+      seconds(props.end_seconds, `${name}.props.end_seconds`);
+      const start = props.start_seconds ?? 0;
+      if (props.end_seconds !== undefined && props.end_seconds <= start) fail(`${name}.props.end_seconds must be greater than start_seconds`);
+      if (props.fit !== undefined && !['contain', 'cover'].includes(props.fit)) fail(`${name}.props.fit must be contain or cover`);
+      if (props.crop !== undefined) {
+        normalizedRect(props.crop, `${name}.props.crop`, 'video');
+      }
+      break;
+    }
     case 'comparison':
-      keys(props, ['left_title', 'left_body', 'right_title', 'right_body'], `${name}.props`);
+      keys(props, ['left_title', 'left_body', 'right_title', 'right_body', 'right_reveal_frame'], `${name}.props`);
       for (const field of ['left_title', 'right_title']) text(props[field], `${name}.props.${field}`, 48, true);
       for (const field of ['left_body', 'right_body']) text(props[field], `${name}.props.${field}`, 160, true);
+      if (props.right_reveal_frame !== undefined) validateCue(props.right_reveal_frame, `${name}.props.right_reveal_frame`);
       break;
     case 'data':
       keys(props, ['items'], `${name}.props`);
       if (!Array.isArray(props.items) || props.items.length < 1 || props.items.length > 4) fail(`${name}.props.items requires 1 to 4 supplied data items`);
       props.items.forEach((raw, index) => {
         const item = object(raw, `${name}.props.items[${index}]`);
-        keys(item, ['label', 'value', 'detail'], `${name}.props.items[${index}]`);
+        keys(item, ['label', 'value', 'detail', 'reveal_frame'], `${name}.props.items[${index}]`);
         text(item.label, `${name}.props.items[${index}].label`, 48, true);
         text(item.value, `${name}.props.items[${index}].value`, 40, true);
         optionalText(item.detail, `${name}.props.items[${index}].detail`, 64);
       });
+      validateItemCues(props.items);
       break;
     case 'steps':
-      keys(props, ['items'], `${name}.props`);
+      keys(props, ['items', 'layout'], `${name}.props`);
+      if (props.layout !== undefined && !['cards', 'flow'].includes(props.layout)) fail(`${name}.props.layout must be cards or flow`);
       if (!Array.isArray(props.items) || props.items.length < 1 || props.items.length > 4) fail(`${name}.props.items requires 1 to 4 supplied steps`);
       props.items.forEach((raw, index) => {
         const item = object(raw, `${name}.props.items[${index}]`);
-        keys(item, ['title', 'body'], `${name}.props.items[${index}]`);
+        keys(item, ['title', 'body', 'reveal_frame'], `${name}.props.items[${index}]`);
         text(item.title, `${name}.props.items[${index}].title`, 48, true);
         optionalText(item.body, `${name}.props.items[${index}].body`, 96);
       });
+      validateItemCues(props.items);
       break;
     case 'conclusion':
       keys(props, ['call_to_action'], `${name}.props`);
@@ -157,7 +195,9 @@ export const validateTimeline = (input) => {
     text(shot.source_label, `${name}.source_label`, 160);
     if (typeof shot.accent_color !== 'string' || !/^#[a-fA-F0-9]{6}$/.test(shot.accent_color)) fail(`${name}.accent_color must be a six-digit hex color`);
     validateMediaSource(shot.asset_src, timeline.job_id, `${name}.asset_src`);
-    if (shot.asset_src && !/\.(png|jpe?g|webp)$/i.test(shot.asset_src)) fail(`${name}.asset_src requires a PNG, JPEG or WebP image`);
+    if (shot.asset_src && (shot.component_id === 'video' ? !/\.mp4$/i.test(shot.asset_src) : !/\.(png|jpe?g|webp)$/i.test(shot.asset_src))) {
+      fail(`${name}.asset_src requires ${shot.component_id === 'video' ? 'an MP4 video' : 'a PNG, JPEG or WebP image'}`);
+    }
     validateProps(shot, name);
   });
   if (expectedStart !== timeline.duration_in_frames) fail('shots must end at duration_in_frames');

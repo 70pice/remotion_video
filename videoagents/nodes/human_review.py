@@ -15,16 +15,17 @@ from videoagents.tools.media import sha256
 
 
 class HumanReviewNode:
-    """Return routes ``continue``, ``retry`` or ``end``; the caller wires edges.
+    """Return routes ``continue``, ``revise``, ``retry`` or ``end``.
 
-    ``confirm`` continues, ``revise`` stops for versioned manual editing, and
-    ``cancel`` terminates the job. Register a self-edge for ``retry`` so invalid
-    answers produce a new interrupt without replaying a loop inside this node.
+    ``confirm`` continues, ``revise`` either returns to the caller-provided
+    model node or keeps the legacy standalone behavior, and ``cancel``
+    terminates the job. Register a self-edge for ``retry`` so invalid answers
+    produce a new interrupt without replaying a loop inside this node.
     """
 
     def __init__(self, repository: Repository, *, node_name: str = "human_review", stage: str = "script",
                  title: str = "人工审核", confirmation_requirements: tuple[str, ...] = ("核对本阶段产物",),
-                 min_note_length: int = 10, finish_on_confirm: bool = False):
+                 min_note_length: int = 10, finish_on_confirm: bool = False, revise_route: str | None = None):
         if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,79}", node_name):
             raise ValueError("人工审核节点名称只能包含字母、数字、下划线和连字符")
         if stage not in {"materials", "script", "voice", "director", "render", "review"}:
@@ -40,8 +41,11 @@ class HumanReviewNode:
         self.repo = repository
         self.node_name, self.stage, self.title = node_name, stage, title.strip()
         self.requirements = tuple(item.strip() for item in confirmation_requirements)
+        if revise_route is not None and not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,79}", revise_route):
+            raise ValueError("返工路由节点名称只能包含字母、数字、下划线和连字符")
         self.min_note_length = min_note_length
         self.finish_on_confirm = finish_on_confirm
+        self.revise_route = revise_route
 
     def _job(self, state: VideoState) -> Job:
         return current_job(self.repo, state)
@@ -67,9 +71,12 @@ class HumanReviewNode:
 
     def _pending(self, state: VideoState, job: Job) -> dict[str, Any]:
         inputs = self._inputs(job)
-        policy = fingerprint({"node_name": self.node_name, "stage": self.stage, "title": self.title,
-                              "requirements": self.requirements, "min_note_length": self.min_note_length,
-                              "finish_on_confirm": self.finish_on_confirm})
+        policy_payload = {"node_name": self.node_name, "stage": self.stage, "title": self.title,
+                          "requirements": self.requirements, "min_note_length": self.min_note_length,
+                          "finish_on_confirm": self.finish_on_confirm}
+        if self.revise_route is not None:
+            policy_payload["revise_route"] = self.revise_route
+        policy = fingerprint(policy_payload)
         previous = state.get("stage_review_pending")
         if previous and previous.get("node_name") == self.node_name:
             if previous["dependency_fingerprint"] != inputs or previous["policy_fingerprint"] != policy:
@@ -82,6 +89,17 @@ class HumanReviewNode:
                 "thread_id": state["thread_id"], "revision": job.revision, "pending_token": fingerprint(identity)[:32],
                 "dependency_fingerprint": inputs, "policy_fingerprint": policy,
                 "confirmation_requirements": list(self.requirements), "min_note_length": self.min_note_length}
+
+    def _subject_snapshot(self, job: Job) -> dict[str, Any]:
+        if self.stage == "script":
+            return {"script": job.script.model_dump() if job.script else None}
+        if self.stage == "director":
+            return {"timeline": job.timeline.model_dump() if job.timeline else None}
+        if self.stage == "render":
+            return {"timeline": job.timeline.model_dump() if job.timeline else None,
+                    "render_artifacts": [item.model_dump() for item in job.artifacts
+                                          if item.kind in {"preview", "final", "cover", "captions"}]}
+        return {}
 
     def _record(self, job: Job, receipt: dict[str, Any], status: str, message: str) -> None:
         # Deterministic file + artifact ID make SQL-before-checkpoint replay
@@ -128,20 +146,33 @@ class HumanReviewNode:
         if decision not in {"confirm", "revise", "cancel"} or not isinstance(note, str) or len(note) > 3000:
             raise Conflict("人工审核决定或说明无效")
         note = note.strip()
-        if decision == "confirm" and len(note) < self.min_note_length:
+        if decision in {"confirm", "revise"} and len(note) < self.min_note_length:
             pending = dict(pending, pending_token=fingerprint({"previous": pending["pending_token"],
                            "purpose": "stage_review_note"})[:32], issues=[f"审核说明至少填写 {self.min_note_length} 个字符"])
             job = self.repo.update_job(job.job_id, job.revision, status="NEEDS_HUMAN", pending_input=pending,
                                        message=pending["issues"][0])
             return state_context(self.repo, state, route="retry", stage_review_pending=pending)
         receipt = dict(pending, decision=decision, note=note)
-        status, message = {"confirm": ("DRAFT" if self.finish_on_confirm else "RUNNING",
-                           self.title + ("已确认，本次执行结束" if self.finish_on_confirm else "已确认，继续工作流")),
-                           "revise": ("DRAFT", "人工审核要求返工，请修改对应产物并提交新版本"),
-                           "cancel": ("CANCELLED", "人工审核已取消任务")}[decision]
+        artifact_id = fingerprint({"job_id": job.job_id, "pending_token": pending["pending_token"]})[:32]
+        feedback = {self.stage: {"stage": self.stage, "node_name": self.node_name,
+                                 "pending_token": pending["pending_token"],
+                                 "decision": decision, "note": note, "target": self.revise_route,
+                                 "artifact_id": artifact_id, "applied": False,
+                                 **self._subject_snapshot(job)}} if decision == "revise" else {}
+        if decision == "confirm":
+            status = "DRAFT" if self.finish_on_confirm else "RUNNING"
+            message = self.title + ("已确认，本次执行结束" if self.finish_on_confirm else "已确认，继续工作流")
+            route = "continue"
+        elif decision == "revise" and self.revise_route:
+            status, message, route = "RUNNING", self.title + "要求返工，已返回对应模型节点", "revise"
+        elif decision == "revise":
+            status, message, route = "DRAFT", "人工审核要求返工，请修改对应产物并提交新版本", "end"
+        else:
+            status, message, route = "CANCELLED", "人工审核已取消任务", "end"
         self._record(job, receipt, status, message)
         rounds = dict(state.get("human_review_rounds", {}))
         rounds[self.node_name] = rounds.get(self.node_name, 0) + 1
-        return state_context(self.repo, state,
-                             route="continue" if decision == "confirm" else "end",
-                             human_decision=receipt, stage_review_pending=None, human_review_rounds=rounds)
+        overrides = {"human_decision": receipt, "stage_review_pending": None, "human_review_rounds": rounds}
+        if feedback:
+            overrides["extras"] = {"human_feedback": feedback}
+        return state_context(self.repo, state, route=route, **overrides)

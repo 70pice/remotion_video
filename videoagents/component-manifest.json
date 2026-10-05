@@ -146,6 +146,24 @@
       "license_note": "本项目新增的参数化画面；所用图片和字体须另行核验"
     },
     {
+      "component_id": "video",
+      "name": "真实视频",
+      "description": "播放已导入的真实视频片段",
+      "use_case": "官方演示、实拍、录屏或新闻视频素材",
+      "library": "VideoAgents",
+      "orientation": "both",
+      "kind": "adapter",
+      "props_mode": "typed",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "本项目新增的参数化画面；所用图片和字体须另行核验"
+    },
+    {
       "component_id": "Snapcn-TextReveal",
       "name": "Snapcn / TextReveal",
       "description": "表达一个新概念或章节标题正式登场",

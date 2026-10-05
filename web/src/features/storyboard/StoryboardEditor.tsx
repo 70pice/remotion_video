@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, explainError } from "../../api/client";
 import type {
+  Asset,
   ComponentEntry,
   Job,
   RunAction,
@@ -99,6 +100,40 @@ export function StoryboardEditor({
   const images = job.assets.filter((asset) =>
     asset.mime_type.startsWith("image/"),
   );
+  const videos = job.assets.filter((asset) => asset.mime_type === "video/mp4");
+  const allVisualAssets = [...images, ...videos];
+  const catalogWithVideo: ComponentEntry[] = [
+    {
+      component_id: "video",
+      name: "真实视频",
+      description: "真实 MP4 素材片段",
+      use_case: "产品演示、实拍证据、动态素材",
+      library: "VideoAgents",
+      kind: "adapter",
+      orientation: "vertical",
+      production_ready: true,
+      min_frames: 1,
+      allowed_usages: ["personal", "commercial", "unspecified"],
+      license_note: "使用当前任务上传或素材节点采集的视频，发布前需核验授权。",
+      preview_url: null,
+    },
+    ...catalog,
+  ];
+  const assetChoices = (shot: Shot) => {
+    if (shot.component_id === "video") return videos;
+    if (["evidence", "image_focus"].includes(shot.component_id)) return images;
+    return [];
+  };
+  const mediaCapable = (componentId: string) =>
+    componentId === "video" || ["evidence", "image_focus"].includes(componentId);
+  const compatibleAssetSrc = (componentId: string, assetSrc: string | null) => {
+    if (!mediaCapable(componentId) || !assetSrc) return null;
+    const asset = allVisualAssets.find((item) => item.timeline_src === assetSrc);
+    if (!asset) return null;
+    if (componentId === "video")
+      return asset.mime_type === "video/mp4" ? assetSrc : null;
+    return asset.mime_type.startsWith("image/") ? assetSrc : null;
+  };
   return (
     <fieldset
       className="feature-section editor-fieldset"
@@ -152,9 +187,10 @@ export function StoryboardEditor({
           </div>
           <div className="shot-list">
             {timeline.shots.map((shot, index) => {
-              const selectedAsset = images.find(
+              const selectedAsset = allVisualAssets.find(
                 (asset) => asset.timeline_src === shot.asset_src,
               );
+              const choices = assetChoices(shot);
               return (
                 <article className="panel shot-card" key={shot.shot_id}>
                   <div className="shot-overview">
@@ -166,7 +202,7 @@ export function StoryboardEditor({
                       style={{ borderColor: shot.accent_color }}
                     >
                       {selectedAsset ? (
-                        <img src={selectedAsset.url} alt={selectedAsset.name} />
+                        <AssetThumbnail asset={selectedAsset} />
                       ) : (
                         <strong style={{ color: shot.accent_color }}>
                           {shot.title}
@@ -216,13 +252,14 @@ export function StoryboardEditor({
                           update(index, {
                             component_id: componentId as Shot["component_id"],
                             props: defaultProps(componentId),
-                            asset_src: isCommunityComponent(componentId)
-                              ? null
-                              : shot.asset_src,
+                            asset_src: compatibleAssetSrc(
+                              componentId,
+                              shot.asset_src,
+                            ),
                           });
                         }}
                       >
-                        {catalog
+                        {catalogWithVideo
                           .filter(
                             (entry) =>
                               entry.production_ready &&
@@ -294,20 +331,24 @@ export function StoryboardEditor({
                       />
                     </label>
                     <label>
-                      画面素材
+                      {shot.component_id === "video" ? "视频素材" : "画面素材"}
                       <select
                         value={shot.asset_src ?? ""}
-                        disabled={
-                          locked || isCommunityComponent(shot.component_id)
-                        }
+                        disabled={locked || isCommunityComponent(shot.component_id)}
                         onChange={(event) =>
                           update(index, {
                             asset_src: event.target.value || null,
                           })
                         }
                       >
-                        <option value="">不使用图片</option>
-                        {images.map((asset) => (
+                        <option value="">
+                          {shot.component_id === "video"
+                            ? "不使用视频"
+                            : ["evidence", "image_focus"].includes(shot.component_id)
+                              ? "不使用图片"
+                              : "该组件不使用素材"}
+                        </option>
+                        {choices.map((asset) => (
                           <option
                             key={asset.asset_id}
                             value={asset.timeline_src}
@@ -355,4 +396,18 @@ export function StoryboardEditor({
       )}
     </fieldset>
   );
+}
+
+function AssetThumbnail({ asset }: { asset: Asset }) {
+  if (asset.mime_type.startsWith("video/"))
+    return (
+      <video
+        src={asset.url}
+        muted
+        preload="metadata"
+        aria-label={asset.name}
+        style={{ width: "100%", height: "100%", objectFit: "contain" }}
+      />
+    );
+  return <img src={asset.url} alt={asset.name} />;
 }

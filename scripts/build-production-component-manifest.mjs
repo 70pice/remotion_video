@@ -22,6 +22,7 @@ const semantic = [
   ['data', '数据卡', '展示已核验数字', '有来源的 1 到 4 个指标'],
   ['steps', '步骤时间线', '顺序呈现过程', '1 到 4 个步骤'],
   ['conclusion', '结论卡', '总结与行动提示', '片尾与段落收束'],
+  ['video', '真实视频', '播放已导入的真实视频片段', '官方演示、实拍、录屏或新闻视频素材'],
 ].map(([componentId, name, description, useCase]) => ({
   component_id: componentId,
   name,
@@ -76,8 +77,8 @@ for (const library of libraries) {
 
 const entries = [...semantic, ...community];
 const ids = new Set(entries.map((entry) => entry.component_id));
-if (semantic.length !== 8 || community.length !== 152 || ids.size !== 160) {
-  throw new Error(`Expected 8 adapters + 152 presets = 160 unique IDs, got ${ids.size}`);
+if (semantic.length !== 9 || community.length !== 152 || ids.size !== 161) {
+  throw new Error(`Expected 9 adapters + 152 presets = 161 unique IDs, got ${ids.size}`);
 }
 for (const entry of entries) {
   if (!/^[A-Za-z0-9_-]{1,100}$/.test(entry.component_id)) {
@@ -94,5 +95,5 @@ if (process.argv.includes('--check')) {
   }
 } else {
   await writeFile(output, content);
-  console.log(`Wrote ${path.relative(root, output)} with 8 adapters and 152 production presets.`);
+  console.log(`Wrote ${path.relative(root, output)} with 9 adapters and 152 production presets.`);
 }

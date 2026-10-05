@@ -14,7 +14,7 @@ class Brief(Contract):
     topic: str = Field(default="", max_length=2000)
     script_text: str = Field(default="", max_length=30000)
     audience: str = Field(default="普通观众", max_length=500)
-    platform: str = Field(default="通用竖屏", max_length=100)
+    platform: str = Field(default="抖音竖屏", max_length=100)
     usage: Literal["personal", "commercial", "unspecified"] = "unspecified"
     target_seconds: float = Field(default=60, ge=1, le=1800)
     width: int = Field(default=1080, ge=240, le=3840)
@@ -427,13 +427,14 @@ class MaterialSourceFile(Contract):
 
 
 class MaterialVisualFile(Contract):
-    """实际下载的原图或截图，必须关联已读取的来源。"""
+    """实际下载的原图、截图或视频，必须关联已读取的来源。"""
 
     source_url: str = Field(min_length=1, max_length=4000)
-    kind: Literal["image", "screenshot"]
+    kind: Literal["image", "screenshot", "video"]
     file: str = Field(min_length=1, max_length=500)
     sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     image_url: str = Field(default="", max_length=4000)
+    media_url: str = Field(default="", max_length=4000)
     description: str = Field(min_length=1, max_length=1000)
 
 

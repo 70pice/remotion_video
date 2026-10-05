@@ -46,7 +46,36 @@ def decode_check(path: Path) -> None:
         raise ValueError("媒体全片解码失败")
 
 
-def detect_media(data: bytes) -> tuple[str, str]:
+def _mp4_media_type(path: Path) -> tuple[str, str]:
+    info = probe(path)
+    streams = info.get("streams", [])
+    if any(item.get("codec_type") == "video" for item in streams):
+        return "video/mp4", ".mp4"
+    if any(item.get("codec_type") == "audio" for item in streams):
+        return "audio/mp4", ".m4a"
+    raise ValueError("MP4/M4A 文件缺少可用音频或视频轨道")
+
+
+def video_metadata(path: Path) -> dict:
+    info = probe(path)
+    video = next((item for item in info.get("streams", []) if item.get("codec_type") == "video"), None)
+    if not video:
+        raise ValueError("文件不包含视频轨道")
+    duration = float(video.get("duration") or info.get("format", {}).get("duration") or 0)
+    if not 0 < duration <= 1800:
+        raise ValueError("视频时长必须在 0 到 1800 秒之间")
+    width, height = int(video.get("width") or 0), int(video.get("height") or 0)
+    if width < 32 or height < 32 or width * height > 40_000_000:
+        raise ValueError("视频无法解码、过小或分辨率超过限制")
+    rate = video.get("avg_frame_rate") or video.get("r_frame_rate") or "0/1"
+    top, bottom = (rate.split("/", 1) + ["1"])[:2]
+    frame_rate = float(top) / (float(bottom) or 1)
+    if not frame_rate > 0:
+        raise ValueError("视频帧率无效")
+    return {"duration_seconds": duration, "width": width, "height": height, "frame_rate": frame_rate}
+
+
+def detect_media(data: bytes, path: Path | None = None) -> tuple[str, str]:
     if data.startswith(b"\x89PNG\r\n\x1a\n"):
         return "image/png", ".png"
     if data.startswith(b"\xff\xd8\xff"):
@@ -58,7 +87,9 @@ def detect_media(data: bytes) -> tuple[str, str]:
     if data.startswith(b"ID3") or (len(data) > 1 and data[0] == 255 and data[1] & 0xE0 == 0xE0):
         return "audio/mpeg", ".mp3"
     if len(data) > 12 and data[4:8] == b"ftyp":
+        if path is not None:
+            return _mp4_media_type(path)
         return "audio/mp4", ".m4a"
     if data.startswith(b"OggS"):
         return "audio/ogg", ".ogg"
-    raise ValueError("只支持可解码的 PNG/JPEG/WebP 图片或 WAV/MP3/M4A/AAC/Ogg 音频")
+    raise ValueError("只支持可解码的 PNG/JPEG/WebP 图片、MP4 视频或 WAV/MP3/M4A/AAC/Ogg 音频")

@@ -38,13 +38,17 @@ class EditingNode:
     def render_video(self, job: Job, mode: str, state: VideoState | None = None) -> None:
         if not job.timeline:
             raise ValueError("没有可执行分镜")
-        validate_timeline(job.timeline, job)
+        metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
+        validate_timeline(job.timeline, job, metadata)
         if self.model.available("editing"):
             context = agent_state(self.repo, job, state)
             if state is None:
                 context = {**context, "action": mode}
+            fields = ("brief", "script", "timeline", "assets", "action")
+            if context.get("extras", {}).get("human_feedback"):
+                fields = (*fields, "extras")
             value = self.model.invoke(context, "editing", PROMPT,
-                fields=("brief", "script", "timeline", "assets", "action"),
+                fields=fields,
                 command_id=context.get("resume_command_id", context.get("run_id", "")),
                 output_schema=EditingAdvice.model_json_schema())
             advice = EditingAdvice.model_validate(value)

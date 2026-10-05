@@ -2,6 +2,7 @@ import {useMemo} from 'react';
 import {Audio} from '@remotion/media';
 import {AbsoluteFill, Freeze, Sequence, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {FittedText, muted, productionFont, useLayout, white} from './adapters/layout';
+import {buildCaptionPages} from './captionPages';
 import {isSemanticComponent, resolveCommunityPreset, semanticProductionRegistry} from './registry';
 import type {Timeline, TimelineShot, TimelineVideoProps} from './types';
 import {validateTimeline} from './validation.mjs';
@@ -35,13 +36,13 @@ const CommunityPresetScene = ({shot}: {shot: TimelineShot}) => {
   </AbsoluteFill>;
 };
 
-const Scene = ({shot}: {shot: TimelineShot}) => {
+const Scene = ({shot, videoMetadata}: {shot: TimelineShot; videoMetadata?: TimelineVideoProps['videoMetadata']}) => {
   const {unit, vertical, margin} = useLayout();
   if (!isSemanticComponent(shot.component_id)) return <CommunityPresetScene shot={shot} />;
   const Adapter = semanticProductionRegistry[shot.component_id];
-  return <AbsoluteFill style={{padding: `${(vertical ? 210 : 125) * unit}px ${margin}px ${(vertical ? 500 : 305) * unit}px`,
+  return <AbsoluteFill style={{padding: `${(vertical ? 180 : 125) * unit}px ${margin}px ${(vertical ? 460 : 305) * unit}px`,
     background: `radial-gradient(ellipse at 110% 5%, ${shot.accent_color}19, transparent 55%), #111C2E`}}>
-    <Adapter shot={shot} durationInFrames={shot.end_frame - shot.start_frame} />
+    <Adapter shot={shot} durationInFrames={shot.end_frame - shot.start_frame} videoMetadata={videoMetadata} />
   </AbsoluteFill>;
 };
 
@@ -49,7 +50,13 @@ const Captions = ({timeline}: {timeline: Timeline}) => {
   const frame = useCurrentFrame();
   const {unit, vertical, margin, contentWidth} = useLayout();
   const milliseconds = frame / timeline.fps * 1000;
-  const caption = timeline.captions.find((item) => milliseconds >= item.start_ms && milliseconds < item.end_ms);
+  const captionPages = useMemo(() => buildCaptionPages(timeline.captions, {
+    boundaries: timeline.shots.map((shot) => ({
+      start_ms: shot.start_frame / timeline.fps * 1000,
+      end_ms: shot.end_frame / timeline.fps * 1000,
+    })),
+  }), [timeline]);
+  const caption = captionPages.find((item) => milliseconds >= item.start_ms && milliseconds < item.end_ms);
   if (!caption) return null;
   const height = (vertical ? 200 : 110) * unit;
   return <div style={{position: 'absolute', left: margin, right: margin, bottom: (vertical ? 280 : 150) * unit,
@@ -60,7 +67,7 @@ const Captions = ({timeline}: {timeline: Timeline}) => {
   </div>;
 };
 
-export const VideoFromTimeline = ({timeline: input}: TimelineVideoProps) => {
+export const VideoFromTimeline = ({timeline: input, videoMetadata}: TimelineVideoProps) => {
   const timeline = useMemo(() => validateTimeline(input), [input]);
   const frame = useCurrentFrame();
   const {unit, vertical, margin, contentWidth} = useLayout();
@@ -70,12 +77,8 @@ export const VideoFromTimeline = ({timeline: input}: TimelineVideoProps) => {
     {timeline.audio_src ? <Audio src={staticFile(timeline.audio_src)} /> : null}
     {timeline.shots.map((item) => <Sequence key={item.shot_id} from={item.start_frame}
       durationInFrames={item.end_frame - item.start_frame} name={`${item.component_id} / ${item.title}`}>
-      <Scene shot={item} />
+      <Scene shot={item} videoMetadata={videoMetadata} />
     </Sequence>)}
-    <div style={{position: 'absolute', left: margin, right: margin, top: (vertical ? 75 : 42) * unit,
-      display: 'flex', justifyContent: 'space-between', color: muted, fontSize: 24 * unit, fontWeight: 700}}>
-      <span>VIDEOAGENTS</span><span>{String(Math.max(0, shotIndex) + 1).padStart(2, '0')} / {String(timeline.shots.length).padStart(2, '0')}</span>
-    </div>
     <div style={{position: 'absolute', top: (vertical ? 135 : 90) * unit, left: margin, right: margin,
       height: 3 * unit, background: '#334158'}}>
       <div style={{height: '100%', width: `${(frame + 1) / timeline.duration_in_frames * 100}%`, background: shot.accent_color}} />

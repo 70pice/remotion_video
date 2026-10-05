@@ -52,6 +52,25 @@ class VideoProductionGraph(AbstractContextManager):
         # Available for manual orchestration; no incoming edge by default.
         self.add_human_review(graph, "human_review", stage="script", title="文案人工审核",
                               confirmation_requirements=("文案表达与事实来源", "截图及素材与文案一致"), next_node="voice")
+        self.add_human_review(graph, "human_review_script", stage="script", title="文案人工审核",
+                              confirmation_requirements=("首句具体，尽早建立观看理由",
+                                                         "主线清楚，结尾自然回应问题",
+                                                         "事实表达有来源，素材引用能支撑文案",
+                                                         "机器文案讨论已通过但仍需人工确认是否可进入配音"),
+                              next_node="after_script_review", revise_node="screenwriter")
+        self.add_human_review(graph, "human_review_timeline", stage="director", title="分镜人工审核",
+                              confirmation_requirements=("导演已完成竖版组件学习并使用 1080×1920 抖音画面",
+                                                         "每个镜头都匹配旁白节奏、字幕边界和真实素材",
+                                                         "视频素材优先且画面可读、有冲击力"),
+                              next_node="after_timeline_review", revise_node="director")
+        self.add_human_review(graph, "human_review_render", stage="render", title="剪辑成片人工审核",
+                              confirmation_requirements=("完整播放确认音频、字幕、画面节奏正常",
+                                                         "竖屏成片信息足够清晰，真实素材没有错位或误用",
+                                                         "阶段确认只允许进入机器审核，不等同发布批准"),
+                              next_node="after_render_review", revise_node="director")
+        graph.add_node("after_script_review", self.after_script_review)
+        graph.add_node("after_timeline_review", self.after_timeline_review)
+        graph.add_node("after_render_review", self.after_render_review)
         graph.add_edge(START, "materials")
         self.add_cleanup_edge(graph, "materials", {"screenwriter": "screenwriter", "await_input": "await_input"})
         self.add_cleanup_edge(graph, "screenwriter", {
@@ -60,12 +79,15 @@ class VideoProductionGraph(AbstractContextManager):
         self.add_cleanup_edge(graph, "script_reviewer", {
             "screenwriter": "screenwriter", "script_gate": "script_gate", "await_input": "await_input",
         })
-        graph.add_conditional_edges("script_gate", self.route, {"voice": "voice", "await_input": "await_input"})
+        graph.add_conditional_edges("script_gate", self.route, {"voice": "human_review_script", "await_input": "await_input"})
+        graph.add_conditional_edges("after_script_review", self.route, {"voice": "voice"})
         self.add_cleanup_edge(graph, "voice", {"audio_gate": "audio_gate", "await_input": "await_input"})
         graph.add_conditional_edges("audio_gate", self.route, {"director": "director", "await_input": "await_input", "end": END})
         self.add_cleanup_edge(graph, "director", {"timeline_gate": "timeline_gate", "await_input": "await_input"})
-        graph.add_conditional_edges("timeline_gate", self.route, {"editing": "editing", "await_input": "await_input", "end": END, "reviewers": "reviewers"})
-        self.add_cleanup_edge(graph, "editing", {"reviewers": "reviewers", "await_input": "await_input", "end": END})
+        graph.add_conditional_edges("timeline_gate", self.route, {"editing": "human_review_timeline", "await_input": "await_input", "end": "human_review_timeline", "reviewers": "human_review_timeline"})
+        graph.add_conditional_edges("after_timeline_review", self.route, {"editing": "editing", "reviewers": "reviewers", "end": END})
+        self.add_cleanup_edge(graph, "editing", {"reviewers": "human_review_render", "await_input": "await_input", "end": "human_review_render"})
+        graph.add_conditional_edges("after_render_review", self.route, {"reviewers": "reviewers", "end": END})
         self.add_cleanup_edge(graph, "reviewers", {"review_gate": "review_gate", "await_input": "await_input"})
         graph.add_conditional_edges("review_gate", self.route, {"end": END, "await_input": "await_input"})
         graph.add_conditional_edges("await_input", self.route, {"materials": "materials", "screenwriter": "screenwriter", "script_reviewer": "script_reviewer", "voice": "voice", "director": "director", "editing": "editing", "reviewers": "reviewers", "await_input": "await_input", "end": END})
@@ -79,12 +101,35 @@ class VideoProductionGraph(AbstractContextManager):
         graph.add_conditional_edges(name, self.route, routes)
 
     def add_human_review(self, graph: StateGraph, name: str, *, stage: str, title: str,
-                         confirmation_requirements: tuple[str, ...], next_node: str, min_note_length: int = 10) -> None:
+                         confirmation_requirements: tuple[str, ...], next_node: str, min_note_length: int = 10,
+                         revise_node: str | None = None) -> None:
         """Register a reusable approval node; replace its upstream edge to enable it."""
         graph.add_node(name, HumanReviewNode(self.repo, node_name=name, stage=stage, title=title,
                        confirmation_requirements=confirmation_requirements, min_note_length=min_note_length,
-                       finish_on_confirm=next_node == END))
-        graph.add_conditional_edges(name, self.route, {"continue": next_node, "retry": name, "end": END})
+                       finish_on_confirm=next_node == END, revise_route=revise_node))
+        routes = {"continue": next_node, "retry": name, "end": END}
+        if revise_node:
+            routes["revise"] = revise_node
+        graph.add_conditional_edges(name, self.route, routes)
+
+    def after_script_review(self, state: VideoState) -> dict[str, Any]:
+        return state_context(self.repo, state, route="voice")
+
+    def after_timeline_review(self, state: VideoState) -> dict[str, Any]:
+        if state.get("action") == "storyboard":
+            job = self.repo.get_job(state["job_id"])
+            self.repo.update_job(job.job_id, job.revision, status="DRAFT", stage="director",
+                                 message="分镜已通过人工审核，本次执行结束")
+            return state_context(self.repo, state, route="end")
+        return state_context(self.repo, state, route="reviewers" if state.get("action") == "review" else "editing")
+
+    def after_render_review(self, state: VideoState) -> dict[str, Any]:
+        if state.get("action") == "preview":
+            job = self.repo.get_job(state["job_id"])
+            self.repo.update_job(job.job_id, job.revision, status="DRAFT", stage="render", progress=1,
+                                 message="预览成片已通过人工审核，本次执行结束")
+            return state_context(self.repo, state, route="end")
+        return state_context(self.repo, state, route="reviewers")
 
     def __exit__(self, *exc):
         # The saver serializes background writes under this same lock. Closing

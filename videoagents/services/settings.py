@@ -74,12 +74,16 @@ class SettingsService:
 
     def internal(self) -> dict[str, Any]:
         result = deepcopy(DEFAULT_SETTINGS)
-        for key, value in self.repo.setting_values().items():
+        stored = self.repo.setting_values()
+        for key, value in stored.items():
             if key in {"llm_api_key", "llm_base_url", "llm_model"}:
                 # Preserve old encrypted rows without decrypting unused HTTP
                 # credentials, including after moving a DB to another user.
                 continue
             result[key] = unprotect(value) if key in SECRET_FIELDS else json.loads(value)
+        # 新 WebSocket 制作默认 1.1 倍；旧 HTTP 不支持该参数，未显式设置时沿用原速。
+        if result["voice_provider"] == "byte_http" and "voice_speech_rate" not in stored:
+            result["voice_speech_rate"] = 0
         for key in SECRET_FIELDS:
             if key == "llm_api_key":
                 continue

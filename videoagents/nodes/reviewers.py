@@ -59,7 +59,8 @@ class ReviewersNode:
             add("timeline", "没有最终分镜", "director")
         else:
             try:
-                validate_timeline(job.timeline, job)
+                metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
+                validate_timeline(job.timeline, job, metadata)
             except ValueError as exc:
                 add("timeline", str(exc), "director")
             used = {shot.asset_src for shot in job.timeline.shots if shot.asset_src}
@@ -86,6 +87,10 @@ class ReviewersNode:
                     duration = audio_duration(path)
                     metadata = self.repo.asset_metadata(audio.asset_id)
                     alignment = Alignment.model_validate(metadata.get("alignment", {}))
+                    quality = metadata.get("timestamp_quality", {})
+                    if quality.get("low_confidence_count"):
+                        add("timestamp_confidence", f"供应商返回的 {quality['low_confidence_count']} 个词时间戳置信度低于 0.8；"
+                            "已校验全文覆盖与时间范围，但同步精度仍需完整播放人工听审", "user", "warning", False)
                     for issue in validate_alignment(job, audio, alignment, duration):
                         add("alignment", issue, "voice")
                     actual_captions = [(c.text, c.start_ms, c.end_ms) for c in job.timeline.captions]
@@ -130,7 +135,7 @@ class ReviewersNode:
         if model_review and self.model.available("review") and job.script:
             context = agent_state(self.repo, job, state)
             value = self.model.invoke(context, "review", PROMPT,
-                fields=("brief", "script", "timeline", "assets", "research"),
+                fields=("brief", "script", "timeline", "assets", "research", "alignment"),
                 command_id=context.get("resume_command_id", context.get("run_id", "")),
                 output_schema=ContentReviewAdvice.model_json_schema())
             advice = ContentReviewAdvice.model_validate(value)

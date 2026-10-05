@@ -1,5 +1,13 @@
 // 样片独立输入：字幕和段落时间来自实际配音，不用字数推算时间。
 export type MuseTimedText = {text: string; start_ms: number; end_ms: number};
+export type MusePortraitVisual = {
+  kind: 'footage' | 'plan' | 'cloud' | 'boundary' | 'limitations' | 'closing';
+  title: string;
+  note: string;
+  clip?: 'japan' | 'shopping';
+  start_seconds?: number;
+  end_seconds?: number;
+};
 export type MuseDemoConfig = {
   job_id: string;
   title: string;
@@ -9,6 +17,6 @@ export type MuseDemoConfig = {
   duration_seconds: number;
   audio_src: string;
   clips: {japan: string; shopping: string};
-  segments: (MuseTimedText & {id: string})[];
+  segments: (MuseTimedText & {id: string; visual?: MusePortraitVisual})[];
   captions: MuseTimedText[];
 };

@@ -10,11 +10,13 @@ import ipaddress
 import json
 import logging
 import math
+import os
 import queue
 import re
 import socket
 import ssl
 import struct
+import subprocess
 import threading
 import time
 import uuid
@@ -234,7 +236,10 @@ def _resolve_doh_public_ips(deadline: float) -> list[str]:
         if response.status != 200 or response.getheader("Content-Type", "").split(";", 1)[0].strip().lower() != "application/dns-json":
             raise OSError("public_dns_invalid_response")
         body = bytearray()
-        while True:
+        # HTTPResponse can close the TLS socket after its final body chunk
+        # when Connection: close is used. Do not set a timeout on that closed
+        # socket merely to perform another EOF read (WinError 10038).
+        while not response.isclosed():
             tls_socket.settimeout(_remaining(deadline))
             chunk = response.read1(min(4096, _MAX_DOH_BYTES + 1 - len(body)))
             if not chunk:
@@ -312,6 +317,36 @@ def _resolve_public_ips(deadline: float, cancelled: Callable[[], bool]) -> list[
     return ips
 
 
+def _windows_physical_interface(deadline: float, cancelled: Callable[[], bool]) -> int | None:
+    """只读查询有默认路由的物理网卡，不修改系统代理、TUN 或路由表。"""
+    if os.name != "nt":
+        return None
+    _check_cancelled(cancelled)
+    timeout = min(3.0, _remaining(deadline))
+    command = (
+        "$ErrorActionPreference='Stop'; $ProgressPreference='SilentlyContinue'; "
+        "$physical=@(Get-NetAdapter -Physical | Where-Object {$_.Status -eq 'Up'} "
+        "| Select-Object -ExpandProperty ifIndex); "
+        "$routes=@(Get-NetRoute -AddressFamily IPv4 -DestinationPrefix '0.0.0.0/0' "
+        "| Where-Object {$_.InterfaceIndex -in $physical} "
+        "| Sort-Object @{Expression={$_.RouteMetric + $_.InterfaceMetric}}); "
+        "if ($routes.Count -gt 0) {$routes[0].InterfaceIndex}"
+    )
+    try:
+        result = subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command],
+                                shell=False, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                encoding="ascii", check=True, timeout=timeout,
+                                creationflags=subprocess.CREATE_NO_WINDOW)
+    except (OSError, subprocess.SubprocessError, UnicodeError):
+        _check_cancelled(cancelled)
+        _remaining(deadline)
+        return None
+    _check_cancelled(cancelled)
+    _remaining(deadline)
+    value = result.stdout.strip()
+    return int(value) if len(value) <= 8 and value.isascii() and value.isdecimal() and 0 < int(value) < 2 ** 24 else None
+
+
 def _open_websocket(headers: dict[str, str], deadline: float, cancelled: Callable[[], bool]):
     connect_deadline = min(deadline, time.monotonic() + CONNECT_TIMEOUT)
     ips = _resolve_public_ips(connect_deadline, cancelled)
@@ -326,12 +361,30 @@ def _open_websocket(headers: dict[str, str], deadline: float, cancelled: Callabl
     if raw_socket is None:
         raise OSError("public_connection_failed")
     connection = None
-    try:
+    def handshake():
         _check_cancelled(cancelled)
-        connection = connect(ENDPOINT, sock=raw_socket, ssl=ssl.create_default_context(), server_hostname=HOST,
-                             proxy=None, compression=None, additional_headers=headers,
-                             open_timeout=_remaining(connect_deadline), close_timeout=CLOSE_TIMEOUT,
-                             ping_interval=None, max_size=MAX_FRAME_BYTES, max_queue=4, logger=_LOGGER)
+        return connect(ENDPOINT, sock=raw_socket, ssl=ssl.create_default_context(), server_hostname=HOST,
+                       proxy=None, compression=None, additional_headers=headers,
+                       open_timeout=_remaining(connect_deadline), close_timeout=CLOSE_TIMEOUT,
+                       ping_interval=None, max_size=MAX_FRAME_BYTES, max_queue=4, logger=_LOGGER)
+    try:
+        try:
+            connection = handshake()
+        except ssl.SSLEOFError:
+            # 某些 Windows TUN 在带官方域名的 TLS 握手时立即断开。
+            # 仅为这个官方公网 IPv4 socket 选物理出口，再试一次连接；
+            # 不放宽证书校验，不重试鉴权失败，也不重发任何配音正文。
+            raw_socket.close()
+            interface = _windows_physical_interface(connect_deadline, cancelled)
+            if interface is None or ipaddress.ip_address(ip).version != 4:
+                raise
+            raw_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # Winsock IP_UNICAST_IF=31，接口索引必须用网络字节序 DWORD。
+            raw_socket.setsockopt(socket.IPPROTO_IP, 31, struct.pack("!I", interface))
+            raw_socket.settimeout(_remaining(connect_deadline))
+            _check_cancelled(cancelled)
+            raw_socket.connect((ip, 443))
+            connection = handshake()
         # Bound writes as well as reads. An idle socket timeout is conservative
         # failure, never permission to resubmit a text-bearing session.
         connection.socket.settimeout(min(CONNECT_TIMEOUT, _remaining(deadline)))
@@ -581,6 +634,10 @@ def synthesize(repository: Repository, job_id: str, revision: int, text: str, co
         repository.finish_operation(operation["operation_id"], "UNKNOWN" if submitted else "REJECTED", ledger)
         raise
     except Exception as exc:
+        message = "字节连接或会话未完成文本提交，请检查配置、网络或预算后以新命令重试"
+        if ledger["phase"] == "connecting" and isinstance(exc, ssl.SSLError):
+            ledger["failure_category"] = "tls_handshake"
+            message = "字节 TLS 安全连接失败，尚未进入鉴权和音色校验、未提交配音正文；请检查网络代理、TUN 路由或证书后重试"
         if isinstance(exc, ProviderError) and exc.code is not None:
             ledger["provider_code"] = exc.code
         response = getattr(exc, "response", None)
@@ -588,6 +645,8 @@ def synthesize(repository: Repository, job_id: str, revision: int, text: str, co
             status = getattr(response, "status_code", None)
             if type(status) is int and 100 <= status <= 599:
                 ledger["http_status"] = status
+                ledger["failure_category"] = "handshake_rejected"
+                message = f"字节接口握手返回 HTTP {status}，未提交配音正文；请核对鉴权、资源权限及接口配置后重试"
             trace = _trace_id(exc)
             if trace:
                 ledger["provider_trace_id"] = trace
@@ -595,7 +654,7 @@ def synthesize(repository: Repository, job_id: str, revision: int, text: str, co
         if submitted:
             raise SubmissionUnknown("字节会话提交后的结果不确定，已阻止再次付费；请核对记录或导入真实音频", ["voice_operation"],
                                     operation_id=operation["operation_id"], request_id=ledger["request_id"]) from None
-        raise CapabilityMissing("字节连接或会话未完成文本提交，请检查配置、网络或预算后以新命令重试", ["voice"],
+        raise CapabilityMissing(message, ["voice"],
                                 operation_status="REJECTED", operation_id=operation["operation_id"], request_id=ledger["request_id"]) from None
     finally:
         if connection is not None:

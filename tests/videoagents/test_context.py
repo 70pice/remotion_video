@@ -242,12 +242,13 @@ def test_explicit_none_clears_script_and_invalidates_downstream_outputs(tmp_path
     job = repo.create_job(Brief(script_text="观点：清空文案。"))
     final = _artifact(repo, job.job_id, job.revision, "final")
     package = _artifact(repo, job.job_id, job.revision, "package")
+    component_study = _artifact(repo, job.job_id, job.revision, "component_study")
     source = _artifact(repo, job.job_id, job.revision, "source")
     review = Review(status="PASS", findings=[Finding(finding_id="unit", severity="info", category="unit",
                     message="旧审核", owner="unit", blocking=False)], dependency_fingerprint="unit")
     job = repo.update_job(job.job_id, job.revision, script=_script(job.revision),
                           timeline=_timeline(job.job_id, job.revision), review=review,
-                          artifacts=[source, final, package])
+                          artifacts=[source, final, package, component_study])
 
     current_job(repo, VideoState(job_id=job.job_id, revision=job.revision, latest_event_id=job.latest_event_id,
                                 action="produce", run_id="UNIT-clear", thread_id="UNIT-clear", script=None))
@@ -321,6 +322,17 @@ def test_context_contains_public_receipts_without_runtime_secrets(tmp_path):
     assert "UNIT-voice-secret" not in encoded
     assert "UNIT-aligner-secret" not in encoded
     assert "UNIT-operation-secret" not in encoded
+
+
+def test_state_context_drops_stale_component_study_when_artifact_is_missing(tmp_path):
+    repo = Repository(tmp_path / "runtime")
+    job = repo.create_job(Brief(script_text="观点：旧学习报告不能跨版本沿用。"))
+
+    context = state_context(repo, VideoState(job_id=job.job_id, revision=job.revision,
+                            action="produce", run_id="UNIT-stale-study", thread_id="UNIT-stale-study",
+                            extras={"component_study": {"usage": "unspecified", "video_first": True}}))
+
+    assert context["extras"]["component_study"] is None
 
 
 @pytest.mark.parametrize("enabled,max_rounds,status", [(True, 5, "DISCUSSING"), (False, 3, "DISABLED")])
@@ -406,11 +418,14 @@ def test_state_context_loads_stage_receipts_audio_metadata_and_business_json(tmp
     audio_report = _json_artifact(repo, job.job_id, job.revision, "audio_report", {"verified": True})
     voice_guidance = _json_artifact(repo, job.job_id, job.revision, "voice_guidance", {"delivery_notes": ["慢一点"]})
     editing_guidance = _json_artifact(repo, job.job_id, job.revision, "editing_guidance", {"layout_notes": ["标题加粗"]})
+    component_study = _json_artifact(repo, job.job_id, job.revision, "component_study",
+                                     {"usage": "unspecified", "video_first": True,
+                                      "tool_calls": ["UNIT-private-tool"]})
     stage_review = _json_artifact(repo, job.job_id, job.revision, "stage_review",
                                   {"decision": "confirm", "pending_token": "UNIT-token", "note": "已人工确认"})
     job = repo.update_job(job.job_id, job.revision, assets=[audio],
                           artifacts=[audio_artifact, research, audio_report, voice_guidance,
-                                     editing_guidance, stage_review])
+                                     editing_guidance, component_study, stage_review])
     repo.update_asset_metadata(audio.asset_id, {"origin": "upload", "duration_seconds": 0.5,
                                                 "alignment": alignment})
     repo.select_audio(job.job_id, audio.asset_id)
@@ -428,6 +443,7 @@ def test_state_context_loads_stage_receipts_audio_metadata_and_business_json(tmp
     assert context["audio_report"] == {"verified": True}
     assert context["voice_guidance"] == {"delivery_notes": ["慢一点"]}
     assert context["editing_guidance"] == {"layout_notes": ["标题加粗"]}
+    assert context["extras"]["component_study"] == {"usage": "unspecified", "video_first": True}
     assert context["human_reviews"] == [{**{"decision": "confirm", "pending_token": "UNIT-token",
                                             "note": "已人工确认"}, "artifact_id": stage_review.artifact_id}]
 

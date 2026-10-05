@@ -138,10 +138,11 @@ export interface MaterialSourceFile {
 
 export interface MaterialVisualFile {
   source_url: string;
-  kind: "image" | "screenshot";
+  kind: "image" | "screenshot" | "video";
   file: string;
   sha256: string;
   image_url: string;
+  media_url: string;
   description: string;
 }
 

@@ -6,7 +6,7 @@ import uuid
 from typing import Any
 
 from videoagents.contracts import Artifact, Job, ScriptDiscussion
-from videoagents.services.jobs import INVALIDATED
+from videoagents.services.jobs import INVALIDATED, JobService
 from videoagents.services.settings import SettingsService
 from videoagents.state import (
     VideoState,
@@ -152,9 +152,11 @@ def state_context(repository: Repository, state: VideoState, **overrides: Any) -
                    render={item.kind: item.model_dump() for item in job.artifacts
                            if item.kind in {"preview", "final", "cover", "captions", "package"}})
     history = list(state.get("human_reviews", []))
+    restored_component_study = False
     for artifact in job.artifacts:
         if artifact.revision != job.revision or artifact.kind not in {
-            "research", "audio_report", "voice_guidance", "editing_guidance", "stage_review", "human_review",
+            "research", "audio_report", "voice_guidance", "editing_guidance", "component_study",
+            "stage_review", "human_review", "human_feedback_applied",
         }:
             continue
         path, _, owner = repository.artifact_path(artifact.artifact_id)
@@ -164,8 +166,22 @@ def state_context(repository: Repository, state: VideoState, **overrides: Any) -
         if artifact.kind in {"stage_review", "human_review"}:
             receipt = {**receipt, "artifact_id": artifact.artifact_id}
             history = [item for item in history if item.get("artifact_id") != artifact.artifact_id] + [receipt]
+        elif artifact.kind == "human_feedback_applied":
+            stage = receipt.get("stage")
+            current_feedback = context.get("extras", {}).get("human_feedback", {})
+            current_entry = current_feedback.get(stage) if type(current_feedback) is dict else None
+            if (type(stage) is str and type(current_entry) is dict
+                    and current_entry.get("pending_token") == receipt.get("pending_token")):
+                context["extras"] = merge_human_feedback(context["extras"], stage,
+                    {"applied": True, "applied_artifact_id": artifact.artifact_id,
+                     "applied_target": receipt.get("target")})
+        elif artifact.kind == "component_study":
+            context["extras"] = merge_extras(context["extras"], {"component_study": receipt})
+            restored_component_study = True
         else:
             context[artifact.kind] = receipt
+    if not restored_component_study and "component_study" in context.get("extras", {}):
+        context["extras"] = merge_extras(context["extras"], {"component_study": None})
     decision = overrides.get("human_decision")
     if decision and not any(item.get("pending_token") == decision.get("pending_token") for item in history):
         history.append(decision)
@@ -178,6 +194,44 @@ def state_context(repository: Repository, state: VideoState, **overrides: Any) -
     context.update(overrides)
     return clean_handoff(context)
 
+
+
+def merge_human_feedback(extras: dict[str, Any], stage: str, patch: dict[str, Any]) -> dict[str, Any]:
+    feedback = extras.get("human_feedback", {})
+    if type(feedback) is not dict:
+        feedback = {}
+    merged = dict(feedback)
+    entry = dict(merged.get(stage, {})) if type(merged.get(stage, {})) is dict else {}
+    entry.update(patch)
+    merged[stage] = entry
+    return merge_extras(extras, {"human_feedback": merged})
+
+
+def stage_feedback(state: VideoState, *stages: str) -> dict[str, Any] | None:
+    """Return unapplied final human revision feedback for one requested stage."""
+    feedback = state.get("extras", {}).get("human_feedback", {})
+    if type(feedback) is not dict:
+        return None
+    for stage in stages:
+        item = feedback.get(stage)
+        if (type(item) is dict and item.get("decision") == "revise" and item.get("note")
+                and item.get("applied") is not True):
+            return item
+    return None
+
+
+def mark_feedback_applied(repository: Repository, service: JobService, job: Job, state: VideoState,
+                          stage: str, target: str) -> None:
+    item = state.get("extras", {}).get("human_feedback", {}).get(stage)
+    if type(item) is not dict or item.get("decision") != "revise" or item.get("applied") is True:
+        return
+    receipt = {"stage": stage, "target": target, "pending_token": item.get("pending_token"),
+               "note": item.get("note"), "applied": True, "revision": job.revision}
+    artifact = service.write_json(job, f"human-feedback-{stage}-{item.get('pending_token', 'unknown')}.json",
+                                  receipt, "human_feedback_applied")
+    state["extras"] = merge_human_feedback(state.get("extras", {}), stage,
+                                            {"applied": True, "applied_artifact_id": artifact.artifact_id,
+                                             "applied_target": target})
 
 def agent_state(repository: Repository, job: Job, state: VideoState | None = None) -> VideoState:
     """图内角色共用传入 state；直接调用业务 helper 时也从相同恢复入口取产物。"""

@@ -31,6 +31,7 @@ PROMPT_FILES = [
     "script-reviewer",
     "voice",
     "director",
+    "component-study",
     "editing",
     "review",
 ]
@@ -124,13 +125,18 @@ def test_director_prompt_injects_props_examples():
     assert all(component_id in director.PROMPT for component_id in COMMUNITY_COMPONENT_IDS)
 
 
+def test_editing_prompt_allows_verified_image_crop():
+    # 图片裁剪已由时间轴验证与渲染器支持，预检不能再按旧白名单误拒绝。
+    assert "image_focus.crop{x,y,width,height}" in editing.PROMPT
+
+
 @pytest.mark.parametrize(
     "label,phrase",
     [
         ("materials", "MaterialResearch"),
         ("screenwriter", "每段 source_refs 必须有真实来源"),
-        ("screenwriter", "narration 必须以“观点：”或“个人感受：”开头"),
-        ("screenwriter", "不能只写“我建议”"),
+        ("screenwriter", "不要单独宣布“我的观点”"),
+        ("screenwriter", "结尾的解释与使用边界同样填写支撑它的真实 source_refs"),
         ("script_reviewer", "全稿问题使用空字符串"),
         ("script_reviewer", "script_discussion.rounds[-1].script.segments"),
         ("script_reviewer", "不得使用范围"),

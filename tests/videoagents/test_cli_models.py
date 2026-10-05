@@ -206,6 +206,23 @@ def test_codex_research_mode_allows_tool_events_and_writes_sanitized_audit(tmp_p
     assert "secret" not in audit_text and "output_tokens" not in audit_text
 
 
+def test_codex_research_accepts_collaboration_events_without_handing_off_tool_details(tmp_path, monkeypatch):
+    event = {"type": "item.completed", "item": {"type": "collab_tool_call", "status": "completed",
+             "tool": "wait", "prompt": "private tool prompt", "receiver_thread_ids": ["private-thread"]}}
+    code = f"print(json.dumps({event!r}))\n"
+    code += "value={'response_json':json.dumps({'sources':[], 'limitations':['known gap']})}\n"
+    code += "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(value)}}))\n"
+    code += "print(json.dumps({'type':'turn.completed','usage':{'output_tokens':2}}))"
+    fixture_cli(tmp_path, monkeypatch, code)
+    audit = tmp_path / "audit.jsonl"
+    result = run_cli("codex_cli", "", 5, "fixture", {"type": "object"},
+                     research_directory=tmp_path / "research", audit_path=audit)
+    assert result.data == {"sources": [], "limitations": ["known gap"]}
+    record = json.loads(audit.read_text(encoding="utf-8").splitlines()[0])
+    assert record == {"type": "item.completed", "item_type": "collab_tool_call", "status": "completed"}
+    assert "private" not in audit.read_text(encoding="utf-8")
+
+
 def test_codex_research_mode_requires_last_agent_message_to_be_structured(tmp_path, monkeypatch):
     code = "value={'response_json':json.dumps({'text':'not final'})}\n"
     code += "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(value)}}))\n"
@@ -214,6 +231,22 @@ def test_codex_research_mode_requires_last_agent_message_to_be_structured(tmp_pa
     fixture_cli(tmp_path, monkeypatch, code)
     with pytest.raises(CliFailure, match="invalid_cli_output"):
         run_cli("codex_cli", "", 5, "fixture", {"type": "object"}, research_directory=tmp_path / "research")
+
+
+@pytest.mark.parametrize("research", [False, True])
+def test_cli_roles_do_not_inherit_desktop_session_or_permission_context(tmp_path, monkeypatch, research):
+    for name in cli_runner.CODEX_MANAGED_CONTEXT_ENV:
+        monkeypatch.setenv(name, "parent-desktop-context")
+    monkeypatch.setenv("VIDEOAGENTS_ENV_FIXTURE", "preserved")
+    code = "import os\n"
+    code += f"managed={sorted(cli_runner.CODEX_MANAGED_CONTEXT_ENV)!r}\n"
+    code += "value={'response_json':json.dumps({'inherited':[key for key in managed if key in os.environ], 'other':os.environ.get('VIDEOAGENTS_ENV_FIXTURE')})}\n"
+    code += "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(value)}}))\n"
+    code += "print(json.dumps({'type':'turn.completed'}))\n"
+    fixture_cli(tmp_path, monkeypatch, code)
+    kwargs = {"research_directory": tmp_path / "research"} if research else {}
+    result = run_cli("codex_cli", "", 5, "fixture", {"type": "object"}, **kwargs)
+    assert result.data == {"inherited": [], "other": "preserved"}
 
 
 def test_research_mode_prepends_user_local_bin_without_changing_plain_mode(tmp_path, monkeypatch):
@@ -236,7 +269,7 @@ def test_research_mode_prepends_user_local_bin_without_changing_plain_mode(tmp_p
     assert research["path"].startswith(str(local_bin) + os.pathsep)
     assert research["pythonutf8"] == "1"
     assert research["pythonioencoding"] == "utf-8"
-    assert plain["permission_profile"] == ":danger-full-access"
+    assert plain["permission_profile"] == ""
     assert research["permission_profile"] == ""
 
 

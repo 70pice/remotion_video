@@ -9,6 +9,7 @@ import {
   KeywordAdapter,
   StepsAdapter,
   TitleAdapter,
+  VideoAdapter,
 } from './adapters';
 import type {AdapterProps} from './adapters/layout';
 import {communityComponentIds} from './validation.mjs';
@@ -22,6 +23,7 @@ export const semanticProductionRegistry: Record<string, ComponentType<AdapterPro
   data: DataAdapter,
   steps: StepsAdapter,
   conclusion: ConclusionAdapter,
+  video: VideoAdapter,
 };
 
 export type CommunityPreset = {

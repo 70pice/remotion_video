@@ -25,7 +25,7 @@ def setup(tmp_path, monkeypatch):
     node = MaterialsNode(repo, service)
     monkeypatch.setattr("videoagents.nodes.materials.probe",
                         lambda path: {"streams": [{"codec_type": "video", "width": 64, "height": 64}]})
-    monkeypatch.setattr("videoagents.nodes.materials.detect_media", lambda data: ("image/png", ".png"))
+    monkeypatch.setattr("videoagents.nodes.materials.detect_media", lambda data, path=None: ("image/png", ".png"))
     return repo, service, node, job
 
 

@@ -10,10 +10,11 @@ from urllib.parse import urlparse
 from videoagents.contracts import Alignment, Artifact, Asset, DraftRequest, Job
 from videoagents.default_config import PROJECT_ROOT
 from videoagents.storage import Repository
-from videoagents.tools.media import audio_duration, detect_media, probe, sha256
+from videoagents.tools.media import audio_duration, decode_check, detect_media, probe, sha256, video_metadata
 from videoagents.tools.timeline import validate_timeline
 
-INVALIDATED = {"preview", "final", "cover", "timeline", "review", "package", "captions", "storyboard", "script_discussion"}
+INVALIDATED = {"preview", "final", "cover", "timeline", "review", "package", "captions",
+               "storyboard", "script_discussion", "component_study"}
 
 
 class JobService:
@@ -39,7 +40,8 @@ class JobService:
                         raise ValueError("文案包含不属于此任务的素材")
                 job.script = request.script.model_copy(update={"revision": new_revision})
             if request.timeline:
-                validate_timeline(request.timeline, job)
+                metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
+                validate_timeline(request.timeline, job, metadata)
                 job.timeline = request.timeline.model_copy(update={"revision": new_revision})
             else:
                 job.timeline = None
@@ -78,16 +80,19 @@ class JobService:
             parsed = urlparse(source_url)
             if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password:
                 raise ValueError("素材来源必须是无凭据的 HTTP/HTTPS URL")
-        mime_type, extension = detect_media(data)
-        if (role == "audio") != mime_type.startswith("audio/"):
-            raise ValueError("素材类型与用途不一致")
         asset_id = uuid.uuid4().hex
         folder = self.repo.root / "jobs" / job_id / "assets"
         folder.mkdir(parents=True, exist_ok=True)
-        path = folder / (asset_id + extension)
+        path = folder / (asset_id + ".upload")
         path.write_bytes(data)
         metadata: dict[str, Any] = {"origin": "upload"}
         try:
+            mime_type, extension = detect_media(data, path)
+            final_path = folder / (asset_id + extension)
+            path.replace(final_path)
+            path = final_path
+            if (role == "audio") != mime_type.startswith("audio/"):
+                raise ValueError("素材类型与用途不一致")
             if role == "audio":
                 metadata["duration_seconds"] = audio_duration(path)
                 if alignment:
@@ -98,12 +103,17 @@ class JobService:
                     if checked.segments[-1].end_ms > metadata["duration_seconds"] * 1000 + 80:
                         raise ValueError("对齐时间超出音频实测时长")
                     metadata["alignment"] = checked.model_dump()
-            else:
+            elif mime_type.startswith("image/"):
                 info = probe(path)
                 stream = next((item for item in info.get("streams", []) if item.get("codec_type") == "video"), None)
                 if not stream or stream.get("width", 0) < 32 or stream.get("height", 0) < 32 or stream.get("width", 0) * stream.get("height", 0) > 40_000_000:
                     raise ValueError("图片无法解码、过小或分辨率超过限制")
                 metadata.update(width=stream["width"], height=stream["height"])
+            elif mime_type.startswith("video/"):
+                metadata.update(video_metadata(path))
+                decode_check(path)
+            else:
+                raise ValueError("素材类型与用途不一致")
             artifact = self.register_artifact(job.model_copy(update={"revision": job.revision + 1}), path, "audio_import" if role == "audio" else "asset", mime_type, Path(name).name[:200])
             timeline_src = f"videoagents/{job_id}/assets/{asset_id}{extension}"
             asset = Asset(asset_id=asset_id, name=Path(name).name[:200], role=role, mime_type=mime_type,

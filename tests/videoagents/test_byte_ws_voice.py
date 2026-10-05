@@ -458,6 +458,21 @@ def test_control_connection_failure_and_budget_failure_leave_rejected(configured
     assert connection.closed
 
 
+def test_tls_failure_is_reported_before_authentication_without_raw_exception(configured, monkeypatch):
+    repo, config = configured
+    def fail(*args):
+        raise ws.ssl.SSLEOFError("raw secret TLS failure " + config["voice_api_key"])
+    monkeypatch.setattr(ws, "_open_websocket", fail)
+    with pytest.raises(CapabilityMissing) as failure:
+        ws.synthesize(repo, "unit-job", 1, "测试", "command-one")
+    record = operation(repo)
+    assert record["failure_category"] == "tls_handshake"
+    assert record["phase"] == "connecting" and record["status"] == "REJECTED"
+    assert "TLS" in str(failure.value) and "尚未进入鉴权和音色校验" in str(failure.value)
+    assert "secret" not in json.dumps(record) and "secret" not in str(failure.value)
+    assert config["voice_api_key"] not in json.dumps(record) and metric(repo) is None
+
+
 def test_timeout_after_task_is_unknown_with_short_receives(configured, monkeypatch):
     repo, _ = configured
     connection = FixtureConnection("timeout")
@@ -557,6 +572,105 @@ def test_pinned_public_socket_tls_proxy_and_private_logger(monkeypatch):
     assert len(targets) == 1
 
 
+def test_tls_eof_retries_only_vendor_socket_on_physical_interface(monkeypatch):
+    monkeypatch.setattr(ws, "_resolve_public_ips", lambda *a: ["93.184.216.34"])
+    monkeypatch.setattr(ws, "_windows_physical_interface", lambda *a: 11, raising=False)
+    default = FakeSocket()
+    events, options = [], []
+    class RoutedSocket(FakeSocket):
+        def setsockopt(self, *args):
+            events.append(("interface", args))
+        def connect(self, target):
+            events.append(("connect", target))
+    routed = RoutedSocket()
+    monkeypatch.setattr(ws.socket, "create_connection", lambda *a, **k: default)
+    monkeypatch.setattr(ws.socket, "socket", lambda *a: routed)
+    connection = FixtureConnection()
+    def connect(uri, **kwargs):
+        options.append(kwargs)
+        if len(options) == 1:
+            raise ws.ssl.SSLEOFError("synthetic TUN EOF")
+        assert default.closed
+        return connection
+    monkeypatch.setattr(ws, "connect", connect)
+    assert ws._open_websocket({}, time.monotonic() + 2, lambda: False) is connection
+    assert events == [("interface", (socket.IPPROTO_IP, 31, struct.pack("!I", 11))),
+                      ("connect", ("93.184.216.34", 443))]
+    assert len(options) == 2 and options[1]["sock"] is routed
+    assert all(o["server_hostname"] == ws.HOST and o["ssl"].check_hostname
+               and o["ssl"].verify_mode != 0 and o["proxy"] is None for o in options)
+
+
+def test_certificate_failure_never_uses_physical_interface_fallback(monkeypatch):
+    monkeypatch.setattr(ws, "_resolve_public_ips", lambda *a: ["93.184.216.34"])
+    monkeypatch.setattr(ws, "_windows_physical_interface", lambda *a: pytest.fail("certificate error retried"), raising=False)
+    raw = FakeSocket()
+    monkeypatch.setattr(ws.socket, "create_connection", lambda *a, **k: raw)
+    def fail(*args, **kwargs):
+        raise ws.ssl.SSLCertVerificationError("synthetic untrusted certificate")
+    monkeypatch.setattr(ws, "connect", fail)
+    with pytest.raises(ws.ssl.SSLCertVerificationError):
+        ws._open_websocket({}, time.monotonic() + 2, lambda: False)
+    assert raw.closed
+
+
+def test_failed_physical_connection_closes_both_sockets(monkeypatch):
+    monkeypatch.setattr(ws, "_resolve_public_ips", lambda *a: ["93.184.216.34"])
+    monkeypatch.setattr(ws, "_windows_physical_interface", lambda *a: 11)
+    default = FakeSocket()
+    class RoutedSocket(FakeSocket):
+        def setsockopt(self, *args):
+            pass
+        def connect(self, target):
+            raise OSError("synthetic physical connection failure")
+    routed = RoutedSocket()
+    monkeypatch.setattr(ws.socket, "create_connection", lambda *a, **k: default)
+    monkeypatch.setattr(ws.socket, "socket", lambda *a: routed)
+    def fail(*args, **kwargs):
+        raise ws.ssl.SSLEOFError("synthetic TUN EOF")
+    monkeypatch.setattr(ws, "connect", fail)
+    with pytest.raises(OSError, match="physical connection failure"):
+        ws._open_websocket({}, time.monotonic() + 2, lambda: False)
+    assert default.closed and routed.closed
+
+
+def test_cancelled_physical_discovery_does_not_start_process(monkeypatch):
+    monkeypatch.setattr(ws, "os", SimpleNamespace(name="nt"))
+    monkeypatch.setattr(ws.subprocess, "run", lambda *a, **k: pytest.fail("cancelled discovery started process"))
+    with pytest.raises(RenderCancelled):
+        ws._windows_physical_interface(time.monotonic() + 1, lambda: True)
+
+
+def test_cancellation_during_failed_interface_query_is_preserved(monkeypatch):
+    monkeypatch.setattr(ws, "os", SimpleNamespace(name="nt"))
+    cancelled = [False]
+    def fail(*args, **kwargs):
+        cancelled[0] = True
+        raise ws.subprocess.TimeoutExpired("synthetic read-only query", 1)
+    monkeypatch.setattr(ws.subprocess, "run", fail)
+    with pytest.raises(RenderCancelled):
+        ws._windows_physical_interface(time.monotonic() + 1, lambda: cancelled[0])
+
+
+@pytest.mark.parametrize("stdout,expected", [("11\n", 11), ("", None), ("0", None), ("16777216", None),
+                                             ("11\n12", None), ("9" * 100, None), ("unexpected output", None)])
+def test_physical_interface_discovery_is_read_only_bounded_and_validated(monkeypatch, stdout, expected):
+    monkeypatch.setattr(ws, "os", SimpleNamespace(name="nt"), raising=False)
+    calls = []
+    def run(args, **kwargs):
+        calls.append((args, kwargs))
+        return SimpleNamespace(stdout=stdout)
+    monkeypatch.setattr(ws, "subprocess", SimpleNamespace(run=run, PIPE=-1, DEVNULL=-3, CREATE_NO_WINDOW=0x08000000,
+                                                          SubprocessError=Exception), raising=False)
+    assert ws._windows_physical_interface(time.monotonic() + 1, lambda: False) == expected
+    args, kwargs = calls[0]
+    assert args[:3] == ["powershell.exe", "-NoProfile", "-NonInteractive"]
+    assert "Get-NetAdapter -Physical" in args[-1] and "Get-NetRoute" in args[-1]
+    assert not any(word in args[-1] for word in ["Set-", "New-", "Remove-", "Stop-"])
+    assert kwargs["shell"] is False and 0 < kwargs["timeout"] <= 1
+    assert kwargs["creationflags"] == 0x08000000
+
+
 def test_dns_deadline_and_cancellation_do_not_wait_for_resolver_thread(monkeypatch):
     release = threading.Event()
     def slow(*args, **kwargs):
@@ -579,7 +693,8 @@ def doh_payload(ips=("163.181.39.213",)):
             "Answer": [{"name": ws.HOST, "type": 1, "TTL": 60, "data": ip} for ip in ips]}
 
 
-def fixture_doh(monkeypatch, payload=None, *, body=None, status=200, content_type="application/dns-json", after_headers=None):
+def fixture_doh(monkeypatch, payload=None, *, body=None, status=200, content_type="application/dns-json", after_headers=None,
+                close_after_body=False):
     """Synthetic bootstrap/TLS/HTTP; this fixture opens no real socket."""
     calls = {"targets": [], "http": [], "requests": [], "reads": [], "tls": []}
     raw, tls = FakeSocket(), FakeSocket()
@@ -603,7 +718,12 @@ def fixture_doh(monkeypatch, payload=None, *, body=None, status=200, content_typ
         def read1(self, size):
             calls["reads"].append(size)
             data, self.remaining = self.remaining[:size], self.remaining[size:]
+            if close_after_body and not self.remaining:
+                self.closed = True
+                tls.close()
             return data
+        def isclosed(self):
+            return self.closed
         def close(self):
             self.closed = True
     response = Response()
@@ -623,6 +743,21 @@ def fixture_doh(monkeypatch, payload=None, *, body=None, status=200, content_typ
             self.closed = True
     monkeypatch.setattr(ws.http.client, "HTTPConnection", Client)
     return calls, raw, tls, response, context
+
+
+def test_doh_complete_close_response_does_not_touch_closed_tls_socket(monkeypatch):
+    calls, raw, tls, response, _ = fixture_doh(monkeypatch, close_after_body=True)
+    set_timeout = tls.settimeout
+
+    def timeout_on_open_socket(value):
+        if tls.closed:
+            raise OSError("synthetic Windows socket already closed")
+        set_timeout(value)
+
+    monkeypatch.setattr(tls, "settimeout", timeout_on_open_socket)
+    assert ws._resolve_doh_public_ips(time.monotonic() + 1) == ["163.181.39.213"]
+    assert len(calls["reads"]) == 1
+    assert raw.closed and tls.closed and response.closed and calls["client"].closed
 
 
 def test_doh_bootstrap_has_fixed_public_target_tls_host_and_only_fixed_query(monkeypatch):

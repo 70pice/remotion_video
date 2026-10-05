@@ -47,7 +47,8 @@ class TimelineGateNode:
     def __call__(self, state: VideoState) -> dict[str, Any]:
         job = current_job(self.repo, state)
         try:
-            validate_timeline(job.timeline, job)
+            metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
+            validate_timeline(job.timeline, job, metadata)
         except ValueError as exc:
             return request_input(self.repo, state, "director", [str(exc)], ["timeline"])
         if state["action"] == "storyboard":

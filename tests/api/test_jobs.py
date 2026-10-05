@@ -31,7 +31,7 @@ def client(tmp_path):
 
 def create(client):
     response = client.post("/api/jobs", json={"topic": "测试素材", "script_text": "观点：测试流程。", "target_seconds": 2,
-                                              "width": 240, "height": 426, "fps": 15, "usage": "personal", "platform": "测试平台"})
+                                              "width": 1080, "height": 1920, "fps": 30, "usage": "personal", "platform": "抖音"})
     assert response.status_code == 201
     return response.json()
 
@@ -86,6 +86,28 @@ def test_upload_real_audio_range_and_explicit_alignment_hash(client):
     result = client.get(url).json()
     assert result["alignment"]["audio_sha256"] == asset["sha256"]
     assert result["duration_seconds"] == pytest.approx(2)
+
+
+def test_upload_video_keeps_mp4_as_visual_asset_with_probe_metadata(client, monkeypatch):
+    job = create(client)
+    monkeypatch.setattr("videoagents.services.jobs.detect_media", lambda data, path=None: ("video/mp4", ".mp4"))
+    monkeypatch.setattr("videoagents.services.jobs.video_metadata",
+                        lambda path: {"duration_seconds": 6.0, "width": 688, "height": 1080, "frame_rate": 30.0})
+    monkeypatch.setattr("videoagents.services.jobs.decode_check", lambda path: None)
+
+    response = client.post(f"/api/jobs/{job['job_id']}/assets",
+                           files={"file": ("demo.mp4", b"\x00\x00\x00\x18ftypmp42unit", "video/mp4")},
+                           data={"role": "evidence", "source_url": "https://example.com/demo",
+                                 "license_note": "测试视频，已确认可用于单元测试"})
+
+    assert response.status_code == 201
+    asset = response.json()
+    assert asset["mime_type"] == "video/mp4"
+    assert asset["timeline_src"].endswith(".mp4")
+    assert asset["role"] == "evidence"
+    metadata = client.app.state.repository.asset_metadata(asset["asset_id"])
+    assert metadata["duration_seconds"] == 6.0
+    assert metadata["width"] == 688 and metadata["height"] == 1080
 
 
 def test_settings_write_only_credentials_and_validation_never_echoes_them(client):

@@ -15,8 +15,10 @@ from videoagents.contracts import (
 from videoagents.nodes.common import (
     agent_state,
     current_discussion,
+    mark_feedback_applied,
     request_input,
     save_discussion,
+    stage_feedback,
     start_stage,
     state_context,
 )
@@ -33,6 +35,15 @@ PROMPT = NARRATIVE_PROMPT + "\n\n" + load_prompt("screenwriter-draft")
 REWRITE_PROMPT = NARRATIVE_PROMPT + "\n\n" + load_prompt("screenwriter-rewrite")
 
 
+def same_script_body(script: Script | dict[str, Any], snapshot: dict[str, Any]) -> bool:
+    current = Script.model_validate(script).model_dump() if isinstance(script, dict) else script.model_dump()
+    reviewed = Script.model_validate(snapshot).model_dump()
+    for item in (current, reviewed):
+        item.pop("origin", None)
+        item.pop("revision", None)
+    return current == reviewed
+
+
 class ScreenwriterNode:
     def __init__(self, repository: Repository, service: JobService):
         self.repo, self.service = repository, service
@@ -44,9 +55,13 @@ class ScreenwriterNode:
         try:
             if discussion.enabled:
                 return self.discuss(state, job, discussion)
+            feedback = stage_feedback(state, "script")
             script, research = self.write_script(job, state)
             job = self.repo.update_job(job.job_id, job.revision, script=script, script_discussion=None)
             self.service.write_json(job, "script.json", script.model_dump(), "script")
+            if feedback:
+                mark_feedback_applied(self.repo, self.service, self.repo.get_job(job.job_id), state,
+                                      "script", "screenwriter")
             return state_context(self.repo, state, route="script_gate",
                                  research=research, gate_issues=[])
         except (CapabilityMissing, ValueError) as exc:
@@ -54,16 +69,34 @@ class ScreenwriterNode:
 
     def discuss(self, state: VideoState, job: Job, discussion: ScriptDiscussion) -> dict[str, Any]:
         research = state.get("research", {})
+        feedback = stage_feedback(state, "script")
+        if feedback and discussion.rounds:
+            reviewed = feedback.get("script")
+            latest = discussion.rounds[-1].script.model_dump()
+            if type(reviewed) is dict and not same_script_body(latest, reviewed):
+                mark_feedback_applied(self.repo, self.service, self.repo.get_job(job.job_id), state,
+                                      "script", "screenwriter")
+                return state_context(self.repo, state, route="script_reviewer", research=research, gate_issues=[])
         # A saved unreviewed draft or terminal discussion is reused on replay.
-        if not discussion.rounds or (discussion.status == "DISCUSSING" and discussion.rounds[-1].critique):
+        # Human revision feedback explicitly opens a new discussion turn.
+        if feedback or not discussion.rounds or (discussion.status == "DISCUSSING" and discussion.rounds[-1].critique):
             if not discussion.rounds:
                 script, research = self.write_script(job, state)
                 response = ""
             else:
+                discussion.status = "DISCUSSING"
                 script, response = self.rewrite(job, discussion, state)
+                if feedback:
+                    # 人工返工开启新的机器审查周期，沿用冻结的轮数上限。
+                    # 旧讨论已有不可变产物；不能把新稿追加到已用满的旧周期，
+                    # 也不能沿用旧稿的通过结果。先改稿再重置，以便失败重放复用模型回执。
+                    discussion.rounds = []
             discussion.rounds.append(ScriptDiscussionRound(round=len(discussion.rounds) + 1,
                                                            script=script, response=response))
             job = save_discussion(self.repo, state, discussion)
+            if feedback:
+                mark_feedback_applied(self.repo, self.service, self.repo.get_job(job.job_id), state,
+                                      "script", "screenwriter")
         else:
             job = self.repo.get_job(job.job_id)
         return state_context(self.repo, state, route="script_reviewer", research=research, gate_issues=[])
@@ -73,13 +106,22 @@ class ScreenwriterNode:
         # This path intentionally bypasses write_script's existing-draft cache.
         context = agent_state(self.repo, job, state)
         context["script_discussion"] = discussion.model_dump()
+        feedback = stage_feedback(context, "script")
+        if feedback and type(feedback.get("script")) is dict:
+            context = {**context, "script": feedback["script"]}
+        fields = ("brief", "script", "script_discussion", "research", "assets")
+        if feedback:
+            fields = (*fields, "extras")
         value = self.model.invoke(
             context, "screenwriter", REWRITE_PROMPT,
-            fields=("brief", "script", "script_discussion", "research", "assets"),
+            fields=fields,
+            command_id=(context.get("resume_command_id") or context.get("run_id", "")) + ":script-revise",
             output_schema=ScriptRewrite.model_json_schema(),
         )
         rewrite = ScriptRewrite.model_validate(value)
         script = rewrite.script.model_copy(update={"origin": "model", "revision": job.revision})
+        if feedback and type(feedback.get("script")) is dict and same_script_body(script, feedback["script"]):
+            raise ValueError("人工返工未产生文案修改，请补充更明确的修改意见")
         issues = script_issues(self.repo.get_job(job.job_id).model_copy(update={"script": script}))
         if issues:
             raise ValueError("讨论改稿未通过来源检查：" + "；".join(issues))
@@ -92,18 +134,38 @@ class ScreenwriterNode:
         assets = [Asset.model_validate(item) for item in context["assets"]]
         research = context.get("research", {"sources": [], "visuals": []})
         urls = [source["url"] for source in research.get("sources", [])] or list(brief.source_urls)
-        if context.get("script"):
+        feedback = stage_feedback(context, "script")
+        if context.get("script") and not feedback:
             return Script.model_validate(context["script"]), research
+        if context.get("script") and feedback:
+            current = Script.model_validate(context["script"])
+            reviewed = feedback.get("script")
+            if type(reviewed) is dict and not same_script_body(current, reviewed):
+                return current, research
+            model_context = {**context, "script": reviewed} if type(reviewed) is dict else context
+            value = self.model.invoke(
+                model_context, "screenwriter", REWRITE_PROMPT,
+                fields=("brief", "script", "research", "assets", "extras"),
+                command_id=(context.get("resume_command_id") or context.get("run_id", "")) + ":script-revise",
+                output_schema=ScriptRewrite.model_json_schema(),
+            )
+            rewrite = ScriptRewrite.model_validate(value)
+            script = rewrite.script.model_copy(update={"origin": "model", "revision": job.revision})
+            if type(reviewed) is dict and same_script_body(script, reviewed):
+                raise ValueError("人工返工未产生文案修改，请补充更明确的修改意见")
+            issues = script_issues(self.repo.get_job(job.job_id).model_copy(update={"script": script}))
+            if issues:
+                raise ValueError("人工返工改稿未通过来源检查：" + "；".join(issues))
+            return script, research
         if brief.script_text.strip():
             chunks = [item.strip() for item in re.split(r"\n+", brief.script_text) if item.strip()]
             # This splits narrative paragraphs, never estimates speech timing.
             if len(chunks) == 1 and len(chunks[0]) > 72:
                 chunks = [item.strip() for item in re.findall(r"[^。！？.!?]+[。！？.!?]?", chunks[0]) if item.strip()]
-            evidence = [asset.asset_id for asset in assets if asset.role == "evidence"]
             available_urls = list(dict.fromkeys(urls + [asset.source_url for asset in assets if asset.source_url]))
             script = Script(title=(brief.topic or "用户提供文案")[:300], origin="user", revision=job.revision,
                             segments=[ScriptSegment(segment_id=f"s{index + 1}", narration=text, screen_text=text[:100],
-                                                    source_refs=available_urls, asset_ids=evidence[:1]) for index, text in enumerate(chunks)])
+                                                    source_refs=available_urls, asset_ids=[]) for index, text in enumerate(chunks)])
         else:
             if not research.get("sources"):
                 raise CapabilityMissing("没有取得可读取的原始来源，请补充真实链接/证据素材", ["source_urls", "assets"])
@@ -123,8 +185,10 @@ def script_issues(job: Job) -> list[str]:
     known_sources = set(job.brief.source_urls) | {asset.source_url for asset in job.assets if asset.source_url}
     issues = []
     for segment in job.script.segments:
+        # 旧任务曾用可朗读的观点标签表示纯主观段落，保留旧稿读取/校验兼容。
+        # 新提示词不再要求这些标签；自然收束同样使用 source_refs 保留依据。
         if not segment.source_refs and not segment.narration.startswith(("观点：", "个人感受：")):
-            issues.append(f"段落 {segment.segment_id} 缺少事实来源；纯观点请明确标注“观点：”")
+            issues.append(f"段落 {segment.segment_id} 缺少支撑本段内容的真实来源，请补充来源或删除无依据的说法")
         for source in segment.source_refs:
             parsed = urlparse(source)
             if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username:
@@ -136,5 +200,5 @@ def script_issues(job: Job) -> list[str]:
                 issues.append(f"段落 {segment.segment_id} 素材不存在")
     facts = [segment for segment in job.script.segments if segment.source_refs]
     if facts and not any(asset.role == "evidence" and asset.source_url for asset in job.assets):
-        issues.append("事实性文案需要至少一张带原始出处的真实证据图片/截图")
+        issues.append("事实性文案需要带原始出处的真实证据图片、截图或视频")
     return issues

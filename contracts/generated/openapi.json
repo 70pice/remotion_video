@@ -884,7 +884,7 @@
             "type": "string",
             "maxLength": 100,
             "title": "Platform",
-            "default": "通用竖屏"
+            "default": "抖音竖屏"
           },
           "usage": {
             "type": "string",

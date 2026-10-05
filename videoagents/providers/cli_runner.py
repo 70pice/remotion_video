@@ -36,7 +36,9 @@ CODEX_RESEARCH_DISABLED = (
     "in_app_browser", "in_app_chat", "in_app_local_automation", "in_app_dictation",
     "image_generation", "tool_suggest", "skill_mcp_dependency_install",
 )
-CODEX_RESEARCH_TOOLS = {"command_execution", "web_search", "mcp_tool_call", "file_change"}
+# 当前 CLI 的研究会话也会报告协作工具生命周期。只在素材模式接收，
+# 与其他工具一样只保留脱敏审计摘要，不把过程消息当作业务结果。
+CODEX_RESEARCH_TOOLS = {"command_execution", "web_search", "mcp_tool_call", "file_change", "collab_tool_call"}
 CODEX_MANAGED_CONTEXT_ENV = {
     "CODEX_PERMISSION_PROFILE",
     "CODEX_INTERNAL_ORIGINATOR_OVERRIDE",
@@ -129,12 +131,14 @@ def build_arguments(provider: str, prefix: list[str], model: str, directory: Pat
     raise CliFailure("unsupported_cli", submitted=False)
 
 
-def _research_environment(research: bool) -> dict[str, str] | None:
-    if not research:
-        return None
+def _research_environment(research: bool) -> dict[str, str]:
+    # 每个角色是独立 CLI 会话，不能继承桌面父会话的身份、管道与权限档案。
+    # 登录、代理等普通 CLI 环境保持不变；研究模式再补充工具所需的 PATH。
     env = os.environ.copy()
     for name in CODEX_MANAGED_CONTEXT_ENV:
         env.pop(name, None)
+    if not research:
+        return env
     env["PYTHONUTF8"] = "1"
     env["PYTHONIOENCODING"] = "utf-8"
     local_bin = Path.home() / ".local" / "bin"

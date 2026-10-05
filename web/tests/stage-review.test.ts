@@ -243,9 +243,239 @@ describe("stage review pending state", () => {
 
     expect(markup).toContain("文案人工审核");
     expect(markup).toContain("事实来源已核对");
-    expect(markup).toContain("确认本阶段通过");
+    expect(markup).toContain("确认通过，继续下一阶段");
+    expect(markup).toContain("提交返工原因");
     expect(markup).toContain('maxLength="3000"');
     expect(markup).not.toContain("script_human_gate");
+  });
+
+  it("renders script review with the actual script and short-video checklist", () => {
+    const job = {
+      ...jobWithPending({
+        kind: "stage_review",
+        title: "文案人工审核",
+        stage: "script",
+        node_name: "script_human_gate",
+        confirmation_requirements: [],
+        min_note_length: 0,
+        pending_token: "stage-review-token-0011",
+        revision: 4,
+        thread_id: "thread-11",
+        dependency_fingerprint: "fp-11",
+      }),
+      script: {
+        title: "Muse 是什么",
+        origin: "model",
+        revision: 4,
+        segments: [
+          {
+            segment_id: "s1",
+            narration: "如果你的电脑能自己安排今天的工作，会发生什么？",
+            screen_text: "AI 个人助手",
+            source_refs: ["https://example.com/source"],
+            asset_ids: [],
+          },
+        ],
+      },
+    } as Job;
+    const pending = getStageReviewPending(job);
+    const markup = renderToStaticMarkup(
+      createElement(StageReviewPanel, {
+        job,
+        pending: pending!,
+        locked: false,
+        resume: () => undefined,
+      }),
+    );
+
+    expect(markup).toContain("待审文案");
+    expect(markup).toContain("Muse 是什么");
+    expect(markup).toContain("如果你的电脑能自己安排今天的工作");
+    expect(markup).toContain("首句具体，尽早建立观看理由");
+  });
+
+  it("renders director review with timeline shots and asset mapping", () => {
+    const job = {
+      ...jobWithPending({
+        kind: "stage_review",
+        title: "导演人工审核",
+        stage: "director",
+        node_name: "director_human_gate",
+        min_note_length: 0,
+        pending_token: "stage-review-token-0012",
+        revision: 4,
+        thread_id: "thread-12",
+        dependency_fingerprint: "fp-12",
+      }),
+      assets: [
+        {
+          asset_id: "asset-1",
+          name: "Muse 官方演示.mp4",
+          role: "evidence",
+          mime_type: "video/mp4",
+          size_bytes: 1024,
+          sha256: "sha",
+          source_url: "https://example.com",
+          license_note: "待核验",
+          artifact_id: "artifact-1",
+          url: "/api/artifacts/asset-1",
+          timeline_src: "videoagents/job-1/muse.mp4",
+        },
+      ],
+      timeline: {
+        schema_version: "1",
+        job_id: "job-1",
+        revision: 4,
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration_in_frames: 90,
+        audio_src: null,
+        captions: [],
+        shots: [
+          {
+            shot_id: "shot-1",
+            start_frame: 0,
+            end_frame: 90,
+            component_id: "video",
+            title: "真实操作画面",
+            body: "展示普通人如何使用助手",
+            asset_src: "videoagents/job-1/muse.mp4",
+            source_label: "官方演示",
+            accent_color: "#B7F36B",
+            props: {},
+          },
+        ],
+      },
+    } as Job;
+    const pending = getStageReviewPending(job);
+    const markup = renderToStaticMarkup(
+      createElement(StageReviewPanel, {
+        job,
+        pending: pending!,
+        locked: false,
+        resume: () => undefined,
+      }),
+    );
+
+    expect(markup).toContain("待审导演分镜");
+    expect(markup).toContain("真实操作画面");
+    expect(markup).toContain("Muse 官方演示.mp4");
+    expect(markup).toContain("竖屏主体清楚");
+  });
+
+  it("renders render review with the latest current preview or final video only", () => {
+    const job = {
+      ...jobWithPending({
+        kind: "stage_review",
+        title: "剪辑人工审核",
+        stage: "render",
+        node_name: "render_human_gate",
+        min_note_length: 0,
+        pending_token: "stage-review-token-0013",
+        revision: 4,
+        thread_id: "thread-13",
+        dependency_fingerprint: "fp-13",
+      }),
+      artifacts: [
+        {
+          artifact_id: "old-video",
+          kind: "final",
+          name: "旧版.mp4",
+          mime_type: "video/mp4",
+          size_bytes: 100,
+          sha256: "old",
+          url: "/api/artifacts/old-video",
+          revision: 3,
+        },
+        {
+          artifact_id: "raw-asset-video",
+          kind: "asset",
+          name: "原始素材.mp4",
+          mime_type: "video/mp4",
+          size_bytes: 4096,
+          sha256: "raw",
+          url: "/api/artifacts/raw-asset-video",
+          revision: 4,
+        },
+        {
+          artifact_id: "current-video",
+          kind: "preview",
+          name: "当前预览.mp4",
+          mime_type: "video/mp4",
+          size_bytes: 2048,
+          sha256: "current",
+          url: "/api/artifacts/current-video",
+          revision: 4,
+        },
+        {
+          artifact_id: "latest-video",
+          kind: "final",
+          name: "当前成片.mp4",
+          mime_type: "video/mp4",
+          size_bytes: 3072,
+          sha256: "latest",
+          url: "/api/artifacts/latest-video",
+          revision: 4,
+        },
+      ],
+    } as Job;
+    const pending = getStageReviewPending(job);
+    const markup = renderToStaticMarkup(
+      createElement(StageReviewPanel, {
+        job,
+        pending: pending!,
+        locked: false,
+        resume: () => undefined,
+      }),
+    );
+
+    expect(markup).toContain("待审成片");
+    expect(markup).toContain("当前成片.mp4");
+    expect(markup).toContain('src="/api/artifacts/latest-video"');
+    expect(markup).not.toContain("旧版.mp4");
+    expect(markup).not.toContain("原始素材.mp4");
+    expect(markup).toContain("音频、画面和字幕同步");
+  });
+
+  it("does not treat a raw video asset artifact as a render deliverable", () => {
+    const job = {
+      ...jobWithPending({
+        kind: "stage_review",
+        title: "剪辑人工审核",
+        stage: "render",
+        node_name: "render_human_gate",
+        min_note_length: 0,
+        pending_token: "stage-review-token-0014",
+        revision: 4,
+        thread_id: "thread-14",
+        dependency_fingerprint: "fp-14",
+      }),
+      artifacts: [
+        {
+          artifact_id: "raw-asset-video",
+          kind: "asset",
+          name: "原始素材.mp4",
+          mime_type: "video/mp4",
+          size_bytes: 4096,
+          sha256: "raw",
+          url: "/api/artifacts/raw-asset-video",
+          revision: 4,
+        },
+      ],
+    } as Job;
+    const pending = getStageReviewPending(job);
+    const markup = renderToStaticMarkup(
+      createElement(StageReviewPanel, {
+        job,
+        pending: pending!,
+        locked: false,
+        resume: () => undefined,
+      }),
+    );
+
+    expect(markup).toContain("还没有可审核成片");
+    expect(markup).not.toContain('src="/api/artifacts/raw-asset-video"');
   });
 
   it("does not render the final video confirmation action during stage review", () => {

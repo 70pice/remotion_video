@@ -43,6 +43,14 @@ class AlignmentRequest(BaseModel):
     alignment: dict[str, Any]
 
 
+def require_portrait_production(brief: Brief) -> None:
+    """生产入口统一抖音竖屏；旧版本仍能读取，修改需求后才转换。"""
+    if (brief.width, brief.height, brief.fps) != (1080, 1920, 30):
+        raise ValueError("制作格式固定为抖音竖屏 1080 × 1920、30 fps；请保存新版本制作要求")
+    if "横屏" in brief.platform:
+        raise ValueError("发布格式固定为竖屏，请使用抖音等竖屏平台")
+
+
 def create_app(runtime_dir: Path | None = None, project_root: Path | None = None) -> FastAPI:
     repository = Repository(runtime_dir or RUNTIME_ROOT)
     root = project_root or PROJECT_ROOT
@@ -118,6 +126,7 @@ def create_app(runtime_dir: Path | None = None, project_root: Path | None = None
 
     @app.post("/api/jobs", response_model=Job, status_code=201, dependencies=protected)
     def create_job(brief: Brief):
+        require_portrait_production(brief)
         return repository.create_job(brief)
 
     @app.get("/api/jobs/{job_id}", response_model=Job, dependencies=protected)
@@ -126,10 +135,12 @@ def create_app(runtime_dir: Path | None = None, project_root: Path | None = None
 
     @app.patch("/api/jobs/{job_id}/draft", response_model=Job, dependencies=protected)
     def patch_draft(job_id: str, draft: DraftRequest):
+        require_portrait_production(draft.brief or repository.get_job(job_id).brief)
         return service.draft(job_id, draft)
 
     @app.post("/api/jobs/{job_id}/runs", response_model=Job, status_code=202, dependencies=protected)
     def run(job_id: str, command: RunRequest):
+        require_portrait_production(repository.get_job(job_id).brief)
         return repository.enqueue(job_id, command.model_dump())
 
     @app.post("/api/jobs/{job_id}/cancel", response_model=Job, dependencies=protected)
@@ -138,6 +149,7 @@ def create_app(runtime_dir: Path | None = None, project_root: Path | None = None
 
     @app.post("/api/jobs/{job_id}/resume", response_model=Job, status_code=202, dependencies=protected)
     def resume(job_id: str, command: ResumeRequest):
+        require_portrait_production(repository.get_job(job_id).brief)
         payload = command.model_dump()
         payload["action"] = "resume"
         return repository.enqueue(job_id, payload)

@@ -1,5 +1,6 @@
 """Use real imported/Byte audio and verified timestamps, with strict text coverage."""
 
+import math
 import uuid
 from typing import Any
 
@@ -53,7 +54,10 @@ def from_byte_sentences(job: Job, audio_hash: str, sentences: list[dict]) -> Ali
         for word in sentence.get("words", []):
             if not word.get("word") or word.get("startTime") is None or word.get("endTime") is None:
                 continue
-            if word.get("confidence") is not None and float(word["confidence"]) < 0.8:
+            if any(type(word[key]) not in (int, float) or not math.isfinite(word[key]) for key in ("startTime", "endTime")):
+                return None
+            confidence = word.get("confidence")
+            if confidence is not None and (type(confidence) not in (int, float) or not math.isfinite(confidence) or not 0 <= confidence <= 1):
                 return None
             words.append(word)
     words.sort(key=lambda word: float(word["startTime"]))
@@ -76,7 +80,29 @@ def from_byte_sentences(job: Job, audio_hash: str, sentences: list[dict]) -> Ali
         consumed += size
     if not result:
         return None
-    return Alignment(origin="provider", verified=True, audio_sha256=audio_hash, segments=result, note="字节接口实测单词时间戳")
+    quality = timestamp_quality(sentences)
+    note = "字节返回原文时间戳；已校验正文/段落覆盖、排序与不重叠，AudioGate 继续校验音频 hash 与实测时长。不是独立识别或人工听审。"
+    if quality["low_confidence_count"]:
+        note += f" {quality['low_confidence_count']} 个词的时间戳置信度低于 0.8，最低 {quality['minimum_confidence']:.3f}；同步需人工听审。"
+    return Alignment(origin="provider", verified=True, audio_sha256=audio_hash, segments=result, note=note)
+
+
+def timestamp_quality(sentences: list[dict]) -> dict[str, Any]:
+    """保留供应商置信度的质量信息；0.8 是提醒线，不是官方合格线。
+
+    官方：https://docs.volcengine.com/docs/6561/1329505 的 TTS2.0 示例包含低置信度。
+    不将返回文本覆盖等同于独立听审，也不估算或改动任何时间。
+    """
+    values = [{"text": word.get("word"), "start_seconds": word.get("startTime"),
+               "end_seconds": word.get("endTime"), "confidence": word.get("confidence")}
+              for sentence in sentences for word in sentence.get("words", []) if word.get("word")]
+    confidences = [word["confidence"] for word in values
+                   if type(word["confidence"]) in (int, float) and math.isfinite(word["confidence"]) and 0 <= word["confidence"] <= 1]
+    low = [word for word in values if type(word["confidence"]) in (int, float)
+           and math.isfinite(word["confidence"]) and 0 <= word["confidence"] < 0.8]
+    return {"origin": "provider", "word_timestamps": values, "low_confidence_count": len(low),
+            "minimum_confidence": min(confidences) if confidences else None,
+            "independent_audio_recognition": False, "human_listening_confirmed": False}
 
 
 class VoiceNode:
@@ -92,7 +118,8 @@ class VoiceNode:
             self.service.write_json(job, "alignment.json", alignment.model_dump(), "alignment")
             self.service.write_json(job, "audio_report.json", {"audio_sha256": audio.sha256, "duration_seconds": duration,
                                     "origin": self.repo.asset_metadata(audio.asset_id).get("origin"), "alignment_origin": alignment.origin,
-                                    "verified": alignment.verified}, "audio_report")
+                                    "verified": alignment.verified, "verification_note": alignment.note,
+                                    "timestamp_quality": self.repo.asset_metadata(audio.asset_id).get("timestamp_quality")}, "audio_report")
             return state_context(self.repo, state, route="audio_gate",
                                  audio_asset_id=audio.asset_id, alignment=alignment.model_dump(),
                                  duration_seconds=duration, gate_issues=[])
@@ -156,7 +183,8 @@ class VoiceNode:
                       url=artifact.url, timeline_src=f"videoagents/{job.job_id}/assets/{asset_id}.mp3")
         alignment = from_byte_sentences(job, audio.sha256, value.get("sentences", []))
         metadata = {"origin": value.get("origin", "byte_http"), "duration_seconds": duration,
-                    "script_fingerprint": script_hash, "voice_fingerprint": value.get("voice_fingerprint", voice_hash)}
+                    "script_fingerprint": script_hash, "voice_fingerprint": value.get("voice_fingerprint", voice_hash),
+                    "timestamp_quality": timestamp_quality(value.get("sentences", []))}
         metadata.update({key: value[key] for key in ("voice_model", "voice_style", "voice_speech_rate") if key in value})
         if alignment:
             metadata["alignment"] = alignment.model_dump()

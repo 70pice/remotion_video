@@ -23,6 +23,7 @@ PNG_BYTES = (
     b"\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDAT\x08\xd7c\xf8\xff\xff?"
     b"\x00\x05\xfe\x02\xfeA\xe2%\x1b\x00\x00\x00\x00IEND\xaeB`\x82"
 )
+MP4_BYTES = b"\x00\x00\x00\x18ftypmp42\x00\x00\x00\x00mp42isomUNIT"
 
 
 def make_repo(tmp_path):
@@ -281,6 +282,43 @@ def test_materials_model_reads_inputs_from_shared_state(tmp_path, monkeypatch):
     assert calls[0][1]["brief"]["topic"] == "shared topic"
     assert set(calls[0][1]) == {"brief", "assets", "settings"}
     assert calls[0][2]["title"] == "MaterialResearch"
+
+
+def test_materials_accepts_verified_video_visual_and_records_metadata(tmp_path, monkeypatch):
+    repo, service = make_repo(tmp_path)
+    job = repo.create_job(Brief(topic="Muse 视频素材"))
+    folder = repo.root / "jobs" / job.job_id / "revisions" / str(job.revision) / "skills-research"
+    folder.mkdir(parents=True, exist_ok=True)
+    source = folder / "source.txt"
+    source.write_text("官方视频展示 Muse 的实际界面。", encoding="utf-8")
+    video = folder / "demo.mp4"
+    video.write_bytes(MP4_BYTES)
+    monkeypatch.setattr("videoagents.nodes.materials.detect_media", lambda data, path=None: ("video/mp4", ".mp4"))
+    monkeypatch.setattr("videoagents.nodes.materials.video_metadata",
+                        lambda path: {"duration_seconds": 8.5, "width": 688, "height": 1080, "frame_rate": 30.0})
+    monkeypatch.setattr("videoagents.nodes.materials.decode_check", lambda path: None)
+
+    research = MaterialsNode(repo, service).save_research(job, {
+        "sources": [{"url": "https://example.com/muse", "title": "Muse", "platform": "web",
+                     "text_file": source.name, "sha256": sha256(source)}],
+        "visuals": [{"source_url": "https://example.com/muse", "kind": "video",
+                     "file": video.name, "sha256": sha256(video), "media_url": "https://example.com/demo.mp4",
+                     "description": "Muse 官方演示视频"}],
+        "limitations": [],
+    }, folder)
+
+    current = repo.get_job(job.job_id)
+    asset = current.assets[0]
+    metadata = repo.asset_metadata(asset.asset_id)
+
+    assert asset.mime_type == "video/mp4"
+    assert asset.timeline_src.endswith(".mp4")
+    assert asset.source_url == "https://example.com/muse"
+    assert "真实来源视频" in asset.license_note
+    assert metadata["duration_seconds"] == 8.5
+    assert metadata["width"] == 688 and metadata["height"] == 1080
+    assert research["visuals"][0]["kind"] == "video"
+    assert research["visuals"][0]["media_url"] == "https://example.com/demo.mp4"
 
 
 def test_director_matches_evidence_by_source_url_when_script_does_not_name_asset(tmp_path):

@@ -8,7 +8,7 @@ const initialBrief: Brief = {
   topic: "",
   script_text: "",
   audience: "普通观众",
-  platform: "通用竖屏",
+  platform: "抖音",
   usage: "unspecified",
   target_seconds: 60,
   width: 1080,
@@ -36,6 +36,10 @@ export function CreateJobPage() {
     try {
       const job = await api.createJob({
         ...brief,
+        platform: "抖音",
+        width: 1080,
+        height: 1920,
+        fps: 30,
         source_urls: sources
           .split("\n")
           .map((item) => item.trim())
@@ -91,6 +95,7 @@ export function CreateJobPage() {
           </div>
           <aside className="panel form-panel">
             <h2>制作要求</h2>
+            <Notice>抖音竖屏 · 1080 × 1920 · 30 fps</Notice>
             <label>
               目标观众
               <input
@@ -100,66 +105,17 @@ export function CreateJobPage() {
               />
             </label>
             <label>
-              发布平台
-              <select
-                value={brief.platform}
-                onChange={(event) => change("platform", event.target.value)}
-              >
-                {[
-                  "通用竖屏",
-                  "抖音",
-                  "视频号",
-                  "小红书",
-                  "B站",
-                  "通用横屏",
-                ].map((platform) => (
-                  <option key={platform}>{platform}</option>
-                ))}
-              </select>
-            </label>
-            <div className="form-grid">
-              <label>
-                目标时长（秒）
-                <input
-                  type="number"
-                  min="5"
-                  max="1800"
-                  value={brief.target_seconds}
-                  onChange={(event) =>
-                    change("target_seconds", Number(event.target.value))
-                  }
-                  required
-                />
-              </label>
-              <label>
-                帧率
-                <select
-                  value={brief.fps}
-                  onChange={(event) =>
-                    change("fps", Number(event.target.value))
-                  }
-                >
-                  {[24, 25, 30, 60].map((fps) => (
-                    <option key={fps}>{fps}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <label>
-              画面比例
-              <select
-                value={brief.width > brief.height ? "landscape" : "portrait"}
+              目标时长（秒）
+              <input
+                type="number"
+                min="5"
+                max="1800"
+                value={brief.target_seconds}
                 onChange={(event) =>
-                  setBrief((current) => ({
-                    ...current,
-                    width: event.target.value === "landscape" ? 1920 : 1080,
-                    height: event.target.value === "landscape" ? 1080 : 1920,
-                  }))
+                  change("target_seconds", Number(event.target.value))
                 }
-              >
-                <option value="portrait">9:16 · 1080 × 1920</option>
-                <option value="landscape">16:9 · 1920 × 1080</option>
-              </select>
+                required
+              />
             </label>
             <label>
               素材与组件用途

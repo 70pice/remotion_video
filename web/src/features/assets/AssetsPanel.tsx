@@ -30,7 +30,7 @@ export function AssetsPanel({
     const data = new FormData(form);
     const file = data.get("file");
     if (!(file instanceof File) || !file.size) {
-      setError("请先选择图片或截图。");
+      setError("请先选择图片、截图或 MP4 视频。");
       return;
     }
     setBusy(true);
@@ -71,11 +71,11 @@ export function AssetsPanel({
       >
         <div className="form-grid">
           <label>
-            图片或截图
+            图片、截图或 MP4 视频
             <input
               name="file"
               type="file"
-              accept="image/png,image/jpeg,image/webp"
+              accept="image/png,image/jpeg,image/webp,video/mp4"
               required
               disabled={locked || busy}
             />
@@ -88,7 +88,7 @@ export function AssetsPanel({
               disabled={locked}
               onChange={(event) => setRole(event.target.value)}
             >
-              <option value="evidence">事实证据 · 原图 / 截图</option>
+              <option value="evidence">事实证据 · 原图 / 截图 / 视频</option>
               <option value="illustration">概念示意 · 解释内容</option>
               <option value="decoration">装饰画面 · 氛围内容</option>
             </select>
@@ -113,7 +113,7 @@ export function AssetsPanel({
         </div>
         <div className="inline-spread">
           <small className="muted">
-            生成图片请标为概念示意或装饰，事实证据需有真实来源。
+            视频素材请上传 MP4；事实证据需有真实来源。
           </small>
           <button className="button primary" disabled={busy || locked}>
             {busy ? "正在上传…" : "上传素材"}
@@ -129,7 +129,18 @@ export function AssetsPanel({
           {assets.map((asset) => (
             <article className="panel asset-card" key={asset.asset_id}>
               <a href={asset.url} target="_blank" rel="noreferrer">
-                <img src={asset.url} alt={asset.name} loading="lazy" />
+                {asset.mime_type.startsWith("video/") ? (
+                  <video
+                    src={asset.url}
+                    controls
+                    muted
+                    preload="metadata"
+                    aria-label={asset.name}
+                    style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                  />
+                ) : (
+                  <img src={asset.url} alt={asset.name} loading="lazy" />
+                )}
               </a>
               <div className="asset-card-content">
                 <div className="inline-spread">
@@ -159,7 +170,7 @@ export function AssetsPanel({
                   href={asset.url}
                   download={asset.name}
                 >
-                  下载原图 ↓
+                  下载素材 ↓
                 </a>
               </div>
             </article>

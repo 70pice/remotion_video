@@ -2,30 +2,142 @@
 
 import json
 import math
-from typing import Any
+from typing import Any, Literal
 from urllib.parse import urlparse
 
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
 from videoagents.contracts import Alignment, Asset, Caption, Job, Shot, Timeline
-from videoagents.nodes.common import agent_state, request_input, start_stage, state_context
+from videoagents.nodes.common import (
+    agent_state,
+    mark_feedback_applied,
+    request_input,
+    stage_feedback,
+    start_stage,
+    state_context,
+)
 from videoagents.prompts import load_prompt
 from videoagents.prompts import render as render_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.jobs import JobService
-from videoagents.state import VideoState
+from videoagents.state import VideoState, merge_extras
 from videoagents.storage import Repository
-from videoagents.tools.components import available_component_ids, prompt_component_catalog
+from videoagents.tools.components import (
+    COMMUNITY_COMPONENT_IDS,
+    available_component_ids,
+    component_study_payload,
+    prompt_component_catalog,
+)
 from videoagents.tools.timeline import validate_timeline
 
 COMPONENT_PROPS_EXAMPLES = {
     "title": {"eyebrow": "给定主题"}, "keyword": {"keyword": "给定关键词"},
     "evidence": {"highlight": {"x": 0.1, "y": 0.1, "width": 0.5, "height": 0.5}},
-    "image_focus": {"focal_x": 0.5, "focal_y": 0.5},
+    # 裁剪仅演示参数形状；导演必须使用对应素材经像素核验的区域。
+    "image_focus": {"focal_x": 0.5, "focal_y": 0.5,
+                    "crop": {"x": 0.1, "y": 0.1, "width": 0.5, "height": 0.5}},
+    "video": {"start_seconds": 0, "end_seconds": 4.2, "fit": "contain",
+              "crop": {"x": 0.2, "y": 0.0, "width": 0.6, "height": 1.0}},
     "comparison": {"left_title": "给定左标题", "left_body": "给定左正文",
-                   "right_title": "给定右标题", "right_body": "给定右正文"},
-    "data": {"items": [{"label": "来源中的标签", "value": "来源中的值", "detail": "来源中的说明"}]},
-    "steps": {"items": [{"title": "给定步骤标题", "body": "给定步骤说明"}]},
+                   "right_title": "给定右标题", "right_body": "给定右正文", "right_reveal_frame": 15},
+    # 局部帧只是参数形状示例；真实揭示时机由导演根据当前镜头和实测字幕选择。
+    "data": {"items": [
+        {"label": "来源中的第一标签", "value": "来源中的第一值", "detail": "来源中的第一说明", "reveal_frame": 0},
+        {"label": "来源中的第二标签", "value": "来源中的第二值", "detail": "来源中的第二说明", "reveal_frame": 15},
+    ]},
+    "steps": {"layout": "flow", "items": [
+        {"title": "给定第一步骤", "body": "给定第一说明", "reveal_frame": 0},
+        {"title": "给定第二步骤", "body": "给定第二说明", "reveal_frame": 15},
+    ]},
     "conclusion": {"call_to_action": "文案中的行动建议"},
 }
+
+
+class ComponentGroupStudy(BaseModel):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False, strict=True)
+
+    group: str = Field(min_length=1, max_length=80)
+    use: str = Field(min_length=1, max_length=800)
+
+
+class ComponentStudy(BaseModel):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False, strict=True)
+
+    manifest_fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
+    source_fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
+    usage: Literal["personal", "commercial", "unspecified"]
+    reviewed_preset_ids: list[str] = Field(min_length=152, max_length=152)
+    allowed_component_ids: list[str] = Field(min_length=1, max_length=161)
+    video_first: Literal[True]
+    selection_principles: list[str] = Field(min_length=4, max_length=8)
+    component_groups: list[ComponentGroupStudy] = Field(min_length=6, max_length=12)
+    limits: list[str] = Field(min_length=1, max_length=8)
+
+    @model_validator(mode="after")
+    def readable(self) -> "ComponentStudy":
+        for values in (self.selection_principles, self.limits):
+            if any(not value.strip() or len(value) > 1000 for value in values):
+                raise ValueError("组件学习结论须为非空短文本")
+        return self
+
+
+class DirectorPlan(BaseModel):
+    """导演只交付镜头；实测音频、字幕和画幅由程序合入最终 Timeline。"""
+
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False, strict=True)
+    shots: list[Shot] = Field(min_length=1, max_length=400)
+
+    @model_validator(mode="after")
+    def minimum_shot_length(self) -> "DirectorPlan":
+        if any(shot.end_frame - shot.start_frame < 15 for shot in self.shots):
+            raise ValueError("镜头至少需要 15 帧")
+        return self
+
+
+def component_study_prompt(usage: str) -> tuple[str, dict[str, Any]]:
+    payload = component_study_payload(usage)
+    return (
+        load_prompt("shared-style") + "\n\n" + render_prompt(
+            "component-study",
+            component_source_guide=json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
+        ),
+        payload,
+    )
+
+
+def validate_component_study(study: ComponentStudy, payload: dict[str, Any]) -> None:
+    if study.manifest_fingerprint != payload["manifest_fingerprint"]:
+        raise ValueError("组件学习使用的组件清单已失效")
+    if study.source_fingerprint != payload["source_fingerprint"]:
+        raise ValueError("组件学习使用的竖版组件资料已失效")
+    if study.usage != payload["usage"]:
+        raise ValueError("组件学习的使用场景不匹配")
+    if set(study.reviewed_preset_ids) != set(COMMUNITY_COMPONENT_IDS):
+        raise ValueError("组件学习未覆盖全部 152 个竖版预设")
+    if len(study.reviewed_preset_ids) != len(set(study.reviewed_preset_ids)):
+        raise ValueError("组件学习的竖版预设清单存在重复")
+    if set(study.allowed_component_ids) != set(payload["allowed_component_ids"]):
+        raise ValueError("组件学习的可选组件清单已失效")
+
+
+def save_component_study_state(state: VideoState | None, study: ComponentStudy) -> None:
+    if state is not None:
+        state["extras"] = merge_extras(state.get("extras", {}), {"component_study": study.model_dump()})
+
+
+def production_portrait(job: Job) -> bool:
+    return (job.brief.width, job.brief.height, job.brief.fps) == (1080, 1920, 30)
+
+
+def _host(url: str) -> str:
+    return (urlparse(url).hostname or "素材来源")[:160]
+
+
+def _video_covers(asset: Asset, metadata: dict[str, dict[str, Any]], shot_seconds: float) -> bool:
+    duration = metadata.get(asset.asset_id, {}).get("duration_seconds")
+    return isinstance(duration, (int, float)) and not isinstance(duration, bool) and math.isfinite(duration) and duration >= shot_seconds
+
+
 def director_prompt(usage: str) -> str:
     """Build the complete component guide for this job's license context."""
 
@@ -50,21 +162,67 @@ class DirectorNode:
     def __call__(self, state: VideoState) -> dict[str, Any]:
         job = start_stage(self.repo, state, "director", "导演根据实测旁白安排镜头与关键画面")
         try:
+            feedback_stage = "render" if stage_feedback(state, "render") else "director"
+            feedback = stage_feedback(state, feedback_stage)
+            if feedback and feedback.get("note") and self._needs_voice_or_script(feedback["note"]):
+                return request_input(self.repo, state, "voice",
+                    ["成片返工意见涉及旁白、语速或音频，导演无法只靠镜头修复；请先调整配音或文案后重新制作。"],
+                    ["voice", "script", "timeline"])
             audio = next(item for item in job.assets if item.asset_id == state["audio_asset_id"])
+            feedback_stage = "render" if stage_feedback(state, "render") else "director"
+            feedback = stage_feedback(state, feedback_stage)
+            if feedback and job.timeline and type(feedback.get("timeline")) is dict and job.timeline.model_dump() != feedback["timeline"]:
+                # SQL may commit before either artifact write; restore both outputs before continuing.
+                self.service.write_json(job, "storyboard.json", job.timeline.model_dump(), "storyboard")
+                self.service.write_json(job, "timeline.json", job.timeline.model_dump(), "timeline")
+                mark_feedback_applied(self.repo, self.service, job, state, feedback_stage, "director")
+                return state_context(self.repo, state, route="timeline_gate", gate_issues=[])
             timeline = self.plan(job, audio, Alignment.model_validate(state["alignment"]), state["duration_seconds"],
                                  state.get("research", {}), state=state)
-            job = self.repo.update_job(job.job_id, job.revision, timeline=timeline)
+            if feedback and type(feedback.get("timeline")) is dict and timeline.model_dump() == feedback["timeline"]:
+                raise ValueError("人工返工未产生分镜修改，请补充更明确的修改意见")
+            stale = {"preview", "final", "cover", "captions", "review", "package", "storyboard",
+                     "timeline", "editing_guidance", "human_review"}
+            # plan() may register the component study after start_stage's Job snapshot.
+            current = self.repo.get_job(job.job_id)
+            artifacts = [item for item in current.artifacts if item.kind not in stale]
+            job = self.repo.update_job(job.job_id, job.revision, expected_event_id=current.latest_event_id,
+                                       timeline=timeline, review=None, progress=None, artifacts=artifacts)
             self.service.write_json(job, "storyboard.json", timeline.model_dump(), "storyboard")
             self.service.write_json(job, "timeline.json", timeline.model_dump(), "timeline")
+            if feedback:
+                mark_feedback_applied(self.repo, self.service, self.repo.get_job(job.job_id), state,
+                                      feedback_stage, "director")
             return state_context(self.repo, state,
                                  route="timeline_gate", gate_issues=[])
         except (CapabilityMissing, ValueError) as exc:
             return request_input(self.repo, state, "director", [str(exc)], ["timeline"], exc)
 
+    @staticmethod
+    def _needs_voice_or_script(note: str) -> bool:
+        patterns = ("改配音", "重配音", "调整配音", "改音频", "重做音频", "调整音频",
+                    "改语速", "语速太", "语速过", "调整语速", "改发音", "读音错误",
+                    "改旁白文案", "重写旁白", "改口播文案", "改文案正文")
+        return any(pattern in note for pattern in patterns)
+
     def plan(self, job: Job, audio: Asset, alignment: Alignment, duration: float,
              research: dict | None = None, state: VideoState | None = None) -> Timeline:
-        if job.timeline:
-            validate_timeline(job.timeline, job)
+        asset_metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
+        model_available = self.model.available("director")
+        context = agent_state(self.repo, job, state)
+        if state is None and research is not None:
+            context = {**context, "research": research}
+        feedback = stage_feedback(context, "director", "render")
+        if feedback and job.timeline and type(feedback.get("timeline")) is dict and job.timeline.model_dump() != feedback["timeline"]:
+            return job.timeline
+        if feedback and not model_available:
+            raise CapabilityMissing("人工返工需要导演模型读取审核意见并重新规划镜头；请启用导演模型或提供新的人工分镜", ["role_models", "timeline"])
+        if job.timeline and not feedback:
+            if model_available:
+                self.ensure_component_study(job, context, state)
+            elif production_portrait(job):
+                self.require_component_study(job, context, state)
+            validate_timeline(job.timeline, job, asset_metadata)
             expected = [(item.text, item.start_ms, item.end_ms) for item in alignment.segments]
             actual = [(item.text, item.start_ms, item.end_ms) for item in job.timeline.captions]
             if expected != actual or job.timeline.audio_src != audio.timeline_src:
@@ -74,48 +232,112 @@ class DirectorNode:
         for segment in alignment.segments:
             starts.setdefault(segment.segment_id, math.floor(segment.start_ms * job.brief.fps / 1000))
         total = math.ceil(duration * job.brief.fps)
+        if total < 15:
+            raise ValueError("视频时长过短，镜头至少需要 15 帧")
+        # 段落仅提供候选切点。短段落合入相邻基线镜头，实际字幕全部保留；
+        # 导演可以基于这份提示自由拆镜、合镜或跨段落安排新的切点。
+        cut_indices, cut_frames = [0], [0]
+        for index, segment in enumerate(job.script.segments[1:], 1):
+            boundary = starts[segment.segment_id]
+            if boundary - cut_frames[-1] >= 15 and total - boundary >= 15:
+                cut_indices.append(index)
+                cut_frames.append(boundary)
         assets = {asset.asset_id: asset for asset in job.assets}
         shots = []
-        for index, segment in enumerate(job.script.segments):
-            start = 0 if index == 0 else starts[segment.segment_id]
-            end = total if index == len(job.script.segments) - 1 else starts[job.script.segments[index + 1].segment_id]
-            if end - start < 15:
-                raise ValueError("实测旁白段落过短，镜头至少需要 15 帧；请调整段落/语速")
+        for index, segment_index in enumerate(cut_indices):
+            segment = job.script.segments[segment_index]
+            start = cut_frames[index]
+            end = cut_frames[index + 1] if index + 1 < len(cut_frames) else total
+            next_segment_index = cut_indices[index + 1] if index + 1 < len(cut_indices) else len(job.script.segments)
+            shot_seconds = (end - start) / job.brief.fps
+            video = next((assets[asset_id] for asset_id in segment.asset_ids
+                          if asset_id in assets and assets[asset_id].mime_type.startswith("video/")
+                          and _video_covers(assets[asset_id], asset_metadata, shot_seconds)), None)
             image = next((assets[asset_id] for asset_id in segment.asset_ids if asset_id in assets and assets[asset_id].mime_type.startswith("image/")), None)
             if not image:
                 # 编剧没有指定图片时，根据该段的出处匹配素材节点采集的真实画面。
                 image = next((asset for asset in job.assets if asset.mime_type.startswith("image/")
                               and asset.source_url in segment.source_refs), None)
-            component = "evidence" if image and image.role == "evidence" and image.source_url else "image_focus" if image else "title" if index == 0 else "conclusion" if index == len(job.script.segments) - 1 else "keyword"
+            component = "video" if video else "evidence" if image and image.role == "evidence" and image.source_url else "image_focus" if image else "title" if index == 0 else "conclusion" if index == len(cut_indices) - 1 else "keyword"
+            media = video or image
             shots.append(Shot(shot_id=f"shot-{index + 1}", start_frame=start, end_frame=end,
                               component_id=component, title=(segment.screen_text or job.script.title)[:100],
-                              body=segment.narration[:240], asset_src=image.timeline_src if image else None,
-                              source_label=urlparse(image.source_url).hostname[:160] if image and image.source_url else ""))
+                              body="".join(item.narration for item in job.script.segments[segment_index:next_segment_index])[:240],
+                              asset_src=media.timeline_src if media else None,
+                              source_label=_host(media.source_url) if media and media.source_url else "",
+                              props={"start_seconds": 0, "fit": "contain"} if video else {}))
         timeline = Timeline(job_id=job.job_id, revision=job.revision, width=job.brief.width, height=job.brief.height,
                             fps=job.brief.fps, duration_in_frames=total, audio_src=audio.timeline_src, shots=shots,
                             captions=[Caption(text=item.text, start_ms=item.start_ms, end_ms=item.end_ms) for item in alignment.segments])
-        if self.model.available("director"):
-            schema = Timeline.model_json_schema()
+        if model_available:
+            study = self.ensure_component_study(job, context, state)
+            schema = DirectorPlan.model_json_schema()
             schema["$defs"]["Shot"]["properties"]["component_id"]["enum"] = available_component_ids(
                 job.brief.usage
             )
-            # 仅当前调用提供的已导入图片可作为渲染资产；研究链接不是资产路径。
+            # 仅当前任务已导入的图片/视频可作为渲染资产；研究链接不是资产路径。
             schema["$defs"]["Shot"]["properties"]["asset_src"]["enum"] = [
-                asset.timeline_src for asset in job.assets if asset.mime_type.startswith("image/")
+                asset.timeline_src for asset in job.assets
+                if asset.mime_type.startswith(("image/", "video/"))
             ] + [None]
-            context = agent_state(self.repo, job, state)
-            if state is None and research is not None:
-                context = {**context, "research": research}
             # 实测基线只作为本次导演输入；模型输出校验通过前不写入共享 state。
-            model_state = {**context, "timeline": timeline.model_dump()}
+            reviewed_timeline = feedback.get("timeline") if feedback and type(feedback.get("timeline")) is dict else None
+            model_state = {**context, "timeline": reviewed_timeline or timeline.model_dump(),
+                           # 音频对齐已在 timeline.captions 提供，避免在素材元信息中重复发送。
+                           "asset_metadata": {asset_id: {key: value for key, value in metadata.items()
+                               if key != "alignment"} for asset_id, metadata in context.get("asset_metadata", {}).items()},
+                           "extras": {**context.get("extras", {}), "component_study": study.model_dump()}}
             value = self.model.invoke(model_state, "director", director_prompt(job.brief.usage),
-                fields=("brief", "script", "timeline", "research", "assets", "asset_metadata"),
-                command_id=context.get("resume_command_id", context.get("run_id", "")), output_schema=schema)
-            candidate = Timeline.model_validate(value)
-            immutable = (candidate.audio_src, candidate.captions, [(s.start_frame, s.end_frame) for s in candidate.shots])
-            baseline = (timeline.audio_src, timeline.captions, [(s.start_frame, s.end_frame) for s in timeline.shots])
-            if immutable != baseline:
-                raise ValueError("导演模型修改了实测音频时间轴，未接受分镜")
-            timeline = candidate
-        validate_timeline(timeline, job)
+                fields=("brief", "script", "timeline", "research", "assets", "asset_metadata", "extras"),
+                command_id=(context.get("resume_command_id") or context.get("run_id", "")) + ":timeline",
+                output_schema=schema)
+            plan = DirectorPlan.model_validate(value)
+            # 镜头切点属于画面编排，不是音频对齐：只替换 shots，真实音频、
+            # 字幕、画幅和总帧数保持程序实测值，连续覆盖由 Timeline 校验。
+            timeline = Timeline.model_validate({**timeline.model_dump(), "shots": [shot.model_dump() for shot in plan.shots]})
+        elif production_portrait(job):
+            self.require_component_study(job, context, state)
+        validate_timeline(timeline, job, asset_metadata)
         return timeline
+
+    def component_study_from_context(self, job: Job, context: VideoState,
+                                     state: VideoState | None) -> ComponentStudy | None:
+        raw = (state or context).get("extras", {}).get("component_study")
+        if not raw:
+            return None
+        study = ComponentStudy.model_validate(raw)
+        validate_component_study(study, component_study_payload(job.brief.usage))
+        save_component_study_state(state, study)
+        return study
+
+    def require_component_study(self, job: Job, context: VideoState,
+                                state: VideoState | None) -> ComponentStudy:
+        try:
+            study = self.component_study_from_context(job, context, state)
+        except ValueError as exc:
+            raise CapabilityMissing("正式竖屏制作的组件学习报告已失效；请启用导演模型重新学习组件后再生成分镜", ["role_models", "timeline"]) from exc
+        if study:
+            return study
+        raise CapabilityMissing("正式竖屏制作必须先完成全部竖版组件学习；请在设置中启用导演模型，或提供带有效组件学习报告的人工分镜", ["role_models", "timeline"])
+
+    def ensure_component_study(self, job: Job, context: VideoState, state: VideoState | None) -> ComponentStudy:
+        try:
+            study = self.component_study_from_context(job, context, state)
+            if study:
+                return study
+        except ValueError:
+            pass
+        study = self.study_components(job, context)
+        save_component_study_state(state, study)
+        return study
+
+    def study_components(self, job: Job, context: VideoState) -> ComponentStudy:
+        prompt, payload = component_study_prompt(job.brief.usage)
+        value = self.model.invoke(context, "director", prompt,
+            fields=("brief", "script", "research", "assets", "asset_metadata"),
+            command_id=(context.get("resume_command_id") or context.get("run_id", "")) + ":component-study",
+            output_schema=ComponentStudy.model_json_schema())
+        study = ComponentStudy.model_validate(value)
+        validate_component_study(study, payload)
+        self.service.write_json(job, "component-study.json", study.model_dump(), "component_study")
+        return study

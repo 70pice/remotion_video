@@ -18,7 +18,7 @@ from videoagents.services.settings import SettingsService
 from videoagents.state import VideoState
 from videoagents.storage import Conflict, Repository
 from videoagents.storage.repository import fingerprint, now
-from videoagents.tools.media import detect_media, probe, sha256
+from videoagents.tools.media import decode_check, detect_media, probe, sha256, video_metadata
 from worker.process_manager import RenderCancelled
 
 # 研究行为由独立 Markdown Prompt 定义；统一风格圣经在前，素材角色规则在后。
@@ -90,7 +90,7 @@ class MaterialsNode:
             return False
         rows = []
         event_types = {"item.started", "item.updated", "item.completed", "turn.completed", "turn.failed", "error"}
-        item_types = {"command_execution", "web_search", "mcp_tool_call", "file_change"}
+        item_types = {"command_execution", "web_search", "mcp_tool_call", "file_change", "collab_tool_call"}
         for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
             try:
                 event = json.loads(line)
@@ -162,19 +162,28 @@ class MaterialsNode:
             files[item.text_file], texts[item.url] = path, text[:16000]
         for item in bundle.visuals:
             if item.source_url not in urls:
-                raise ValueError("技能图片没有关联已读取的来源")
+                raise ValueError("技能画面没有关联已读取的来源")
             if ((item.kind == "image" and not settings["research_download_images"])
                     or (item.kind == "screenshot" and not settings["capture_enabled"])):
                 raise ValueError("技能研究清单违反图片或截图开关设置")
             if item.image_url:
                 self.public_source_url(item.image_url)
-            path = self.research_file(folder, item.file, item.sha256, 10 * 1024 * 1024)
-            mime, _ = detect_media(path.read_bytes())
-            streams = probe(path).get("streams", [])
-            stream = next((value for value in streams if value.get("codec_type") == "video"), {})
-            width, height = stream.get("width", 0), stream.get("height", 0)
-            if not mime.startswith("image/") or min(width, height) < 32 or width * height > 40_000_000:
-                raise ValueError("技能图片无法解码、过小或分辨率超过限制")
+            if item.media_url:
+                self.public_source_url(item.media_url)
+            path = self.research_file(folder, item.file, item.sha256,
+                                      100 * 1024 * 1024 if item.kind == "video" else 10 * 1024 * 1024)
+            mime, _ = detect_media(path.read_bytes(), path)
+            if item.kind == "video":
+                if not mime.startswith("video/"):
+                    raise ValueError("技能视频清单必须指向可解码视频文件")
+                video_metadata(path)
+                decode_check(path)
+            else:
+                streams = probe(path).get("streams", [])
+                stream = next((value for value in streams if value.get("codec_type") == "video"), {})
+                width, height = stream.get("width", 0), stream.get("height", 0)
+                if not mime.startswith("image/") or min(width, height) < 32 or width * height > 40_000_000:
+                    raise ValueError("技能图片无法解码、过小或分辨率超过限制")
             files[item.file] = path
         self.active(job)
         snapshots = folder.parent / "sources"
@@ -218,11 +227,14 @@ class MaterialsNode:
             research["sources"].append(receipt)
         sources = {item["url"]: item for item in research["sources"]}
         for item in bundle.visuals:
-            _, extension = detect_media(files[item.file].read_bytes())
+            _, extension = detect_media(files[item.file].read_bytes(), files[item.file])
             path = freeze_file(item.file, item.sha256, extension)
-            asset = self.attach_image(job, path, item.source_url,
-                "capture" if item.kind == "screenshot" else "source_image", item.description, item.image_url)
-            self.add_visual(research, sources[item.source_url], asset, item.kind, item.image_url)
+            if item.kind == "video":
+                asset = self.attach_video(job, path, item.source_url, "source_video", item.description, item.media_url)
+            else:
+                asset = self.attach_image(job, path, item.source_url,
+                    "capture" if item.kind == "screenshot" else "source_image", item.description, item.image_url)
+            self.add_visual(research, sources[item.source_url], asset, item.kind, item.image_url, item.media_url)
         current = self.active(job)
         known_urls = list(dict.fromkeys(current.brief.source_urls + urls))[:50]
         if known_urls != current.brief.source_urls:
@@ -260,9 +272,38 @@ class MaterialsNode:
                              assets=current.assets + [asset], artifacts=current.artifacts + [artifact])
         return asset
 
+    def attach_video(self, job: Job, path: Path, source_url: str, origin: str, description: str,
+                     media_url: str = "") -> Asset:
+        mime, extension = detect_media(path.read_bytes(), path)
+        if not mime.startswith("video/"):
+            raise ValueError("采集视频必须是可解码的视频文件")
+        metadata = video_metadata(path)
+        decode_check(path)
+        current = self.active(job)
+        digest = sha256(path)
+        existing = next((item for item in current.assets if item.role != "audio" and item.source_url == source_url and item.sha256 == digest), None)
+        if existing:
+            return existing
+        artifact = self.service.register_artifact(current, path, "asset", mime)
+        asset_id = uuid.uuid4().hex
+        asset = Asset(asset_id=asset_id, name=(description or path.name)[:200], role="evidence", mime_type=mime,
+            size_bytes=artifact.size_bytes, sha256=artifact.sha256, source_url=source_url,
+            license_note="真实来源视频；尚未确认再利用许可，请在发布审核时核验",
+            artifact_id=artifact.artifact_id, url=artifact.url,
+            timeline_src=f"videoagents/{job.job_id}/assets/{asset_id}{extension}")
+        self.service.freeze_asset(asset)
+        self.repo.update_asset_metadata(asset_id, {"origin": origin, "source_url": source_url,
+            "media_url": media_url, "description": description[:1000], **metadata,
+            "collection_key": fingerprint({"url": source_url, "origin": origin, "hash": digest})})
+        current = self.active(job)
+        self.repo.update_job(job.job_id, job.revision, expected_event_id=current.latest_event_id,
+                             assets=current.assets + [asset], artifacts=current.artifacts + [artifact])
+        return asset
+
     @staticmethod
-    def add_visual(research: dict, source: dict, asset: Asset, kind: str, image_url: str) -> None:
+    def add_visual(research: dict, source: dict, asset: Asset, kind: str, image_url: str, media_url: str = "") -> None:
         source["asset_ids"].append(asset.asset_id)
         research["visuals"].append({"asset_id": asset.asset_id, "kind": kind, "source_url": source["url"],
             "image_url": image_url, "title": source["title"], "description": asset.name,
+            "media_url": media_url, "artifact_id": asset.artifact_id, "artifact_url": asset.url,
             "knowledge_excerpt": source.get("text", "")[:1000], "license_status": "needs_review"})

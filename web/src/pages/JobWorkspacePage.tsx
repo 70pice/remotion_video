@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api, ApiError, explainError, newCommandKey } from "../api/client";
 import type { Brief, Decision, RunAction } from "../api/types";
 import { useJob } from "../api/useJob";
@@ -34,6 +34,13 @@ const tabs = [
 ] as const;
 type Tab = (typeof tabs)[number][0];
 
+function tabForStageReview(stage: string): Tab {
+  if (stage === "script") return "script";
+  if (stage === "director") return "storyboard";
+  if (stage === "render") return "render";
+  return "review";
+}
+
 export function JobWorkspacePage({ jobId }: { jobId: string }) {
   const { job, setJob, error: loadError, live, refresh } = useJob(jobId);
   const [tab, setTab] = useState<Tab>("materials");
@@ -63,10 +70,15 @@ export function JobWorkspacePage({ jobId }: { jobId: string }) {
   const hasUnsaved =
     scriptDirty || timelineDirty || alignmentDirty || briefDraft !== null;
   const unknown = hasUnknownOperation(job?.pending_input ?? null);
+  const stageReviewPending = job ? getStageReviewPending(job) : null;
   const unknownRecoveryHint =
     job?.stage === "voice"
       ? "可以导入已获得的音频并保存实测时间，或取消此任务。"
       : "可以核对服务商记录、保存修改后的任务版本，或手动填写文案和分镜。";
+
+  useEffect(() => {
+    if (stageReviewPending) setTab(tabForStageReview(stageReviewPending.stage));
+  }, [stageReviewPending?.pendingToken, stageReviewPending?.stage]);
 
   // Keep keys on uncertain network errors: a retry sends the same persisted command.
   const submit = async (
@@ -148,7 +160,13 @@ export function JobWorkspacePage({ jobId }: { jobId: string }) {
     const submitted = briefDraft;
     try {
       const next = await api.saveDraft(job.job_id, briefRevision, {
-        brief: submitted,
+        brief: {
+          ...submitted,
+          platform: "抖音",
+          width: 1080,
+          height: 1920,
+          fps: 30,
+        },
       });
       setJob(next);
       setBriefRevision(next.revision);
@@ -180,7 +198,6 @@ export function JobWorkspacePage({ jobId }: { jobId: string }) {
     );
   const active = ["RUNNING", "QUEUED"].includes(job.status);
   const locked = busy || active;
-  const stageReviewPending = getStageReviewPending(job);
   const pendingMessage =
     job.pending_input &&
     [
@@ -319,14 +336,23 @@ export function JobWorkspacePage({ jobId }: { jobId: string }) {
               className="button secondary"
               disabled={locked}
               onClick={() => {
-                setBriefDraft({ ...job.brief });
+                setBriefDraft({
+                  ...job.brief,
+                  platform: "抖音",
+                  width: 1080,
+                  height: 1920,
+                  fps: 30,
+                });
                 setBriefRevision(job.revision);
               }}
             >
-              修改受众、用途和画幅
+              修改受众、用途和抖音格式
             </button>
           ) : (
             <fieldset className="editor-fieldset" disabled={locked}>
+              <Notice>
+                保存后将作为新版本制作要求：抖音竖屏 · 1080 × 1920 · 30 fps
+              </Notice>
               <div className="form-grid">
                 <label>
                   目标受众
@@ -357,18 +383,6 @@ export function JobWorkspacePage({ jobId }: { jobId: string }) {
                   </select>
                 </label>
                 <label>
-                  发布平台
-                  <input
-                    value={briefDraft.platform}
-                    onChange={(event) =>
-                      setBriefDraft({
-                        ...briefDraft,
-                        platform: event.target.value,
-                      })
-                    }
-                  />
-                </label>
-                <label>
                   目标时长（秒）
                   <input
                     type="number"
@@ -382,43 +396,6 @@ export function JobWorkspacePage({ jobId }: { jobId: string }) {
                       })
                     }
                   />
-                </label>
-                <label>
-                  画幅
-                  <select
-                    value={
-                      briefDraft.width > briefDraft.height
-                        ? "landscape"
-                        : "portrait"
-                    }
-                    onChange={(event) =>
-                      setBriefDraft({
-                        ...briefDraft,
-                        width: event.target.value === "landscape" ? 1920 : 1080,
-                        height:
-                          event.target.value === "landscape" ? 1080 : 1920,
-                      })
-                    }
-                  >
-                    <option value="portrait">1080 × 1920</option>
-                    <option value="landscape">1920 × 1080</option>
-                  </select>
-                </label>
-                <label>
-                  帧率
-                  <select
-                    value={briefDraft.fps}
-                    onChange={(event) =>
-                      setBriefDraft({
-                        ...briefDraft,
-                        fps: Number(event.target.value),
-                      })
-                    }
-                  >
-                    {[24, 25, 30, 60].map((fps) => (
-                      <option key={fps}>{fps}</option>
-                    ))}
-                  </select>
                 </label>
               </div>
               <div className="button-row">
