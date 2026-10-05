@@ -64,9 +64,12 @@ export interface ComponentEntry {
   name: string;
   description: string;
   use_case: string;
+  library: string;
+  kind: "adapter" | "preset";
   orientation: string;
   production_ready: boolean;
   min_frames: number;
+  allowed_usages: Array<"personal" | "commercial" | "unspecified">;
   license_note: string;
   preview_url: string | null;
 }
@@ -290,7 +293,7 @@ export interface Shot {
   shot_id: string;
   start_frame: number;
   end_frame: number;
-  component_id: "title" | "keyword" | "evidence" | "image_focus" | "comparison" | "data" | "steps" | "conclusion";
+  component_id: string;
   title: string;
   body: string;
   asset_src: string | null;

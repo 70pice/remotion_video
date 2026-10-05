@@ -8,7 +8,7 @@ import process from 'node:process';
 import test from 'node:test';
 import {fileURLToPath} from 'node:url';
 import {main, outputScale, parseArgs, validateLocalInputs} from '../../scripts/render-timeline.mjs';
-import {validateTimeline} from './validation.mjs';
+import {communityComponentIds, productionComponentIds, validateTimeline} from './validation.mjs';
 
 const {structuredClone} = globalThis;
 
@@ -68,7 +68,18 @@ test('remote, absolute, encoded and other-job media references cannot reach a re
   }
 });
 
-test('arbitrary props, demo IDs, CSS colors and missing evidence attribution are rejected', () => {
+test('all 152 presets are registered while unknown IDs and preset injections are rejected', () => {
+  assert.equal(productionComponentIds.length, 160);
+  assert.equal(communityComponentIds.length, 152);
+  const preset = fixture();
+  preset.shots[0].component_id = 'Snapcn-TextReveal';
+  assert.equal(validateTimeline(preset), preset);
+  const presetProps = structuredClone(preset);
+  presetProps.shots[0].props = {src: 'https://example.com/payload.svg'};
+  assert.throws(() => validateTimeline(presetProps), /unsupported/);
+  const presetAsset = structuredClone(preset);
+  presetAsset.shots[0].asset_src = 'videoagents/test-job/a.png';
+  assert.throws(() => validateTimeline(presetAsset), /do not accept asset_src/);
   const injection = fixture();
   injection.shots[0].props = {src: 'https://example.com/payload.svg'};
   assert.throws(() => validateTimeline(injection), /unsupported/);

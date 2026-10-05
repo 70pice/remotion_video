@@ -2133,16 +2133,9 @@
           },
           "component_id": {
             "type": "string",
-            "enum": [
-              "title",
-              "keyword",
-              "evidence",
-              "image_focus",
-              "comparison",
-              "data",
-              "steps",
-              "conclusion"
-            ],
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
             "title": "Component Id"
           },
           "title": {

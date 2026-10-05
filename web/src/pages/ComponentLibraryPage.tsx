@@ -97,6 +97,9 @@ export function ComponentLibraryPage() {
                     {entry.production_ready ? "生产可用" : "演示参考"}
                   </span>
                 </div>
+                <p className="small muted">
+                  {entry.library} · {entry.kind === "preset" ? "固定视觉预设" : "参数化适配器"} · 横竖版
+                </p>
                 <p>{entry.description}</p>
                 <p className="small">
                   适用于：{entry.use_case || "查看组件说明"}
@@ -104,9 +107,9 @@ export function ComponentLibraryPage() {
                 <div className="license-note">
                   {entry.license_note || "授权说明待补充"}
                 </div>
-                {!entry.production_ready && (
+                {entry.kind === "preset" && (
                   <small className="muted">
-                    尚未适配生产参数，工作台暂不可选择。
+                    已开放给导演和分镜编辑器；当前保持已验证预设，不接收任意组件参数。
                   </small>
                 )}
               </div>

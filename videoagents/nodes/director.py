@@ -13,6 +13,7 @@ from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState
 from videoagents.storage import Repository
+from videoagents.tools.components import available_component_ids, prompt_component_catalog
 from videoagents.tools.timeline import validate_timeline
 
 COMPONENT_PROPS_EXAMPLES = {
@@ -25,12 +26,20 @@ COMPONENT_PROPS_EXAMPLES = {
     "steps": {"items": [{"title": "给定步骤标题", "body": "给定步骤说明"}]},
     "conclusion": {"call_to_action": "文案中的行动建议"},
 }
-# 导演 Prompt 独立维护；props 结构示例在加载时注入，示例只展示字段结构，
-# 不提供本视频事实。统一风格圣经在前，导演规则在后。
-PROMPT = load_prompt("shared-style") + "\n\n" + render_prompt(
-    "director",
-    component_props=json.dumps(COMPONENT_PROPS_EXAMPLES, ensure_ascii=False, separators=(",", ":")),
-)
+def director_prompt(usage: str) -> str:
+    """Build the complete component guide for this job's license context."""
+
+    return load_prompt("shared-style") + "\n\n" + render_prompt(
+        "director",
+        component_props=json.dumps(COMPONENT_PROPS_EXAMPLES, ensure_ascii=False, separators=(",", ":")),
+        component_catalog=prompt_component_catalog(usage),
+    )
+
+
+# Compatibility for tests and callers that import the default prompt. Jobs
+# with an explicit commercial usage receive a license-filtered prompt at call
+# time instead.
+PROMPT = director_prompt("unspecified")
 
 
 class DirectorNode:
@@ -87,6 +96,9 @@ class DirectorNode:
                             captions=[Caption(text=item.text, start_ms=item.start_ms, end_ms=item.end_ms) for item in alignment.segments])
         if self.model.available("director"):
             schema = Timeline.model_json_schema()
+            schema["$defs"]["Shot"]["properties"]["component_id"]["enum"] = available_component_ids(
+                job.brief.usage
+            )
             # 仅当前调用提供的已导入图片可作为渲染资产；研究链接不是资产路径。
             schema["$defs"]["Shot"]["properties"]["asset_src"]["enum"] = [
                 asset.timeline_src for asset in job.assets if asset.mime_type.startswith("image/")
@@ -96,7 +108,7 @@ class DirectorNode:
                 context = {**context, "research": research}
             # 实测基线只作为本次导演输入；模型输出校验通过前不写入共享 state。
             model_state = {**context, "timeline": timeline.model_dump()}
-            value = self.model.invoke(model_state, "director", PROMPT,
+            value = self.model.invoke(model_state, "director", director_prompt(job.brief.usage),
                 fields=("brief", "script", "timeline", "research", "assets", "asset_metadata"),
                 command_id=context.get("resume_command_id", context.get("run_id", "")), output_schema=schema)
             candidate = Timeline.model_validate(value)

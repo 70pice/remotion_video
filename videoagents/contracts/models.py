@@ -1,6 +1,6 @@
 """Canonical transport and production contracts. Extra properties are rejected."""
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 from urllib.parse import urlparse
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -182,7 +182,7 @@ class Alignment(Contract):
         return self
 
 
-ProductionId = Literal["title", "keyword", "evidence", "image_focus", "comparison", "data", "steps", "conclusion"]
+ProductionId = Annotated[str, Field(min_length=1, max_length=100, pattern=r"^[A-Za-z0-9_-]+$")]
 
 
 class Shot(Contract):
@@ -196,6 +196,17 @@ class Shot(Contract):
     source_label: str = Field(default="", max_length=160)
     accent_color: str = Field(default="#8cffb8", pattern=r"^#[0-9a-fA-F]{6}$")
     props: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("component_id")
+    @classmethod
+    def production_component(cls, value: str) -> str:
+        # Imported lazily so the canonical contract module does not couple its
+        # import order to catalog/API construction.
+        from videoagents.tools.components import PRODUCTION_COMPONENT_ID_SET
+
+        if value not in PRODUCTION_COMPONENT_ID_SET:
+            raise ValueError("镜头组件不在生产清单中")
+        return value
 
     @field_validator("shot_id", "title", "body", "source_label")
     @classmethod
@@ -276,9 +287,12 @@ class ComponentEntry(Contract):
     name: str
     description: str
     use_case: str
+    library: str
+    kind: Literal["adapter", "preset"]
     orientation: str
     production_ready: bool
     min_frames: int
+    allowed_usages: list[Literal["personal", "commercial", "unspecified"]]
     license_note: str
     preview_url: str | None = None
 

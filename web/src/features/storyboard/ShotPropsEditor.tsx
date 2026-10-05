@@ -1,4 +1,5 @@
 import type { Shot } from "../../api/types";
+import { isCommunityComponent } from "./timeline";
 
 export function ShotPropsEditor({
   shot,
@@ -10,6 +11,12 @@ export function ShotPropsEditor({
   disabled: boolean;
 }) {
   const props = shot.props;
+  if (isCommunityComponent(shot.component_id))
+    return (
+      <small className="muted">
+        该组件使用已验证的横版/竖版固定预设，不接受任意 props 或额外图片。
+      </small>
+    );
   const field = (key: string, label: string, max: number) => (
     <label key={key}>
       {label}

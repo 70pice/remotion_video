@@ -20,6 +20,7 @@ from videoagents.nodes import (
     voice,
 )
 from videoagents.prompts import PROMPTS_DIR, compose, load_prompt, render
+from videoagents.tools.components import COMMUNITY_COMPONENT_IDS
 
 PROMPT_FILES = [
     "shared-style",
@@ -64,7 +65,11 @@ def test_compose_joins_with_single_blank_line():
 
 
 def test_render_substitutes_every_placeholder():
-    text = render("director", component_props='{"title": {}}')
+    text = render(
+        "director",
+        component_props='{"title": {}}',
+        component_catalog="Snapcn-TextReveal | Snapcn | 固定预设 | 标题 | 开场",
+    )
     assert "{{" not in text and "component_props" not in text
     assert '{"title": {}}' in text
 
@@ -72,8 +77,10 @@ def test_render_substitutes_every_placeholder():
 def test_render_rejects_missing_and_unknown_variables():
     with pytest.raises(ValueError, match="component_props"):
         render("director")
+    with pytest.raises(ValueError, match="component_catalog"):
+        render("director", component_props="x")
     with pytest.raises(ValueError, match="未使用"):
-        render("director", component_props="x", unexpected="y")
+        render("director", component_props="x", component_catalog="y", unexpected="z")
 
 
 @pytest.mark.parametrize("bad_name", ["", "UPPER", "has space", "a/b", "a.b", "../shared-style"])
@@ -114,6 +121,7 @@ def test_director_prompt_injects_props_examples():
         separators=(",", ":"),
     )
     assert expected in director.PROMPT
+    assert all(component_id in director.PROMPT for component_id in COMMUNITY_COMPONENT_IDS)
 
 
 @pytest.mark.parametrize(

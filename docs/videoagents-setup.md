@@ -105,7 +105,7 @@ CLI 外层只接收必填 `response_json` 字符串、拒绝额外字段，解�
 1. 创建带完整文案的任务；保存编剧产出的段落后查看每段 `segment_id`。
 2. 上传真实图片或网页截图，填写来源与授权说明；示意图选择 illustration，不把示意图作为事实证据。
 3. 上传本地 MP3/WAV 等音频，并上传经过验证的对齐 JSON。音频须对应当前文案，字幕时间来自实际音频。
-4. 生成分镜，或在分镜面板编辑镜头并选择已上传的素材。镜头使用八个可生产适配器；原有 152 个演示组件在组件库中另行浏览。
+4. 生成分镜，或在分镜面板编辑镜头并选择组件。组件下拉会按任务用途开放统一生产清单：8 个可传入真实文案/数据/图片的参数化适配器，加 152 个会自动匹配横版或原生竖版实现的固定视觉预设。固定预设不接收素材和自定义 props；Talkcraft 预设受非商业许可限制，商业任务不会出现。
 5. 渲染预览、生成最终视频并运行审核。
 
 对齐文件格式：
@@ -136,7 +136,7 @@ videoagents/providers/       模型、搜索、字节配音与对齐服务
 videoagents/services/        版本编辑、导入与设置
 videoagents/nodes/           六角色、阶段检查、人工审核及等待输入节点
 videoagents/storage/         SQLite 命令、事件与外部操作台账
-src/video-production/        八个生产适配器与时间轴验证
+src/video-production/        8 个生产适配器、152 个预设注册与时间轴验证
 contracts/generated/         由 Python 导出的类型、JSON Schema、OpenAPI
 scripts/*studio*.ps1          本机启动与停止
 tests/                       后端、工作流与联调测试
@@ -166,6 +166,7 @@ npm run web:typecheck
 npm run web:test
 npm run web:build
 npm run check:component-paths
+npm run check:production-components
 ```
 
 纯本机接口联调：启动隔离且未配置模型、搜索、配音或对齐服务的工作台，运行 `.venv-videoagents/Scripts/python.exe scripts/smoke-studio.py`。脚本验证素材模型关闭时暂停在 `materials`，再导入标记为 TEST 的文案、程序图案和测试音，验证媒体 Range 请求及再次执行仍暂停。它不调用付费服务，也不生成成片；下游流程使用已冻结的测试研究包在 Python 工作流测试中验证。测试音与 fixture 字幕不能作为真人口播、复刻声音或发布资格的证明。

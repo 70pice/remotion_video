@@ -5,6 +5,10 @@ import re
 from pathlib import PurePosixPath
 
 from videoagents.contracts import Job, Timeline
+from videoagents.tools.components import (
+    COMMUNITY_COMPONENT_ID_SET,
+    component_allowed,
+)
 
 ALLOWED_PROPS = {
     "title": {"eyebrow"}, "keyword": {"keyword"}, "evidence": {"highlight"},
@@ -42,6 +46,14 @@ def validate_timeline(timeline: Timeline, job: Job) -> None:
         if not re.search(r"\.(wav|mp3|m4a|aac|ogg)$", timeline.audio_src, re.I):
             raise ValueError("分镜音频扩展名不支持")
     for shot in timeline.shots:
+        if not component_allowed(shot.component_id, job.brief.usage):
+            raise ValueError(f"组件 {shot.component_id} 的许可不允许当前 {job.brief.usage} 使用场景")
+        if shot.component_id in COMMUNITY_COMPONENT_ID_SET:
+            if shot.props:
+                raise ValueError(f"预设组件 {shot.component_id} 当前不接受自定义 props")
+            if shot.asset_src:
+                raise ValueError(f"预设组件 {shot.component_id} 使用已核验的内置素材，不接受 asset_src")
+            continue
         unknown = set(shot.props) - ALLOWED_PROPS[shot.component_id]
         if unknown:
             raise ValueError(f"组件 {shot.component_id} 不接受参数 {', '.join(sorted(unknown))}")

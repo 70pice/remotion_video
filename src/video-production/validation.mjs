@@ -1,8 +1,17 @@
 // Shared by the Remotion browser bundle and the Node renderer. This module has
 // no Node dependencies so validation is identical at both entry points.
-export const productionComponentIds = Object.freeze([
-  'title', 'keyword', 'evidence', 'image_focus', 'comparison', 'data', 'steps', 'conclusion',
-]);
+import componentManifest from '../../videoagents/component-manifest.json' with {type: 'json'};
+
+export const productionComponentIds = Object.freeze(
+  componentManifest.entries.map((entry) => entry.component_id),
+);
+export const semanticComponentIds = Object.freeze(
+  componentManifest.entries.filter((entry) => entry.kind === 'adapter').map((entry) => entry.component_id),
+);
+export const communityComponentIds = Object.freeze(
+  componentManifest.entries.filter((entry) => entry.kind === 'preset').map((entry) => entry.component_id),
+);
+const communityComponentIdSet = new Set(communityComponentIds);
 
 const fail = (message) => { throw new Error(`Timeline validation: ${message}`); };
 const object = (value, name) => {
@@ -48,6 +57,11 @@ export const validateMediaSource = (source, jobId, name = 'media source') => {
 
 const validateProps = (shot, name) => {
   const props = object(shot.props, `${name}.props`);
+  if (communityComponentIdSet.has(shot.component_id)) {
+    keys(props, [], `${name}.props`);
+    if (shot.asset_src) fail(`${name}: preset components do not accept asset_src`);
+    return;
+  }
   switch (shot.component_id) {
     case 'title':
       keys(props, ['eyebrow'], `${name}.props`);
@@ -106,7 +120,7 @@ const validateProps = (shot, name) => {
       optionalText(props.call_to_action, `${name}.props.call_to_action`, 72);
       break;
     default:
-      fail(`${name}.component_id is not a production adapter`);
+      fail(`${name}.component_id is not a production component`);
   }
 };
 

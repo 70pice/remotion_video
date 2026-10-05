@@ -2,7 +2,7 @@
 
 日期：2026-10-03。这是实施前通过审查的设计记录，保留当时的源码和外部资料核验结论。当前实现、实际测试及边界见 [实现与验证记录](videoagents-implementation-status.md)，启动操作见 [使用说明](videoagents-setup.md)。设计中的未来扩展不能当作已实测功能。
 
-最新实现已将素材独立为第一个节点：`materials → screenwriter`，并增加文案审查讨论。历史方案中的编剧采集职责已迁入素材节点；当前交接与平台能力见 [素材研究节点](videoagents-materials.md)。
+最新实现已将素材独立为第一个节点：`materials → screenwriter`，并增加文案审查讨论。历史方案中的编剧采集职责已迁入素材节点；当前交接与平台能力见 [素材研究节点](videoagents-materials.md)。2026-10-05 又将全部 152 个社区组件以固定视觉预设接入生产 Timeline，与 8 个参数化适配器组成 160 个生产 ID；当前事实以 [实现与验证记录](videoagents-implementation-status.md) 为准。
 
 ## 1. 目标与设计决定
 
@@ -34,23 +34,23 @@
 
 ### 2.2 当前 Remotion 与飞书表
 
-本地 [package.json](D:/remotion_video/package.json:1) 锁定 Remotion 4.0.532。现有主片支持 episode 数据与动态时长，但场景选择、若干内容和素材仍面向特定视频；缺少面向任意分镜的统一生产渲染入口。现有音频准备使用 Edge TTS，不能视为已接入字节自有音色。
+本节保留下述 2026-10-03 实施前核验。当前 [package.json](D:/remotion_video/package.json:1) 仍锁定 Remotion 4.0.532，但已新增面向任意冻结 Timeline 的 `VideoFromTimeline` 生产入口，并接入字节配音与导入音频路径；不要把下表的历史缺口当作当前实现状态。
 
 | 已有能力 | 当前证据与适配边界 |
 |---|---|
 | JSON 驱动主片 metadata | [Root.tsx](D:/remotion_video/src/Root.tsx:8) 已接 props 和 calculateMetadata；[AiScienceVideo.tsx](D:/remotion_video/src/templates/AiScienceVideo.tsx:160) 仅映射八类固定场景 |
 | 实际音频与逐词时间戳 | [prepare_episode.py](D:/remotion_video/scripts/prepare_episode.py:39) 已有缓存、WordBoundary、ffprobe 和临时文件提交；输入仍固定第一期，未实现独立对齐器 |
 | 中文时间字幕 | [captionPages.ts](D:/remotion_video/src/components/captionPages.ts:5)、[TimedCaptions.tsx](D:/remotion_video/src/components/TimedCaptions.tsx:7) 可借用分页和词级强调；[检查脚本](D:/remotion_video/scripts/check-captions.mjs:5) 有第一期专属假设，需参数化 |
-| 152 对横竖组件入口 | 本次解析目录得到 152 对，横竖 entries 各 152；[入口生成器](D:/remotion_video/scripts/generate-component-entrypoints.mjs:25) 导出 demo 包装，未形成统一生产 props 契约 |
+| 152 对横竖组件入口 | 实施前解析得到 152 对、横竖 entries 各 152；当前已生成统一生产清单并作为固定 preset 接入，仍只有 8 个 adapter 提供类型化内容 props |
 | 基础验证 | [validate_episode.py](D:/remotion_video/scripts/validate_episode.py:30) 仅在视频已存在时检查 MP4；[verify-community.mjs](D:/remotion_video/scripts/verify-community.mjs:40) 是组件三帧抽样，均不能直接作为最终发布门 |
 
 已实时读取[用户提供的飞书组件表](https://icnpfyu4nynj.feishu.cn/sheets/UPpgsQJnLhgA0WtzlU2crIXqnOe)，revision 113。读取了工作簿结构、组件表头和首尾样本、使用说明；未做全表逐单元格校验。当前五列是：组件名称、竖版路径、横版路径、适合表达的内容、适用场景。使用说明列出 152 个组件及其用途边界。
 
-本地对应 [component-paths.json](D:/remotion_video/docs/component-paths.json:1) 和 [component-use-guide.json](D:/remotion_video/docs/component-use-guide.json:1)。这些已经可以作为导演的选型索引，但仍需生产适配层：
+本地对应 [component-paths.json](D:/remotion_video/docs/component-paths.json:1) 和 [component-use-guide.json](D:/remotion_video/docs/component-use-guide.json:1)。它们现在通过 `scripts/build-production-component-manifest.mjs` 生成统一清单，由导演、后端、前端和渲染器共同使用；组件仍有两种不同能力边界：
 
-- `Component/demo/meta` 入口沿用示例参数，不等于所有组件已支持统一文案、素材和时长参数。[组件文档](D:/remotion_video/docs/component-library.md:42)
+- 152 个 `Component/demo/meta` 已能作为固定视觉 preset 执行，但沿用示例参数，不等于支持统一文案、素材和时长参数。[组件文档](D:/remotion_video/docs/component-library.md:42)
 - 部分原卡没有暴露文案与布局 props，不能直接把演示内容当成真实论据。[原卡说明](D:/remotion_video/docs/component-library.md:96)
-- 108 张 Talkcraft 卡的本地导入记录是非商业个人用途，原许可保留。选择组件时必须结合任务用途和授权证据；用途不明时暂不纳入可发布白名单。[导入记录](D:/remotion_video/licenses/community/video-talkcraft/IMPORT.md:7)、[原许可声明](D:/remotion_video/licenses/community/video-talkcraft/LICENSE:5)
+- 108 张 Talkcraft 卡的本地导入记录是非商业个人用途，原许可保留。它们仅进入 personal/unspecified 清单，商业任务的导演 schema、后端校验和前端选择器会排除这些 ID。[导入记录](D:/remotion_video/licenses/community/video-talkcraft/IMPORT.md:7)、[原许可声明](D:/remotion_video/licenses/community/video-talkcraft/LICENSE:5)
 - 代码许可、字体许可、图片/视频/音乐许可分别记录。原作者 demo 主持人、聊天内容和图表数字不作为生产素材或事实证据。[素材记录](D:/remotion_video/licenses/community/video-talkcraft/assets-README.md:12)
 
 ## 3. LangGraph 总体流程
@@ -146,7 +146,7 @@ flowchart TD
 
 `Shot` 的最小字段：`shot_id/segment_ids/start_frame/end_frame/component_id/adapter_version/asset_ids/props/layers/keyframes/caption_policy/transition/intent/evidence_refs`。区间统一为左闭右开 `[start_frame, end_frame)`。
 
-示例仅说明契约，组件名是**拟新增的生产适配器 ID**：
+以下是实施前的概念示例；当前 HTTP Timeline 使用更精简的 `Shot` 契约，真实生产 ID 来自 `videoagents/component-manifest.json`：
 
 ```json
 {
@@ -172,7 +172,7 @@ flowchart TD
 
 新增 `VideoFromTimeline` composition。Node 渲染适配器读取 JSON，先完成运行时 schema/素材/组件白名单校验，再调用 `selectComposition()` 与 `renderMedia()`；两次传同一份冻结 props。使用 `calculateMetadata()` 设置准确时长、尺寸和 fps。[Remotion 渲染接口](https://www.remotion.dev/docs/renderer/render-media)、[动态 metadata](https://www.remotion.dev/docs/calculate-metadata)
 
-新增生产 `component registry` 负责将 `component_id` 解析为已审核组件及 props schema。LLM 不填写任意 import 路径，不执行任意 TSX。首版以 timeline/props 组装现有组件；需要新视觉能力时形成独立适配任务，经类型检查、许可检查和预览验证后才入库。
+生产 `component registry` 负责将 `component_id` 解析为已审核实现。LLM 不填写任意 import 路径，不执行任意 TSX。当前 8 个 adapter 通过严格 props schema 组装真实内容；152 个 community preset 已全部注册为固定视觉实现，强制 `props={}`、`asset_src=null`，按 timeline 方向选择横版或原生竖版。需要让某个 preset 接收真实文案或素材时，仍须形成独立参数化适配任务，经类型、许可和预览验证后扩展契约。
 
 先生成低分辨率完整预览与关键帧联系表，检查布局和节奏；通过后按最终参数渲染。预览通过不等于最终通过，最终 MP4 仍需独立解码、音频和内容检查。
 
@@ -303,24 +303,24 @@ LangGraph 默认持久化，`job_id` 是 thread 身份，`revision_id` 是产物
 
 ## 8. 组件目录升级
 
-保留飞书现有五列作为人用目录；运行时读取一次冻结快照，结合本地代码注册表和预览。每条视频记录飞书 revision、组件源码版本和 registry 版本，避免渲染到一半目录变化。
+保留飞书现有五列作为人用目录；运行时使用仓库内生成并随版本冻结的 `videoagents/component-manifest.json`，结合本地代码注册表和预览。清单包含 8 个 adapter 和 152 个 preset，`npm run check:production-components` 会检查目录、用途说明与清单是否漂移。
 
 生产 registry 补充：
 
 | 字段 | 目的 |
 |---|---|
-| `component_id / orientation / adapter_version` | 稳定定位具体实现 |
-| `props_schema / supported_asset_roles` | 明确可输入文本、图、视频和数据的类型 |
+| `component_id / orientation / kind / library` | 稳定定位 adapter 或 preset 及横竖实现 |
+| `props_schema / supported_asset_roles` | adapter 明确可输入文本、图片和数据；preset 固定为空 |
 | `min_frames / max_frames / hold_policy` | 匹配配音长度，避免动画截断 |
 | `text_limits / safe_area / font_manifest` | 控制中文长文本与平台遮挡 |
 | `semantic_tags / visual_energy / use_cases` | 让导演按表达目的选择 |
 | `preview_refs / verified_cases` | 真实预览及可用范围 |
-| `license_ref / media_requirements / usage_eligibility` | 区分代码与素材的用途条件 |
+| `license_ref / media_requirements / allowed_usages` | 区分代码与素材的用途条件 |
 | `production_ready` | 未完成数据接口和样片验证的组件不可被自动选中 |
 
-导演先按许可、方向、素材角色和时长做硬过滤，再按语义、视觉强度和重复度排序，查看少量候选预览后选用。MVP 使用现有描述与标签即可，不先建设向量数据库。
+导演先按许可、方向、素材角色和时长做硬过滤，再按语义、视觉强度和重复度选用。当前 Prompt 注入按 `brief.usage` 过滤的完整清单；方向由 renderer 自动选择。MVP 使用现有描述与标签，不建设向量数据库。
 
-第一批建议适配 8 类：标题登场、关键词强调、证据截图、图片局部聚焦、前后对比、数字/数据卡、步骤时间线、结论卡。具体选用哪些现有实现，以 props 可改性、用途条件和中文样片为准；需要的基础截图容器可在当前项目实现。
+第一批 8 类参数化适配器已经实现：标题登场、关键词强调、证据截图、图片局部聚焦、前后对比、数字/数据卡、步骤时间线、结论卡。全部 152 个社区组件也已作为固定 preset 开放；后续工作是按需把高频 preset 升级成有明确 props schema 的 adapter，而不是继续扩大未约束输入面。
 
 ## 9. 代码组织与边界
 
@@ -409,7 +409,7 @@ D:\remotion_video\
 │  ├─ components/
 │  │  ├─ component-horizontal/      # 保留现有横屏组件
 │  │  ├─ component-vertical/        # 保留现有竖屏组件
-│  │  └─ community/                 # 保留演示注册与元数据
+│  │  └─ community/                 # 演示注册、元数据与生产 preset 实现
 │  └─ video-production/             # 新增：通用视频生产层
 │     ├─ VideoFromTimeline.tsx
 │     ├─ registry.ts

@@ -1,0 +1,2929 @@
+{
+  "schema_version": "1",
+  "entries": [
+    {
+      "component_id": "title",
+      "name": "冲击标题",
+      "description": "主题与开场钩子",
+      "use_case": "开头与章节",
+      "library": "VideoAgents",
+      "orientation": "both",
+      "kind": "adapter",
+      "props_mode": "typed",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "本项目新增的参数化画面；所用图片和字体须另行核验"
+    },
+    {
+      "component_id": "keyword",
+      "name": "关键词",
+      "description": "突出旁白重音",
+      "use_case": "短观点和关键词",
+      "library": "VideoAgents",
+      "orientation": "both",
+      "kind": "adapter",
+      "props_mode": "typed",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "本项目新增的参数化画面；所用图片和字体须另行核验"
+    },
+    {
+      "component_id": "evidence",
+      "name": "证据截图",
+      "description": "真实截图和来源",
+      "use_case": "事实证据与原文高亮",
+      "library": "VideoAgents",
+      "orientation": "both",
+      "kind": "adapter",
+      "props_mode": "typed",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "本项目新增的参数化画面；所用图片和字体须另行核验"
+    },
+    {
+      "component_id": "image_focus",
+      "name": "图片聚焦",
+      "description": "真实图片慢推近",
+      "use_case": "现场与概念素材",
+      "library": "VideoAgents",
+      "orientation": "both",
+      "kind": "adapter",
+      "props_mode": "typed",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "本项目新增的参数化画面；所用图片和字体须另行核验"
+    },
+    {
+      "component_id": "comparison",
+      "name": "前后对比",
+      "description": "两个观点或状态并列",
+      "use_case": "有来源的对比",
+      "library": "VideoAgents",
+      "orientation": "both",
+      "kind": "adapter",
+      "props_mode": "typed",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "本项目新增的参数化画面；所用图片和字体须另行核验"
+    },
+    {
+      "component_id": "data",
+      "name": "数据卡",
+      "description": "展示已核验数字",
+      "use_case": "有来源的 1 到 4 个指标",
+      "library": "VideoAgents",
+      "orientation": "both",
+      "kind": "adapter",
+      "props_mode": "typed",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "本项目新增的参数化画面；所用图片和字体须另行核验"
+    },
+    {
+      "component_id": "steps",
+      "name": "步骤时间线",
+      "description": "顺序呈现过程",
+      "use_case": "1 到 4 个步骤",
+      "library": "VideoAgents",
+      "orientation": "both",
+      "kind": "adapter",
+      "props_mode": "typed",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "本项目新增的参数化画面；所用图片和字体须另行核验"
+    },
+    {
+      "component_id": "conclusion",
+      "name": "结论卡",
+      "description": "总结与行动提示",
+      "use_case": "片尾与段落收束",
+      "library": "VideoAgents",
+      "orientation": "both",
+      "kind": "adapter",
+      "props_mode": "typed",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "本项目新增的参数化画面；所用图片和字体须另行核验"
+    },
+    {
+      "component_id": "Snapcn-TextReveal",
+      "name": "Snapcn / TextReveal",
+      "description": "表达一个新概念或章节标题正式登场",
+      "use_case": "视频开场、章节开头，先把本段主题立住",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "text-reveal"
+    },
+    {
+      "component_id": "Snapcn-TextBuild",
+      "name": "Snapcn / TextBuild",
+      "description": "表达概念由零到完整的逐步搭建",
+      "use_case": "解释 AI 概念定义、总结三层结构时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "text-build"
+    },
+    {
+      "component_id": "Snapcn-TextHighlight",
+      "name": "Snapcn / TextHighlight",
+      "description": "表达一句话中最该记住的关键词",
+      "use_case": "口播讲到核心结论、术语或判断词时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "text-highlight"
+    },
+    {
+      "component_id": "Snapcn-TextRewrite",
+      "name": "Snapcn / TextRewrite",
+      "description": "表达旧提示词被修正成更好版本",
+      "use_case": "讲提示词优化、纠错、改写前后对比时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "text-rewrite"
+    },
+    {
+      "component_id": "Snapcn-TextSwap",
+      "name": "Snapcn / TextSwap",
+      "description": "表达观点或措辞从 A 替换成 B",
+      "use_case": "讲旧说法不准、换成新结论时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "text-swap"
+    },
+    {
+      "component_id": "Snapcn-WordFlip",
+      "name": "Snapcn / WordFlip",
+      "description": "表达同一主体拥有多种能力或标签",
+      "use_case": "列举 AI 能写作、检索、分析等能力时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "word-flip"
+    },
+    {
+      "component_id": "Snapcn-WordCaptions",
+      "name": "Snapcn / WordCaptions",
+      "description": "表达配音中当前正在说的重点词",
+      "use_case": "给短句口播做逐词强调字幕时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "word-captions"
+    },
+    {
+      "component_id": "Snapcn-KaraokeCaptions",
+      "name": "Snapcn / KaraokeCaptions",
+      "description": "表达连续讲解中观众应跟读的长句",
+      "use_case": "长句字幕、旁白同步、解释性口播中使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "karaoke-captions"
+    },
+    {
+      "component_id": "Snapcn-SearchTyping",
+      "name": "Snapcn / SearchTyping",
+      "description": "表达从一个问题开始寻找答案",
+      "use_case": "AI 搜索、问题引入、打开选题悬念时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "search-typing"
+    },
+    {
+      "component_id": "Snapcn-PromptSend",
+      "name": "Snapcn / PromptSend",
+      "description": "表达人向 AI 发出明确任务请求",
+      "use_case": "演示输入提示词、点击发送、开始任务时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "prompt-send"
+    },
+    {
+      "component_id": "Snapcn-PromptZoom",
+      "name": "Snapcn / PromptZoom",
+      "description": "表达提示词写作是本段核心动作",
+      "use_case": "讲提示词模板、输入框细节、产品首页时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "prompt-zoom"
+    },
+    {
+      "component_id": "Snapcn-AnswerStream",
+      "name": "Snapcn / AnswerStream",
+      "description": "表达 AI 正在生成答案或整理结论",
+      "use_case": "展示模型输出、回答生成过程、结果揭晓时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "answer-stream"
+    },
+    {
+      "component_id": "Snapcn-AnswerHighlight",
+      "name": "Snapcn / AnswerHighlight",
+      "description": "表达长回答里真正有价值的一句",
+      "use_case": "提炼 AI 答案、划出可执行建议时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "answer-highlight"
+    },
+    {
+      "component_id": "Snapcn-AgentSteps",
+      "name": "Snapcn / AgentSteps",
+      "description": "表达 Agent 把复杂任务拆成步骤完成",
+      "use_case": "讲工具调用、任务规划、自动化流程时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "agent-steps"
+    },
+    {
+      "component_id": "Snapcn-TerminalSimulator",
+      "name": "Snapcn / TerminalSimulator",
+      "description": "表达命令行中按顺序执行和反馈的过程",
+      "use_case": "AI Coding、部署、测试、终端教程中使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "terminal-simulator"
+    },
+    {
+      "component_id": "Snapcn-ChannelThread",
+      "name": "Snapcn / ChannelThread",
+      "description": "表达多人或多 Agent 正在协作讨论",
+      "use_case": "团队协作、Agent 群聊、对话式决策时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "channel-thread"
+    },
+    {
+      "component_id": "Snapcn-PhoneFrame",
+      "name": "Snapcn / PhoneFrame",
+      "description": "表达手机端 AI 产品或 App 场景",
+      "use_case": "展示移动应用、竖屏产品界面时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "phone-frame"
+    },
+    {
+      "component_id": "Snapcn-LaptopFrame",
+      "name": "Snapcn / LaptopFrame",
+      "description": "表达桌面端 AI 工具或网页产品",
+      "use_case": "展示网站、后台、桌面录屏容器时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "laptop-frame"
+    },
+    {
+      "component_id": "Snapcn-ScreenRecording",
+      "name": "Snapcn / ScreenRecording",
+      "description": "表达真实界面操作中的一个关键步骤",
+      "use_case": "教程、产品演示、点击路径讲解时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "screen-recording"
+    },
+    {
+      "component_id": "Snapcn-CursorTrack",
+      "name": "Snapcn / CursorTrack",
+      "description": "表达观众应该跟随鼠标看某个操作",
+      "use_case": "按钮点击、路径指引、交互教学时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "cursor-track"
+    },
+    {
+      "component_id": "Snapcn-MoodboardReveal",
+      "name": "Snapcn / MoodboardReveal",
+      "description": "表达多个案例共同构成一个主题印象",
+      "use_case": "案例开场、图片集锦、视觉灵感墙时使用",
+      "library": "Snapcn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，保留原作者版权；本地字体与演示素材适配",
+      "slug": "moodboard-reveal"
+    },
+    {
+      "component_id": "Rve-QuoteCard",
+      "name": "RVE / Quote Card",
+      "description": "表达引用来源、权威观点或原文证据",
+      "use_case": "展示论文、官方文档、人物原话时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。",
+      "slug": "quote-card"
+    },
+    {
+      "component_id": "Rve-ChartAnimation",
+      "name": "RVE / Bar Chart",
+      "description": "表达多个对象在同一指标上的差异",
+      "use_case": "比较模型成本、性能、速度、价格时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。",
+      "slug": "chart-animation"
+    },
+    {
+      "component_id": "Rve-LineChart",
+      "name": "RVE / Line Chart",
+      "description": "表达某个指标随时间变化的趋势",
+      "use_case": "讲模型发展、用户增长、价格变化时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。",
+      "slug": "line-chart"
+    },
+    {
+      "component_id": "Rve-PieChart",
+      "name": "RVE / Pie Chart",
+      "description": "表达一个整体由几部分构成",
+      "use_case": "讲预算占比、用户来源、能力构成时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。",
+      "slug": "pie-chart"
+    },
+    {
+      "component_id": "Rve-DonutChart",
+      "name": "RVE / Donut Chart",
+      "description": "表达完成率、覆盖率或结构占比",
+      "use_case": "讲任务进度、数据构成、比例结果时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。",
+      "slug": "donut-chart"
+    },
+    {
+      "component_id": "Rve-StatCounter",
+      "name": "RVE / Stat Counter",
+      "description": "表达一个大数字值得被单独记住",
+      "use_case": "抛出参数量、用户数、下载量等关键数字时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。",
+      "slug": "stat-counter"
+    },
+    {
+      "component_id": "Rve-ProgressBars",
+      "name": "RVE / Progress Bars",
+      "description": "表达多个能力维度的完成程度",
+      "use_case": "讲模型能力、产品评分、项目进度时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。",
+      "slug": "progress-bars"
+    },
+    {
+      "component_id": "Rve-ProgressSteps",
+      "name": "RVE / Progress Steps",
+      "description": "表达流程必须按顺序一步步推进",
+      "use_case": "讲 Agent 流程、内容生产步骤、研发阶段时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。",
+      "slug": "progress-steps"
+    },
+    {
+      "component_id": "Rve-ComparisonChart",
+      "name": "RVE / Comparison Chart",
+      "description": "表达优化前后或方案 A/B 的差距",
+      "use_case": "讲改版效果、模型对比、成本变化时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。",
+      "slug": "comparison-chart"
+    },
+    {
+      "component_id": "Rve-SplitScreen",
+      "name": "RVE / Split Screen",
+      "description": "表达两种方法或结果并列比较",
+      "use_case": "讲 A/B 方案、新旧模型、两类观点时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。",
+      "slug": "split-screen"
+    },
+    {
+      "component_id": "Rve-ImageComparisonSlider",
+      "name": "RVE / Image Comparison Slider",
+      "description": "表达图像处理前后的视觉差异",
+      "use_case": "AI 修图、生成图、界面改版前后对比时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。",
+      "slug": "image-comparison-slider"
+    },
+    {
+      "component_id": "Remocn-AnimatedLineChart",
+      "name": "Remocn / Animated Line Chart",
+      "description": "表达一个指标沿时间线持续变化",
+      "use_case": "讲增长曲线、模型迭代、长期趋势时使用",
+      "library": "Remocn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，原文保存在 licenses/community/remocn/LICENSE.txt；保留版权与许可声明。",
+      "slug": "remocn-animated-line-chart"
+    },
+    {
+      "component_id": "Remocn-CodeMorph",
+      "name": "Remocn / Code Morph",
+      "description": "表达代码或提示词从旧版演进到新版",
+      "use_case": "讲 RAG 加上下文、API 改写、重构时使用",
+      "library": "Remocn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，原文保存在 licenses/community/remocn/LICENSE.txt；保留版权与许可声明。",
+      "slug": "remocn-code-morph"
+    },
+    {
+      "component_id": "Remocn-ChatGpt",
+      "name": "Remocn / ChatGPT",
+      "description": "表达向 ChatGPT 提问这一动作",
+      "use_case": "提示词教学、AI 产品介绍、提问示范时使用",
+      "library": "Remocn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，原文保存在 licenses/community/remocn/LICENSE.txt；保留版权与许可声明。",
+      "slug": "remocn-chat-gpt"
+    },
+    {
+      "component_id": "Remocn-AgentRun",
+      "name": "Remocn / Agent Run",
+      "description": "表达 Agent 先计划再执行再回答",
+      "use_case": "解释自动化任务、工具调用、带引用回答时使用",
+      "library": "Remocn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，原文保存在 licenses/community/remocn/LICENSE.txt；保留版权与许可声明。",
+      "slug": "remocn-agent-run"
+    },
+    {
+      "component_id": "Remocn-SearchReveal",
+      "name": "Remocn / Search Reveal",
+      "description": "表达从搜索问题揭晓产品或答案",
+      "use_case": "问题式开场、产品名揭晓、选题引入时使用",
+      "library": "Remocn",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，原文保存在 licenses/community/remocn/LICENSE.txt；保留版权与许可声明。",
+      "slug": "remocn-search-reveal"
+    },
+    {
+      "component_id": "RemotionUI-DataFlowPipes",
+      "name": "RemotionUI / Data Flow Pipes",
+      "description": "表达数据在多个节点间流动处理",
+      "use_case": "讲 RAG、自动化管线、AI 工作流时使用",
+      "library": "RemotionUI",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，原文保存在 licenses/community/remotion-ui/LICENSE.txt；保留版权与许可声明。",
+      "slug": "remotion-ui-data-flow-pipes"
+    },
+    {
+      "component_id": "RemotionUI-CodeReveal",
+      "name": "RemotionUI / Code Reveal",
+      "description": "表达一段关键代码正在被讲解",
+      "use_case": "讲 API 调用、提示词结构、代码样例时使用",
+      "library": "RemotionUI",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，原文保存在 licenses/community/remotion-ui/LICENSE.txt；保留版权与许可声明。",
+      "slug": "remotion-ui-code-reveal"
+    },
+    {
+      "component_id": "RemotionUI-AnimatedBarChart",
+      "name": "RemotionUI / Animated Bar Chart",
+      "description": "表达多项指标的横向排名和差距",
+      "use_case": "比较成本、延迟、任务指标时使用",
+      "library": "RemotionUI",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "MIT，原文保存在 licenses/community/remotion-ui/LICENSE.txt；保留版权与许可声明。",
+      "slug": "remotion-ui-animated-bar-chart"
+    },
+    {
+      "component_id": "Bits-ChatConversation",
+      "name": "Bits / Chat Conversation",
+      "description": "表达人机或多角色对话来回推进",
+      "use_case": "AI 问答、Agent 对话、好坏提示词对比时使用",
+      "library": "Bits",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 package.json/README 声明 MIT；独立 LICENSE 缺失，证据和说明见 licenses/community/bits。",
+      "slug": "bits-chat-conversation"
+    },
+    {
+      "component_id": "Bits-StatRings",
+      "name": "Bits / Stat Rings",
+      "description": "表达几个比例指标同时达成多少",
+      "use_case": "展示覆盖率、完成度、准确率等比例时使用",
+      "library": "Bits",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 package.json/README 声明 MIT；独立 LICENSE 缺失，证据和说明见 licenses/community/bits。",
+      "slug": "bits-stat-rings"
+    },
+    {
+      "component_id": "Bits-CursorFlyover",
+      "name": "Bits / Cursor Flyover",
+      "description": "表达镜头带观众巡看界面重点",
+      "use_case": "讲产品界面、论文截图、浏览器工具时使用",
+      "library": "Bits",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 package.json/README 声明 MIT；独立 LICENSE 缺失，证据和说明见 licenses/community/bits。",
+      "slug": "bits-cursor-flyover"
+    },
+    {
+      "component_id": "Bits-KenBurns",
+      "name": "Bits / Ken Burns Effect",
+      "description": "表达静态图片也有叙事推进感",
+      "use_case": "给照片、论文截图、发布图增加镜头运动时使用",
+      "library": "Bits",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 package.json/README 声明 MIT；独立 LICENSE 缺失，证据和说明见 licenses/community/bits。",
+      "slug": "bits-ken-burns"
+    },
+    {
+      "component_id": "Talkcraft-focus-dim-spotlight",
+      "name": "Talkcraft / 聚焦压暗切换",
+      "description": "表达“我正在讲这一处”的逐项指认",
+      "use_case": "表格、清单、代码逐行解释时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "focus-dim-spotlight"
+    },
+    {
+      "component_id": "Talkcraft-hand-drawn-ellipse",
+      "name": "Talkcraft / 手绘圈重点",
+      "description": "表达某个短语被手动圈为重点",
+      "use_case": "口播说“记住这个词”时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "hand-drawn-ellipse"
+    },
+    {
+      "component_id": "Talkcraft-highlighter-sweep",
+      "name": "Talkcraft / 荧光笔高亮扫过",
+      "description": "表达报告或原文里这一句最关键",
+      "use_case": "引用论文、新闻、文档证据时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "highlighter-sweep"
+    },
+    {
+      "component_id": "Talkcraft-scribble-annotation",
+      "name": "Talkcraft / 手绘圈注箭头",
+      "description": "表达截图上的具体位置需要被点名",
+      "use_case": "测评、拆解、扒图指认时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "scribble-annotation"
+    },
+    {
+      "component_id": "Talkcraft-callout-line-label",
+      "name": "Talkcraft / 标注引出线",
+      "description": "表达画面中某个部位有解释标签",
+      "use_case": "产品图、地图、截图局部说明时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "callout-line-label"
+    },
+    {
+      "component_id": "Talkcraft-converging-arrows",
+      "name": "Talkcraft / 双箭头聚焦",
+      "description": "表达多个视线都指向同一个关键词",
+      "use_case": "清单、方法论里强调唯一关键点时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "converging-arrows"
+    },
+    {
+      "component_id": "Talkcraft-corner-bracket-frame",
+      "name": "Talkcraft / 对角角框",
+      "description": "表达一句话被框定为本段主题",
+      "use_case": "章节小标题、开场立论点时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "corner-bracket-frame"
+    },
+    {
+      "component_id": "Talkcraft-crash-zoom-punch",
+      "name": "Talkcraft / 急推特写",
+      "description": "表达“看这里”这种强制视线聚焦",
+      "use_case": "截图某一行、某个数字突然成为证据时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "crash-zoom-punch"
+    },
+    {
+      "component_id": "Talkcraft-ink-underline",
+      "name": "Talkcraft / 墨迹下划线",
+      "description": "表达关键词被像笔记一样划线保存",
+      "use_case": "定义、对比、观点句中的关键词时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "ink-underline"
+    },
+    {
+      "component_id": "Talkcraft-magnifier-detail",
+      "name": "Talkcraft / 局部放大镜",
+      "description": "表达密集截图里的小细节值得放大看",
+      "use_case": "按钮、数字、条款、参数讲解时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "magnifier-detail"
+    },
+    {
+      "component_id": "Talkcraft-quote-hold-arrow",
+      "name": "Talkcraft / 金句停留",
+      "description": "表达铺垫之后真正要记住的那一句",
+      "use_case": "结论句、转折句、行动号召前使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "quote-hold-arrow"
+    },
+    {
+      "component_id": "Talkcraft-scanline-annotate",
+      "name": "Talkcraft / 扫描线逐处点名",
+      "description": "表达一张图被系统逐处读懂和标注",
+      "use_case": "AI 读文档、落地页分析、财报点评时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "scanline-annotate"
+    },
+    {
+      "component_id": "Talkcraft-strike-and-replace",
+      "name": "Talkcraft / 划线纠错替换",
+      "description": "表达旧认知被划掉并换成新结论",
+      "use_case": "辟谣、纠错、版本替换、参数修正时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "strike-and-replace"
+    },
+    {
+      "component_id": "Talkcraft-reticle-lock-on",
+      "name": "Talkcraft / 准星咬合",
+      "description": "表达关键目标被准星锁定",
+      "use_case": "点名按钮、数字、关键参数时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "reticle-lock-on"
+    },
+    {
+      "component_id": "Talkcraft-lower-third-nameplate",
+      "name": "Talkcraft / 人名条展示牌",
+      "description": "表达人物身份或引用来源需要交代",
+      "use_case": "嘉宾、作者、被引用对象首次出现时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "lower-third-nameplate"
+    },
+    {
+      "component_id": "Talkcraft-parallel-items-with-host",
+      "name": "Talkcraft / 并列句排版（人物在场）",
+      "description": "表达真人旁边列出三项并列信息",
+      "use_case": "出镜口播讲三件事、三步骤时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "parallel-items-with-host"
+    },
+    {
+      "component_id": "Talkcraft-behind-text-title",
+      "name": "Talkcraft / 人后大字视差",
+      "description": "表达人物与大标题共同建立主题气场",
+      "use_case": "真人开场题眼、章节标题、结尾点题时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "behind-text-title"
+    },
+    {
+      "component_id": "Talkcraft-chevron-lower-third",
+      "name": "Talkcraft / 动态人名条",
+      "description": "表达更有节目感的人物身份介绍",
+      "use_case": "访谈、播客、科技节目嘉宾出场时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "chevron-lower-third"
+    },
+    {
+      "component_id": "Talkcraft-danmu-bubble-praise",
+      "name": "Talkcraft / 弹幕气泡",
+      "description": "表达评论区或用户反馈形成共识",
+      "use_case": "开场证明热度、结尾引导互动时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "danmu-bubble-praise"
+    },
+    {
+      "component_id": "Talkcraft-douyin-follow-card",
+      "name": "Talkcraft / 抖音主页关注卡",
+      "description": "表达某个抖音账号值得被认识或关注",
+      "use_case": "介绍作者、嘉宾、来源账号时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "douyin-follow-card"
+    },
+    {
+      "component_id": "Talkcraft-host-card-glass-board",
+      "name": "Talkcraft / 人物竖卡玻璃台",
+      "description": "表达人持续讲解，旁边展示系统步骤",
+      "use_case": "工作流、工具链、多步教程时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "host-card-glass-board"
+    },
+    {
+      "component_id": "Talkcraft-host-shrink-to-chip",
+      "name": "Talkcraft / 人物缩位让台",
+      "description": "表达讲者让位给图表或截图继续讲",
+      "use_case": "从口播切到数据、截图、流程图时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "host-shrink-to-chip"
+    },
+    {
+      "component_id": "Talkcraft-subscribe-cta",
+      "name": "Talkcraft / 多平台关注 CTA",
+      "description": "表达看完后可以关注或订阅",
+      "use_case": "视频结尾、价值兑现后提醒关注时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "subscribe-cta"
+    },
+    {
+      "component_id": "Talkcraft-x-follow-card",
+      "name": "Talkcraft / 关注卡弹出",
+      "description": "表达 X/Twitter 账号作为观点来源",
+      "use_case": "介绍作者、嘉宾、引用账号时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "x-follow-card"
+    },
+    {
+      "component_id": "Talkcraft-bar-chart-growth",
+      "name": "Talkcraft / 柱状增长",
+      "description": "表达连续区间内的增长或下滑",
+      "use_case": "讲半年趋势、月度变化、销量走势时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "bar-chart-growth"
+    },
+    {
+      "component_id": "Talkcraft-chart-grow",
+      "name": "Talkcraft / 图表生长",
+      "description": "表达多个数据项依次形成对比",
+      "use_case": "财经、科普、评测里的数据对比段落使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "chart-grow"
+    },
+    {
+      "component_id": "Talkcraft-line-chart-story-draw",
+      "name": "Talkcraft / 折线分段推演",
+      "description": "表达同一起点下的两种未来走势",
+      "use_case": "政策复盘、假设推演、投资算账时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "line-chart-story-draw"
+    },
+    {
+      "component_id": "Talkcraft-metric-with-sparkline",
+      "name": "Talkcraft / 数字带趋势",
+      "description": "表达一个关键数字背后还有趋势",
+      "use_case": "效率提升、退货率下降、指标变化时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "metric-with-sparkline"
+    },
+    {
+      "component_id": "Talkcraft-number-counter",
+      "name": "Talkcraft / 数字滚动计数",
+      "description": "表达关键数字正在增长到结论值",
+      "use_case": "抛出营收、销量、涨幅等数字时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "number-counter"
+    },
+    {
+      "component_id": "Talkcraft-number-slab-pop",
+      "name": "Talkcraft / 数字弹出",
+      "description": "表达一个单点数字就是本段结论",
+      "use_case": "封面数字、步骤数量、核心百分比时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "number-slab-pop"
+    },
+    {
+      "component_id": "Talkcraft-unit-grid-proportion",
+      "name": "Talkcraft / 点阵比例图",
+      "description": "表达“多少人里有多少个”的比例感",
+      "use_case": "成功率、留存率、调研比例讲解时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "unit-grid-proportion"
+    },
+    {
+      "component_id": "Talkcraft-chip-grid-single-select",
+      "name": "Talkcraft / 五选一反黑",
+      "description": "表达多个选项中最终选中一个",
+      "use_case": "工具选择、方案筛选、投票结果揭晓时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "chip-grid-single-select"
+    },
+    {
+      "component_id": "Talkcraft-info-term-card",
+      "name": "Talkcraft / 名词解释悬浮卡",
+      "description": "表达专业名词需要快速解释",
+      "use_case": "AI 术语、财经概念、黑话第一次出现时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "info-term-card"
+    },
+    {
+      "component_id": "Talkcraft-map-route-pin",
+      "name": "Talkcraft / 地图路线图钉",
+      "description": "表达地点、路线或事件移动路径",
+      "use_case": "事件复盘、行程、地域扩散讲解时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "map-route-pin"
+    },
+    {
+      "component_id": "Talkcraft-numbered-step-stack",
+      "name": "Talkcraft / 编号步骤堆入",
+      "description": "表达几个并列要点可以截图保存",
+      "use_case": "方法清单、操作要点、干货总结时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "numbered-step-stack"
+    },
+    {
+      "component_id": "Talkcraft-step-timeline-vertical",
+      "name": "Talkcraft / 竖向步骤线",
+      "description": "表达步骤之间有明确先后依赖",
+      "use_case": "流程复盘、三步走、项目进度时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "step-timeline-vertical"
+    },
+    {
+      "component_id": "Talkcraft-ui-prop-theater",
+      "name": "Talkcraft / 界面道具剧场",
+      "description": "表达产品参数、状态和进度如何变化",
+      "use_case": "AI 工具测评、参数讲解、教程流程时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "ui-prop-theater"
+    },
+    {
+      "component_id": "Talkcraft-source-converge",
+      "name": "Talkcraft / 多源汇聚",
+      "description": "表达多个来源汇聚成一个结论",
+      "use_case": "RAG、多渠道数据、证据归纳时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "source-converge"
+    },
+    {
+      "component_id": "Talkcraft-bed-echo-blur",
+      "name": "Talkcraft / 同源模糊底床",
+      "description": "表达竖屏素材需要自然放进横屏画面",
+      "use_case": "竖拍实拍、竖屏录屏、网友投稿时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "bed-echo-blur"
+    },
+    {
+      "component_id": "Talkcraft-chat-message-flow",
+      "name": "Talkcraft / 聊天记录自演",
+      "description": "表达聊天记录作为证据逐条出现",
+      "use_case": "客户反馈、AI 对话、团队讨论还原时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "chat-message-flow"
+    },
+    {
+      "component_id": "Talkcraft-cursor-actor-demo",
+      "name": "Talkcraft / 光标演员演示",
+      "description": "表达软件操作由光标带着观众完成",
+      "use_case": "工具教程、AI 产品演示、设置引导时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "cursor-actor-demo"
+    },
+    {
+      "component_id": "Talkcraft-evidence-scroll-tour",
+      "name": "Talkcraft / 证据长页慢滚",
+      "description": "表达长文档证据需要边滚边讲",
+      "use_case": "协议、README、报告、搜索结果讲解时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "evidence-scroll-tour"
+    },
+    {
+      "component_id": "Talkcraft-media-pop-in",
+      "name": "Talkcraft / 素材弹入堆叠",
+      "description": "表达多张证据被一张张甩出来",
+      "use_case": "爆料、辟谣、盘点、截图列举时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "media-pop-in"
+    },
+    {
+      "component_id": "Talkcraft-news-card-desk",
+      "name": "Talkcraft / 新闻卡片划重点",
+      "description": "表达一条新闻是本段讨论依据",
+      "use_case": "时事、财经、行业新闻解读时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "news-card-desk"
+    },
+    {
+      "component_id": "Talkcraft-split-compare-slider",
+      "name": "Talkcraft / 对比双分屏（滑动揭示）",
+      "description": "表达同一对象前后或 A/B 差异",
+      "use_case": "改版、修图、生成图、参数对比时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "split-compare-slider"
+    },
+    {
+      "component_id": "Talkcraft-still-layout-relay",
+      "name": "Talkcraft / 多图排版 + 焦点接力",
+      "description": "表达主图和辅助图共同证明观点",
+      "use_case": "一主两辅证据、三张截图对照时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "still-layout-relay"
+    },
+    {
+      "component_id": "Talkcraft-ui-flow-theater",
+      "name": "Talkcraft / 界面流程剧场",
+      "description": "表达一个产品功能从头到尾如何操作",
+      "use_case": "AI 工具上手、SaaS 教程、流程演示时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "ui-flow-theater"
+    },
+    {
+      "component_id": "Talkcraft-chat-gpt",
+      "name": "Talkcraft / ChatGPT 对话框",
+      "description": "表达一次 ChatGPT 提问和回答",
+      "use_case": "提示词技巧、模型能力演示、AI 科普时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "chat-gpt"
+    },
+    {
+      "component_id": "Talkcraft-claude-code",
+      "name": "Talkcraft / 编码智能体终端",
+      "description": "表达编码智能体正在修改或运行代码",
+      "use_case": "AI 编程工具测评、开发者教程时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "claude-code"
+    },
+    {
+      "component_id": "Talkcraft-doc-park-left-pill-deal",
+      "name": "Talkcraft / 文档驻留发牌",
+      "description": "表达从文档中提炼出几条结论",
+      "use_case": "论文、报告、长文总结类 AI 话题时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "doc-park-left-pill-deal"
+    },
+    {
+      "component_id": "Talkcraft-filmstrip-conveyor",
+      "name": "Talkcraft / 传送带列举 + 减速停靠",
+      "description": "表达很多案例中其中一个最重要",
+      "use_case": "工具盘点、作品回顾、案例列表时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "filmstrip-conveyor"
+    },
+    {
+      "component_id": "Talkcraft-gallery-wall-dolly",
+      "name": "Talkcraft / 照片墙推轨",
+      "description": "表达多个平级案例被逐个巡看",
+      "use_case": "案例集、作品集、三个方案讲解时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "gallery-wall-dolly"
+    },
+    {
+      "component_id": "Talkcraft-glass-code-walk",
+      "name": "Talkcraft / 玻璃代码走读",
+      "description": "表达带观众读一小段关键代码",
+      "use_case": "技术教程、开源项目、配置讲解时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "glass-code-walk"
+    },
+    {
+      "component_id": "Talkcraft-gooey-morph",
+      "name": "Talkcraft / 图块拼入",
+      "description": "表达几张证据属于同一组",
+      "use_case": "多平台对比、组图、九宫格素材时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "gooey-morph"
+    },
+    {
+      "component_id": "Talkcraft-grid-to-hero",
+      "name": "Talkcraft / 网格收成主角",
+      "description": "表达从多个候选里选出主角",
+      "use_case": "封面候选、版本选择、重点案例揭晓时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "grid-to-hero"
+    },
+    {
+      "component_id": "Talkcraft-info-card-assemble",
+      "name": "Talkcraft / 信息卡逐字段自建",
+      "description": "表达人物、工具或课程信息被结构化",
+      "use_case": "介绍书、工具、人、课程档案时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "info-card-assemble"
+    },
+    {
+      "component_id": "Talkcraft-logo-enter",
+      "name": "Talkcraft / Logo 登场",
+      "description": "表达品牌、系列或频道身份登场",
+      "use_case": "片头、片尾、产品名正式露出时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "logo-enter"
+    },
+    {
+      "component_id": "Talkcraft-motion-blur-slam-in",
+      "name": "Talkcraft / 模糊甩入急停",
+      "description": "表达证据或观点被强势甩到台前",
+      "use_case": "爆点拆解、硬观点、数据卡压上时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "motion-blur-slam-in"
+    },
+    {
+      "component_id": "Talkcraft-pencil-sketch-draw",
+      "name": "Talkcraft / 铅笔手绘揭示",
+      "description": "表达概念像手绘草图一样被画出来",
+      "use_case": "流程解释、轻松科普、概念示意时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "pencil-sketch-draw"
+    },
+    {
+      "component_id": "Talkcraft-rack-focus-pair",
+      "name": "Talkcraft / 焦点接力",
+      "description": "表达两个对象之间来回比较",
+      "use_case": "A/B 产品、两种观点、新旧方案对照时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "rack-focus-pair"
+    },
+    {
+      "component_id": "Talkcraft-split-60-40-story",
+      "name": "Talkcraft / 60/40 主从分屏",
+      "description": "表达主素材旁边同步列出讲解要点",
+      "use_case": "录屏加要点、产品演示、教程旁白时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "split-60-40-story"
+    },
+    {
+      "component_id": "Talkcraft-stack-fan-out",
+      "name": "Talkcraft / 卡堆扇形展开",
+      "description": "表达一叠素材展开成候选清单",
+      "use_case": "照片、截图、评论卡汇总展示时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "stack-fan-out"
+    },
+    {
+      "component_id": "Talkcraft-terminal-typing-log",
+      "name": "Talkcraft / 终端逐行推进",
+      "description": "表达命令行执行结果可作为证据",
+      "use_case": "构建、部署、测试、AI 编程演示时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "terminal-typing-log"
+    },
+    {
+      "component_id": "Talkcraft-timeline-photo-strip",
+      "name": "Talkcraft / 时间线照片带",
+      "description": "表达多个时间点按顺序串成故事",
+      "use_case": "版本演进、年度回顾、事件时间线时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "timeline-photo-strip"
+    },
+    {
+      "component_id": "Talkcraft-word-relay-filmstrip",
+      "name": "Talkcraft / 动词接力胶片",
+      "description": "表达一个主体拥有连续多种能力",
+      "use_case": "AI 能力清单、产品场景巡礼时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "word-relay-filmstrip"
+    },
+    {
+      "component_id": "Talkcraft-slow-pull-reveal",
+      "name": "Talkcraft / 缓拉全貌",
+      "description": "表达先看局部再退回全貌",
+      "use_case": "长表格、数据看板、全景总结时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "slow-pull-reveal"
+    },
+    {
+      "component_id": "Talkcraft-slow-push-in",
+      "name": "Talkcraft / 缓推特写",
+      "description": "表达观众视线慢慢收拢到素材重点",
+      "use_case": "网页截图、文档、图片的冷静讲解时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "slow-push-in"
+    },
+    {
+      "component_id": "Talkcraft-cursor-locked-zoom",
+      "name": "Talkcraft / 光标锁定跟拍",
+      "description": "表达镜头紧跟一个移动或长文本目标",
+      "use_case": "长命令、代码行、表单字段讲解时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "cursor-locked-zoom"
+    },
+    {
+      "component_id": "Talkcraft-orbit-drift",
+      "name": "Talkcraft / 环绕微漂",
+      "description": "表达静态页面在长讲述中保持呼吸感",
+      "use_case": "长时间展示网页、报告、截图背景时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "orbit-drift"
+    },
+    {
+      "component_id": "Talkcraft-pip-zoom-box",
+      "name": "Talkcraft / 画中画放大",
+      "description": "表达保留全景同时单独放大局部",
+      "use_case": "讲产品细节、表情、截图一角时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "pip-zoom-box"
+    },
+    {
+      "component_id": "Talkcraft-stage-keyframe-tour",
+      "name": "Talkcraft / 长页兴趣点巡游",
+      "description": "表达长页面按兴趣点逐站游览",
+      "use_case": "落地页、长截图、长报表巡讲时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "stage-keyframe-tour"
+    },
+    {
+      "component_id": "Talkcraft-sway-parallax",
+      "name": "Talkcraft / 左右摇移",
+      "description": "表达横向长素材需要顺着讲过去",
+      "use_case": "时间线、宽流程图、超宽截图时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "sway-parallax"
+    },
+    {
+      "component_id": "Talkcraft-tilt-3d-page",
+      "name": "Talkcraft / 3D 立面展示",
+      "description": "表达网页或 UI 像产品模型一样展示",
+      "use_case": "作品展示、产品介绍、案例墙时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "tilt-3d-page"
+    },
+    {
+      "component_id": "Talkcraft-black-slam-transition",
+      "name": "Talkcraft / 黑震切转场",
+      "description": "表达全片最大反转或揭示即将发生",
+      "use_case": "悬念停顿后切出答案时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "black-slam-transition"
+    },
+    {
+      "component_id": "Talkcraft-chapter-title-card",
+      "name": "Talkcraft / 章节标题卡",
+      "description": "表达长视频进入新的正式章节",
+      "use_case": "5 分钟以上内容的段落切换时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "chapter-title-card"
+    },
+    {
+      "component_id": "Talkcraft-color-slam-beat-card",
+      "name": "Talkcraft / 纯色硬切节拍卡",
+      "description": "表达一句观点被当作节拍重锤",
+      "use_case": "短口播下判断、列条目、砸观点时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "color-slam-beat-card"
+    },
+    {
+      "component_id": "Talkcraft-overexpose-flip-transition",
+      "name": "Talkcraft / 过曝翻页转场",
+      "description": "表达郑重翻页进入下一段证据",
+      "use_case": "章节翻页、关键截图之后转场时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "overexpose-flip-transition"
+    },
+    {
+      "component_id": "Talkcraft-particle-weld-transition",
+      "name": "Talkcraft / 粒子溶接转场",
+      "description": "表达同一概念从一种形态变成另一种",
+      "use_case": "数据变图表、概念变案例时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "particle-weld-transition"
+    },
+    {
+      "component_id": "Talkcraft-pullback-cool-transition",
+      "name": "Talkcraft / 后拉冷却转场",
+      "description": "表达激烈段落结束后退一步看",
+      "use_case": "结论前呼吸、情绪冷却、沉淀转场时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "pullback-cool-transition"
+    },
+    {
+      "component_id": "Talkcraft-push-through-transition",
+      "name": "Talkcraft / 推穿转场",
+      "description": "表达从概念推进到证据或细节",
+      "use_case": "全景到局部、观点到案例之间使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "push-through-transition"
+    },
+    {
+      "component_id": "Talkcraft-shape-wipe-transition",
+      "name": "Talkcraft / 色块扫屏转场",
+      "description": "表达话题切换，节奏进入下一块",
+      "use_case": "章节切分、快节奏换主题时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "shape-wipe-transition"
+    },
+    {
+      "component_id": "Talkcraft-whip-pan-transition",
+      "name": "Talkcraft / 横甩转场",
+      "description": "表达平级案例之间快速横向切换",
+      "use_case": "A 到 B、人物切换、市场切换时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "whip-pan-transition"
+    },
+    {
+      "component_id": "Talkcraft-caret-wipe-transition",
+      "name": "Talkcraft / 光标擦除转场",
+      "description": "表达文本、代码或版本被重写",
+      "use_case": "编辑器、文档、AI 生成内容转场时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "caret-wipe-transition"
+    },
+    {
+      "component_id": "Talkcraft-chapter-progress-list",
+      "name": "Talkcraft / 章节进度",
+      "description": "表达观众需要知道现在讲到哪",
+      "use_case": "长口播目录、章节进度、系列内容时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "chapter-progress-list"
+    },
+    {
+      "component_id": "Talkcraft-line-carry-transition",
+      "name": "Talkcraft / 线条接力转场",
+      "description": "表达上一镜的线索牵出下一镜",
+      "use_case": "章节接缝、图形亲缘强的两镜之间使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "line-carry-transition"
+    },
+    {
+      "component_id": "Talkcraft-long-take-world",
+      "name": "Talkcraft / 长镜头世界画布",
+      "description": "表达一个大系统可被一镜到底走完",
+      "use_case": "流程、地图、生态图、世界观段落时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "long-take-world"
+    },
+    {
+      "component_id": "Talkcraft-impact-open-title",
+      "name": "Talkcraft / 冲击开场",
+      "description": "表达开场钩子要立刻抓住注意力",
+      "use_case": "视频前 3 秒、强观点章节开幕时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "impact-open-title"
+    },
+    {
+      "component_id": "Talkcraft-keyword-pop-highlight",
+      "name": "Talkcraft / 关键词弹出强调",
+      "description": "表达这一词就是当前信息峰值",
+      "use_case": "数字、反转词、核心结论出现时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "keyword-pop-highlight"
+    },
+    {
+      "component_id": "Talkcraft-slab-punch-title",
+      "name": "Talkcraft / 重点放大",
+      "description": "表达前半句铺垫，后半句才是重点",
+      "use_case": "观点号、干货号的小标题或重音句使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "slab-punch-title"
+    },
+    {
+      "component_id": "Talkcraft-title-demote-to-label",
+      "name": "Talkcraft / 标题降格成标签",
+      "description": "表达标题让位后变成小节路标",
+      "use_case": "教程、方法论、问答式小节交接时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "title-demote-to-label"
+    },
+    {
+      "component_id": "Talkcraft-type-contrast-emphasis",
+      "name": "Talkcraft / 字体对比重音",
+      "description": "表达重音来自字体气质的反差",
+      "use_case": "克制观点句、不是 A 而是 B 时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "type-contrast-emphasis"
+    },
+    {
+      "component_id": "Talkcraft-word-slot-cycle",
+      "name": "Talkcraft / 词槽轮换",
+      "description": "表达一个位置快速轮换多种用途",
+      "use_case": "AI 能帮你做 A/B/C/D 的功能列举时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "word-slot-cycle"
+    },
+    {
+      "component_id": "Talkcraft-alt-block-lines",
+      "name": "Talkcraft / 双色块对句",
+      "description": "表达两句对照关系清晰并列",
+      "use_case": "不是 A 而是 B、以前现在对比时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "alt-block-lines"
+    },
+    {
+      "component_id": "Talkcraft-count-badge-title",
+      "name": "Talkcraft / 数字重音标题",
+      "description": "表达这段内容有明确数量承诺",
+      "use_case": "三个方法、五个坑、两件事开场时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "count-badge-title"
+    },
+    {
+      "component_id": "Talkcraft-error-retype",
+      "name": "Talkcraft / 打字改口",
+      "description": "表达先写错认知再改成正确认知",
+      "use_case": "纠正常见误解、反转 hook、提示词改口时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "error-retype"
+    },
+    {
+      "component_id": "Talkcraft-lead-word-zoom-assemble",
+      "name": "Talkcraft / 首词占满补句",
+      "description": "表达句子主语或首词先成为主角",
+      "use_case": "金句、产品名、数字先行标题时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "lead-word-zoom-assemble"
+    },
+    {
+      "component_id": "Talkcraft-line-by-line-slide",
+      "name": "Talkcraft / 逐行滑入",
+      "description": "表达多行要点作为一组进入画面",
+      "use_case": "三四条清单、步骤、分行金句时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "line-by-line-slide"
+    },
+    {
+      "component_id": "Talkcraft-outline-box-title",
+      "name": "Talkcraft / 描边框标题",
+      "description": "表达一个短语被定义成核心结论",
+      "use_case": "立论点、术语定义、理性结论框定时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "outline-box-title"
+    },
+    {
+      "component_id": "Talkcraft-per-character-rise",
+      "name": "Talkcraft / 逐字升起",
+      "description": "表达一句短主张有力站起来",
+      "use_case": "论点句、口号、结论句上屏时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "per-character-rise"
+    },
+    {
+      "component_id": "Talkcraft-quote-bracket-pull",
+      "name": "Talkcraft / 引号夹句",
+      "description": "表达某句话被当成引用郑重呈现",
+      "use_case": "引用他人原话、观众留言、自我金句时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "quote-bracket-pull"
+    },
+    {
+      "component_id": "Talkcraft-quote-card",
+      "name": "Talkcraft / 金句大字卡",
+      "description": "表达整段观点达到金句峰值",
+      "use_case": "结论、暴论、情绪收束动作时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "quote-card"
+    },
+    {
+      "component_id": "Talkcraft-soft-blur-in",
+      "name": "Talkcraft / 柔焦淡入",
+      "description": "表达温和旁白或小标题轻轻出现",
+      "use_case": "冷静结论、品牌片、素材切换后第一句时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "soft-blur-in"
+    },
+    {
+      "component_id": "Talkcraft-speed-slab-title",
+      "name": "Talkcraft / 速度块标题",
+      "description": "表达效率、提速、抢先这类快感",
+      "use_case": "短口播开场、效率主题、速度重音时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "speed-slab-title"
+    },
+    {
+      "component_id": "Talkcraft-tracking-in",
+      "name": "Talkcraft / 字距收拢",
+      "description": "表达一句大标题需要发布会气质",
+      "use_case": "开场标题、片尾落版、品牌短句时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "tracking-in"
+    },
+    {
+      "component_id": "Talkcraft-typewriter-reveal",
+      "name": "Talkcraft / 打字机档案戳",
+      "description": "表达时间地点档案被逐字记录",
+      "use_case": "纪录片、调查、悬疑盘点交代背景时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "typewriter-reveal"
+    },
+    {
+      "component_id": "Talkcraft-countdown-arc-scatter",
+      "name": "Talkcraft / 数字弧落标题",
+      "description": "表达数字本身带悬念和揭晓感",
+      "use_case": "5 分钟、3 个原则、倒计时开场时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "countdown-arc-scatter"
+    },
+    {
+      "component_id": "Talkcraft-flying-words",
+      "name": "Talkcraft / 关键词隧道",
+      "description": "表达大量概念围绕一个主题涌来",
+      "use_case": "AI 名词科普开场、能力清单背景时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "flying-words"
+    },
+    {
+      "component_id": "Talkcraft-split-text-stagger",
+      "name": "Talkcraft / 逐字裂升",
+      "description": "表达标题从基线中利落长出来",
+      "use_case": "章节题、频道名、短金句入场时使用",
+      "library": "Talkcraft",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "empty",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "unspecified"
+      ],
+      "license_note": "PolyForm Noncommercial 1.0.0；按用户声明非商业用途导入；原源码字节保持一致，演示素材另记来源",
+      "slug": "split-text-stagger"
+    }
+  ]
+}

@@ -2,9 +2,7 @@ import type {Caption, Shot, Timeline as ContractTimeline} from '../../contracts/
 
 export type ProductionComponentId = Shot['component_id'];
 
-export const productionComponentIds = [
-  'title', 'keyword', 'evidence', 'image_focus', 'comparison', 'data', 'steps', 'conclusion',
-] as const satisfies readonly ProductionComponentId[];
+export {productionComponentIds} from './validation.mjs';
 
 // Runtime checks live in validation.mjs; shape types come from Python's
 // generated contract so web, backend and Remotion share a single definition.

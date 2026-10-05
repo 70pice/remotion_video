@@ -1,15 +1,17 @@
 import type { Shot, Timeline } from "../../api/types";
+import componentManifest from "../../../../videoagents/component-manifest.json";
 
-export const componentNames: Record<string, string> = {
-  title: "标题登场",
-  keyword: "关键词强调",
-  evidence: "证据截图",
-  image_focus: "图片聚焦",
-  comparison: "前后对比",
-  data: "数据卡",
-  steps: "步骤时间线",
-  conclusion: "结论卡",
-};
+export const componentNames: Record<string, string> = Object.fromEntries(
+  componentManifest.entries.map((entry) => [entry.component_id, entry.name]),
+);
+const communityComponentIds = new Set(
+  componentManifest.entries
+    .filter((entry) => entry.kind === "preset")
+    .map((entry) => entry.component_id),
+);
+
+export const isCommunityComponent = (componentId: string) =>
+  communityComponentIds.has(componentId);
 
 export function defaultProps(component: string): Record<string, unknown> {
   if (component === "comparison")
@@ -96,6 +98,13 @@ export function validateTimeline(timeline: Timeline): string[] {
 
 function validateProps(shot: Shot, label: string, errors: string[]) {
   const props = shot.props;
+  if (isCommunityComponent(shot.component_id)) {
+    if (Object.keys(props).length)
+      errors.push(`${label}的社区预设不接受自定义参数。`);
+    if (shot.asset_src)
+      errors.push(`${label}的社区预设不接受额外图片素材。`);
+    return;
+  }
   const text = (value: unknown, max: number, required = false) =>
     typeof value === "string" &&
     Array.from(value).length <= max &&

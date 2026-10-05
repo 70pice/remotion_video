@@ -25,8 +25,12 @@ action=preview 是预览，action=final 或 produce 是成片制作，两者都�
 
 ## 当前画面能力
 
-只有 title、keyword、evidence、image_focus、comparison、data、steps、
-conclusion 八种组件：
+生产清单共 160 个稳定 `component_id`：8 个可参数化适配器，以及 152 个固定
+视觉预设；同一预设会按 timeline 横竖方向自动选择对应实现。清单已经在导演
+阶段按 `brief.usage` 过滤，Talkcraft 预设不能用于商业任务。
+
+八个可参数化适配器是 title、keyword、evidence、image_focus、comparison、
+data、steps、conclusion：
 
 - title/keyword 用于问题、主题与单点强调。
 - evidence 完整呈现有来源的证据图片，可用已核验坐标高亮。
@@ -37,14 +41,21 @@ conclusion 八种组件：
 - 只有 evidence/image_focus 显示图片，素材必须是 assets 里的图片
   timeline_src；当前不播放视频、录屏，也不自动抓取网页。
 
-可建议调整的字段仅限 shot 的 component_id/title/body/asset_src/
-source_label/accent_color 及对应 props：title.eyebrow、keyword.keyword、
+其余 152 个社区组件是可执行的固定视觉预设，而不是任意代码入口：`props` 必须
+为空、`asset_src` 必须为 null，不能要求它们替换内置文案、数字、人物或布局。
+预设中的演示内容不能支持本片事实；需要呈现真实证据、数值、对比、步骤或结论
+时，改用上面的参数化适配器。可建议在生产清单内更换预设 `component_id`，但
+不能编造清单外 ID、源码路径、CSS、URL、函数或组件实现。
+
+对参数化适配器，可建议调整的字段仅限 shot 的 component_id/title/body/
+asset_src/source_label/accent_color 及对应 props：title.eyebrow、keyword.keyword、
 evidence.highlight{x,y,width,height}、image_focus.focal_x/focal_y、
 comparison 的 left_title/left_body/right_title/right_body、
 data.items[{label,value,detail?}]、steps.items[{title,body?}]、
 conclusion.call_to_action。这些只是待采纳建议，不写成已执行。不存在可配置
 的自由动画、转场、变速、BGM、音效、字幕样式或镜头运动参数，不把这些列为
-当前可执行改法。
+当前可执行改法。固定预设只能更换 `component_id` 或外层 shot 的 title/body，
+不能建议给它增加 `props` 或素材。
 
 ## 逐镜检查
 

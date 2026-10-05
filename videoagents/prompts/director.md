@@ -54,10 +54,16 @@ source_refs/asset_ids、素材 source_url、visuals 的标题和摘录交叉匹�
 - 没有可匹配图片时 asset_src=null，改用合适的文字关系组件，不使用
   evidence/image_focus，也不用无关图片硬凑真实感。
 
-## 八种可执行画面（唯一白名单）
+## 生产组件选择
 
-只能选择 title、keyword、evidence、image_focus、comparison、data、steps、
-conclusion：
+生产清单同时开放两类能力：8 个可传入事实/素材的参数化适配器，以及仓库中
+152 个均有横版和原生竖版的已验证社区预设。只能选择本 Prompt 末尾完整清单
+中的 component_id；渲染器会按 timeline 的横竖方向自动使用对应版本。
+
+### 八个参数化适配器
+
+title、keyword、evidence、image_focus、comparison、data、steps、conclusion
+接受本镜头的真实内容：
 
 - evidence：有出处、role=evidence 且语义对应的真实图片/截图，填写
   source_label；完整呈图，可选一个已核验高亮框。
@@ -73,8 +79,25 @@ conclusion：
   连续整屏复读字幕；conclusion 收束已讲清的判断与适用边界。
 - 只有 evidence/image_focus 展示 asset_src，其他组件设 asset_src=null。
 
-动效、布局和字幕区域由渲染器固定，不得添加转场、镜头轨迹、缩放幅度、逐词
-触发、字体、坐标布局、BGM 或音效参数，不调用社区演示组件。
+### 152 个社区预设
+
+完整清单中的 Snapcn、RVE、Remocn、RemotionUI、Bits、Talkcraft 组件均可执行，
+不再只是选型参考。它们是经过横版/竖版三帧验证的固定视觉预设：
+
+- 根据清单的 description 和 use_case 选择语义真正匹配的预设，不按名字猜测，
+  也不为了“多用组件”而牺牲内容准确性。
+- 社区预设必须使用 `props={}`、`asset_src=null`；当前不接受任意自定义 props、
+  远程素材、CSS、函数或组件代码。镜头 title/body、统一字幕和来源条由生产层
+  叠加，预设内部布局和动效保持已验证版本。
+- 预设中存在用于展示动效的示例文案、图表或图片。它们不能被当作本视频的
+  事实证据；凡是数字、引用、产品界面或来源准确性会影响结论的镜头，优先用
+  evidence、image_focus、comparison、data、steps 等参数化适配器承载真实内容。
+- 组件许可已按 brief.usage 过滤到输出 schema 和下方清单。只能使用实际出现
+  在清单中的 ID；不得改写大小写、删前缀、凭空组合 ID。Talkcraft 为非商业
+  许可，商业任务不会出现在可选清单中。
+
+所有组件的动效、布局和字幕安全区由渲染器固定，不得添加转场、镜头轨迹、
+缩放幅度、逐词触发、字体、坐标布局、BGM、音效或组件代码参数。
 
 ## 屏幕文字
 
@@ -98,6 +121,8 @@ title 写普通人一眼能理解的问题或结论，通常 8～20 字；body �
   值；highlight 的 width/height 必须大于0，x + width <= 1 且 y + height <= 1。
 - title 仅可选 eyebrow（最多48字），keyword 仅可选 keyword（最多40字），
   conclusion 仅可选 call_to_action（最多72字）。
+- 任何社区预设的 props 必须是空对象 `{}`，且 asset_src 必须为 null；不得把
+  参数化适配器的 props 搬到社区预设。
 - props 中所有文字字段必须非空且不含控制字符（允许制表符/换行）；镜头
   title 最多100字、body 最多240字、source_label 最多160字，accent_color
   为 #RRGGBB。
@@ -109,3 +134,10 @@ title 写普通人一眼能理解的问题或结论，通常 8～20 字；body �
 事实，禁止照抄示例文案或示例高亮坐标：
 
 {{component_props}}
+
+## 本任务允许的完整组件清单
+
+每行格式为 `component_id | 组件库 | 模式 | 表达内容 | 适用场景`。该清单已按
+本任务 usage 过滤，返回值只能从这些 component_id 中选择：
+
+{{component_catalog}}

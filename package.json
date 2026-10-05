@@ -15,6 +15,8 @@
     "components": "remotion studio src/community.ts --port=3102 --no-open",
     "check:components": "node scripts/verify-community.mjs",
     "catalog:components": "node scripts/build-component-catalog.mjs",
+    "generate:production-components": "node scripts/build-production-component-manifest.mjs",
+    "check:production-components": "node scripts/build-production-component-manifest.mjs --check",
     "check:component-paths": "node scripts/check-component-paths.mjs",
     "test:timeline": "node --test src/video-production/validation.test.mjs",
     "web:dev": "npm run dev --workspace=web",

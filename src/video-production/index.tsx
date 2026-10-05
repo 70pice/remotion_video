@@ -1,6 +1,6 @@
 import {registerRoot} from 'remotion';
 import {TimelineComposition} from './TimelineComposition';
 
-// Production rendering loads only the reviewed adapters. Importing community
-// demos here would start their font/media loaders even when not selected.
+// The production entry registers one timeline composition. Its registry
+// resolves either a typed adapter or one of the 152 reviewed community presets.
 registerRoot(TimelineComposition);

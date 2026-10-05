@@ -326,6 +326,18 @@
           "title": "Use Case",
           "type": "string"
         },
+        "library": {
+          "title": "Library",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "adapter",
+            "preset"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
         "orientation": {
           "title": "Orientation",
           "type": "string"
@@ -337,6 +349,18 @@
         "min_frames": {
           "title": "Min Frames",
           "type": "integer"
+        },
+        "allowed_usages": {
+          "items": {
+            "enum": [
+              "personal",
+              "commercial",
+              "unspecified"
+            ],
+            "type": "string"
+          },
+          "title": "Allowed Usages",
+          "type": "array"
         },
         "license_note": {
           "title": "License Note",
@@ -360,9 +384,12 @@
         "name",
         "description",
         "use_case",
+        "library",
+        "kind",
         "orientation",
         "production_ready",
         "min_frames",
+        "allowed_usages",
         "license_note"
       ],
       "title": "ComponentEntry",
@@ -534,16 +561,9 @@
           "type": "integer"
         },
         "component_id": {
-          "enum": [
-            "title",
-            "keyword",
-            "evidence",
-            "image_focus",
-            "comparison",
-            "data",
-            "steps",
-            "conclusion"
-          ],
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
           "title": "Component Id",
           "type": "string"
         },

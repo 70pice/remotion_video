@@ -11,6 +11,7 @@ import { Empty, Notice } from "../../components/ui";
 import {
   componentNames,
   defaultProps,
+  isCommunityComponent,
   removeShot,
   splitShot,
   validateTimeline,
@@ -210,16 +211,23 @@ export function StoryboardEditor({
                       <select
                         value={shot.component_id}
                         disabled={locked}
-                        onChange={(event) =>
+                        onChange={(event) => {
+                          const componentId = event.target.value;
                           update(index, {
-                            component_id: event.target
-                              .value as Shot["component_id"],
-                            props: defaultProps(event.target.value),
-                          })
-                        }
+                            component_id: componentId as Shot["component_id"],
+                            props: defaultProps(componentId),
+                            asset_src: isCommunityComponent(componentId)
+                              ? null
+                              : shot.asset_src,
+                          });
+                        }}
                       >
                         {catalog
-                          .filter((entry) => entry.production_ready)
+                          .filter(
+                            (entry) =>
+                              entry.production_ready &&
+                              entry.allowed_usages.includes(job.brief.usage),
+                          )
                           .map((entry) => (
                             <option
                               value={entry.component_id}
@@ -289,7 +297,9 @@ export function StoryboardEditor({
                       画面素材
                       <select
                         value={shot.asset_src ?? ""}
-                        disabled={locked}
+                        disabled={
+                          locked || isCommunityComponent(shot.component_id)
+                        }
                         onChange={(event) =>
                           update(index, {
                             asset_src: event.target.value || null,

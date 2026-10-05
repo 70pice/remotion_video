@@ -69,4 +69,15 @@ describe("editable timeline boundaries", () => {
     expect(errors).toContain("来源说明");
     expect(errors).toContain("两侧对比内容");
   });
+
+  it("accepts all registered presets but rejects custom preset props and assets", () => {
+    const preset = timeline();
+    preset.shots[0].component_id = "Snapcn-TextReveal";
+    expect(validateTimeline(preset)).toEqual([]);
+    preset.shots[0].props = { src: "https://example.test/injected.png" };
+    expect(validateTimeline(preset).join(" ")).toContain("不接受自定义参数");
+    preset.shots[0].props = {};
+    preset.shots[0].asset_src = "videoagents/test/source.png";
+    expect(validateTimeline(preset).join(" ")).toContain("不接受额外图片素材");
+  });
 });

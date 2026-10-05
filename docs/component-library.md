@@ -39,6 +39,22 @@ npm run components
 
 ## 在新视频中复用
 
+### 通过 VideoAgents Timeline 直接选择
+
+全部 152 个逻辑组件已经作为固定视觉 preset 开放给生产 Timeline，并与 8 个
+参数化 adapter 组成 160 个稳定 `component_id`。导演 Prompt、`/api/catalog`、
+React 分镜选择器、Python/Node 校验和 Remotion registry 共用
+`videoagents/component-manifest.json`；同一 ID 会根据 timeline 方向自动使用横版
+或原生竖版实现。
+
+preset 当前保留已验证的示例参数，必须使用 `props={}`、`asset_src=null`；外层
+shot 的 title/body 可用于补充本镜头信息，但不能把原卡的演示文字、人物或数字
+当作事实证据。需要传入真实数据、图片、对比或步骤时，使用 8 个参数化 adapter，
+或先为目标 preset 建立有类型和测试的独立适配器。Talkcraft preset 只对
+personal/unspecified 任务开放，commercial 任务会在生成和校验阶段拒绝。
+
+### 在自定义 Composition 中手工导入
+
 飞书表中的相对路径从仓库根目录 `D:\remotion_video` 起算。竖屏短视频用 `component-vertical/<组件库>/entries/<slug>.tsx`，横版用 `component-horizontal/<组件库>/entries/<slug>.tsx`。每个入口文件导出 `Component`、`demo` 和 `meta`，沿用已验证的示例参数；入口是代码索引，竖版布局实际源码也已移动到竖版目录。
 
 例如，在 `src/videos/` 下可以组合现成竖版示例：
@@ -103,6 +119,7 @@ npm run lint
 npm run check:components
 npm run catalog:components
 npm run check:component-paths
+npm run check:production-components
 ```
 
 这些命令的检查范围为：
@@ -112,6 +129,7 @@ npm run check:component-paths
 - `check:components`：核对 108 个原卡 SHA-256、152 个原版及 152 个竖屏注册项；原版抽起始 / 中间 / 结束三帧，原生竖屏也抽起始 / 中间 / 结束三帧，均使用 `scale: 1`。检查浏览器错误、素材加载与抽样画面变化。
 - `catalog:components`：根据验证报告生成目录，不能替代前面的源码和渲染检查。
 - `check:component-paths`：检查152对入口与实现、304条入口路径、表格行数据和108个原卡哈希。
+- `check:production-components`：重新推导 8 个 adapter + 152 个 preset 的统一生产清单，检查 ID、用途许可和组件目录是否漂移。
 
 更新已有飞书表格时运行 `python scripts/update-component-path-sheet.py --execute`，随后 `python scripts/verify-component-path-sheet.py` 回读全部1399个单元格。省略 `--execute` 仅预览请求。
 

@@ -56,11 +56,15 @@ out/                                 可播放 MP4、封面与播放页
 
 Remotion 系列统一固定 4.0.532。该版本修复 4.0.531 发布包中的空 JavaScript 文件，避免 Studio 的 `getRenderQueue is not a function` 错误，见[官方发布说明](https://github.com/remotion-dev/remotion/releases/tag/v4.0.532)。Shapes、Captions 和 Snapcn 为 MIT；Remotion 核心及转场受 [Remotion 许可证](https://github.com/remotion-dev/remotion/blob/v4.0.532/LICENSE.md) 约束，使用方需按组织情况确认许可。
 
-## 152 个现成组件的预览与复用
+## 152 个现成组件的预览、生产选择与复用
 
 运行 `npm run components`，打开 `http://127.0.0.1:3102`。实际源码与复用入口分别在 `src/components/component-vertical` 和 `src/components/component-horizontal`；注册、目录元数据和共享工具在 `src/components/community`。每个库下的 `entries/<slug>.tsx` 是单组件入口，路径索引见 `docs/component-paths.json`。当前包含原先 44 个组件（Snapcn 21、RVE 11、Remocn 5、RemotionUI 3、Bits 4）和新增 video-talkcraft 108 张卡，共 152 个。
 
 Studio 分两个同名文件夹：`component-horizontal` 展示 152 个横版演示；`component-vertical` 展示对应的 152 个 1080×1920 / 30fps 原生竖屏演示，共 304 个 Composition。竖屏使用独立布局：文字分行、对比上下排列、界面内容纵向展开、图表和动画路径使用竖屏坐标。Bits 聊天组件的横版演示使用1280×720，其余横版沿用来源画布。详见 [原生竖屏说明](docs/native-portrait.md)。
+
+VideoAgents 的生产 Timeline 已开放全部 152 个逻辑组件，并保留 8 个可参数化适配器，共 160 个稳定 `component_id`。同一社区组件不拆成两个生产 ID，渲染器会根据 timeline 方向自动选择横版或原生竖版实现。统一清单由 `scripts/build-production-component-manifest.mjs` 从组件目录和使用指南生成到 `videoagents/component-manifest.json`，Python 导演/校验、React 分镜编辑器和 Remotion registry 共用；运行 `npm run check:production-components` 可检查清单是否漂移。
+
+152 个社区组件目前以**固定视觉预设**接入：`props={}`、`asset_src=null`，内置演示文案和数字不能作为本片事实证据；真实文案、数据、证据图和步骤应使用 8 个参数化适配器。Talkcraft 的 108 个预设受 PolyForm Noncommercial 限制，仅对 personal/unspecified 任务开放，commercial 任务会在导演 schema、后端校验和前端选择器中排除。
 
 详细用法见 [组件库说明](docs/component-library.md)。`npm run check:components` 会核对 108 个原始 Talkcraft 源码 SHA-256，在原分辨率渲染每个原版的起始 / 中间 / 结束帧及每个原生竖屏的起始 / 中间 / 结束帧；`npm run catalog:components` 据验证结果更新离线效果页 `out/components/index.html`。具体检查结果以生成的 `out/components/verification.json` 为准。
 

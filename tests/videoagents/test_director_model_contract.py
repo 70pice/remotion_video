@@ -13,10 +13,10 @@ from videoagents.storage import Repository
 from videoagents.tools.timeline import validate_timeline
 
 
-def director_job(tmp_path, image=True):
+def director_job(tmp_path, image=True, usage="unspecified"):
     repo = Repository(tmp_path / "runtime")
     service = JobService(repo, tmp_path / "project")
-    job = repo.create_job(Brief(topic="Muse", target_seconds=2, width=240, height=426, fps=15))
+    job = repo.create_job(Brief(topic="Muse", target_seconds=2, width=240, height=426, fps=15, usage=usage))
     audio = Asset(asset_id="unit-audio", name="unit.wav", role="audio", mime_type="audio/wav", size_bytes=1,
                   sha256="a" * 64, artifact_id="unit-audio-artifact", url="/api/artifacts/unit-audio-artifact",
                   timeline_src=f"videoagents/{job.job_id}/assets/unit.wav")
@@ -56,6 +56,10 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
     assert "component_props_examples" not in context
     expected = [asset.timeline_src for asset in job.assets if asset.mime_type.startswith("image/")] + [None]
     assert schema["$defs"]["Shot"]["properties"]["asset_src"]["enum"] == expected
+    components = schema["$defs"]["Shot"]["properties"]["component_id"]["enum"]
+    assert len(components) == 160
+    assert "Snapcn-TextReveal" in components
+    assert "Talkcraft-crash-zoom-punch" in components
     assert "research.visuals" in instruction and "artifact_url" in instruction and "不得" in instruction
     assert "asset_src=null" in instruction and "字符串数组" in instruction
     assert "enum" not in Timeline.model_json_schema()["$defs"]["Shot"]["properties"]["asset_src"]
@@ -82,6 +86,25 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
             if component in {"image_focus", "evidence"}:
                 candidate["shots"][0].update(asset_src=expected[0], source_label="example.test")
             validate_timeline(Timeline.model_validate(candidate), job)
+
+
+def test_director_filters_noncommercial_presets_from_commercial_jobs(tmp_path, monkeypatch):
+    node, job, audio, alignment = director_job(tmp_path, usage="commercial")
+    calls = []
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+
+    def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        calls.append((instruction, output_schema))
+        return context["timeline"]
+
+    monkeypatch.setattr(node.model, "call", model)
+    node.plan(job, audio, alignment, 2.0)
+    instruction, schema = calls[0]
+    components = schema["$defs"]["Shot"]["properties"]["component_id"]["enum"]
+    assert len(components) == 52
+    assert "Snapcn-TextReveal" in components
+    assert all(not component.startswith("Talkcraft-") for component in components)
+    assert "Talkcraft-crash-zoom-punch" not in instruction
 
 
 @pytest.mark.parametrize("component,props,asset_src,message", [

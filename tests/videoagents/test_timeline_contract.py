@@ -15,9 +15,9 @@ def timeline(component="title", props=None):
             "source_label": "", "accent_color": "#8cffb8", "props": props or {}}]}
 
 
-def job():
+def job(usage="unspecified"):
     return Job(job_id="unit-test", revision=1, status="DRAFT", stage="idle", created_at="test", updated_at="test", message="",
-               brief=Brief(topic="test", width=240, height=426, fps=15))
+               brief=Brief(topic="test", width=240, height=426, fps=15, usage=usage))
 
 
 @pytest.mark.parametrize(("component", "props"), [
@@ -45,6 +45,30 @@ def test_props_fact_values_must_be_provided_not_invented():
         validate_timeline(Timeline.model_validate(timeline("data")), job())
     with pytest.raises(ValueError):
         validate_timeline(Timeline.model_validate(timeline("comparison")), job())
+
+
+def test_python_and_node_accept_verified_preset_and_reject_injected_values():
+    data = timeline("Snapcn-TextReveal")
+    validate_timeline(Timeline.model_validate(data), job())
+    module = (PROJECT_ROOT / "src/video-production/validation.mjs").as_uri()
+    code = "import {validateTimeline} from " + json.dumps(module) + "; let input=''; for await(const c of process.stdin) input+=c; try{validateTimeline(JSON.parse(input));process.exit(0)}catch{process.exit(1)}"
+    result = subprocess.run(["node", "--input-type=module", "-e", code], input=json.dumps(data), text=True, capture_output=True, check=False)
+    assert result.returncode == 0
+    data["shots"][0]["props"] = {"src": "https://example.test/injected.png"}
+    with pytest.raises(ValueError, match="不接受自定义 props"):
+        validate_timeline(Timeline.model_validate(data), job())
+    data["shots"][0]["props"] = {}
+    data["shots"][0]["asset_src"] = "videoagents/unit-test/source.png"
+    with pytest.raises(ValueError, match="不接受 asset_src"):
+        validate_timeline(Timeline.model_validate(data), job())
+
+
+def test_noncommercial_talkcraft_presets_are_open_but_rejected_for_commercial_jobs():
+    candidate = Timeline.model_validate(timeline("Talkcraft-crash-zoom-punch"))
+    validate_timeline(candidate, job("personal"))
+    validate_timeline(candidate, job("unspecified"))
+    with pytest.raises(ValueError, match="许可"):
+        validate_timeline(candidate, job("commercial"))
 
 
 def test_nan_timestamp_control_text_and_path_escape_are_rejected():
