@@ -336,7 +336,7 @@ def _windows_physical_interface(deadline: float, cancelled: Callable[[], bool]) 
         result = subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command],
                                 shell=False, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                                 encoding="ascii", check=True, timeout=timeout,
-                                creationflags=subprocess.CREATE_NO_WINDOW)
+                                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
     except (OSError, subprocess.SubprocessError, UnicodeError):
         _check_cancelled(cancelled)
         _remaining(deadline)
@@ -476,8 +476,11 @@ def _cleanup(connection, connection_id: str | None, session_id: str, session_sta
 
 
 def synthesize(repository: Repository, job_id: str, revision: int, text: str, command_id: str = "",
-               cancelled: Callable[[], bool] = lambda: False, *, delivery_style: str = "") -> dict[str, Any]:
+               cancelled: Callable[[], bool] = lambda: False, *, delivery_style: str = "",
+               operation_key: str = "") -> dict[str, Any]:
     _check_cancelled(cancelled)
+    if not isinstance(operation_key, str) or len(operation_key) > 200:
+        raise CapabilityMissing("配音操作键必须是最多 200 字的文本", ["voice_operation"])
     config = dict(SettingsService(repository).internal())
     if config.get("voice_provider") != "byte_ws" or config.get("voice_endpoint") != ENDPOINT:
         raise CapabilityMissing("请选择字节 WebSocket 配音及官方接口地址", ["voice"])
@@ -502,14 +505,17 @@ def synthesize(repository: Repository, job_id: str, revision: int, text: str, co
         style = (style + "\n" + notes if style else notes)[:2000]
     if style and not supports_voice_style(config):
         raise CapabilityMissing("当前风格指导仅支持字节 WebSocket 的 seed-tts-2.0-expressive；standard 不会应用此风格", ["voice_model", "voice_style"])
-    request = {"event": int(Event.START_SESSION), "namespace": "BidirectionalTTS", "req_params": {"model": config.get("voice_model", "seed-tts-2.0-standard"),
+    request = {"event": int(Event.START_SESSION), "namespace": "BidirectionalTTS", "req_params": {"model": config.get("voice_model", "seed-tts-2.0-expressive"),
                "speaker": config["voice_id"], "audio_params": {"format": "mp3", "sample_rate": 24000, "enable_subtitle": True}}}
     if style:
         # additions 是 JSON 对象的字符串，context_texts 只发送合并后的一条。
         request["req_params"]["additions"] = json.dumps({"context_texts": [style]}, ensure_ascii=False)
     if rate:
         request["req_params"]["audio_params"]["speech_rate"] = rate
-    input_hash = fingerprint({"text": text, "request": request, "resource_id": config["voice_resource_id"]})
+    request_identity = {"text": text, "request": request, "resource_id": config["voice_resource_id"]}
+    if operation_key:
+        request_identity["operation_key"] = operation_key
+    input_hash = fingerprint(request_identity)
     used_voice_fingerprint = voice_fingerprint(config)
     previous = repository.operation(job_id, input_hash, "byte_ws")
     if previous:
@@ -521,6 +527,8 @@ def synthesize(repository: Repository, job_id: str, revision: int, text: str, co
                                     operation_id=previous["operation_id"], request_id=previous.get("request_id"))
     ledger = {"request_id": str(uuid.uuid4()), "session_id": str(uuid.uuid4()), "revision": revision,
               "command_id": command_id, "phase": "connecting"}
+    if operation_key:
+        ledger["operation_key"] = operation_key
     if style or rate:
         ledger.update(voice_model=config.get("voice_model"), voice_style=style, voice_speech_rate=rate)
     try:

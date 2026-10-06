@@ -51,6 +51,7 @@ def seed_completed_research(repo: Repository, project, job) -> None:
 @pytest.fixture
 def wired_job(tmp_path, monkeypatch):
     repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False))
     project = tmp_path / "project"
     job = repo.create_job(Brief(script_text="观点：人工审核测试。"))
     add_edges = StateGraph.add_conditional_edges
@@ -86,6 +87,7 @@ def answer(repo, job, decision="confirm", note=NOTE, key="UNIT-resume"):
 
 def test_stage_reviews_are_registered_and_script_review_is_on_default_flow(tmp_path):
     repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False))
     job = repo.create_job(Brief(script_text="观点：默认流程测试。"))
     with VideoProductionGraph(repo, tmp_path / "project") as graph:
         topology = graph.graph.get_graph()

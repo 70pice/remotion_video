@@ -18,13 +18,19 @@ from videoagents.storage.repository import fingerprint
 def fixture_cli(tmp_path, monkeypatch, code):
     path = tmp_path / "protocol_fixture.py"
     path.write_text("import sys,json,time\n" + code, encoding="utf-8")
+    source_home = tmp_path / "codex-source-home"
+    source_home.mkdir(exist_ok=True)
+    trae_source_home = tmp_path / "trae-source-home"
+    (trae_source_home / "cli").mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("CODEX_HOME", str(source_home))
+    monkeypatch.setenv("TRAE_HOME", str(trae_source_home))
     monkeypatch.setattr(cli_runner, "executable_prefix", lambda provider: [sys.executable, "-u", str(path)])
 
 
-@pytest.mark.parametrize("provider", ["codex_cli", "claude_code_cli"])
+@pytest.mark.parametrize("provider", ["codex_cli", "trae_cli", "claude_code_cli"])
 def test_structured_subprocess_and_utf8_stdin(tmp_path, monkeypatch, provider):
     code = "value={'response_json':json.dumps({'text':sys.stdin.buffer.read().decode('utf-8')})}\n"
-    if provider == "codex_cli":
+    if provider in {"codex_cli", "trae_cli"}:
         code += "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(value)}}))\nprint(json.dumps({'type':'turn.completed','usage':{'output_tokens':2}}))\n"
     else:
         code += "print(json.dumps({'type':'result','subtype':'success','is_error':False,'structured_output':value,'usage':{'output_tokens':2}}))\n"
@@ -53,6 +59,8 @@ def test_codex_failures_are_unknown_and_sanitized(tmp_path, monkeypatch, code, r
     {"type": "error", "message": "secret reconnect notification"},
     {"type": "item.completed", "item": {"type": "error", "message": "secret config warning"}},
     {"type": "item.completed", "item": {"type": "todo_list", "items": [{"text": "secret plan", "completed": True}]}},
+    {"type": "item.completed", "item": {"type": "model_reroute", "from_model": "display-name",
+                                       "to_model": "backend-name", "message": "secret route notice"}},
 ])
 def test_codex_notifications_allow_a_completed_structured_result(tmp_path, monkeypatch, notification):
     code = f"print(json.dumps({notification!r}))\n"
@@ -63,6 +71,30 @@ def test_codex_notifications_allow_a_completed_structured_result(tmp_path, monke
     result = run_cli("codex_cli", "", 5, "fixture", {"type": "object"})
     assert result == CliResult({"text": "ready"}, {"output_tokens": 2})
     assert "secret" not in repr(result)
+
+
+@pytest.mark.parametrize("provider", ["codex_cli", "trae_cli"])
+def test_cli_uses_last_agent_message_as_structured_result(tmp_path, monkeypatch, provider):
+    code = "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':'progress only'}}))\n"
+    code += "value={'response_json':json.dumps({'text':'ready'})}\n"
+    code += "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(value)}}))\n"
+    code += "print(json.dumps({'type':'turn.completed','usage':{'output_tokens':2}}))\n"
+    fixture_cli(tmp_path, monkeypatch, code)
+    result = run_cli(provider, "", 5, "fixture", {"type": "object"})
+    assert result == CliResult({"text": "ready"}, {"output_tokens": 2})
+
+
+def test_trae_double_wrapped_structured_result_is_unwrapped(tmp_path, monkeypatch):
+    business = {"script": {"title": "fixture"}, "response": "revised"}
+    code = f"business={business!r}\n"
+    code += "value={'response_json':json.dumps({'response_json':json.dumps(business)})}\n"
+    code += "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(value)}}))\n"
+    code += "print(json.dumps({'type':'turn.completed','usage':{'output_tokens':2}}))\n"
+    fixture_cli(tmp_path, monkeypatch, code)
+
+    result = run_cli("trae_cli", "", 5, "fixture", {"type": "object"})
+
+    assert result == CliResult(business, {"output_tokens": 2})
 
 
 @pytest.mark.parametrize("ending,reason", [
@@ -163,6 +195,18 @@ def test_argument_isolation_and_windows_shim_resolution(tmp_path, monkeypatch):
     assert claude[claude.index("--tools") + 1] == ""
     assert "--strict-mcp-config" in claude and "--no-session-persistence" in claude
     assert "--bare" not in claude and "--model" not in claude
+    trae = build_arguments("trae_cli", ["traecli"], "Doubao-Seed-2.1-Pro", tmp_path, schema)
+    assert trae[:4] == ["traecli", "-a", "never", "exec"]
+    assert trae[trae.index("--sandbox") + 1] == "read-only"
+    assert "--ephemeral" in trae and "--ignore-user-config" in trae and "--ignore-rules" in trae
+    assert trae[trae.index("--model") + 1] == "Doubao-Seed-2.1-Pro"
+    assert trae[trae.index("--disallowed-tool") + 1] == "*"
+    assert all(feature in trae for feature in (
+        "shell_snapshot", "tool_search", "multi_agent_v2", "apply_patch_freeform",
+    ))
+    assert "browser_use_full_cdp_access" not in trae and "in_app_chat" not in trae
+    assert any(item.startswith("sqlite_home=") for item in trae)
+    assert "check_for_update_on_startup=false" in trae
     research = build_arguments("codex_cli", ["exe"], "", tmp_path, schema, research=True)
     assert research[:4] == ["exe", "-a", "never", "exec"]
     assert research[research.index("--sandbox") + 1] == "workspace-write"
@@ -186,6 +230,14 @@ def test_argument_isolation_and_windows_shim_resolution(tmp_path, monkeypatch):
         assert cli_runner.executable_prefix("codex_cli") is None
 
 
+def test_trae_executable_uses_dedicated_override_and_is_reported(tmp_path, monkeypatch):
+    executable = tmp_path / ("traecli.exe" if os.name == "nt" else "traecli")
+    executable.write_text("fixture")
+    monkeypatch.setenv("VIDEOAGENTS_TRAECLI_EXECUTABLE", str(executable))
+    assert cli_runner.executable_prefix("trae_cli") == [str(executable.resolve())]
+    assert cli_runner.cli_availability()["trae_cli"] == {"available": True}
+
+
 def test_codex_research_mode_allows_tool_events_and_writes_sanitized_audit(tmp_path, monkeypatch):
     code = "from pathlib import Path\nPath('research-note.txt').write_text('kept workspace file', encoding='utf-8')\n"
     code += "print(json.dumps({'type':'item.started','item':{'type':'command_execution','status':'running','command':'secret command text'}}))\n"
@@ -206,6 +258,79 @@ def test_codex_research_mode_allows_tool_events_and_writes_sanitized_audit(tmp_p
     assert "secret" not in audit_text and "output_tokens" not in audit_text
 
 
+def test_codex_uses_ephemeral_home_and_removes_staged_auth_after_thread_start(tmp_path, monkeypatch):
+    source_home = tmp_path / "authenticated-codex-home"
+    source_home.mkdir()
+    source_auth = source_home / "auth.json"
+    source_auth.write_text('{"test_only_token":"must-not-persist"}', encoding="utf-8")
+    monkeypatch.setenv("VIDEOAGENTS_TEST_SOURCE_HOME", str(source_home))
+    code = (
+        "import os\nfrom pathlib import Path\n"
+        "home=Path(os.environ['CODEX_HOME'])\n"
+        "source=Path(os.environ['VIDEOAGENTS_TEST_SOURCE_HOME'])\n"
+        "auth=home/'auth.json'\n"
+        "loaded=auth.read_text(encoding='utf-8')\n"
+        "print(json.dumps({'type':'thread.started'}), flush=True)\n"
+        "for _ in range(100):\n"
+        "    if not auth.exists(): break\n"
+        "    time.sleep(0.01)\n"
+        "value={'response_json':json.dumps({'isolated':home != source,"
+        "'sqlite_isolated':Path(os.environ['CODEX_SQLITE_HOME']).is_relative_to(home),"
+        "'auth_loaded':'must-not-persist' in loaded,'auth_removed':not auth.exists(),"
+        "'home':str(home)})}\n"
+        "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(value)}}))\n"
+        "print(json.dumps({'type':'turn.completed'}))\n"
+    )
+    fixture_cli(tmp_path, monkeypatch, code)
+    monkeypatch.setenv("CODEX_HOME", str(source_home))
+
+    result = run_cli("codex_cli", "", 5, "fixture", {"type": "object"})
+
+    assert result.data | {"home": ""} == {
+        "isolated": True,
+        "sqlite_isolated": True,
+        "auth_loaded": True,
+        "auth_removed": True,
+        "home": "",
+    }
+    assert source_auth.is_file()
+    assert not cli_runner.Path(result.data["home"]).exists()
+
+
+def test_trae_uses_ephemeral_home_and_cleans_staged_auth_after_exit(tmp_path, monkeypatch):
+    source_home = tmp_path / "authenticated-trae-home"
+    source_auth = source_home / "cli" / "auth.json"
+    source_auth.parent.mkdir(parents=True)
+    source_auth.write_text('{"test_only_token":"must-not-persist"}', encoding="utf-8")
+    monkeypatch.setenv("VIDEOAGENTS_TEST_SOURCE_HOME", str(source_home))
+    code = (
+        "import os\nfrom pathlib import Path\n"
+        "home=Path(os.environ['TRAE_HOME'])\n"
+        "source=Path(os.environ['VIDEOAGENTS_TEST_SOURCE_HOME'])\n"
+        "auth=home/'cli'/'auth.json'\n"
+        "loaded=auth.read_text(encoding='utf-8')\n"
+        "print(json.dumps({'type':'thread.started'}), flush=True)\n"
+        "value={'response_json':json.dumps({'isolated':home != source,"
+        "'auth_loaded':'must-not-persist' in loaded,'auth_retained':auth.exists(),"
+        "'home':str(home)})}\n"
+        "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(value)}}))\n"
+        "print(json.dumps({'type':'turn.completed'}))\n"
+    )
+    fixture_cli(tmp_path, monkeypatch, code)
+    monkeypatch.setenv("TRAE_HOME", str(source_home))
+
+    result = run_cli("trae_cli", "", 5, "fixture", {"type": "object"})
+
+    assert result.data | {"home": ""} == {
+        "isolated": True,
+        "auth_loaded": True,
+        "auth_retained": True,
+        "home": "",
+    }
+    assert source_auth.is_file()
+    assert not cli_runner.Path(result.data["home"]).exists()
+
+
 def test_codex_research_accepts_collaboration_events_without_handing_off_tool_details(tmp_path, monkeypatch):
     event = {"type": "item.completed", "item": {"type": "collab_tool_call", "status": "completed",
              "tool": "wait", "prompt": "private tool prompt", "receiver_thread_ids": ["private-thread"]}}
@@ -223,14 +348,16 @@ def test_codex_research_accepts_collaboration_events_without_handing_off_tool_de
     assert "private" not in audit.read_text(encoding="utf-8")
 
 
-def test_codex_research_mode_requires_last_agent_message_to_be_structured(tmp_path, monkeypatch):
+@pytest.mark.parametrize("research", [False, True])
+def test_codex_requires_last_agent_message_to_be_structured(tmp_path, monkeypatch, research):
     code = "value={'response_json':json.dumps({'text':'not final'})}\n"
     code += "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(value)}}))\n"
     code += "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':'progress after final'}}))\n"
     code += "print(json.dumps({'type':'turn.completed'}))\n"
     fixture_cli(tmp_path, monkeypatch, code)
+    kwargs = {"research_directory": tmp_path / "research"} if research else {}
     with pytest.raises(CliFailure, match="invalid_cli_output"):
-        run_cli("codex_cli", "", 5, "fixture", {"type": "object"}, research_directory=tmp_path / "research")
+        run_cli("codex_cli", "", 5, "fixture", {"type": "object"}, **kwargs)
 
 
 @pytest.mark.parametrize("research", [False, True])
@@ -311,6 +438,28 @@ def test_plain_mode_reuses_legacy_completed_operation_hash_without_mode(tmp_path
     repo.finish_operation(operation["operation_id"], "COMPLETED", {"result": {"text": "legacy result"}})
     monkeypatch.setattr("videoagents.providers.llm.run_cli", lambda *args, **kwargs: pytest.fail("legacy result should replay"))
     assert JsonModel(repo).call("fixture-job", 1, "screenwriter", "JSON only", {}, "command-a") == {"text": "legacy result"}
+
+
+def test_completed_trae_operation_replays_double_wrapped_business_result(tmp_path, monkeypatch):
+    repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(role_models={"screenwriter": {
+        "enabled": True, "provider": "trae_cli", "model": "unit-model",
+    }}))
+    schema = {"type": "object"}
+    input_hash = fingerprint({"revision": 1, "provider": "trae_cli", "model": "unit-model",
+                              "instruction": "JSON only", "schema": schema, "context": {}})
+    operation = repo.start_operation("fixture-job", input_hash, "llm:screenwriter", {"revision": 1})
+    business = {"script": {"title": "fixture"}, "response": "revised"}
+    wrapped = {"response_json": json.dumps(business)}
+    repo.finish_operation(operation["operation_id"], "COMPLETED", {"result": wrapped})
+    monkeypatch.setattr("videoagents.providers.llm.run_cli",
+                        lambda *args, **kwargs: pytest.fail("completed result should replay"))
+
+    result = JsonModel(repo).call(
+        "fixture-job", 1, "screenwriter", "JSON only", {}, "command-a", output_schema=schema,
+    )
+
+    assert result == business
 
 
 def test_materials_research_uses_codex_tools_without_persisting_workspace_in_operation(tmp_path, monkeypatch):

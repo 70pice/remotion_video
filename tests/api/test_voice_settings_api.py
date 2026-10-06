@@ -68,15 +68,17 @@ def test_ws_requires_api_key_even_when_legacy_auth_is_present(client):
 
 def test_voice_performance_settings_round_trip_and_defaults(client):
     defaults = client.get("/api/settings").json()
-    assert defaults["voice_style"] == "" and defaults["voice_speech_rate"] == 10
+    assert defaults["voice_model"] == "seed-tts-2.0-expressive"
+    assert "不要播音腔" in defaults["voice_style"] and defaults["voice_speech_rate"] == 0
+    assert defaults["role_models"]["voice"]["enabled"] is False
     result = client.patch("/api/settings", json={"voice_style": "自然、有情绪起伏，开头突出疑问。", "voice_speech_rate": -12})
     assert result.status_code == 200
     saved = client.get("/api/settings").json()
     assert saved["voice_style"] == "自然、有情绪起伏，开头突出疑问。" and saved["voice_speech_rate"] == -12
 
 
-def test_ws_defaults_to_one_point_one_but_legacy_http_keeps_native_rate(client):
-    assert client.patch("/api/settings", json={"voice_provider": "byte_ws"}).json()["voice_speech_rate"] == 10
+def test_ws_and_legacy_http_default_to_native_rate(client):
+    assert client.patch("/api/settings", json={"voice_provider": "byte_ws"}).json()["voice_speech_rate"] == 0
     assert client.patch("/api/settings", json={"voice_provider": "byte_http"}).json()["voice_speech_rate"] == 0
     assert client.patch("/api/settings", json={"voice_provider": "byte_ws", "voice_speech_rate": 0}).json()["voice_speech_rate"] == 0
 

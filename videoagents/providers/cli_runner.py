@@ -16,6 +16,7 @@ from worker.process_manager import terminate_tree
 from worker.windows_job import WindowsJob
 
 MAX_OUTPUT_BYTES = 4 * 1024 * 1024
+MAX_AUTH_BYTES = 1024 * 1024
 # The CLI transport needs OpenAI's strict schema subset. Business contracts
 # contain defaults/free-form props, so carry their locally validated JSON as a
 # string instead of silently narrowing the actual production contract.
@@ -36,6 +37,13 @@ CODEX_RESEARCH_DISABLED = (
     "in_app_browser", "in_app_chat", "in_app_local_automation", "in_app_dictation",
     "image_generation", "tool_suggest", "skill_mcp_dependency_install",
 )
+TRAE_DISABLED = (
+    "shell_tool", "unified_exec", "apply_patch_freeform", "multi_agent", "multi_agent_v2",
+    "apps", "remote_plugin", "plugins", "hooks", "plugin_hooks", "browser_use",
+    "browser_use_external", "computer_use", "in_app_browser", "image_generation", "tool_suggest",
+    "skill_mcp_dependency_install", "tool_search", "workspace_dependencies", "shell_snapshot",
+    "goals", "memories", "task_v2", "workspace_undo", "codex_git_commit",
+)
 # 当前 CLI 的研究会话也会报告协作工具生命周期。只在素材模式接收，
 # 与其他工具一样只保留脱敏审计摘要，不把过程消息当作业务结果。
 CODEX_RESEARCH_TOOLS = {"command_execution", "web_search", "mcp_tool_call", "file_change", "collab_tool_call"}
@@ -47,6 +55,17 @@ CODEX_MANAGED_CONTEXT_ENV = {
     "CODEX_TASK_WORKSPACE_VERIFYING_IDENTITY",
     "CODEX_APP_TOOLS_PIPE_PATH",
     "CODEX_WINDOWS_SANDBOX_PACKAGE_FAMILY",
+}
+TRAE_MANAGED_CONTEXT_ENV = {
+    "TRAE_COMPUTER_USE_MTC_TARGET",
+    "TRAE_RUNTIME",
+    "TRAE_SANDBOX_CLI_PATH",
+    "TRAE_SANDBOX_DUMP_DIR",
+    "TRAE_SANDBOX_LOG_DIR",
+    "TRAE_SANDBOX_NEW_PERMISSION",
+    "TRAE_SANDBOX_SBOX_ID",
+    "TRAE_SANDBOX_STORAGE_PATH",
+    "TRAE_SANDBOX_TRACE_FILE",
 }
 
 
@@ -67,14 +86,15 @@ class CliResult:
 def executable_prefix(provider: str) -> list[str] | None:
     """Resolve npm Windows shims to Node, never execute .cmd through a shell."""
     names = {"codex_cli": ("codex", "@openai/codex/bin/codex.js"),
-             "claude_code_cli": ("claude", "@anthropic-ai/claude-code/cli.js")}
+             "claude_code_cli": ("claude", "@anthropic-ai/claude-code/cli.js"),
+             "trae_cli": ("traecli", "")}
     if provider not in names:
         return None
     name, entry = names[provider]
     configured = os.getenv("VIDEOAGENTS_" + name.upper() + "_EXECUTABLE")
     found = configured or shutil.which(name)
-    if not found and os.name == "nt" and name == "claude":
-        candidate = Path.home() / ".local" / "bin" / "claude.exe"
+    if not found and os.name == "nt" and name in {"claude", "traecli"}:
+        candidate = Path.home() / ".local" / "bin" / (name + ".exe")
         found = str(candidate) if candidate.is_file() else None
     if not found:
         return None
@@ -85,14 +105,14 @@ def executable_prefix(provider: str) -> list[str] | None:
         return [str(path)]
     node = shutil.which("node")
     script = path if path.suffix.lower() in {".js", ".mjs"} else path.parent / "node_modules" / entry
-    if node and script.is_file():
+    if entry and node and script.is_file():
         return [node, str(script)]
     return None
 
 
 def cli_availability() -> dict[str, dict[str, bool]]:
     return {provider: {"available": executable_prefix(provider) is not None}
-            for provider in ("codex_cli", "claude_code_cli")}
+            for provider in ("codex_cli", "trae_cli", "claude_code_cli")}
 
 
 def build_arguments(provider: str, prefix: list[str], model: str, directory: Path, schema: Path, *,
@@ -119,6 +139,25 @@ def build_arguments(provider: str, prefix: list[str], model: str, directory: Pat
         if model:
             args.extend(["--model", model])
         return [*args, "-"]
+    if provider == "trae_cli":
+        state = directory / ".trae-state"
+        logs = directory / ".trae-logs"
+        args = [*prefix, "-a", "never", "exec", "--sandbox", "read-only", "--ephemeral",
+                "--skip-git-repo-check", "--ignore-user-config", "--ignore-rules", "--json",
+                "--color", "never", "--cd", str(directory), "--output-schema", str(schema),
+                "--disallowed-tool", "*",
+                "-c", "sqlite_home=" + json.dumps(str(state)),
+                "-c", "log_dir=" + json.dumps(str(logs)),
+                "-c", "check_for_update_on_startup=false",
+                "-c", "analytics.enabled=false",
+                "-c", "trae_telemetry.enabled=false",
+                "-c", "hooks.state={}",
+        ]
+        for feature in TRAE_DISABLED:
+            args.extend(["--disable", feature])
+        if model:
+            args.extend(["--model", model])
+        return [*args, "-"]
     if provider == "claude_code_cli":
         args = [*prefix, "--print", "--output-format", "json", "--json-schema",
                 schema.read_text(encoding="utf-8"), "--tools", "", "--disallowedTools", "mcp__*",
@@ -135,7 +174,7 @@ def _research_environment(research: bool) -> dict[str, str]:
     # 每个角色是独立 CLI 会话，不能继承桌面父会话的身份、管道与权限档案。
     # 登录、代理等普通 CLI 环境保持不变；研究模式再补充工具所需的 PATH。
     env = os.environ.copy()
-    for name in CODEX_MANAGED_CONTEXT_ENV:
+    for name in CODEX_MANAGED_CONTEXT_ENV | TRAE_MANAGED_CONTEXT_ENV:
         env.pop(name, None)
     if not research:
         return env
@@ -149,6 +188,45 @@ def _research_environment(research: bool) -> dict[str, str]:
     if str(local_bin) not in entries:
         env["PATH"] = str(local_bin) + (os.pathsep + current if current else "")
     return env
+
+
+def _cli_environment(provider: str, research: bool, control: Path) -> tuple[dict[str, str], Path | None]:
+    env = _research_environment(research)
+    if provider not in {"codex_cli", "trae_cli"}:
+        return env, None
+    if provider == "codex_cli":
+        source_home = Path(env.get("CODEX_HOME") or Path.home() / ".codex").expanduser()
+        source_auth = source_home / "auth.json"
+        isolated_home = control / "codex-home"
+        auth_directory = isolated_home
+    else:
+        source_home = Path(env.get("TRAE_HOME") or Path.home() / ".trae").expanduser()
+        source_auth = source_home / "cli" / "auth.json"
+        isolated_home = control / "trae-home"
+        auth_directory = isolated_home / "cli"
+    auth_directory.mkdir(parents=True)
+    if os.name != "nt":
+        os.chmod(isolated_home, 0o700)
+        os.chmod(auth_directory, 0o700)
+    staged_auth = None
+    if source_auth.is_file():
+        size = source_auth.stat().st_size
+        if not 0 < size <= MAX_AUTH_BYTES:
+            raise CliFailure("cli_auth_file_invalid", submitted=False)
+        staged_auth = auth_directory / "auth.json"
+        shutil.copyfile(source_auth, staged_auth)
+        if os.name != "nt":
+            os.chmod(staged_auth, 0o600)
+    if provider == "codex_cli":
+        sqlite_home = isolated_home / "sqlite"
+        sqlite_home.mkdir()
+        if os.name != "nt":
+            os.chmod(sqlite_home, 0o700)
+        env["CODEX_HOME"] = str(isolated_home)
+        env["CODEX_SQLITE_HOME"] = str(sqlite_home)
+    else:
+        env["TRAE_HOME"] = str(isolated_home)
+    return env, staged_auth
 
 
 def _audit_summary(event: dict[str, Any]) -> dict[str, Any] | None:
@@ -184,13 +262,13 @@ def _codex_event(line: str, *, research: bool = False, audit_handle=None) -> tup
         item = event.get("item", {})
         # Error items carry CLI configuration/deprecation/reroute notices;
         # todo lists are local planning metadata. Neither executes a tool.
-        allowed = {"reasoning", "agent_message", "error", "todo_list"} | (CODEX_RESEARCH_TOOLS if research else set())
+        allowed = {
+            "reasoning", "agent_message", "error", "todo_list", "model_reroute",
+        } | (CODEX_RESEARCH_TOOLS if research else set())
         if not isinstance(item, dict) or item.get("type") not in allowed:
             raise CliFailure("unexpected_tool_event")
         if kind == "item.completed" and item.get("type") == "agent_message":
-            if research:
-                return {"__raw_agent_message__": item.get("text", "")}, None
-            return _business_object(json.loads(item.get("text", ""))), None
+            return {"__raw_agent_message__": item.get("text", "")}, None
     elif kind == "turn.completed":
         return None, event.get("usage")
     elif kind == "turn.failed":
@@ -203,11 +281,27 @@ def _codex_event(line: str, *, research: bool = False, audit_handle=None) -> tup
 
 
 def _business_object(envelope: Any) -> dict[str, Any]:
-    if not isinstance(envelope, dict) or set(envelope) != {"response_json"} or not isinstance(envelope["response_json"], str):
-        raise CliFailure("missing_structured_output")
-    result = json.loads(envelope["response_json"])
+    # TRAE can apply WIRE_SCHEMA after the model already emitted the requested
+    # envelope, producing one additional response_json layer. Unwrap at most
+    # two transport layers and keep rejecting arbitrary or recursively nested
+    # output before it reaches the business contract validator.
+    for _ in range(2):
+        if not isinstance(envelope, dict) or set(envelope) != {"response_json"} or not isinstance(envelope["response_json"], str):
+            raise CliFailure("missing_structured_output")
+        result = json.loads(envelope["response_json"])
+        if not isinstance(result, dict):
+            raise CliFailure("non_object_output")
+        if set(result) != {"response_json"} or not isinstance(result["response_json"], str):
+            return result
+        envelope = result
+    raise CliFailure("nested_structured_output_limit")
+
+
+def normalize_business_result(result: Any) -> dict[str, Any]:
     if not isinstance(result, dict):
         raise CliFailure("non_object_output")
+    if set(result) == {"response_json"} and isinstance(result["response_json"], str):
+        return _business_object(result)
     return result
 
 
@@ -252,6 +346,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                             + "response_json 内的对象遵循上面的业务 schema，外层仅有 response_json 一个字段。")
         source.write_text(transport_prompt, encoding="utf-8")
         args = build_arguments(provider, prefix, model, directory, schema, research=research)
+        environment, staged_auth = _cli_environment(provider, research, control)
         job = WindowsJob()
         audit_handle = None
         try:
@@ -266,7 +361,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                                                stderr=subprocess.DEVNULL, shell=False,
                                                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
                                                start_new_session=os.name != "nt",
-                                               env=_research_environment(research))
+                                               env=environment)
                 except OSError as exc:
                     raise CliFailure("cli_launch_failed", submitted=False) from exc
         except BaseException:
@@ -312,14 +407,17 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 decoded = line.decode("utf-8", errors="strict").strip()
                 if not decoded:
                     continue
-                if provider == "codex_cli":
+                if provider in {"codex_cli", "trae_cli"}:
+                    event_kind = json.loads(decoded).get("type")
+                    if provider == "codex_cli" and event_kind == "thread.started" and staged_auth is not None:
+                        staged_auth.unlink(missing_ok=True)
                     item, counts = _codex_event(decoded, research=research, audit_handle=audit_handle)
                     if isinstance(item, dict) and "__raw_agent_message__" in item:
                         last_agent_message = item["__raw_agent_message__"]
                     else:
                         data = item if item is not None else data
                     usage = counts if counts is not None else usage
-                    completed |= json.loads(decoded).get("type") == "turn.completed"
+                    completed |= event_kind == "turn.completed"
                 else:
                     output.append(decoded)
             remaining = max(0.01, deadline - time.monotonic())
@@ -327,7 +425,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 raise CliFailure("cli_nonzero_exit")
             if provider == "claude_code_cli":
                 return _claude_result("\n".join(output))
-            if research and last_agent_message is not None:
+            if last_agent_message is not None:
                 data = _business_object(json.loads(last_agent_message))
             if not completed or data is None:
                 raise CliFailure("incomplete_cli_result")

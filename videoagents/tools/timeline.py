@@ -17,6 +17,176 @@ ALLOWED_PROPS = {
     "comparison": {"left_title", "left_body", "right_title", "right_body", "right_reveal_frame"},
     "data": {"items"}, "steps": {"items", "layout"}, "conclusion": {"call_to_action"},
 }
+MEDIA_COMPONENT_IDS = frozenset({"video", "evidence", "image_focus"})
+MEDIA_COVERAGE_TARGET = 0.7
+
+
+def _normalized(value: str) -> str:
+    return "".join(character.lower() for character in value if character.isalnum())
+
+
+def _script_segment_ranges(timeline: Timeline, job: Job) -> list[tuple[str, int, int]]:
+    if not job.script or not timeline.captions:
+        return []
+    expected = [_normalized(segment.narration) for segment in job.script.segments]
+    actual = [_normalized(caption.text) for caption in timeline.captions]
+    if not all(expected) or "".join(expected) != "".join(actual):
+        return []
+    caption_index = 0
+    starts: list[int] = []
+    for segment_index, text in enumerate(expected):
+        if caption_index >= len(timeline.captions):
+            return []
+        starts.append(
+            0
+            if segment_index == 0
+            else math.floor(timeline.captions[caption_index].start_ms * timeline.fps / 1000)
+        )
+        consumed = 0
+        while consumed < len(text):
+            if caption_index >= len(actual) or consumed + len(actual[caption_index]) > len(text):
+                return []
+            consumed += len(actual[caption_index])
+            caption_index += 1
+        if consumed != len(text):
+            return []
+    if caption_index != len(actual):
+        return []
+    return [
+        (
+            segment.segment_id,
+            starts[index],
+            starts[index + 1] if index + 1 < len(starts) else timeline.duration_in_frames,
+        )
+        for index, segment in enumerate(job.script.segments)
+    ]
+
+
+def media_coverage_report(
+    timeline: Timeline,
+    job: Job,
+    asset_metadata: dict[str, dict[str, object]] | None = None,
+    *,
+    validate_relationships: bool = True,
+) -> dict[str, object]:
+    ranges = _script_segment_ranges(timeline, job)
+    target_frames = math.ceil(timeline.duration_in_frames * MEDIA_COVERAGE_TARGET)
+    if not ranges or not job.script:
+        return {
+            "target_ratio": MEDIA_COVERAGE_TARGET,
+            "target_frames": target_frames,
+            "eligible_capacity_frames": 0,
+            "eligible_capacity_ratio": 0.0,
+            "actual_media_frames": 0,
+            "actual_media_ratio": 0.0,
+            "required": False,
+            "segments": [],
+        }
+    assets_by_src = {asset.timeline_src: asset for asset in job.assets}
+    remaining_video_frames = {}
+    for asset in job.assets:
+        duration = (asset_metadata or {}).get(asset.asset_id, {}).get("duration_seconds")
+        if (
+            asset.mime_type.startswith("video/")
+            and isinstance(duration, (int, float))
+            and not isinstance(duration, bool)
+            and math.isfinite(duration)
+            and duration > 0
+        ):
+            remaining_video_frames[asset.asset_id] = math.floor(duration * timeline.fps)
+    eligible: dict[str, set[str]] = {}
+    segment_reports = []
+    capacity_frames = 0
+    for segment, (_, start, end) in zip(job.script.segments, ranges, strict=True):
+        linked_ids = set(segment.asset_ids)
+        linked_assets = [
+            asset
+            for asset in job.assets
+            if asset.role in {"evidence", "illustration"}
+            and asset.mime_type.startswith(("image/", "video/"))
+            and (
+                asset.asset_id in linked_ids
+                or bool(asset.source_url and asset.source_url in segment.source_refs)
+            )
+        ]
+        eligible[segment.segment_id] = {asset.timeline_src for asset in linked_assets}
+        span = end - start
+        if any(asset.mime_type.startswith("image/") for asset in linked_assets):
+            capacity = span
+        else:
+            available_video_frames = 0
+            for asset in linked_assets:
+                remaining = remaining_video_frames.get(asset.asset_id, 0)
+                used = min(max(0, span - available_video_frames), remaining)
+                available_video_frames += used
+                remaining_video_frames[asset.asset_id] = remaining - used
+            capacity = min(span, available_video_frames)
+        capacity_frames += capacity
+        segment_reports.append({
+            "segment_id": segment.segment_id,
+            "start_frame": start,
+            "end_frame": end,
+            "eligible_asset_ids": [
+                asset.asset_id for asset in linked_assets
+            ],
+            "eligible_capacity_frames": capacity,
+        })
+    actual_frames = 0
+    used_video_ranges: dict[str, list[tuple[float, float]]] = {}
+    for shot in timeline.shots:
+        if shot.component_id not in MEDIA_COMPONENT_IDS or not shot.asset_src:
+            continue
+        asset = assets_by_src.get(shot.asset_src)
+        if shot.component_id == "video" and asset is not None:
+            start_seconds = shot.props.get("start_seconds", 0)
+            if isinstance(start_seconds, (int, float)) and not isinstance(start_seconds, bool):
+                end_seconds = float(start_seconds) + (shot.end_frame - shot.start_frame) / timeline.fps
+                intervals = used_video_ranges.setdefault(asset.asset_id, [])
+                if validate_relationships and any(
+                    min(end_seconds, previous_end) - max(float(start_seconds), previous_start) > 0.001
+                    for previous_start, previous_end in intervals
+                ):
+                    raise ValueError("同一视频素材不能重复使用相同截取区间凑媒体覆盖率")
+                intervals.append((float(start_seconds), end_seconds))
+        linked_frames = 0
+        unrelated_frames = 0
+        for segment_id, start, end in ranges:
+            overlap = max(0, min(shot.end_frame, end) - max(shot.start_frame, start))
+            if not overlap:
+                continue
+            if shot.asset_src in eligible[segment_id]:
+                linked_frames += overlap
+            else:
+                unrelated_frames += overlap
+        if validate_relationships and not linked_frames:
+            raise ValueError("媒体镜头必须与当前旁白段落的 asset_ids 或来源链接语义关联")
+        if validate_relationships and unrelated_frames >= 15:
+            raise ValueError("媒体镜头跨入了没有语义关联的旁白段落")
+        actual_frames += linked_frames
+    return {
+        "target_ratio": MEDIA_COVERAGE_TARGET,
+        "target_frames": target_frames,
+        "eligible_capacity_frames": capacity_frames,
+        "eligible_capacity_ratio": round(capacity_frames / timeline.duration_in_frames, 4),
+        "actual_media_frames": actual_frames,
+        "actual_media_ratio": round(actual_frames / timeline.duration_in_frames, 4),
+        "required": capacity_frames >= target_frames,
+        "segments": segment_reports,
+    }
+
+
+def validate_media_coverage(
+    timeline: Timeline,
+    job: Job,
+    asset_metadata: dict[str, dict[str, object]] | None = None,
+) -> dict[str, object]:
+    report = media_coverage_report(timeline, job, asset_metadata)
+    if report["required"] and report["actual_media_frames"] < report["target_frames"]:
+        actual = float(report["actual_media_ratio"]) * 100
+        raise ValueError(
+            f"语义关联素材足以覆盖全片 70%，实际图片/视频镜头仅覆盖 {actual:.1f}%"
+        )
+    return report
 
 
 def safe_media_source(source: str, job_id: str) -> None:
@@ -36,7 +206,7 @@ def prop_text(value, maximum):
 def normalized_rect(value: object, message: str) -> None:
     if not isinstance(value, dict) or set(value) != {"x", "y", "width", "height"}:
         raise ValueError(message)
-    for key, item in value.items():
+    for item in value.values():
         if not isinstance(item, (int, float)) or isinstance(item, bool) or not math.isfinite(item) or not 0 <= item <= 1:
             raise ValueError(message)
     if value["width"] <= 0 or value["height"] <= 0 or value["x"] + value["width"] > 1 or value["y"] + value["height"] > 1:

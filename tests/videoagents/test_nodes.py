@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from videoagents.contracts import Brief
+from videoagents.contracts import Brief, SettingsPatch
 from videoagents.nodes.await_input import AwaitInputNode
 from videoagents.nodes.director import DirectorNode
 from videoagents.nodes.editing import EditingNode
@@ -16,6 +16,7 @@ from videoagents.nodes.screenwriter import ScreenwriterNode
 from videoagents.nodes.script_reviewer import ScriptReviewerNode
 from videoagents.nodes.voice import VoiceNode
 from videoagents.services.jobs import JobService
+from videoagents.services.settings import SettingsService
 from videoagents.state import VideoState
 from videoagents.storage import Conflict, Repository
 from worker.process_manager import RenderCancelled
@@ -54,6 +55,7 @@ def test_every_node_rejects_invalid_job_before_processing(tmp_path, monkeypatch,
 
 def test_screenwriter_node_saves_output_and_routes_without_a_graph(tmp_path):
     repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False))
     service = JobService(repo, tmp_path / "project")
     job = repo.create_job(Brief(script_text="观点：我喜欢这个配色。"))
     state = VideoState(job_id=job.job_id, revision=job.revision, action="produce",

@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from videoagents.providers.cli_runner import CliFailure, executable_prefix, run_cli
+from videoagents.providers.cli_runner import CliFailure, executable_prefix, normalize_business_result, run_cli
 from videoagents.services.settings import SettingsService
 from videoagents.state import VideoState, clean_handoff
 from videoagents.storage import Repository
@@ -113,7 +113,14 @@ class JsonModel:
         previous = self.repo.operation(job_id, input_hash, provider)
         if previous:
             if previous["status"] == "COMPLETED":
-                return previous["result"]
+                try:
+                    return normalize_business_result(previous["result"])
+                except CliFailure as exc:
+                    raise CapabilityMissing(
+                        "已完成的模型回执格式无效，已暂停且不会重复调用",
+                        ["llm_operation"], operation_status="COMPLETED",
+                        operation_id=previous["operation_id"],
+                    ) from exc
             if previous["status"] != "REJECTED" or not command_id or previous.get("command_id") == command_id:
                 raise CapabilityMissing("此模型请求已有未决/失败记录，未自动重复调用", ["llm_operation"],
                                         operation_status="UNKNOWN" if previous["status"] == "SUBMITTING" else previous["status"], operation_id=previous["operation_id"])
@@ -139,8 +146,7 @@ class JsonModel:
             kwargs = {"research_directory": research_directory, "audit_path": audit_path} if research_mode else {}
             response = run_cli(config["provider"], config["model"], config["timeout_seconds"], prompt, schema,
                                cancelled=lambda: self.cancelled(job_id), **kwargs)
-            if not isinstance(response.data, dict):
-                raise CliFailure("non_object_output")
+            response_data = normalize_business_result(response.data)
         except CliFailure as exc:
             status = "REJECTED" if not exc.submitted or exc.rejected else "UNKNOWN"
             self.repo.finish_operation(operation["operation_id"], status, {**ledger, "reason": exc.reason})
@@ -155,5 +161,5 @@ class JsonModel:
             self.repo.finish_operation(operation["operation_id"], "UNKNOWN", {**ledger, "reason": type(exc).__name__})
             raise CapabilityMissing("CLI 提交后的响应状态未知，已阻止自动重复调用", ["llm_operation"],
                                     operation_status="UNKNOWN", operation_id=operation["operation_id"]) from exc
-        self.repo.finish_operation(operation["operation_id"], "COMPLETED", {**ledger, "result": response.data, "usage": response.usage})
-        return response.data
+        self.repo.finish_operation(operation["operation_id"], "COMPLETED", {**ledger, "result": response_data, "usage": response.usage})
+        return response_data

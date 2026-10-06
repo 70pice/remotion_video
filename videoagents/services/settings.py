@@ -81,7 +81,7 @@ class SettingsService:
                 # credentials, including after moving a DB to another user.
                 continue
             result[key] = unprotect(value) if key in SECRET_FIELDS else json.loads(value)
-        # 新 WebSocket 制作默认 1.1 倍；旧 HTTP 不支持该参数，未显式设置时沿用原速。
+        # 新 WebSocket 制作默认原速；旧 HTTP 不支持该参数，也沿用原速。
         if result["voice_provider"] == "byte_http" and "voice_speech_rate" not in stored:
             result["voice_speech_rate"] = 0
         for key in SECRET_FIELDS:

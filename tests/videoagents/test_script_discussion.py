@@ -69,14 +69,17 @@ def _model_script():
 
 
 def _enable_discussion(repo: Repository, *, rounds: int = 2, screenwriter: bool = True, reviewer: bool = True):
-    roles = {}
+    roles = {
+        "screenwriter": {"enabled": screenwriter},
+        "script_reviewer": {"enabled": reviewer},
+    }
     if screenwriter:
-        roles["screenwriter"] = {"enabled": True, "model": "unit-writer"}
+        roles["screenwriter"]["model"] = "unit-writer"
     if reviewer:
-        roles["script_reviewer"] = {"enabled": True, "model": "unit-reviewer"}
+        roles["script_reviewer"]["model"] = "unit-reviewer"
     SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=True,
                                               script_discussion_max_rounds=rounds,
-                                              role_models=roles or None))
+                                              role_models=roles))
 
 
 def _critique(decision: str, *, segment_id: str = "s1"):
@@ -102,8 +105,9 @@ def _rewrite_with_narration(index: int):
     return value
 
 
-def test_script_discussion_default_disabled_never_calls_reviewer(monkeypatch, tmp_path):
+def test_explicitly_disabled_script_discussion_never_calls_reviewer(monkeypatch, tmp_path):
     repo, service, job = _job(tmp_path)
+    SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False))
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", lambda *a, **k: pytest.fail("discussion called a model"))
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "produce", "idempotency_key": "default-off"})
 

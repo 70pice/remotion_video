@@ -70,7 +70,7 @@ describe("ByteDance voice transport settings", () => {
       voice_endpoint: wsEndpoint,
       voice_resource_id: "account-specific-resource",
       voice_id: "existing-cloned-voice",
-      voice_model: "seed-tts-2.0-standard",
+      voice_model: "seed-tts-2.0-expressive",
       voice_style: "",
       voice_speech_rate: 0,
     });

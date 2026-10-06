@@ -40,6 +40,8 @@ def test_models_endpoint_requires_session_and_forwards_provider_refresh(client, 
     assert calls[-1] == ("codex_cli", False)
     assert client.get("/api/models/claude_code_cli?refresh=false").status_code == 200
     assert calls[-1] == ("claude_code_cli", False)
+    assert client.get("/api/models/trae_cli?refresh=false").status_code == 200
+    assert calls[-1] == ("trae_cli", False)
     before = len(calls)
     assert client.get("/api/models/http").status_code == 422
     assert client.get("/api/models/codex_cli?refresh=not-a-boolean").status_code == 422

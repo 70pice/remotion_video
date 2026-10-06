@@ -343,7 +343,7 @@ class ResumeRequest(Contract):
 
 
 RoleId = Literal["materials", "screenwriter", "script_reviewer", "voice", "director", "editing", "review"]
-ModelProvider = Literal["codex_cli", "claude_code_cli"]
+ModelProvider = Literal["codex_cli", "trae_cli", "claude_code_cli"]
 
 
 class ModelChoice(Contract):
@@ -386,8 +386,22 @@ class ModelFinding(Contract):
     blocking: bool
 
 
+class VoiceSegmentPerformance(Contract):
+    segment_id: str = Field(min_length=1, max_length=100)
+    delivery_style: str = Field(min_length=1, max_length=500)
+    pause_after_ms: int = Field(default=0, ge=0, le=1200)
+
+    @field_validator("delivery_style")
+    @classmethod
+    def readable_style(cls, value: str) -> str:
+        if not value.strip() or any(ord(char) < 32 and char not in "\t\r\n" for char in value):
+            raise ValueError("逐段表演指令不能为空或含控制字符")
+        return value
+
+
 class VoiceAdvice(Contract):
     delivery_notes: list[str] = Field(default_factory=list, max_length=30)
+    segment_performances: list[VoiceSegmentPerformance] = Field(default_factory=list, max_length=200)
     pronunciation_notes: list[str] = Field(default_factory=list, max_length=30)
     findings: list[ModelFinding] = Field(default_factory=list, max_length=30)
 
@@ -397,6 +411,13 @@ class VoiceAdvice(Contract):
         if any(not value.strip() or len(value) > 500 for value in values):
             raise ValueError("配音建议须为非空文本，每条最多 500 字")
         return values
+
+    @model_validator(mode="after")
+    def unique_segment_performances(self) -> "VoiceAdvice":
+        ids = [item.segment_id for item in self.segment_performances]
+        if len(ids) != len(set(ids)):
+            raise ValueError("逐段表演计划的段落 ID 必须唯一")
+        return self
 
 
 class EditingAdvice(Contract):

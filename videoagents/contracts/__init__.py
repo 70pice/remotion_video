@@ -31,13 +31,15 @@ from .models import (
     Shot,
     Timeline,
     VoiceAdvice,
+    VoiceSegmentPerformance,
 )
 
 __all__ = [
     "Alignment", "AlignmentSegment", "Artifact", "Asset", "Brief", "Caption",
     "ComponentEntry", "DraftRequest", "Finding", "Job", "ResumeRequest", "Review",
     "RunRequest", "Script", "ScriptSegment", "SettingsPatch", "Shot", "Timeline",
-    "RoleModelConfig", "RoleModels", "ModelFinding", "VoiceAdvice", "EditingAdvice", "ContentReviewAdvice",
+    "RoleModelConfig", "RoleModels", "ModelFinding", "VoiceAdvice", "VoiceSegmentPerformance",
+    "EditingAdvice", "ContentReviewAdvice",
     "ModelCatalog", "ModelChoice",
     "MaterialResearch",
     "ScriptCritique", "ScriptCritiqueIssue", "ScriptDiscussion", "ScriptDiscussionRound", "ScriptRewrite",

@@ -631,6 +631,7 @@
             "schema": {
               "enum": [
                 "codex_cli",
+                "trae_cli",
                 "claude_code_cli"
               ],
               "type": "string",
@@ -1246,6 +1247,7 @@
             "type": "string",
             "enum": [
               "codex_cli",
+              "trae_cli",
               "claude_code_cli"
             ],
             "title": "Provider"
@@ -1431,6 +1433,7 @@
             "type": "string",
             "enum": [
               "codex_cli",
+              "trae_cli",
               "claude_code_cli"
             ],
             "title": "Provider",

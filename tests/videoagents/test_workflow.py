@@ -53,6 +53,7 @@ def manual_job(tmp_path):
 
 
 def enqueue(repo, job, action="produce", key="first-command"):
+    SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False))
     _seed_completed_research(repo, JobService(repo), job)
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": action, "idempotency_key": key})
     return repo.get_job(job.job_id)
@@ -444,7 +445,9 @@ def test_voice_preflight_settings_change_records_actual_provider_fingerprint(man
     job = repo.update_job(job.job_id, script=Script(title="TEST preflight", origin="user", revision=job.revision,
         segments=[ScriptSegment(segment_id="s1", narration=job.brief.script_text)]))
     settings = SettingsService(repo)
-    settings.patch(SettingsPatch(voice_provider="byte_ws", voice_api_key="UNIT-secret", voice_id="UNIT-own-voice", voice_resource_id="seed-icl-2.0"))
+    settings.patch(SettingsPatch(voice_provider="byte_ws", voice_api_key="UNIT-secret",
+        voice_id="UNIT-own-voice", voice_resource_id="seed-icl-2.0",
+        voice_model="seed-tts-2.0-standard"))
     old_hash = voice_fingerprint(settings.internal())
     if existing_generated:
         repo.update_asset_metadata(old_audio.asset_id, {**repo.asset_metadata(old_audio.asset_id), "origin": "byte_ws",

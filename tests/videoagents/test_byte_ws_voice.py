@@ -330,6 +330,27 @@ def test_completed_replay_preserves_recorded_voice_fingerprint_or_backfills_lega
     assert replay["path"] == result["path"] and len(calls) == 1
 
 
+def test_operation_key_keeps_identical_script_segments_distinct(configured, monkeypatch):
+    repo, _ = configured
+    calls = fixture_transport(monkeypatch, FixtureConnection())
+    first = ws.synthesize(
+        repo, "unit-job", 1, "测试", "command-one", operation_key="script-segment:s1"
+    )
+    second = ws.synthesize(
+        repo, "unit-job", 1, "测试", "command-one", operation_key="script-segment:s2"
+    )
+    assert first["path"] != second["path"] and len(calls) == 2
+    with repo.connection() as db:
+        rows = db.execute("SELECT body FROM operations WHERE provider='byte_ws' ORDER BY operation_id").fetchall()
+    assert {json.loads(row[0])["operation_key"] for row in rows} == {
+        "script-segment:s1", "script-segment:s2",
+    }
+    replay = ws.synthesize(
+        repo, "unit-job", 1, "测试", "command-two", operation_key="script-segment:s1"
+    )
+    assert replay["path"] == first["path"] and len(calls) == 2
+
+
 def test_voice_fingerprint_binds_config_snapshot_used_for_request(configured, monkeypatch):
     repo, config = configured
     actual_fingerprint = ws.voice_fingerprint(config)

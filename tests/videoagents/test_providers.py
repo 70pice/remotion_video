@@ -14,7 +14,8 @@ from videoagents.storage import Repository
 def configured(tmp_path):
     repo = Repository(tmp_path / "runtime")
     SettingsService(repo).patch(SettingsPatch(voice_provider="byte_http", voice_api_key="fake-unit-test-secret",
-        voice_resource_id="seed-icl-2.0", voice_id="unit-test-own-voice"))
+        voice_resource_id="seed-icl-2.0", voice_id="unit-test-own-voice",
+        voice_model="seed-tts-2.0-standard", voice_style="", voice_speech_rate=0))
     return repo
 
 

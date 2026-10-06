@@ -24,7 +24,7 @@ describe("independent role model settings", () => {
     expect(markup).not.toContain("private-local-path");
   });
 
-  it("starts all seven roles disabled and keeps their defaults independent", () => {
+  it("starts writing roles on Doubao and keeps all role defaults independent", () => {
     const roles = readRoleModels({});
     expect(Object.keys(roles)).toEqual([
       "materials",
@@ -35,7 +35,15 @@ describe("independent role model settings", () => {
       "editing",
       "review",
     ]);
+    expect(roles.screenwriter).toEqual({
+      enabled: true,
+      provider: "trae_cli",
+      model: "Doubao-Seed-2.1-Pro",
+      timeout_seconds: 300,
+    });
+    expect(roles.script_reviewer).toEqual(roles.screenwriter);
     for (const { id } of modelRoles) {
+      if (id === "screenwriter" || id === "script_reviewer") continue;
       expect(roles[id]).toEqual({
         enabled: false,
         provider: "codex_cli",
@@ -71,13 +79,12 @@ describe("independent role model settings", () => {
           timeout_seconds: 30,
         },
         screenwriter: {
-          enabled: true,
           provider: "claude_code_cli",
           model: "screenwriter-model",
           timeout_seconds: 230,
         },
         script_reviewer: {
-          enabled: true,
+          provider: "codex_cli",
           model: "script_reviewer-model",
           timeout_seconds: 430,
         },
@@ -281,13 +288,13 @@ describe("role settings form", () => {
     expect(wsMarkup).toContain('aria-label="情感风格预设"');
     expect(wsMarkup).toContain('aria-label="情感与讲述风格"');
     expect(wsMarkup).toContain('maxLength="2000"');
-    expect(wsMarkup).toContain('placeholder="像面对观众讲解：开头好奇、重点加重、句间自然停顿，避免播报腔"');
+    expect(wsMarkup).toContain('placeholder="像真正理解内容的人在给朋友讲一个值得关注的新发现');
     expect(wsMarkup).toContain('aria-label="语速（倍速）"');
     expect(wsMarkup).toContain('min="0.5"');
     expect(wsMarkup).toContain('max="2"');
     expect(wsMarkup).toContain('step="0.01"');
-    expect(wsMarkup).toContain('value="seed-tts-2.0-standard"');
     expect(wsMarkup).toContain('value="seed-tts-2.0-expressive"');
+    expect(wsMarkup).toContain('value="seed-tts-2.0-standard"');
     expect(wsMarkup).toContain('seed-tts-2.0-standard');
     expect(wsMarkup).toContain('语速范围 0.5～2.0 倍');
     expect(wsMarkup).toContain('情感风格需要');

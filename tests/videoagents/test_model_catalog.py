@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from videoagents.providers import model_catalog
-from videoagents.providers.model_catalog import ModelCatalogService, read_codex_models
+from videoagents.providers.model_catalog import ModelCatalogService, read_codex_models, read_trae_models
 
 CACHE_TIME = "2026-10-03T07:00:00Z"
 
@@ -58,6 +58,47 @@ def test_active_cli_catalog_wins_over_cache_written_by_older_client(local_cache,
     assert len(calls) == 1
     assert service.get("codex_cli", refresh=True).models[0].id == "gpt-6.1-sol"
     assert len(calls) == 2
+
+
+def test_trae_catalog_uses_models_json_and_preserves_exact_model_id(monkeypatch):
+    calls = []
+
+    def query(arguments, **kwargs):
+        calls.append(arguments)
+        return subprocess.CompletedProcess(arguments, 0, json.dumps([
+            {
+                "name": "Doubao-Seed-2.1-Pro",
+                "real_name": "Seed-2.1-Pro",
+                "provider": "trae",
+                "description": "184K context window, support reasoning.",
+                "context_window": 184000,
+                "supported_mime_types": ["image/*"],
+            },
+        ]).encode(), b"")
+
+    monkeypatch.setattr(subprocess, "run", query)
+    models, fetched_at = read_trae_models(["traecli"])
+    assert [item.id for item in models] == ["Doubao-Seed-2.1-Pro"]
+    assert models[0].display_name == "Seed-2.1-Pro"
+    assert models[0].description == "184K context window, support reasoning."
+    assert datetime.fromisoformat(fetched_at.replace("Z", "+00:00")).utcoffset().total_seconds() == 0
+    assert calls == [["traecli", "models", "--json", "-c", "hooks.state={}"]]
+
+
+def test_trae_catalog_service_does_not_fall_back_to_codex_cache(local_cache, monkeypatch):
+    write_cache(local_cache, [choice("must-not-leak")])
+    monkeypatch.setattr(model_catalog, "executable_prefix", lambda provider: ["traecli"])
+    monkeypatch.setattr(model_catalog, "read_trae_models", lambda prefix: (
+        [model_catalog.ModelChoice(
+            id="Doubao-Seed-2.1-Pro", display_name="Seed-2.1-Pro",
+            description="short-video model",
+        )],
+        CACHE_TIME,
+    ))
+    result = ModelCatalogService().get("trae_cli", refresh=True)
+    assert result.status == "ready"
+    assert [item.id for item in result.models] == ["Doubao-Seed-2.1-Pro"]
+    assert "TRAE CLI" in result.message
 
 
 @pytest.mark.parametrize("failure", [

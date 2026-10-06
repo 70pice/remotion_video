@@ -11,7 +11,7 @@ from videoagents.services.jobs import JobService
 from videoagents.state import VideoState, job_context
 from videoagents.storage import Repository
 from videoagents.tools.components import component_study_payload
-from videoagents.tools.timeline import validate_timeline
+from videoagents.tools.timeline import media_coverage_report, validate_media_coverage, validate_timeline
 
 
 def valid_study(usage="unspecified", **overrides):
@@ -149,6 +149,8 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
     assert instruction == PROMPT
     assert set(context) == {"brief", "script", "timeline", "research", "assets", "asset_metadata", "extras"}
     assert "component_study" in context["extras"]
+    assert context["extras"]["media_coverage"]["target_ratio"] == 0.7
+    assert context["extras"]["media_coverage"]["required"] is image
     assert "component_props_examples" not in context
     expected = [asset.timeline_src for asset in job.assets if asset.mime_type.startswith("image/")] + [None]
     assert schema["$defs"]["Shot"]["properties"]["asset_src"]["enum"] == expected
@@ -182,8 +184,11 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
         "image_focus 仅可选 focal_x/focal_y/crop",
         "x + width <= 1 且 y + height <= 1", "width/height 必须大于0", "所有文字字段必须非空",
         "title 最多100字、body 最多240字、source_label 最多160字",
+        "eligible_capacity_ratio", "actual_media_ratio", "至少 70%",
+        "占当前可用内容区约 70%～85%", "跨入无关联段落",
     ]:
         assert requirement in instruction
+    assert "HyperFrames" not in instruction
     if image:
         for component, example in props.items():
             if component == "video":
@@ -511,3 +516,105 @@ def test_director_baseline_prefers_video_only_when_it_covers_the_shot(tmp_path, 
     if expected_component == "video":
         assert timeline.shots[0].asset_src.endswith(".mp4")
         assert timeline.shots[0].props == {"start_seconds": 0, "fit": "contain"}
+
+
+def test_model_director_requires_seventy_percent_media_when_linked_supply_is_sufficient(tmp_path, monkeypatch):
+    node, job, audio, alignment = director_job(tmp_path, image=True)
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+
+    def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        if "reviewed_preset_ids" in json.dumps(output_schema or {}):
+            return valid_study(job.brief.usage)
+        assert context["extras"]["media_coverage"]["required"] is True
+        shot = copy.deepcopy(context["timeline"]["shots"][0])
+        shot.update(component_id="title", asset_src=None, source_label="", props={})
+        return {"shots": [shot]}
+
+    monkeypatch.setattr(node.model, "call", model)
+
+    with pytest.raises(ValueError, match="足以覆盖全片 70%.*实际图片/视频镜头仅覆盖 0.0%"):
+        node.plan(job, audio, alignment, 2.0)
+
+
+def test_media_coverage_allows_measurable_fallback_but_rejects_unrelated_media(tmp_path):
+    node, job, audio, _ = director_job(tmp_path, image=True)
+    image = next(asset for asset in job.assets if asset.mime_type.startswith("image/"))
+    script = Script(title="两段内容", origin="user", revision=job.revision, segments=[
+        ScriptSegment(segment_id="s1", narration="第一段证据。",
+                      source_refs=["https://example.test/muse"]),
+        ScriptSegment(segment_id="s2", narration="第二段没有素材。"),
+    ])
+    job = node.repo.update_job(job.job_id, job.revision, script=script)
+    base = {
+        "job_id": job.job_id,
+        "revision": job.revision,
+        "width": job.brief.width,
+        "height": job.brief.height,
+        "fps": job.brief.fps,
+        "duration_in_frames": 30,
+        "audio_src": audio.timeline_src,
+        "captions": [
+            {"text": "第一段证据。", "start_ms": 0.0, "end_ms": 800.0},
+            {"text": "第二段没有素材。", "start_ms": 1000.0, "end_ms": 1900.0},
+        ],
+    }
+    fallback = Timeline.model_validate({**base, "shots": [{
+        "shot_id": "text-fallback", "start_frame": 0, "end_frame": 30,
+        "component_id": "title", "title": "素材不足时使用解释画面",
+    }]})
+
+    report = validate_media_coverage(fallback, job)
+
+    assert report["eligible_capacity_ratio"] == 0.5
+    assert report["actual_media_ratio"] == 0.0
+    assert report["required"] is False
+
+    unrelated = Timeline.model_validate({**base, "shots": [
+        {"shot_id": "linked", "start_frame": 0, "end_frame": 15,
+         "component_id": "title", "title": "第一段"},
+        {"shot_id": "unrelated", "start_frame": 15, "end_frame": 30,
+         "component_id": "evidence", "title": "错误复用", "asset_src": image.timeline_src,
+         "source_label": "example.test"},
+    ]})
+    with pytest.raises(ValueError, match="语义关联"):
+        media_coverage_report(unrelated, job)
+
+
+def test_media_capacity_does_not_count_the_same_video_duration_twice(tmp_path):
+    node, job, audio, _ = director_job(
+        tmp_path,
+        image=False,
+        video=True,
+        video_seconds=1.0,
+    )
+    video = next(asset for asset in job.assets if asset.mime_type.startswith("video/"))
+    script = Script(title="两段视频", origin="user", revision=job.revision, segments=[
+        ScriptSegment(segment_id="s1", narration="第一段。", asset_ids=[video.asset_id]),
+        ScriptSegment(segment_id="s2", narration="第二段。", asset_ids=[video.asset_id]),
+    ])
+    job = node.repo.update_job(job.job_id, job.revision, script=script)
+    candidate = Timeline(
+        job_id=job.job_id,
+        revision=job.revision,
+        width=job.brief.width,
+        height=job.brief.height,
+        fps=job.brief.fps,
+        duration_in_frames=30,
+        audio_src=audio.timeline_src,
+        shots=[{"shot_id": "fallback", "start_frame": 0, "end_frame": 30,
+                "component_id": "title", "title": "视频时长不足"}],
+        captions=[
+            {"text": "第一段。", "start_ms": 0.0, "end_ms": 800.0},
+            {"text": "第二段。", "start_ms": 1000.0, "end_ms": 1900.0},
+        ],
+    )
+
+    report = media_coverage_report(
+        candidate,
+        job,
+        {video.asset_id: {"duration_seconds": 1.0}},
+    )
+
+    assert report["eligible_capacity_frames"] == 15
+    assert report["eligible_capacity_ratio"] == 0.5
+    assert report["required"] is False

@@ -27,7 +27,7 @@ import type {
 } from "../api/types";
 import { Notice, PageHeading } from "../components/ui";
 
-const defaultVoiceModel = "seed-tts-2.0-standard";
+const defaultVoiceModel = "seed-tts-2.0-expressive";
 const voiceModelSuggestions = [
   {
     value: "seed-tts-2.0-expressive",
@@ -36,7 +36,10 @@ const voiceModelSuggestions = [
   { value: "seed-tts-2.0-standard", label: "Standard：普通合成，不支持情绪指导" },
 ];
 const defaultVoiceStyle =
-  "像面对观众讲解：开头好奇、重点加重、句间自然停顿，避免播报腔";
+  "像真正理解内容的人在给朋友讲一个值得关注的新发现，不要播音腔、朗诵腔或逐字念稿。" +
+  "开头带克制的好奇，问题句自然上扬；解释段放松、清楚，给长句留出呼吸；" +
+  "遇到转折和反常识信息时先收一下，再加重真正关键的内容；结论坚定收住。" +
+  "不要字字加重，不要全程兴奋，也不要一口气读完。";
 const customVoiceStylePreset = "custom";
 const voiceStylePresets = [
   {
@@ -347,11 +350,85 @@ interface SettingsFormProps {
   values: Settings;
   busy: boolean;
   modelCatalog?: ModelCatalog;
+  traeModelCatalog?: ModelCatalog;
   catalogLoading?: boolean;
+  traeCatalogLoading?: boolean;
   catalogError?: string;
+  traeCatalogError?: string;
   onRefreshModels?: () => void;
+  onRefreshTraeModels?: () => void;
   onChange: (key: string, value: unknown) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}
+
+interface CatalogStatusProps {
+  label: string;
+  refreshLabel: string;
+  description: string;
+  catalog?: ModelCatalog;
+  loading: boolean;
+  error: string;
+  busy: boolean;
+  onRefresh?: () => void;
+}
+
+function CatalogStatus({
+  label,
+  refreshLabel,
+  description,
+  catalog,
+  loading,
+  error,
+  busy,
+  onRefresh,
+}: CatalogStatusProps) {
+  return (
+    <div
+      className="model-catalog-status"
+      aria-live="polite"
+      aria-busy={loading}
+    >
+      <div className="inline-spread">
+        <strong>{label} 本机模型列表</strong>
+        {onRefresh && (
+          <button
+            type="button"
+            className="button secondary small"
+            aria-label={`刷新 ${refreshLabel} 模型列表`}
+            disabled={loading || busy}
+            onClick={onRefresh}
+          >
+            {loading ? "正在读取…" : "刷新模型列表"}
+          </button>
+        )}
+      </div>
+      <p className="muted small">
+        {loading
+          ? "正在读取模型列表；仍可编辑角色配置。"
+          : catalog?.status === "ready"
+            ? `已读取 ${catalog.models.length} 个模型${catalog.models.some((entry) => entry.hidden) ? "，含隐藏项" : ""}。`
+            : "目录尚不可用，可选择 CLI 默认模型或填写自定义模型 ID。"}
+      </p>
+      <p className="muted small">{description}</p>
+      {catalog?.fetched_at && (
+        <p className="muted small">
+          列表时间（本地）：
+          <time dateTime={catalog.fetched_at}>
+            {formatModelCacheTime(catalog.fetched_at)}
+          </time>
+        </p>
+      )}
+      {error ? (
+        <p className="catalog-error">
+          {error}
+          {catalog?.status === "ready" && " 当前保留上次读取的列表。"}
+          角色配置保持不变，可继续使用默认或自定义模型。
+        </p>
+      ) : catalog?.message ? (
+        <p className="muted small">{catalog.message}</p>
+      ) : null}
+    </div>
+  );
 }
 
 export function SettingsForm({
@@ -359,9 +436,13 @@ export function SettingsForm({
   values,
   busy,
   modelCatalog,
+  traeModelCatalog,
   catalogLoading = false,
+  traeCatalogLoading = false,
   catalogError = "",
+  traeCatalogError = "",
   onRefreshModels,
+  onRefreshTraeModels,
   onChange,
   onSubmit,
 }: SettingsFormProps) {
@@ -371,6 +452,8 @@ export function SettingsForm({
   >({});
   const codexCatalog =
     modelCatalog?.provider === "codex_cli" ? modelCatalog : undefined;
+  const traeCatalog =
+    traeModelCatalog?.provider === "trae_cli" ? traeModelCatalog : undefined;
   return (
     <form onSubmit={onSubmit} aria-busy={busy}>
       <fieldset className="editor-fieldset" disabled={busy}>
@@ -382,60 +465,42 @@ export function SettingsForm({
             仅影响后续实际调用；已有文案、分镜和产物不会自动重做。
           </p>
         </div>
-        <div
-          className="model-catalog-status"
-          aria-live="polite"
-          aria-busy={catalogLoading}
-        >
-          <div className="inline-spread">
-            <strong>Codex CLI 本机模型列表</strong>
-            {onRefreshModels && (
-              <button
-                type="button"
-                className="button secondary small"
-                aria-label="刷新 Codex 模型列表"
-                disabled={catalogLoading || busy}
-                onClick={onRefreshModels}
-              >
-                {catalogLoading ? "正在读取…" : "刷新模型列表"}
-              </button>
-            )}
-          </div>
-          <p className="muted small">
-            {catalogLoading
-              ? "正在读取模型列表；仍可编辑角色配置。"
-              : codexCatalog?.status === "ready"
-                ? `已读取 ${codexCatalog.models.length} 个模型，含隐藏项。`
-                : "目录尚不可用，可选择 CLI 默认模型或填写自定义模型 ID。"}
-          </p>
-          <p className="muted small">
-            向项目实际使用的 Codex CLI 查询模型，查询失败时回退到本机缓存。
-            可选列表不代表当前账号权限，实际支持以 CLI 调用为准。
-          </p>
-          {codexCatalog?.fetched_at && (
-            <p className="muted small">
-              列表时间（本地）：
-              <time dateTime={codexCatalog.fetched_at}>
-                {formatModelCacheTime(codexCatalog.fetched_at)}
-              </time>
-            </p>
-          )}
-          {catalogError ? (
-            <p className="catalog-error">
-              {catalogError}
-              {codexCatalog?.status === "ready" && " 当前保留上次读取的列表。"}
-              角色配置保持不变，可继续使用默认或自定义模型。
-            </p>
-          ) : codexCatalog?.message ? (
-            <p className="muted small">{codexCatalog.message}</p>
-          ) : null}
-        </div>
+        <CatalogStatus
+          label="Codex CLI"
+          refreshLabel="Codex"
+          description="向项目实际使用的 Codex CLI 查询模型，查询失败时回退到本机缓存。可选列表不代表当前账号权限，实际支持以 CLI 调用为准。"
+          catalog={codexCatalog}
+          loading={catalogLoading}
+          error={catalogError}
+          busy={busy}
+          onRefresh={onRefreshModels}
+        />
+        <CatalogStatus
+          label="TRAE CLI"
+          refreshLabel="TRAE"
+          description="向项目实际使用的 TRAE CLI 查询模型列表。可选列表不代表当前账号权限，实际支持以 CLI 调用为准。"
+          catalog={traeCatalog}
+          loading={traeCatalogLoading}
+          error={traeCatalogError}
+          busy={busy}
+          onRefresh={onRefreshTraeModels}
+        />
         <div className="settings-grid role-model-grid">
           {modelRoles.map((role) => {
             const config = roles[role.id];
             const availability = saved.cli_availability?.[config.provider];
             const providerLabel =
-              config.provider === "codex_cli" ? "Codex CLI" : "Claude Code CLI";
+              config.provider === "codex_cli"
+                ? "Codex CLI"
+                : config.provider === "trae_cli"
+                  ? "TRAE CLI"
+                  : "Claude Code CLI";
+            const roleCatalog =
+              config.provider === "codex_cli"
+                ? codexCatalog
+                : config.provider === "trae_cli"
+                  ? traeCatalog
+                  : undefined;
             const updateRole = (changes: Partial<typeof config>) => {
               onChange("role_models", {
                 ...roles,
@@ -445,10 +510,10 @@ export function SettingsForm({
             const statusId = `role-cli-status-${role.id}`;
             const choice = selectedModelChoice(
               config.model,
-              codexCatalog,
+              roleCatalog,
               customRoles[role.id],
             );
-            const selectedEntry = codexCatalog?.models.find(
+            const selectedEntry = roleCatalog?.models.find(
               (entry) => entry.id === config.model,
             );
             return (
@@ -479,13 +544,18 @@ export function SettingsForm({
                     aria-label={`${role.label}模型提供方`}
                     aria-describedby={statusId}
                     value={config.provider}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      setCustomRoles((current) => ({
+                        ...current,
+                        [role.id]: false,
+                      }));
                       updateRole({
                         provider: event.target.value as typeof config.provider,
-                      })
-                    }
+                      });
+                    }}
                   >
                     <option value="codex_cli">Codex CLI</option>
+                    <option value="trae_cli">TRAE CLI</option>
                     <option value="claude_code_cli">Claude Code CLI</option>
                   </select>
                 </label>
@@ -501,7 +571,7 @@ export function SettingsForm({
                 </p>
                 <div className="form-grid">
                   <div>
-                    {config.provider === "codex_cli" && (
+                    {config.provider !== "claude_code_cli" && (
                       <label>
                         模型
                         <select
@@ -521,7 +591,7 @@ export function SettingsForm({
                           <option value={defaultModelChoice}>
                             CLI 默认模型
                           </option>
-                          {codexCatalog?.models.map((entry) => (
+                          {roleCatalog?.models.map((entry) => (
                             <option
                               key={entry.id}
                               value={catalogModelChoice(entry.id)}
@@ -919,9 +989,13 @@ export function SettingsPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [modelCatalog, setModelCatalog] = useState<ModelCatalog>();
+  const [traeModelCatalog, setTraeModelCatalog] = useState<ModelCatalog>();
   const [catalogLoading, setCatalogLoading] = useState(false);
+  const [traeCatalogLoading, setTraeCatalogLoading] = useState(false);
   const [catalogError, setCatalogError] = useState("");
+  const [traeCatalogError, setTraeCatalogError] = useState("");
   const catalogRequest = useRef(0);
+  const traeCatalogRequest = useRef(0);
   const loadModels = useCallback(async (refresh = false) => {
     const requestId = ++catalogRequest.current;
     setCatalogLoading(true);
@@ -944,12 +1018,37 @@ export function SettingsPage() {
       if (requestId === catalogRequest.current) setCatalogLoading(false);
     }
   }, []);
+  const loadTraeModels = useCallback(async (refresh = false) => {
+    const requestId = ++traeCatalogRequest.current;
+    setTraeCatalogLoading(true);
+    setTraeCatalogError("");
+    try {
+      const next = await api.models("trae_cli", refresh);
+      if (requestId !== traeCatalogRequest.current) return;
+      if (next.status === "ready") {
+        setTraeModelCatalog(next);
+      } else {
+        setTraeModelCatalog((current) =>
+          current?.status === "ready" ? current : next,
+        );
+        setTraeCatalogError(next.message || "TRAE CLI 模型目录暂不可用。");
+      }
+    } catch (cause) {
+      if (requestId === traeCatalogRequest.current)
+        setTraeCatalogError(explainError(cause));
+    } finally {
+      if (requestId === traeCatalogRequest.current)
+        setTraeCatalogLoading(false);
+    }
+  }, []);
   useEffect(() => {
     void loadModels();
+    void loadTraeModels();
     return () => {
       catalogRequest.current += 1;
+      traeCatalogRequest.current += 1;
     };
-  }, [loadModels]);
+  }, [loadModels, loadTraeModels]);
   useEffect(() => {
     let active = true;
     void api
@@ -1005,10 +1104,16 @@ export function SettingsPage() {
           values={values}
           busy={busy}
           modelCatalog={modelCatalog}
+          traeModelCatalog={traeModelCatalog}
           catalogLoading={catalogLoading}
+          traeCatalogLoading={traeCatalogLoading}
           catalogError={catalogError}
+          traeCatalogError={traeCatalogError}
           onRefreshModels={() => {
             void loadModels(true);
+          }}
+          onRefreshTraeModels={() => {
+            void loadTraeModels(true);
           }}
           onChange={update}
           onSubmit={(event) => {

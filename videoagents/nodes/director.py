@@ -28,7 +28,7 @@ from videoagents.tools.components import (
     component_study_payload,
     prompt_component_catalog,
 )
-from videoagents.tools.timeline import validate_timeline
+from videoagents.tools.timeline import media_coverage_report, validate_media_coverage, validate_timeline
 
 COMPONENT_PROPS_EXAMPLES = {
     "title": {"eyebrow": "给定主题"}, "keyword": {"keyword": "给定关键词"},
@@ -282,11 +282,18 @@ class DirectorNode:
             ] + [None]
             # 实测基线只作为本次导演输入；模型输出校验通过前不写入共享 state。
             reviewed_timeline = feedback.get("timeline") if feedback and type(feedback.get("timeline")) is dict else None
+            coverage = media_coverage_report(
+                timeline,
+                job,
+                asset_metadata,
+                validate_relationships=False,
+            )
             model_state = {**context, "timeline": reviewed_timeline or timeline.model_dump(),
                            # 音频对齐已在 timeline.captions 提供，避免在素材元信息中重复发送。
                            "asset_metadata": {asset_id: {key: value for key, value in metadata.items()
                                if key != "alignment"} for asset_id, metadata in context.get("asset_metadata", {}).items()},
-                           "extras": {**context.get("extras", {}), "component_study": study.model_dump()}}
+                           "extras": {**context.get("extras", {}), "component_study": study.model_dump(),
+                                      "media_coverage": coverage}}
             value = self.model.invoke(model_state, "director", director_prompt(job.brief.usage),
                 fields=("brief", "script", "timeline", "research", "assets", "asset_metadata", "extras"),
                 command_id=(context.get("resume_command_id") or context.get("run_id", "")) + ":timeline",
@@ -298,6 +305,8 @@ class DirectorNode:
         elif production_portrait(job):
             self.require_component_study(job, context, state)
         validate_timeline(timeline, job, asset_metadata)
+        if model_available:
+            validate_media_coverage(timeline, job, asset_metadata)
         return timeline
 
     def component_study_from_context(self, job: Job, context: VideoState,

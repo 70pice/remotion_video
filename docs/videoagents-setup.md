@@ -48,7 +48,7 @@ npm run studio:stop
 ## 自动生产
 
 1. 在「设置」分别配置素材、编剧、文案审查、配音、导演、剪辑和审核的 CLI 提供方、模型名称和超时，并启用需要的角色。当前仅支持 Codex CLI 与 Claude Code CLI；模型留空使用对应 CLI 默认模型。素材默认选择「Codex 技能研究」，通过已安装技能检索并保存真实素材；Claude Code 或原有采集方式请选择「固定检索工具」，可使用 OpenCLI Google、Tavily 或已有 Google CSE。平台和预算见 [素材节点与完整平台目录](videoagents-materials.md)，安装清单和当前可用条件见 [研究技能环境](videoagents-research-skills.md)。
-2. 配置字节配音：按新版 SOP 选择「字节 WebSocket 双向流式」，填写声音 ID、资源 ID 和 API Key。声音复刻 2.0 使用 `seed-icl-2.0`，语音合成模型默认 `seed-tts-2.0-standard`；需要有起伏的讲述时，选择 `seed-tts-2.0-expressive` 并填写讲述风格，见 [配音表现力设置](videoagents-voice-performance.md)。资源及音色权限须由实际账号验证。旧 HTTP 接口仍可选择，兼容 API Key 或 App ID + Access Token。
+2. 配置字节配音：按新版 SOP 选择「字节 WebSocket 双向流式」，填写声音 ID、资源 ID 和 API Key。声音复刻 2.0 使用 `seed-icl-2.0`，语音合成模型默认 `seed-tts-2.0-expressive` 并附带短视频讲述风格；需要稳定但不接受情绪指导的普通合成时，可改用 `seed-tts-2.0-standard`，见 [配音表现力设置](videoagents-voice-performance.md)。资源及音色权限须由实际账号验证。旧 HTTP 接口仍可选择，兼容 API Key 或 App ID + Access Token。
 3. 创建任务，输入主题或文案，设定受众、用途、画幅、帧率和来源链接。
 4. 执行生产，按素材研究 → 编剧及可选文案讨论 → 配音 → 导演 → 渲染 → 审核推进。「素材研究」页签显示来源快照、图片与截图、检索方式及失败项。缺服务、缺授权记录或缺真实时间戳时，会显示待补充信息。
 5. 在各阶段查看、编辑文案与素材。修改会递增版本并使相关产物和审核失效。
@@ -92,7 +92,7 @@ App 当前对话选中的模型、用户 `config.toml` 的默认模型、工作�
 
 如果 CLI 不在 PATH，可在启动工作台前设置 `VIDEOAGENTS_CODEX_EXECUTABLE` 或 `VIDEOAGENTS_CLAUDE_EXECUTABLE` 为绝对入口路径。Windows 支持 `.exe`、官方 npm shim 或 `.js` 入口；npm shim 转为 `node.exe + 官方入口`，不执行拼接的 shell 命令。模型名称也作为独立 argv 传入。超时范围为 30–1800 秒，每任务版本的模型调用上限统一由 `max_llm_calls` 控制。
 
-每次调用使用临时空目录及结构化输出，避免加载项目指令。Codex 使用 read-only、ephemeral、忽略用户配置/规则、禁止 shell/多代理/插件/浏览器等功能；登录仍由 `CODEX_HOME` 提供。Claude 禁用内置工具与普通 hooks，限定空 MCP 配置，禁止持久会话。工具事件或未知协议会终止调用。组织管理策略可能施加额外配置或 hooks，这些设置不能被工作台承诺完全覆盖。Codex 的事后工具事件检查也不是工具执行前的完全隔离保证。
+每次调用使用临时空目录及结构化输出，避免加载项目指令。Codex 使用 read-only、ephemeral、忽略用户配置/规则、禁止 shell/多代理/插件/浏览器等功能；调用启动时从用户 `CODEX_HOME` 读取登录态，在临时 `CODEX_HOME` 中隔离 SQLite/日志写入，并在 `thread.started` 后删除临时认证副本，任务目录不会保存凭据。Claude 禁用内置工具与普通 hooks，限定空 MCP 配置，禁止持久会话。工具事件或未知协议会终止调用。组织管理策略可能施加额外配置或 hooks，这些设置不能被工作台承诺完全覆盖。Codex 的事后工具事件检查也不是工具执行前的完全隔离保证。
 
 成功结果与使用量写入持久台账，相同输入重放复用成功结果；更换模型/CLI不能绕过该角色当前版本的未知提交。仅明确启动前失败允许新显式命令重试。CLI 启动后的超时、取消、错误退出或输出不完整均按 `UNKNOWN` 处理，因为无法证明服务方未计费。工作台不显示未经清理的 CLI 错误输出。协议回归验证使用独立的本机 subprocess fixture；2026-10-04 已通过实际 Codex CLI 验证 `gpt-6.1-sol` 的最小结构化调用，未因此重跑已有视频任务或清除未知提交记录。
 

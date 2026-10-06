@@ -48,13 +48,17 @@ def decode_objects(chunks: Iterator[str]) -> Iterator[dict]:
 
 
 def synthesize(repository: Repository, job_id: str, revision: int, text: str, command_id: str = "",
-               cancelled=lambda: False, *, delivery_style: str = "") -> dict[str, Any]:
+               cancelled=lambda: False, *, delivery_style: str = "", operation_key: str = "") -> dict[str, Any]:
     if cancelled():
         raise RenderCancelled("任务已取消")
+    if not isinstance(operation_key, str) or len(operation_key) > 200:
+        raise CapabilityMissing("配音操作键必须是最多 200 字的文本", ["voice_operation"])
     config = SettingsService(repository).internal()
     if config.get("voice_provider") == "byte_ws":
         from videoagents.providers.byte_ws_voice import synthesize as synthesize_ws
         options = {"delivery_style": delivery_style} if delivery_style else {}
+        if operation_key:
+            options["operation_key"] = operation_key
         return synthesize_ws(repository, job_id, revision, text, command_id, cancelled=cancelled, **options)
     for provider in ("byte_http", "byte_ws"):
         unsettled = repository.unsettled_operation(job_id, provider, revision)
@@ -69,7 +73,11 @@ def synthesize(repository: Repository, job_id: str, revision: int, text: str, co
         raise CapabilityMissing("请配置你自己的字节复刻音色和匹配的资源 ID，或导入真实音频与实测时间轴", ["voice", "audio", "alignment"])
     if not config.get("voice_api_key") and not (config.get("voice_app_id") and config.get("voice_access_token")):
         raise CapabilityMissing("字节配音鉴权尚未配置", ["voice"])
-    input_hash = fingerprint({"text": text, "voice_id": config["voice_id"], "resource_id": config["voice_resource_id"], "format": "mp3", "sample_rate": 24000})
+    request_identity = {"text": text, "voice_id": config["voice_id"], "resource_id": config["voice_resource_id"],
+                        "format": "mp3", "sample_rate": 24000}
+    if operation_key:
+        request_identity["operation_key"] = operation_key
+    input_hash = fingerprint(request_identity)
     previous = repository.operation(job_id, input_hash, "byte_http")
     if previous:
         if previous["status"] == "COMPLETED" and Path(previous.get("path", "")).is_file():
@@ -80,6 +88,8 @@ def synthesize(repository: Repository, job_id: str, revision: int, text: str, co
     repository.reserve_metric(job_id, revision, "voice_chars", len(text), config["max_voice_chars"])
     request_id = str(uuid.uuid4())
     operation_body = {"request_id": request_id, "command_id": command_id, "attempt": 1, "revision": revision}
+    if operation_key:
+        operation_body["operation_key"] = operation_key
     operation = repository.retry_rejected_operation(previous["operation_id"], command_id, operation_body) if previous else repository.start_operation(job_id, input_hash, "byte_http", operation_body)
     if not operation.get("new"):
         raise SubmissionUnknown("相同配音输入已由其他执行记录受理，请先对账", ["voice_operation"], operation_id=operation["operation_id"], request_id=operation.get("request_id"))

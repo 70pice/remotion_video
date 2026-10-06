@@ -225,6 +225,7 @@ def test_clear_node_preserves_final_outputs_and_pause_binding_without_audit_refe
 def test_production_graph_clears_each_completed_role_before_real_input_pause(tmp_path, monkeypatch):
     repo = Repository(tmp_path / "runtime")
     service = JobService(repo, tmp_path / "project")
+    SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False))
     job = repo.create_job(Brief(script_text="观点：我喜欢这个配色。"))
     service.write_json(job, "research.json", {"status": "COMPLETED", "sources": [], "visuals": [],
                        "limitations": ["UNIT TEST：观点稿无需事实来源，素材包显式为空。"]}, "research")

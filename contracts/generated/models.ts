@@ -147,7 +147,7 @@ export interface MaterialVisualFile {
 }
 
 export interface ModelCatalog {
-  provider: "codex_cli" | "claude_code_cli";
+  provider: "codex_cli" | "trae_cli" | "claude_code_cli";
   status: "ready" | "unavailable" | "error";
   models: Array<ModelChoice>;
   message: string;
@@ -188,7 +188,7 @@ export interface Review {
 
 export interface RoleModelConfig {
   enabled: boolean;
-  provider: "codex_cli" | "claude_code_cli";
+  provider: "codex_cli" | "trae_cli" | "claude_code_cli";
   model: string;
   timeout_seconds: number;
 }
@@ -318,6 +318,13 @@ export interface Timeline {
 
 export interface VoiceAdvice {
   delivery_notes: Array<string>;
+  segment_performances: Array<VoiceSegmentPerformance>;
   pronunciation_notes: Array<string>;
   findings: Array<ModelFinding>;
+}
+
+export interface VoiceSegmentPerformance {
+  segment_id: string;
+  delivery_style: string;
+  pause_after_ms: number;
 }

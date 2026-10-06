@@ -48,7 +48,17 @@ export const modelRoles = [
   description: string;
 }>;
 
-function defaultRole(): RoleModelConfig {
+export const doubaoScriptModel = "Doubao-Seed-2.1-Pro";
+
+function defaultRole(role: RoleId): RoleModelConfig {
+  if (role === "screenwriter" || role === "script_reviewer") {
+    return {
+      enabled: true,
+      provider: "trae_cli",
+      model: doubaoScriptModel,
+      timeout_seconds: 300,
+    };
+  }
   return {
     enabled: false,
     provider: "codex_cli",
@@ -59,13 +69,13 @@ function defaultRole(): RoleModelConfig {
 
 export function readRoleModels(settings: Settings): RoleModels {
   const roles: RoleModels = {
-    materials: defaultRole(),
-    screenwriter: defaultRole(),
-    script_reviewer: defaultRole(),
-    voice: defaultRole(),
-    director: defaultRole(),
-    editing: defaultRole(),
-    review: defaultRole(),
+    materials: defaultRole("materials"),
+    screenwriter: defaultRole("screenwriter"),
+    script_reviewer: defaultRole("script_reviewer"),
+    voice: defaultRole("voice"),
+    director: defaultRole("director"),
+    editing: defaultRole("editing"),
+    review: defaultRole("review"),
   };
   for (const { id } of modelRoles) {
     roles[id] = { ...roles[id], ...settings.role_models?.[id] };

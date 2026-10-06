@@ -105,7 +105,8 @@ def test_screenwriter_returns_latest_job_context_after_saving_script_and_artifac
     repo = Repository(tmp_path / "runtime")
     service = JobService(repo, tmp_path / "project")
     SettingsService(repo).patch(SettingsPatch(voice_provider="byte_ws", voice_api_key="UNIT-secret",
-                                              voice_id="UNIT-voice", voice_resource_id="UNIT-resource"))
+                                              voice_id="UNIT-voice", voice_resource_id="UNIT-resource",
+                                              script_discussion_enabled=False))
     job = repo.create_job(Brief(script_text="观点：上下文里应该带着文案。"))
     state = VideoState(job_id=job.job_id, revision=job.revision, action="produce",
                        run_id="UNIT-context", thread_id="UNIT-context-thread")

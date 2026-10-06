@@ -35,6 +35,21 @@ const catalog: ModelCatalog = {
   message: "",
   fetched_at: "2026-10-03T00:00:00Z",
 };
+const traeCatalog: ModelCatalog = {
+  provider: "trae_cli",
+  status: "ready",
+  models: [
+    {
+      id: "Doubao-Seed-2.1-Pro",
+      display_name: "Seed-2.1-Pro",
+      description: "184K context window, support reasoning.",
+      is_default: false,
+      hidden: false,
+    },
+  ],
+  message: "",
+  fetched_at: "2026-10-06T00:00:00Z",
+};
 
 describe("Codex model choices", () => {
   it("keeps CLI default independent from the directory's default model", () => {
@@ -83,7 +98,10 @@ describe("Codex model choices", () => {
 
 type FormProps = Parameters<typeof SettingsForm>[0];
 function renderForm(overrides: Partial<FormProps> = {}): string {
-  const settings = { role_models: readRoleModels({}) };
+  const roles = readRoleModels({});
+  roles.screenwriter = { ...roles.screenwriter, provider: "codex_cli" };
+  roles.script_reviewer = { ...roles.script_reviewer, provider: "codex_cli" };
+  const settings = { role_models: roles };
   return renderToStaticMarkup(
     createElement(SettingsForm, {
       saved: settings,
@@ -140,7 +158,11 @@ describe("dynamic directory form", () => {
   it("keeps unsaved model values when a directory refresh removes or fails to return a model", () => {
     const saved = { role_models: readRoleModels({}) };
     const roles = readRoleModels(saved);
-    roles.screenwriter.model = "future/model:v2";
+    roles.screenwriter = {
+      ...roles.screenwriter,
+      provider: "codex_cli",
+      model: "future/model:v2",
+    };
     roles.director.model = "outside-catalog";
     const values = { role_models: roles };
     const before = JSON.stringify(values);
@@ -160,7 +182,10 @@ describe("dynamic directory form", () => {
     expect(failed).toContain('value="catalog:future/model:v2" selected=""');
     expect(JSON.stringify(values)).toBe(before);
     expect(buildRoleModelsPatch(roles, readRoleModels(saved))).toEqual({
-      screenwriter: { model: "future/model:v2" },
+      screenwriter: {
+        provider: "codex_cli",
+        model: "future/model:v2",
+      },
       director: { model: "outside-catalog" },
     });
   });
@@ -186,5 +211,20 @@ describe("dynamic directory form", () => {
     expect(switchedMarkup).toContain('aria-label="剪辑模型选择"');
     expect(switchedMarkup).toContain('aria-label="剪辑模型名称"');
     expect(switchedMarkup).toContain('value="claude/custom-id"');
+  });
+
+  it("renders the TRAE catalog and keeps Doubao 2.1 Pro selected for writing roles", () => {
+    const roles = readRoleModels({});
+    const settings = { role_models: roles };
+    const markup = renderForm({
+      saved: settings,
+      values: settings,
+      traeModelCatalog: traeCatalog,
+    });
+    expect(markup).toContain("TRAE CLI 本机模型列表");
+    expect(markup).toContain("Seed-2.1-Pro · Doubao-Seed-2.1-Pro");
+    expect(markup.match(/value="catalog:Doubao-Seed-2.1-Pro" selected=""/g)).toHaveLength(2);
+    expect(markup).toContain('aria-label="编剧模型选择"');
+    expect(markup).toContain('aria-label="文案审查模型选择"');
   });
 });

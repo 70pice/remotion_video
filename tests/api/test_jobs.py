@@ -130,10 +130,16 @@ def test_seven_role_defaults_and_partial_settings_merge(client):
     initial = client.get("/api/settings").json()
     roles = {"materials", "screenwriter", "script_reviewer", "voice", "director", "editing", "review"}
     assert set(initial["role_models"]) == roles
-    assert all(value == {"enabled": False, "provider": "codex_cli", "model": "", "timeout_seconds": 300}
-               for value in initial["role_models"].values())
-    assert initial["llm_configured"] is False
-    assert set(initial["cli_availability"]) == {"codex_cli", "claude_code_cli"}
+    assert initial["role_models"]["screenwriter"] == {
+        "enabled": True, "provider": "trae_cli",
+        "model": "Doubao-Seed-2.1-Pro", "timeout_seconds": 300,
+    }
+    assert initial["role_models"]["script_reviewer"] == initial["role_models"]["screenwriter"]
+    assert all(initial["role_models"][role] == {
+        "enabled": False, "provider": "codex_cli", "model": "", "timeout_seconds": 300,
+    } for role in roles - {"screenwriter", "script_reviewer"})
+    assert initial["llm_configured"] is True
+    assert set(initial["cli_availability"]) == {"codex_cli", "trae_cli", "claude_code_cli"}
     assert all(isinstance(value["available"], bool) for value in initial["cli_availability"].values())
     first = client.patch("/api/settings", json={"role_models": {"director": {
         "enabled": True, "provider": "claude_code_cli", "model": "unit-model", "timeout_seconds": 180}}})
@@ -143,7 +149,7 @@ def test_seven_role_defaults_and_partial_settings_merge(client):
     assert changed.json()["role_models"]["director"] == {
         "enabled": False, "provider": "claude_code_cli", "model": "unit-model", "timeout_seconds": 180}
     assert changed.json()["role_models"]["voice"] == initial["role_models"]["voice"]
-    assert changed.json()["llm_configured"] is False
+    assert changed.json()["llm_configured"] is True
     for payload in ({"role_models": {"other": {"enabled": True}}},
                     {"role_models": {"voice": {"provider": "http"}}},
                     {"role_models": {"voice": {"timeout_seconds": 29}}},
@@ -154,15 +160,15 @@ def test_seven_role_defaults_and_partial_settings_merge(client):
 
 def test_discussion_settings_persist_without_overwriting_writer_or_starting_calls(client):
     initial = client.get("/api/settings").json()
-    assert initial["script_discussion_enabled"] is False
+    assert initial["script_discussion_enabled"] is True
     assert initial["script_discussion_max_rounds"] == 2
     response = client.patch("/api/settings", json={
-        "script_discussion_enabled": True, "script_discussion_max_rounds": 3,
+        "script_discussion_enabled": False, "script_discussion_max_rounds": 3,
         "role_models": {"script_reviewer": {"enabled": True, "provider": "claude_code_cli", "model": "review-model"}},
     })
     assert response.status_code == 200
     saved = client.get("/api/settings").json()
-    assert saved["script_discussion_enabled"] is True
+    assert saved["script_discussion_enabled"] is False
     assert saved["script_discussion_max_rounds"] == 3
     assert saved["role_models"]["screenwriter"] == initial["role_models"]["screenwriter"]
     assert saved["role_models"]["script_reviewer"]["model"] == "review-model"
@@ -184,7 +190,7 @@ def test_legacy_http_credentials_remain_stored_but_are_unused_and_private(client
     response = client.get("/api/settings")
     assert response.status_code == 200
     assert not ({"llm_api_key", "llm_model", "llm_base_url"} & response.json().keys())
-    assert response.json()["llm_configured"] is False
+    assert response.json()["llm_configured"] is True
     assert repo.setting_values()["llm_api_key"] == "dpapi:unreadable-legacy-credential"
 
 

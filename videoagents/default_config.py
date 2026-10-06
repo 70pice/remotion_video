@@ -3,21 +3,36 @@
 import os
 from pathlib import Path
 
-from videoagents.contracts import RoleModels
+from videoagents.contracts import RoleModelConfig, RoleModels
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_ROOT = Path(os.getenv("VIDEOAGENTS_RUNTIME_DIR", str(PROJECT_ROOT / ".runtime" / "videoagents"))).resolve()
+DEFAULT_VOICE_STYLE = (
+    "像真正理解内容的人在给朋友讲一个值得关注的新发现，不要播音腔、朗诵腔或逐字念稿。"
+    "开头带克制的好奇，问题句自然上扬；解释段放松、清楚，给长句留出呼吸；"
+    "遇到转折和反常识信息时先收一下，再加重真正关键的内容；结论坚定收住。"
+    "不要字字加重，不要全程兴奋，也不要一口气读完。"
+)
+DEFAULT_SCRIPT_MODEL = "Doubao-Seed-2.1-Pro"
+DEFAULT_ROLE_MODELS = RoleModels(
+    screenwriter=RoleModelConfig(
+        enabled=True, provider="trae_cli", model=DEFAULT_SCRIPT_MODEL, timeout_seconds=300
+    ),
+    script_reviewer=RoleModelConfig(
+        enabled=True, provider="trae_cli", model=DEFAULT_SCRIPT_MODEL, timeout_seconds=300
+    ),
+).model_dump()
 DEFAULT_SETTINGS = {
-    "role_models": RoleModels().model_dump(), "search_provider": "none",
+    "role_models": DEFAULT_ROLE_MODELS, "search_provider": "none",
     "google_search_engine_id": "",
     "research_platforms": ["web", "x", "youtube", "zhihu", "reddit", "bilibili", "google"],
     "research_results_per_platform": 3, "research_max_searches": 8, "research_max_sources": 12,
     "research_max_visuals": 8, "research_download_images": True,
-    "script_discussion_enabled": False, "script_discussion_max_rounds": 2,
+    "script_discussion_enabled": True, "script_discussion_max_rounds": 2,
     "voice_provider": "none", "voice_app_id": "", "voice_resource_id": "", "voice_id": "",
     "voice_endpoint": "https://openspeech.bytedance.com/api/v3/tts/unidirectional",
-    "voice_model": "seed-tts-2.0-standard",
-    "voice_style": "", "voice_speech_rate": 10,
+    "voice_model": "seed-tts-2.0-expressive",
+    "voice_style": DEFAULT_VOICE_STYLE, "voice_speech_rate": 0,
     "aligner_url": "", "capture_enabled": True, "max_llm_calls": 12,
     "max_voice_chars": 10000, "render_timeout_seconds": 1800,
 }

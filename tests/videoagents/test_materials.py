@@ -198,7 +198,8 @@ def test_screenwriter_consumes_frozen_research_and_tamper_is_blocked(tmp_path, m
     SettingsService(repo).patch(SettingsPatch(search_provider="tavily", search_api_key="unit-secret",
                                               role_models={"screenwriter": {"enabled": True, "model": "unit-writer"}},
                                               research_platforms=["web"], capture_enabled=True,
-                                              research_download_images=False))
+                                              research_download_images=False,
+                                              script_discussion_enabled=False))
     job = repo.create_job(Brief(topic="Muse是什么"))
     patch_material_model(monkeypatch)
     MaterialsNode(repo, service)(state_for(job))

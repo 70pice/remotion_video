@@ -1415,6 +1415,7 @@
         "provider": {
           "enum": [
             "codex_cli",
+            "trae_cli",
             "claude_code_cli"
           ],
           "title": "Provider",
@@ -1513,6 +1514,7 @@
           "default": "codex_cli",
           "enum": [
             "codex_cli",
+            "trae_cli",
             "claude_code_cli"
           ],
           "title": "Provider",
@@ -2012,6 +2014,36 @@
       "title": "SettingsPatch",
       "type": "object"
     },
+    "VoiceSegmentPerformance": {
+      "additionalProperties": false,
+      "properties": {
+        "segment_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Segment Id",
+          "type": "string"
+        },
+        "delivery_style": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Delivery Style",
+          "type": "string"
+        },
+        "pause_after_ms": {
+          "default": 0,
+          "maximum": 1200,
+          "minimum": 0,
+          "title": "Pause After Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "segment_id",
+        "delivery_style"
+      ],
+      "title": "VoiceSegmentPerformance",
+      "type": "object"
+    },
     "VoiceAdvice": {
       "additionalProperties": false,
       "properties": {
@@ -2021,6 +2053,14 @@
           },
           "maxItems": 30,
           "title": "Delivery Notes",
+          "type": "array"
+        },
+        "segment_performances": {
+          "items": {
+            "$ref": "#/$defs/VoiceSegmentPerformance"
+          },
+          "maxItems": 200,
+          "title": "Segment Performances",
           "type": "array"
         },
         "pronunciation_notes": {

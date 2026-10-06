@@ -1,0 +1,575 @@
+{
+  "audit_metadata": {
+    "date": "2026-10-06",
+    "provider": "trae_cli",
+    "requested_model": "Doubao-Seed-2.1-Pro",
+    "observed_backend_route": "seed-2.1-pro-evolving",
+    "prompt_files": [
+      "videoagents/prompts/shared-style.md",
+      "videoagents/prompts/materials.md",
+      "videoagents/prompts/screenwriter.md",
+      "videoagents/prompts/screenwriter-draft.md",
+      "videoagents/prompts/screenwriter-rewrite.md",
+      "videoagents/prompts/script-reviewer.md",
+      "videoagents/prompts/voice.md",
+      "videoagents/prompts/component-study.md",
+      "videoagents/prompts/director.md",
+      "videoagents/prompts/editing.md",
+      "videoagents/prompts/review.md"
+    ],
+    "usage": {
+      "input_tokens": 48342,
+      "cache_creation_input_tokens": 0,
+      "cached_input_tokens": 15672,
+      "output_tokens": 16793,
+      "reasoning_output_tokens": 10566
+    }
+  },
+  "review": {
+    "executive_summary": "整体成熟：事实优先、四类说法分离、真实视频优先、四个人工门禁与角色边界在各节点基本闭环，未发现会稳定产出错误事实或使门禁失效的 prompt 缺陷。系统性问题有三：一是比较题上游 materials 未锁定『同一共同任务+同口径』证据，编剧只能混比或把结论缩小成模糊判断，是《Codex vs Claude Code》《Kimi/Qwen/GLM》失焦的根因（唯一 high）；二是反说明书与切镜规则在 5 个以上文件重复，2–5 秒/8 秒软代理与『无统一切镜频率』松紧不一，导演与剪辑 props 契约双份维护存在漂移；三是审核/预检未写明成片进入发布人工门禁及 blocking 解决闭环。建议以删重复、统一判据、补齐题型要件为主，11 个文件无需重写：6 个 tighten、5 个 keep。",
+    "cross_agent_findings": [
+      {
+        "finding_id": "F1",
+        "severity": "high",
+        "category": "topic_fit",
+        "affected_files": [
+          "videoagents/prompts/materials.md",
+          "videoagents/prompts/screenwriter.md",
+          "videoagents/prompts/screenwriter-draft.md"
+        ],
+        "concern": "比较题只在编剧侧要求共同任务，但素材侧仅要求『一个相关任务』和『对比证据』，未要求所有被比产品在同一任务、同输入同版本同日期下的同口径结果。素材极易交回 A 的任务X演示与 B 的任务Y演示，编剧被迫硬比、伪造对打或把结论缩小成『各有优势』，稳定造成比较结论失焦。",
+        "recommendation": "在 materials.md 增加比较题专属规则：锁定 1 个双方/多方共同任务（可再加 1 个边界任务），逐产品在同输入、同版本、同日期下记录结果、证据链接与口径；任一产品缺同任务证据则写入 limitations，不允许跨场景拼装。screenwriter-draft 第5条同步加入题型要件。",
+        "rationale": "三个重点选题两个是比较题，失焦根因在证据交接而非文案技巧；该改动只增加一条关键决策规则，不机械扩张清单。"
+      },
+      {
+        "finding_id": "F2",
+        "severity": "medium",
+        "category": "prompt_efficiency",
+        "affected_files": [
+          "videoagents/prompts/shared-style.md",
+          "videoagents/prompts/director.md",
+          "videoagents/prompts/editing.md"
+        ],
+        "concern": "反说明书与切镜规则在 shared-style、screenwriter、draft、reviewer、director、editing 反复出现；导演/剪辑用『2–5 秒起点』『8 秒以上优先拆镜/属具体返工问题』作代理，又与 shared-style『没有统一最佳切镜频率』松紧不一，可能对需要长停留的共同任务证据链造成过度拆切。",
+        "recommendation": "返工判据全文统一为『是否推进判断/有无重复阅读』，秒数一律降为提示语（『约』『优先考虑』），editing 不得以超过 8 秒单独作为返工依据；权威表述只留在 shared-style 与 script-reviewer，其余节点压缩为引用式一句。",
+        "rationale": "消除冲突代理比继续叠加规则更能稳定叙事质量，也缩短总 token。"
+      },
+      {
+        "finding_id": "F3",
+        "severity": "medium",
+        "category": "schema_alignment",
+        "affected_files": [
+          "videoagents/prompts/director.md",
+          "videoagents/prompts/editing.md"
+        ],
+        "concern": "九个适配器的 props 白名单、坐标约束、组件能力在 director 与 editing 近乎逐字重复，清单或字段一旦变更两边易漂移，剪辑可能把导演合法字段误判为非法。",
+        "recommendation": "director 保留为 props 契约唯一权威来源；editing 删除字段枚举，改为『以导演输出契约为唯一白名单，越界字段即 error，语义/节奏问题按本文件检查』。",
+        "rationale": "单一事实来源消除双边维护与误阻断风险。"
+      },
+      {
+        "finding_id": "F4",
+        "severity": "medium",
+        "category": "human_gate",
+        "affected_files": [
+          "videoagents/prompts/review.md",
+          "videoagents/prompts/editing.md",
+          "videoagents/prompts/shared-style.md"
+        ],
+        "concern": "editing/review 均为建议或语义核验，review 明确不授予发布资格，但没有任何一处写明 blocking findings 由谁确认解决、成片进入『发布人工门禁』；blocking=false 或预检通过可能被误解为可发布。",
+        "recommendation": "在 review.md 结尾（shared-style 可同步原则一句）补充：blocking findings 未解决不得交付，成片须经人工完整播放并通过发布门禁；本节点不替代发布判断。",
+        "rationale": "四个人工门禁中发布门禁目前只靠编排隐式保证，需在 prompt 层显式闭合。"
+      },
+      {
+        "finding_id": "F5",
+        "severity": "medium",
+        "category": "workflow_handoff",
+        "affected_files": [
+          "videoagents/prompts/materials.md"
+        ],
+        "concern": "limitations 单一数组同时承载工作假设、核心观众问题、歧义、证据/画面缺口、未完成平台，reviewer 与 review 需要从中识别『影响结论的硬缺口』时容易漏检或被噪声淹没。",
+        "recommendation": "不新增 schema 字段，在 limitations 字符串内采用固定前缀：[假设]/[歧义]/[证据缺口]/[画面缺口]/[未完成平台]，并在 materials.md 输出说明处给出前缀约定。",
+        "rationale": "用最轻改法把交接信息分层，直接支持终审的缺口核对。"
+      },
+      {
+        "finding_id": "F6",
+        "severity": "medium",
+        "category": "creative_quality",
+        "affected_files": [
+          "videoagents/prompts/screenwriter-draft.md"
+        ],
+        "concern": "初稿 7 条硬检查没有题型答案门禁：比较题是否同任务同口径给条件结论、购买题是否交付付费增量/高频受众/无需购买人群，均不在初稿出口校验内，人工文案门禁可能在错结构上批改。",
+        "recommendation": "改写（非新增）第5条：结尾与推进必须满足——比较题同共同任务同口径并给条件结论；购买题回答付费增量、高频使用人群、现有方案已够用人群。",
+        "rationale": "把关键决策压入既有检查条目，符合不机械增加清单的要求。"
+      },
+      {
+        "finding_id": "F7",
+        "severity": "low",
+        "category": "prompt_efficiency",
+        "affected_files": [
+          "videoagents/prompts/shared-style.md",
+          "videoagents/prompts/materials.md",
+          "videoagents/prompts/component-study.md",
+          "videoagents/prompts/editing.md"
+        ],
+        "concern": "152/161/9 等清单数量硬编码散布在多个文件，组件清单升级时需多点同步，易产生数字失真。",
+        "recommendation": "数量统一由模板变量（如 {{component_catalog}} 注入结果）承载，行文只保留『参数化适配器/固定预设』两类纪律表述。",
+        "rationale": "降低清单演进时的维护成本。"
+      },
+      {
+        "finding_id": "F8",
+        "severity": "low",
+        "category": "creative_quality",
+        "affected_files": [
+          "videoagents/prompts/screenwriter.md"
+        ],
+        "concern": "比较题的『两三个对照/回合』构思默认双产品，对《Kimi/Qwen/GLM》三方题缺少分流指引，模型可能套用单循环赛或并列罗列三方能力。",
+        "recommendation": "补一句：三方比较沿用同一共同任务矩阵，按题型/场景逐个分流并给条件结论，不组织机械循环赛。",
+        "rationale": "覆盖重点选题中唯一的三方比较形态。"
+      }
+    ],
+    "file_reviews": [
+      {
+        "path": "videoagents/prompts/shared-style.md",
+        "role": "全角色共享风格圣经",
+        "verdict": "tighten",
+        "strengths": [
+          "事实为最高原则，官方宣传/第三方实测/已发生事实/作者推断四类分离，口径与条件同句保留，直接压住事实失真",
+          "明确『结构是原则不是模板词，转场词不许读进旁白』，防止结构规则被口播化",
+          "组件数量、usage 过滤、Talkcraft 商业限制、预设演示不当事实与下游文件口径一致",
+          "指标章明确无数据不预测、不声称提升，防止越权承诺"
+        ],
+        "issues": [
+          {
+            "severity": "medium",
+            "location": "§2 强钩子与叙事弧线（两组相邻 bullet）",
+            "concern": "『可迁移方法』四条与下一组四条语义重复：如『立刻给一个小答案』与『给出第一个小兑现』、『答案已清楚就收住』与『到答案讲清楚就结束』、开场反差两处各写一遍，稀释重点。",
+            "suggested_change": "合并为一组，按开场—推进—转折—收尾各保留一条表述，删除重复的小答案与收束句。"
+          },
+          {
+            "severity": "low",
+            "location": "§6 首句『用户 Notion 指标记录』",
+            "concern": "引用的外部 Notion 对象不随输入交付，模型可能脑补指标内容。",
+            "suggested_change": "改为抽象描述（开头留存、整体观看、密度与互动六类目标），不依赖具体文档。"
+          },
+          {
+            "severity": "low",
+            "location": "§5 中 161/152/9 硬编码",
+            "concern": "清单变更时多处数字漂移。",
+            "suggested_change": "数量改由模板变量注入，行文只保留两类组件纪律。"
+          }
+        ]
+      },
+      {
+        "path": "videoagents/prompts/materials.md",
+        "role": "素材研究 Agent",
+        "verdict": "tighten",
+        "strengths": [
+          "搜索/正文/字幕/下载/截图/视频下载与解码分别确认，下载失败禁止输出 video 条目，事实与资产可信度高",
+          "要求视频在 description 记录已观察的操作/结果区间与讲解人片头区间，直接支持导演取结果段",
+          "来源原文与『素材备注（研究判断）』分标，text_file 与 sha256 可复核",
+          "购买题已要求核实免费/现有方案与付费方案究竟改变什么"
+        ],
+        "issues": [
+          {
+            "severity": "high",
+            "location": "研究流程引言及第1步（比较题证据要求）",
+            "concern": "仅要求『一个相关任务』和『决定判断的对比证据』，未要求所有被比产品在同一任务、同输入同版本同日期下的同口径结果；可能交回 A 的任务X演示与 B 的任务Y演示，下游硬比即失焦。",
+            "suggested_change": "增比较题专属规则：锁定 1 个共同任务（可加 1 个边界任务），逐产品记录同口径结果与证据链接，缺任一产品同任务证据即写 limitations，不许跨场景拼装。"
+          },
+          {
+            "severity": "medium",
+            "location": "limitations 字段用途说明",
+            "concern": "工作假设、核心问题、歧义、证据/画面缺口、未完成平台混放同一数组，终审难识别影响结论的硬缺口。",
+            "suggested_change": "在不新增字段前提下采用前缀约定 [假设]/[歧义]/[证据缺口]/[画面缺口]/[未完成平台]，并在输出说明处写明。"
+          },
+          {
+            "severity": "low",
+            "location": "第1步嵌套的 AI科普/大事件清单",
+            "concern": "与引言重复且篇幅长，存在机械集齐所有项的诱导风险。",
+            "suggested_change": "合并去重，保留『按实际资料取舍、不机械集齐』的原则句。"
+          }
+        ]
+      },
+      {
+        "path": "videoagents/prompts/screenwriter.md",
+        "role": "文案主编剧",
+        "verdict": "keep",
+        "strengths": [
+          "动笔四问与『什么人在什么情况下选什么』主线答案句，直接对抗说明书结构",
+          "比较题共同任务/同口径/条件结论与购买题三要件（付费增量、谁用得到、谁已够用）齐备",
+          "来源边界章明确证据弱就缩小结论、不先夸大再撤回",
+          "禁止虚构第一人称亲测/耗时/交易，与 shared-style 一致"
+        ],
+        "issues": [
+          {
+            "severity": "low",
+            "location": "比较题小节『横向比较题』",
+            "concern": "『横向』可能被误读为横屏形态，与 9:16 竖屏设定混淆。",
+            "suggested_change": "改为『双产品/多产品比较题』。"
+          },
+          {
+            "severity": "low",
+            "location": "比较题『两三个有效对照/回合』",
+            "concern": "构思默认双方，三方题缺分流指引，易写成循环赛或三方能力并列。",
+            "suggested_change": "补一句：三方比较沿用同一共同任务矩阵按题型分流，不组织机械循环赛。"
+          },
+          {
+            "severity": "low",
+            "location": "全文与 draft/reviewer 的反说明书条目",
+            "concern": "同一判据多处复述；本文件应作为权威来源。",
+            "suggested_change": "本文件保留原则，重复的检查式表述放到 draft 侧压缩，不在此删减核心规则。"
+          }
+        ]
+      },
+      {
+        "path": "videoagents/prompts/screenwriter-draft.md",
+        "role": "初稿交付指令",
+        "verdict": "tighten",
+        "strengths": [
+          "segment_id 唯一、逐段 source_refs/asset_ids 要求使交接闭环清晰",
+          "硬检查不满足先重写再输出 JSON，防止带缺陷交付",
+          "输出契约简短明确，禁止 Markdown 与额外字段"
+        ],
+        "issues": [
+          {
+            "severity": "medium",
+            "location": "输出前硬检查第5条",
+            "concern": "结尾检查未含题型答案要件，比较题条件结论与购买题三要件不在初稿出口门禁。",
+            "suggested_change": "改写第5条（不新增条数）：比较题须同共同任务同口径并给条件结论；购买题须交付付费增量、高频使用人群、现有方案已够用人群。"
+          },
+          {
+            "severity": "low",
+            "location": "硬检查第1–6条整体",
+            "concern": "与 screenwriter.md 的原则描述大量重复，初稿指令偏长。",
+            "suggested_change": "保留检查句式，删去与主文件重复的解释性文字，使其回归交付契约。"
+          }
+        ]
+      },
+      {
+        "path": "videoagents/prompts/screenwriter-rewrite.md",
+        "role": "讨论/人工反馈改稿",
+        "verdict": "keep",
+        "strengths": [
+          "明确人工反馈是创作约束而非事实来源，新增事实缺证据时缩小表述并在 response 说明缺口，防越权补事实",
+          "保留未改动段落 segment_id、禁止沿用旧稿通过结论，修订须重审，闭环完整",
+          "对『表达不清/主线跑偏』要求重建答案链而非换词凑修改"
+        ],
+        "issues": [
+          {
+            "severity": "low",
+            "location": "『先核对最后一轮未解决问题』段",
+            "concern": "重建答案链为通用表述，未点名比较/购买题型要件，返工后题型答案可能再次丢失。",
+            "suggested_change": "加半句：返工后比较题仍须共同任务+条件结论，购买题仍须三要件。"
+          },
+          {
+            "severity": "low",
+            "location": "唯一输出 response 说明",
+            "concern": "要求逐条回应但未规定排序，response 易发散。",
+            "suggested_change": "明确按主答案/开头→推进与具体性→事实与画面顺序逐条说明。"
+          }
+        ]
+      },
+      {
+        "path": "videoagents/prompts/script-reviewer.md",
+        "role": "文案审查 Agent",
+        "verdict": "keep",
+        "strengths": [
+          "把『各有优势看需求』明确判为 logic 实质缺陷，比较/购买要件写入 logic 检查，守住答案焦点",
+          "segment_id 必须逐字真实、APPROVE 时 issues 为空、REVISE 时非空，schema 纪律严格",
+          "REVISE 只留 2–4 个最影响成片的问题并禁止连续相反要求，防意见膨胀",
+          "禁止要求编剧虚构亲测/数字/冲突，fact 与 hook 不互相牺牲"
+        ],
+        "issues": [
+          {
+            "severity": "low",
+            "location": "hook/clarity 两节枚举",
+            "concern": "与 shared-style、screenwriter 的反模板表述重复。",
+            "suggested_change": "作为独立审查节点保留判据，但可压缩枚举措辞。"
+          },
+          {
+            "severity": "low",
+            "location": "第5项 visual 检查",
+            "concern": "视觉核验基于脚本 asset_ids 推断，未在小节内提示其证据边界。",
+            "suggested_change": "在该节前置一句：仅判素材有无与语义匹配，不核验像素与可用性。"
+          }
+        ]
+      },
+      {
+        "path": "videoagents/prompts/voice.md",
+        "role": "配音导演",
+        "verdict": "keep",
+        "strengths": [
+          "用户 voice_style/voice_speech_rate 绝对优先，不改文案、不要求变速、不声称试听，边界清楚",
+          "segment_performances 每段一项且顺序/ID 严格匹配，最后一段 pause_after_ms=0，闭环完整",
+          "error/warning 与 blocking 分级清晰，owner 覆盖全链"
+        ],
+        "issues": [
+          {
+            "severity": "low",
+            "location": "delivery_notes 说明『只返回一条』",
+            "concern": "schema 中 delivery_notes 为数组，单条要求与类型表述存在小歧义。",
+            "suggested_change": "明确『数组中仅放一条全局指令』。"
+          },
+          {
+            "severity": "low",
+            "location": "findings 与失败降级",
+            "concern": "配音节点发现的文案结构问题可能混入逐段表演建议。",
+            "suggested_change": "补一句：文案结构类问题统一以 finding 交 screenwriter，不在 delivery_style 中改写。"
+          }
+        ]
+      },
+      {
+        "path": "videoagents/prompts/component-study.md",
+        "role": "导演组件学习 Agent",
+        "verdict": "keep",
+        "strengths": [
+          "强制 reviewed_preset_ids 覆盖全部 152 个预设，指纹原样返回，学习结论可核验",
+          "video_first=true 且要求语义匹配+实测时长覆盖，防止凭名称选 video",
+          "limits 明示资料来自源码/hash 且预设演示内容不作本期事实",
+          "商业任务允许清单过滤但学习仍全覆盖，边界一致"
+        ],
+        "issues": [
+          {
+            "severity": "low",
+            "location": "产出要求中 152 等数量",
+            "concern": "数量硬编码与 component_source_guide 重复，清单升级时需同步。",
+            "suggested_change": "数量以 {{component_source_guide}} 注入内容为准。"
+          },
+          {
+            "severity": "low",
+            "location": "component_groups 要求",
+            "concern": "六库加适配器共 7 组，与 schema 6–12 区间的关系未点明。",
+            "suggested_change": "明确固定输出 7 组（六个组件库 + 九个参数化适配器合为一组）。"
+          }
+        ]
+      },
+      {
+        "path": "videoagents/prompts/director.md",
+        "role": "导演 Agent",
+        "verdict": "tighten",
+        "strengths": [
+          "帧覆盖硬约束：从 0 帧无缝覆盖、不重叠无空洞、每镜至少 15 帧、末镜精确结束；且禁止改音频/字幕/旁白",
+          "asset_src 仅取 assets 的 timeline_src、video 永远 muted、crop/highlight 必须有核验依据，资产与事实纪律完整",
+          "3/5 秒窗口按 captions 实测时间核对，不许挪动字幕强行达标",
+          "社区预设强制 props={}/asset_src=null，事实镜头走参数化适配器"
+        ],
+        "issues": [
+          {
+            "severity": "medium",
+            "location": "『先编排信息变化』与『先读懂再选画面』及收尾段",
+            "concern": "信息编排与结尾规则在三处重复；props 契约与 editing 近乎双份，存在双边漂移。",
+            "suggested_change": "合并信息编排两节、收尾表述只留一处；本文件作为 props 白名单唯一权威，editing 侧改引用。"
+          },
+          {
+            "severity": "medium",
+            "location": "『2～5 秒起点』『连续静态约 8 秒以上优先拆镜』",
+            "concern": "与 shared-style『没有统一最佳切镜频率』松紧不一，可能对需长停留的共同任务证据链过度拆切。",
+            "suggested_change": "明确秒数仅为提示，拆镜判据统一为无信息推进/重复阅读，不以秒数单独决定。"
+          },
+          {
+            "severity": "low",
+            "location": "屏幕文字小节与各信息分工段",
+            "concern": "『不把旁白抄三遍』在多节重复。",
+            "suggested_change": "保留屏幕文字小节一处权威表述，其余删除。"
+          }
+        ]
+      },
+      {
+        "path": "videoagents/prompts/editing.md",
+        "role": "剪辑渲染前预检",
+        "verdict": "tighten",
+        "strengths": [
+          "只输出建议且不自动应用，blocking/error 阻止渲染，门禁语义清楚",
+          "owner 路由覆盖 materials/screenwriter/voice/director/editing/user，跨节点还原路径明确",
+          "reveal_frame/right_reveal_frame 核对实测字幕时刻并要求至少 15 帧可读，检查具体可执行",
+          "明确不因无 BGM、时长偏离或未试听而自动阻断"
+        ],
+        "issues": [
+          {
+            "severity": "medium",
+            "location": "当前画面能力/可建议字段两大段枚举",
+            "concern": "重述导演 props 白名单与坐标约束，清单一变两边易冲突，可能误判合法字段。",
+            "suggested_change": "删除字段枚举，改为以导演输出契约为唯一白名单：越界即 error，语义/节奏按本文件检查。"
+          },
+          {
+            "severity": "medium",
+            "location": "逐镜检查中『大量超过约 8 秒的静态文字卡……属于具体返工问题』",
+            "concern": "把秒数代理写成既定返工项，与无统一切镜原则冲突。",
+            "suggested_change": "改为『超过约 8 秒且无逐项揭示或真实操作推进才列为问题』。"
+          },
+          {
+            "severity": "low",
+            "location": "pacing_notes/layout_notes 与 findings 分工",
+            "concern": "阻断项与 notes 之间仍可能混放。",
+            "suggested_change": "补一句 notes 仅放非阻断观察，所有阻断项必须入 findings。"
+          }
+        ]
+      },
+      {
+        "path": "videoagents/prompts/review.md",
+        "role": "最终内容语义审核",
+        "verdict": "tighten",
+        "strengths": [
+          "七项核验覆盖来源对应、无依据数据、素材匹配、比较口径、边界缺口、权利用途与 alignment 时间戳证据",
+          "事实冲突即 error+blocking，弱相关/口径不全为 warning，分级与事实风险匹配",
+          "明确不能把 provider 时间轴低置信度风险称为已被试听排除"
+        ],
+        "issues": [
+          {
+            "severity": "medium",
+            "location": "核验清单第4条",
+            "concern": "未含购买题要件：付费增量、高频受众、无需购买人群的条件是否成对保留无人核对。",
+            "suggested_change": "并入第4条：比较同维同条件；购买题增量与人群适用条件成对保留，缺一即 warning 交 screenwriter。"
+          },
+          {
+            "severity": "medium",
+            "location": "判断分级与唯一输出之间",
+            "concern": "未写明 blocking findings 的解决闭环与发布人工门禁，预检通过可能被误解为可发布。",
+            "suggested_change": "补一句：blocking findings 未解决不得交付，成片须经人工完整播放并通过发布门禁，本节点不授予发布资格。"
+          },
+          {
+            "severity": "low",
+            "location": "核验清单第7条 alignment 提醒",
+            "concern": "低置信度提醒未指定责任归属。",
+            "suggested_change": "明确该提醒 owner=user，交由人工最终听审。"
+          }
+        ]
+      }
+    ],
+    "topic_guidance": [
+      {
+        "topic": "Codex 和 Claude Code 谁更强",
+        "audience_decision": "面向正在命令行 AI 编码工具间做选择的开发者与技术团队；不存在全局谁更强，按任务类型与工作流交付条件结论。",
+        "common_task": "同一个真实仓库、同一张 issue 或报错单：定位问题→改代码→跑通测试→提交 PR，两边同模型档位、同版本、同日期分别执行。",
+        "decision_dimensions": [
+          "任务理解与规划准确性",
+          "代码改动质量与返工率",
+          "测试/验证闭环",
+          "多文件与长任务稳定性",
+          "工具链与环境兼容",
+          "成本、额度与限速"
+        ],
+        "evidence_priorities": [
+          "同任务双跑的可核验录屏与结果",
+          "独立第三方实测（标注口径日期）",
+          "官方能力说明仅作能力边界并标注身份",
+          "失败案例与不成立条件"
+        ],
+        "hook_direction": "同一个报错或同一需求下，两边交回的不同结果或不同处理路径构成的具体反差。",
+        "narrative_arc": [
+          "共同任务开场立规则",
+          "第一个差别在执行中显现",
+          "加入长任务/真实仓库等限制检验差别是否保持",
+          "找到决定选择的一步",
+          "按任务类型给条件结论"
+        ],
+        "avoid": [
+          "功能清单对念",
+          "拿不同任务的优势硬比",
+          "资料不足时伪造对打",
+          "『各有优势看需求』式收尾",
+          "把官方演示写成独立实测"
+        ]
+      },
+      {
+        "topic": "Kimi/Qwen/GLM 谁更强",
+        "audience_decision": "面向在国产模型中做日常选择的中文用户；按写作、问答、推理、长文本、代码等场景分流，不产出版本化绝对排名。",
+        "common_task": "三方同题同输入：同一组中文任务（长文总结、信息抽取、数学推理、代码生成、多轮问答），同版本同日期作答。",
+        "decision_dimensions": [
+          "中文理解与表达",
+          "推理与数学",
+          "长文本处理",
+          "代码能力",
+          "多轮稳定性",
+          "可用性、额度与价格"
+        ],
+        "evidence_priorities": [
+          "同题实测录屏与结果",
+          "三方公开 benchmark 的同口径项（注明口径与日期）",
+          "独立第三方评测",
+          "失败例与边界条件"
+        ],
+        "hook_direction": "同一道题或同一篇长材料，三方答案质量的可见反差。",
+        "narrative_arc": [
+          "同题入场立口径",
+          "差异随作答显现",
+          "更换题型检验差异",
+          "按场景做三方分流",
+          "给条件化选择结论"
+        ],
+        "avoid": [
+          "裸抛榜单与跑分数字",
+          "不同 benchmark 口径混比",
+          "把营销话术当实测",
+          "绝对化排名",
+          "功能参数三方并列罗列"
+        ]
+      },
+      {
+        "topic": "Codex Plus 要不要冲，面向受众是谁",
+        "audience_decision": "面向已在用或考虑 Codex/ChatGPT 付费的开发者；交付谁该冲、谁不用、付费究竟改变什么。",
+        "common_task": "非对打任务：用免费/现有档与 Plus 档完成同类真实编码任务，对比额度、模型档位、排队限速与特性增量。",
+        "decision_dimensions": [
+          "付费增量的实际内容",
+          "高频使用人群与周任务量",
+          "免费/现有档已够用人群",
+          "价格与回本条件",
+          "限制、地区与权限边界"
+        ],
+        "evidence_priorities": [
+          "官方价格与权益页真实摘录",
+          "同任务跨档位实测",
+          "高频用户真实用量证据",
+          "限制条款原文"
+        ],
+        "hook_direction": "多花钱到底多得到什么：一个具体任务中付费档与现有档的真实差别，或高频用户的用量处境。",
+        "narrative_arc": [
+          "先亮付费增量",
+          "再界定谁高频用得上",
+          "指出现有档已够用人群",
+          "给出价格与成立条件",
+          "按人群自然收尾"
+        ],
+        "avoid": [
+          "『都不错看需求』",
+          "让权限地区细则占满全片",
+          "把预设演示当事实",
+          "无依据的省钱或回本数字",
+          "催促式下单号召"
+        ]
+      }
+    ],
+    "must_change": [
+      "materials.md 增加比较题共同任务规则：同一任务、同输入同版本同日期、逐产品同口径结果，缺则写 limitations",
+      "screenwriter-draft.md 改写第5条硬检查，纳入比较题条件结论与购买题三要件，不新增条数",
+      "shared-style.md 合并第2节两组重复 bullet 与重复的开场/收尾表述",
+      "director.md 合并信息编排重复段落，并把切镜秒数统一降为提示，判据回归是否推进判断",
+      "editing.md 删除与导演重复的 props 枚举，改为引用导演输出契约白名单",
+      "review.md 第4条并入购买题付费增量与人群条件核对，并补发布人工门禁与 blocking 解决闭环",
+      "materials.md limitations 采用 [假设]/[歧义]/[证据缺口]/[画面缺口]/[未完成平台] 前缀约定"
+    ],
+    "keep_unchanged": [
+      "事实优先与四类说法分离、证据不足缩小结论的原则",
+      "文案、分镜、实际视频、发布四个人工门禁及修订后重新人工审核",
+      "素材不写文案、导演不改旁白字幕音频、剪辑只给建议、审核不代人工发布的角色边界",
+      "1080×1920、30fps 与统一竖版视觉母版",
+      "真实视频优先、video 静音、不循环凑时长、不把图片动效称视频",
+      "固定预设 props={}、演示内容不作事实、按 usage 过滤且 Talkcraft 不用于商业任务",
+      "文案由普通观众问题→案例与证据→条件结论自然收尾，不另起我的观点段",
+      "纯 JSON 输出、不加 Markdown、不新增字段的纪律"
+    ],
+    "suggested_edit_order": [
+      "videoagents/prompts/shared-style.md",
+      "videoagents/prompts/materials.md",
+      "videoagents/prompts/screenwriter.md",
+      "videoagents/prompts/screenwriter-draft.md",
+      "videoagents/prompts/screenwriter-rewrite.md",
+      "videoagents/prompts/script-reviewer.md",
+      "videoagents/prompts/director.md",
+      "videoagents/prompts/editing.md",
+      "videoagents/prompts/review.md",
+      "videoagents/prompts/voice.md",
+      "videoagents/prompts/component-study.md"
+    ]
+  }
+}

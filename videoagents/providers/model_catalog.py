@@ -71,6 +71,36 @@ def read_cli_models(prefix: list[str]) -> tuple[list[ModelChoice], str]:
     return choices, datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
+def read_trae_models(prefix: list[str]) -> tuple[list[ModelChoice], str]:
+    result = subprocess.run(
+        [*prefix, "models", "--json", "-c", "hooks.state={}"],
+        capture_output=True, check=True, timeout=12,
+        creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+    )
+    if len(result.stdout) > MAX_CACHE_BYTES:
+        raise ValueError("model_catalog_too_large")
+    value = json.loads(result.stdout)
+    if not isinstance(value, list) or len(value) > 2000:
+        raise ValueError("invalid_trae_model_catalog")
+    choices, seen = [], set()
+    for entry in value:
+        if not isinstance(entry, dict):
+            raise ValueError("invalid_trae_model_entry")
+        identifier = entry.get("name")
+        display_name = entry.get("real_name") or identifier
+        description = "" if entry.get("description") is None else entry.get("description")
+        if not isinstance(identifier, str) or not isinstance(display_name, str) or not isinstance(description, str):
+            raise ValueError("invalid_trae_model_entry")
+        choice = ModelChoice(
+            id=identifier, display_name=display_name, description=description,
+            hidden=False, is_default=False,
+        )
+        if choice.id not in seen:
+            choices.append(choice)
+            seen.add(choice.id)
+    return choices, datetime.now(UTC).isoformat().replace("+00:00", "Z")
+
+
 class ModelCatalogService:
     def __init__(self, *, cache_seconds: float = 60):
         self.cache_seconds = cache_seconds
@@ -82,9 +112,30 @@ class ModelCatalogService:
             return ModelCatalog(provider=provider, status="unavailable", message="Claude Code CLI 请直接填写模型名称。", fetched_at="")
         prefix = executable_prefix(provider)
         if not prefix:
-            return ModelCatalog(provider=provider, status="unavailable", message="未检测到 Codex CLI；仍可填写自定义模型名称。", fetched_at="")
+            label = "TRAE CLI" if provider == "trae_cli" else "Codex CLI"
+            return ModelCatalog(provider=provider, status="unavailable", message=f"未检测到 {label}；仍可填写自定义模型名称。", fetched_at="")
+        if provider == "trae_cli":
+            key = (provider, tuple(prefix))
+            with self._lock:
+                now = time.monotonic()
+                cached = self._cached.get(key)
+                if not refresh and cached and now - cached[0] < self.cache_seconds:
+                    return cached[1].model_copy(deep=True)
+                try:
+                    choices, fetched_at = read_trae_models(prefix)
+                    result = ModelCatalog(
+                        provider=provider, status="ready", models=choices, fetched_at=fetched_at,
+                        message="已通过项目实际使用的 TRAE CLI 查询模型列表。列表不代表当前账号一定可调用，实际支持以模型调用为准。",
+                    )
+                except (OSError, ValueError, UnicodeError, RecursionError, subprocess.SubprocessError):
+                    result = ModelCatalog(
+                        provider=provider, status="unavailable", fetched_at="",
+                        message="TRAE CLI 模型目录暂时无法读取；可直接填写 CLI 支持的模型名称，稍后刷新列表。",
+                    )
+                self._cached[key] = (time.monotonic(), result)
+                return result.model_copy(deep=True)
         directory = Path(os.getenv("CODEX_HOME") or str(Path.home() / ".codex")).expanduser()
-        key = (str(directory.resolve()), tuple(prefix))
+        key = (provider, str(directory.resolve()), tuple(prefix))
         with self._lock:
             now = time.monotonic()
             cached = self._cached.get(key)
@@ -110,5 +161,5 @@ class ModelCatalogService:
                     # Never return exception text, process output, paths or auth data.
                     result = ModelCatalog(provider=provider, status="error", fetched_at="",
                                           message="CLI 模型列表和本机缓存暂时无法读取；可继续使用自定义模型名称，稍后刷新列表。")
-            self._cached = {key: (time.monotonic(), result)}
+            self._cached[key] = (time.monotonic(), result)
             return result.model_copy(deep=True)
