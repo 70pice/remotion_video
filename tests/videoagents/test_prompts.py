@@ -125,6 +125,17 @@ def test_director_prompt_injects_props_examples():
     assert all(component_id in director.PROMPT for component_id in COMMUNITY_COMPONENT_IDS)
 
 
+def test_director_prompt_contains_visual_palette_contract():
+    prompt = director.PROMPT
+    assert "页面底色 `#0C0F14`" in prompt
+    assert "薄荷绿 `#8CFFB8` 仅表示" in prompt
+    assert "信息、选手 A、官方内容用蓝 `#5B8CFF`" in prompt
+    assert "推断、选手 B 用紫" in prompt
+    assert "顶部约 150 px、底部约 280 px" in prompt
+    assert "颜色不能单独承担信息" in prompt
+    assert "不得新增 theme、background、CSS、坐标等字段" in prompt
+
+
 def test_editing_prompt_allows_verified_image_crop():
     # 图片裁剪已由时间轴验证与渲染器支持，预检不能再按旧白名单误拒绝。
     assert "image_focus.crop{x,y,width,height}" in editing.PROMPT
