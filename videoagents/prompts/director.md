@@ -138,7 +138,8 @@
 - target_ratio 固定为 0.7；eligible_capacity_ratio 表示语义相关素材最多能
   覆盖的全片比例，actual_media_ratio 表示基线分镜实际使用比例。
 - 当 required=true，最终 evidence、image_focus、video 镜头按帧计算必须覆盖
-  全片至少 70%。不能用重复片段、循环播放、无关图片或延长静态截图凑比例。
+  全片超过 70%（不能刚好停在 70%）。不能用重复片段、循环播放、无关图片或
+  延长静态截图凑比例。
 - 当 required=false，说明合格素材本身不足以覆盖 70%。如实使用能匹配的部分，
   其余改用 comparison、data、steps 等解释组件；不因指标虚构界面、结果或视频。
 - 真实截图或视频进入镜头时应成为主视觉，通常占当前可用内容区约 70%～85%。

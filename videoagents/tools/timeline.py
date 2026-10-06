@@ -70,7 +70,10 @@ def media_coverage_report(
     validate_relationships: bool = True,
 ) -> dict[str, object]:
     ranges = _script_segment_ranges(timeline, job)
-    target_frames = math.ceil(timeline.duration_in_frames * MEDIA_COVERAGE_TARGET)
+    # The production requirement is strictly greater than 70%, not merely an
+    # exact 70% boundary. Frame counts are integers, so advance one frame past
+    # floor(70%) for every timeline length.
+    target_frames = math.floor(timeline.duration_in_frames * MEDIA_COVERAGE_TARGET) + 1
     if not ranges or not job.script:
         return {
             "target_ratio": MEDIA_COVERAGE_TARGET,
@@ -184,7 +187,7 @@ def validate_media_coverage(
     if report["required"] and report["actual_media_frames"] < report["target_frames"]:
         actual = float(report["actual_media_ratio"]) * 100
         raise ValueError(
-            f"语义关联素材足以覆盖全片 70%，实际图片/视频镜头仅覆盖 {actual:.1f}%"
+            f"语义关联素材足以覆盖全片超过 70%，实际图片/视频镜头仅覆盖 {actual:.1f}%"
         )
     return report
 

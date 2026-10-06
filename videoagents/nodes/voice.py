@@ -318,6 +318,30 @@ def _execute_ffmpeg(command: list[str], cancelled) -> None:
         job.close()
 
 
+def _ffmpeg_supports_filter(executable: str, filter_name: str) -> bool:
+    """Feature-detect optional filters instead of assuming a recent FFmpeg."""
+
+    try:
+        result = subprocess.run(
+            [executable, "-hide_banner", "-filters"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+            timeout=15,
+            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    if result.returncode:
+        return False
+    output = result.stdout + "\n" + result.stderr
+    return any(
+        len(parts := line.split()) >= 2 and parts[1] == filter_name
+        for line in output.splitlines()
+    )
+
+
 def stitch_segment_audio(segments: list[SegmentAudio], output: Path, cancelled) -> list[SegmentClip]:
     if cancelled():
         raise RenderCancelled("任务已取消")
@@ -349,16 +373,22 @@ def stitch_segment_audio(segments: list[SegmentAudio], output: Path, cancelled) 
                 f"asetpts=PTS-STARTPTS[p{index}]"
             )
             labels.append(f"[p{index}]")
-    filters.append(
-        "".join(labels)
-        + f"concat=n={len(labels)}:v=0:a=1,loudnorm=I=-16:LRA=11:TP=-1.5[out]"
-    )
+    output_label = labels[0]
+    if len(labels) > 1:
+        output_label = "[joined]"
+        filters.append("".join(labels) + f"concat=n={len(labels)}:v=0:a=1{output_label}")
+    # loudnorm was added after some still-supported FFmpeg builds. The source
+    # clips are already provider-level audio, so absence of this optional
+    # normalization must not make the narration fail or invite manual trimming.
+    if _ffmpeg_supports_filter(executable, "loudnorm"):
+        filters.append(f"{output_label}loudnorm=I=-16:LRA=11:TP=-1.5[out]")
+        output_label = "[out]"
     command = [executable, "-v", "error", "-nostdin", "-y"]
     for clip in clips:
         command.extend(["-i", str(clip.path)])
     command.extend([
         "-filter_complex", ";".join(filters),
-        "-map", "[out]", "-ar", "24000", "-ac", "1",
+        "-map", output_label, "-ar", "24000", "-ac", "1",
         "-codec:a", "libmp3lame", "-b:a", "128k", str(temporary),
     ])
     try:

@@ -116,10 +116,11 @@ def test_segment_timeline_uses_requested_total_pause_without_double_counting(tmp
     assert clips[0].inserted_pause_after_seconds == pytest.approx(0.2)
 
 
-def test_stitch_retains_acoustic_tail_beyond_provider_last_word_end(tmp_path):
+def test_stitch_retains_acoustic_tail_beyond_provider_last_word_end(tmp_path, monkeypatch):
     source = tmp_path / "tail.wav"
     source.write_bytes(tone_window(1.8, 0.2, 1.45))
     output = tmp_path / "tail.mp3"
+    monkeypatch.setattr("videoagents.nodes.voice._ffmpeg_supports_filter", lambda *args: False)
 
     clips = stitch_segment_audio([
         SegmentAudio("s1", source, 1.8, [
@@ -128,6 +129,7 @@ def test_stitch_retains_acoustic_tail_beyond_provider_last_word_end(tmp_path):
     ], output, lambda: False)
 
     assert clips[0].trim_end_seconds >= 1.45
+    assert output.is_file() and output.stat().st_size > 0
 
 
 def test_expressive_plan_synthesizes_each_segment_and_offsets_real_timestamps(tmp_path, monkeypatch):

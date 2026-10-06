@@ -96,6 +96,16 @@ def test_director_returns_only_shots_and_keeps_provider_alignment_in_code(tmp_pa
     assert state == original
 
 
+def test_director_rounds_fractional_audio_duration_up_to_preserve_the_tail(tmp_path, monkeypatch):
+    node, job, audio, alignment = director_job(tmp_path)
+    monkeypatch.setattr(node.model, "available", lambda role: False)
+
+    result = node.plan(job, audio, alignment, 2.001)
+
+    assert result.duration_in_frames == 31
+    assert result.duration_in_frames / result.fps > 2.001
+
+
 def test_director_node_retains_new_component_study_in_job_and_handoff(tmp_path, monkeypatch):
     node, job, audio, alignment = director_job(tmp_path)
     node.repo.update_asset_metadata(audio.asset_id, {
@@ -184,7 +194,7 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
         "image_focus 仅可选 focal_x/focal_y/crop",
         "x + width <= 1 且 y + height <= 1", "width/height 必须大于0", "所有文字字段必须非空",
         "title 最多100字、body 最多240字、source_label 最多160字",
-        "eligible_capacity_ratio", "actual_media_ratio", "至少 70%",
+        "eligible_capacity_ratio", "actual_media_ratio", "超过 70%",
         "占当前可用内容区约 70%～85%", "跨入无关联段落",
     ]:
         assert requirement in instruction
@@ -532,8 +542,39 @@ def test_model_director_requires_seventy_percent_media_when_linked_supply_is_suf
 
     monkeypatch.setattr(node.model, "call", model)
 
-    with pytest.raises(ValueError, match="足以覆盖全片 70%.*实际图片/视频镜头仅覆盖 0.0%"):
+    with pytest.raises(ValueError, match="足以覆盖全片超过 70%.*实际图片/视频镜头仅覆盖 0.0%"):
         node.plan(job, audio, alignment, 2.0)
+
+
+def test_media_coverage_must_be_strictly_above_seventy_percent(tmp_path):
+    node, job, audio, _ = director_job(tmp_path, image=True)
+    image = next(asset for asset in job.assets if asset.mime_type.startswith("image/"))
+    base = {
+        "job_id": job.job_id,
+        "revision": job.revision,
+        "width": job.brief.width,
+        "height": job.brief.height,
+        "fps": job.brief.fps,
+        "duration_in_frames": 100,
+        "audio_src": audio.timeline_src,
+        "captions": [{"text": job.script.segments[0].narration, "start_ms": 0.0, "end_ms": 6000.0}],
+    }
+
+    def candidate(media_end: int) -> Timeline:
+        return Timeline.model_validate({**base, "shots": [
+            {"shot_id": "media", "start_frame": 0, "end_frame": media_end,
+             "component_id": "evidence", "title": "真实证据", "asset_src": image.timeline_src,
+             "source_label": "example.test"},
+            {"shot_id": "explanation", "start_frame": media_end, "end_frame": 100,
+             "component_id": "title", "title": "解释结论"},
+        ]})
+
+    with pytest.raises(ValueError, match="实际图片/视频镜头仅覆盖 70.0%"):
+        validate_media_coverage(candidate(70), job)
+
+    report = validate_media_coverage(candidate(71), job)
+    assert report["target_frames"] == 71
+    assert report["actual_media_ratio"] == 0.71
 
 
 def test_media_coverage_allows_measurable_fallback_but_rejects_unrelated_media(tmp_path):
