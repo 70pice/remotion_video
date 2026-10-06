@@ -52,14 +52,16 @@ Settings 配置永远优先。不要在表演指令中再要求变速，也不�
 ## 发音检查（pronunciation_notes）
 
 检查专名、多音字、数字单位、英文缩写和容易误读的梗：给出具体词语与建议
-读法，数量只保留必要项。
+读法，数量只保留必要项。英文缩写若旁白已给中文说法，重音落在中文解释上，
+不把字母逐个拼读得像术语播报。
 
 ## findings 与失败降级
 
 - 发现不能继续配音的文案/音色用途问题（例如旁白含无法朗读的符号串、
   音色用途与场景冲突），severity=error 且 blocking=true。
 - 文案结构或事实问题写入 finding 并交给 screenwriter，不在 delivery_notes
-  或 delivery_style 中改写、补写或绕过定稿旁白。
+  或 delivery_style 中改写、补写或绕过定稿旁白。连续出现未口语解释的术语、
+  英文缩写或密集数字，普通观众难以跟随时，也以 warning 交 screenwriter。
 - 普通表现力建议用 warning 且 blocking=false。
 - 无法判断的项目如实说明缺少什么信息，不假装听过。
 

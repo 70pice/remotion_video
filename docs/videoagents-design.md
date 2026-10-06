@@ -2,7 +2,7 @@
 
 日期：2026-10-03。这是实施前通过审查的设计记录，保留当时的源码和外部资料核验结论。当前实现、实际测试及边界见 [实现与验证记录](videoagents-implementation-status.md)，启动操作见 [使用说明](videoagents-setup.md)。设计中的未来扩展不能当作已实测功能。
 
-最新实现已将素材独立为第一个节点：`materials → screenwriter`，并增加文案审查讨论。历史方案中的编剧采集职责已迁入素材节点；当前交接与平台能力见 [素材研究节点](videoagents-materials.md)。2026-10-05 又将全部 152 个社区组件以固定视觉预设接入生产 Timeline，与 8 个参数化适配器组成 160 个生产 ID；当前事实以 [实现与验证记录](videoagents-implementation-status.md) 为准。
+最新实现已将素材独立为第一个节点：`materials → screenwriter`，并增加文案审查讨论。历史方案中的编剧采集职责已迁入素材节点；当前交接与平台能力见 [素材研究节点](videoagents-materials.md)。2026-10-06 已将全部 152 个社区组件以固定视觉预设接入生产 Timeline，并加入真实视频适配器，与 9 个参数化适配器组成 161 个生产 ID；当前事实以 [实现与验证记录](videoagents-implementation-status.md) 为准。
 
 ## 1. 目标与设计决定
 
@@ -41,7 +41,7 @@
 | JSON 驱动主片 metadata | [Root.tsx](D:/remotion_video/src/Root.tsx:8) 已接 props 和 calculateMetadata；[AiScienceVideo.tsx](D:/remotion_video/src/templates/AiScienceVideo.tsx:160) 仅映射八类固定场景 |
 | 实际音频与逐词时间戳 | [prepare_episode.py](D:/remotion_video/scripts/prepare_episode.py:39) 已有缓存、WordBoundary、ffprobe 和临时文件提交；输入仍固定第一期，未实现独立对齐器 |
 | 中文时间字幕 | [captionPages.ts](D:/remotion_video/src/components/captionPages.ts:5)、[TimedCaptions.tsx](D:/remotion_video/src/components/TimedCaptions.tsx:7) 可借用分页和词级强调；[检查脚本](D:/remotion_video/scripts/check-captions.mjs:5) 有第一期专属假设，需参数化 |
-| 152 对横竖组件入口 | 实施前解析得到 152 对、横竖 entries 各 152；当前已生成统一生产清单并作为固定 preset 接入，仍只有 8 个 adapter 提供类型化内容 props |
+| 152 对横竖组件入口 | 实施前解析得到 152 对、横竖 entries 各 152；当前已生成统一生产清单并作为固定 preset 接入，由 9 个 adapter 提供类型化内容 props |
 | 基础验证 | [validate_episode.py](D:/remotion_video/scripts/validate_episode.py:30) 仅在视频已存在时检查 MP4；[verify-community.mjs](D:/remotion_video/scripts/verify-community.mjs:40) 是组件三帧抽样，均不能直接作为最终发布门 |
 
 已实时读取[用户提供的飞书组件表](https://icnpfyu4nynj.feishu.cn/sheets/UPpgsQJnLhgA0WtzlU2crIXqnOe)，revision 113。读取了工作簿结构、组件表头和首尾样本、使用说明；未做全表逐单元格校验。当前五列是：组件名称、竖版路径、横版路径、适合表达的内容、适用场景。使用说明列出 152 个组件及其用途边界。
@@ -172,7 +172,7 @@ flowchart TD
 
 新增 `VideoFromTimeline` composition。Node 渲染适配器读取 JSON，先完成运行时 schema/素材/组件白名单校验，再调用 `selectComposition()` 与 `renderMedia()`；两次传同一份冻结 props。使用 `calculateMetadata()` 设置准确时长、尺寸和 fps。[Remotion 渲染接口](https://www.remotion.dev/docs/renderer/render-media)、[动态 metadata](https://www.remotion.dev/docs/calculate-metadata)
 
-生产 `component registry` 负责将 `component_id` 解析为已审核实现。LLM 不填写任意 import 路径，不执行任意 TSX。当前 8 个 adapter 通过严格 props schema 组装真实内容；152 个 community preset 已全部注册为固定视觉实现，强制 `props={}`、`asset_src=null`，按 timeline 方向选择横版或原生竖版。需要让某个 preset 接收真实文案或素材时，仍须形成独立参数化适配任务，经类型、许可和预览验证后扩展契约。
+生产 `component registry` 负责将 `component_id` 解析为已审核实现。LLM 不填写任意 import 路径，不执行任意 TSX。当前 9 个 adapter 通过严格 props schema 组装真实内容（含已导入的真实视频）；152 个 community preset 已全部注册为固定视觉实现，强制 `props={}`、`asset_src=null`，按 timeline 方向选择横版或原生竖版。需要让某个 preset 接收真实文案或素材时，仍须形成独立参数化适配任务，经类型、许可和预览验证后扩展契约。
 
 先生成低分辨率完整预览与关键帧联系表，检查布局和节奏；通过后按最终参数渲染。预览通过不等于最终通过，最终 MP4 仍需独立解码、音频和内容检查。
 
@@ -303,7 +303,7 @@ LangGraph 默认持久化，`job_id` 是 thread 身份，`revision_id` 是产物
 
 ## 8. 组件目录升级
 
-保留飞书现有五列作为人用目录；运行时使用仓库内生成并随版本冻结的 `videoagents/component-manifest.json`，结合本地代码注册表和预览。清单包含 8 个 adapter 和 152 个 preset，`npm run check:production-components` 会检查目录、用途说明与清单是否漂移。
+保留飞书现有五列作为人用目录；运行时使用仓库内生成并随版本冻结的 `videoagents/component-manifest.json`，结合本地代码注册表和预览。清单包含 9 个 adapter 和 152 个 preset，`npm run check:production-components` 会检查目录、用途说明与清单是否漂移。
 
 生产 registry 补充：
 
@@ -320,7 +320,7 @@ LangGraph 默认持久化，`job_id` 是 thread 身份，`revision_id` 是产物
 
 导演先按许可、方向、素材角色和时长做硬过滤，再按语义、视觉强度和重复度选用。当前 Prompt 注入按 `brief.usage` 过滤的完整清单；方向由 renderer 自动选择。MVP 使用现有描述与标签，不建设向量数据库。
 
-第一批 8 类参数化适配器已经实现：标题登场、关键词强调、证据截图、图片局部聚焦、前后对比、数字/数据卡、步骤时间线、结论卡。全部 152 个社区组件也已作为固定 preset 开放；后续工作是按需把高频 preset 升级成有明确 props schema 的 adapter，而不是继续扩大未约束输入面。
+第一批 9 类参数化适配器已经实现：标题登场、关键词强调、证据截图、图片局部聚焦、真实视频、前后对比、数字/数据卡、步骤时间线、结论卡。全部 152 个社区组件也已作为固定 preset 开放；后续工作是按需把高频 preset 升级成有明确 props schema 的 adapter，而不是继续扩大未约束输入面。
 
 ## 9. 代码组织与边界
 
@@ -543,7 +543,7 @@ API 接收命令、验证版本和参数、事务性写入持久化队列后返�
 | A：契约与全栈骨架 | 新增 web、server、worker、videoagents、跨端契约和持久化命令队列 | 页面能创建/查询任务；fixture 能跑完五阶段；重复提交不重复运行；不合格稿件不触发 TTS |
 | B：最小端到端切片 | 用固定真实素材、经用户允许的样稿和测试音频，接一个生产 adapter、VideoFromTimeline 与前端播放器 | 从网页提交后看到真实进度、播放和下载 MP4；刷新不丢状态；现有主片与组件注册不回归 |
 | C：编剧检索与字节配音 | 编剧/素材/配音页面及对应 provider；用户提供接口文档和音色配置后接真实 TTS | 页面能查看来源、修订稿件、试听真实音色；没有时间戳时走对齐分支；未知提交不重复计费 |
-| D：导演与首批组件 | 分镜编辑页面、组件库页面、director、registry、8 类 adapter、catalog snapshot | 页面可换图/组件并验证新分镜；长中文可读；镜头覆盖音频，语义与证据对应 |
+| D：导演与首批组件 | 分镜编辑页面、组件库页面、director、registry、9 类 adapter、catalog snapshot | 页面可换图/组件并验证新分镜；长中文可读；镜头覆盖音频，语义与证据对应 |
 | E：完整审核和定向返工 | 审核页面、reviewers、policies、路由、报告与人工恢复 | 点击问题跳转相应时间；补证据/返工真实生效；过期回复被拒；修稿使旧审批失效 |
 | F：全栈交付与运维验收 | 设置页面、端到端测试、Windows 启停脚本、文档、日志和备份恢复 | 三类真实样片全片审核；网页断线/API 重启/Worker 崩溃恢复通过；凭据不泄露；一键启动后服务健康检查通过 |
 

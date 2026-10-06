@@ -7,7 +7,7 @@ import { Notice, PageHeading } from "../components/ui";
 const initialBrief: Brief = {
   topic: "",
   script_text: "",
-  audience: "普通观众",
+  audience: "没有技术背景的普通大众",
   platform: "抖音",
   usage: "unspecified",
   target_seconds: 60,
@@ -89,7 +89,7 @@ export function CreateJobPage() {
                 rows={3}
                 value={sources}
                 onChange={(event) => setSources(event.target.value)}
-                placeholder="每行一个网页地址；真实截图和图片可在下一步上传"
+                placeholder="每行一个网页地址；真实截图、图片和视频可在下一步上传"
               />
             </label>
           </div>

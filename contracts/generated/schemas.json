@@ -218,7 +218,7 @@
           "type": "string"
         },
         "audience": {
-          "default": "普通观众",
+          "default": "没有技术背景的普通大众",
           "maxLength": 500,
           "title": "Audience",
           "type": "string"

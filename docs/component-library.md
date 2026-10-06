@@ -41,15 +41,15 @@ npm run components
 
 ### 通过 VideoAgents Timeline 直接选择
 
-全部 152 个逻辑组件已经作为固定视觉 preset 开放给生产 Timeline，并与 8 个
-参数化 adapter 组成 160 个稳定 `component_id`。导演 Prompt、`/api/catalog`、
+全部 152 个逻辑组件已经作为固定视觉 preset 开放给生产 Timeline，并与 9 个
+参数化 adapter 组成 161 个稳定 `component_id`。导演 Prompt、`/api/catalog`、
 React 分镜选择器、Python/Node 校验和 Remotion registry 共用
 `videoagents/component-manifest.json`；同一 ID 会根据 timeline 方向自动使用横版
 或原生竖版实现。
 
 preset 当前保留已验证的示例参数，必须使用 `props={}`、`asset_src=null`；外层
 shot 的 title/body 可用于补充本镜头信息，但不能把原卡的演示文字、人物或数字
-当作事实证据。需要传入真实数据、图片、对比或步骤时，使用 8 个参数化 adapter，
+当作事实证据。需要传入真实数据、图片、视频、对比或步骤时，使用 9 个参数化 adapter，
 或先为目标 preset 建立有类型和测试的独立适配器。Talkcraft preset 只对
 personal/unspecified 任务开放，commercial 任务会在生成和校验阶段拒绝。
 
@@ -129,7 +129,7 @@ npm run check:production-components
 - `check:components`：核对 108 个原卡 SHA-256、152 个原版及 152 个竖屏注册项；原版抽起始 / 中间 / 结束三帧，原生竖屏也抽起始 / 中间 / 结束三帧，均使用 `scale: 1`。检查浏览器错误、素材加载与抽样画面变化。
 - `catalog:components`：根据验证报告生成目录，不能替代前面的源码和渲染检查。
 - `check:component-paths`：检查152对入口与实现、304条入口路径、表格行数据和108个原卡哈希。
-- `check:production-components`：重新推导 8 个 adapter + 152 个 preset 的统一生产清单，检查 ID、用途许可和组件目录是否漂移。
+- `check:production-components`：重新推导 9 个 adapter + 152 个 preset 的统一生产清单，检查 ID、用途许可和组件目录是否漂移。
 
 更新已有飞书表格时运行 `python scripts/update-component-path-sheet.py --execute`，随后 `python scripts/verify-component-path-sheet.py` 回读全部1399个单元格。省略 `--execute` 仅预览请求。
 

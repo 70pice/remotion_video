@@ -10,6 +10,7 @@ import importlib.resources
 
 import pytest
 
+from videoagents.contracts import Brief
 from videoagents.nodes import (
     director,
     editing,
@@ -48,6 +49,14 @@ def test_every_prompt_file_loads_non_empty(name):
 def test_prompt_dir_has_no_orphan_markdown():
     on_disk = sorted(path.stem for path in PROMPTS_DIR.glob("*.md"))
     assert on_disk == sorted(PROMPT_FILES)
+
+
+def test_legacy_programmer_focused_root_prompt_does_not_return():
+    assert not (PROMPTS_DIR.parents[1] / "screenwriter-prompt-v2.md").exists()
+
+
+def test_new_jobs_default_to_a_general_public_audience():
+    assert Brief(topic="AI 新闻").audience == "没有技术背景的普通大众"
 
 
 def test_markdown_ships_as_package_data():
@@ -141,6 +150,86 @@ def test_editing_prompt_allows_verified_image_crop():
     assert "image_focus.crop{x,y,width,height}" in editing.PROMPT
 
 
+RUNTIME_PROMPTS = [
+    materials.PROMPT,
+    screenwriter.PROMPT,
+    screenwriter.REWRITE_PROMPT,
+    script_reviewer.PROMPT,
+    voice.PROMPT,
+    director.PROMPT,
+    editing.PROMPT,
+    reviewers.PROMPT,
+]
+
+
+@pytest.mark.parametrize("prompt", RUNTIME_PROMPTS)
+def test_every_runtime_prompt_pins_general_public_audience(prompt):
+    # 受众契约来自共享风格层；任何角色都不能把“懂技术”当默认前提。
+    assert "没有技术背景的普通大众" in prompt
+
+
+@pytest.mark.parametrize("prompt", [
+    screenwriter.PROMPT,
+    screenwriter.REWRITE_PROMPT,
+    script_reviewer.PROMPT,
+    voice.PROMPT,
+    editing.PROMPT,
+    reviewers.PROMPT,
+])
+def test_noncatalog_prompts_drop_programmer_default_examples(prompt):
+    # 旧版默认示例是 Codex/Claude Code 对打、读文件改代码跑测试；受众改为
+    # 普通大众后，这些不能再作为范例或话题出现在非组件清单的 Prompt 中。
+    for banned in ["Codex", "Claude Code", "改代码", "跑测试", "报错找到相关文件"]:
+        assert banned not in prompt, banned
+
+
+def test_director_catalog_is_the_only_programmer_reference():
+    # 导演 Prompt 末尾的完整组件清单必然列出 Talkcraft-claude-code 等预设
+    # ID；除此之外，正文里不应再出现 Codex/Claude Code 字样。
+    body, _, catalog = director.PROMPT.partition("## 本任务允许的完整组件清单")
+    assert "Codex" not in body
+    assert "Claude Code" not in body
+    assert "Talkcraft-claude-code" in catalog
+
+
+@pytest.mark.parametrize("label,phrase", [
+    ("materials", "难以直观理解、且影响判断的数字"),
+    ("materials", "不用类比"),
+    ("screenwriter", "难以直观理解且影响判断的数字"),
+    ("screenwriter", "直观数字不强行类比"),
+    ("script_reviewer", "直观数字不要求类比"),
+    ("reviewers", "被强行类比"),
+])
+def test_life_scale_only_required_for_hard_numbers(label, phrase):
+    # 生活尺度只用于难懂且影响判断的数字；日期、价格、次数等直观数字不
+    # 强行类比，避免模板化和编造参照。
+    prompts = {
+        "materials": materials.PROMPT,
+        "screenwriter": screenwriter.PROMPT,
+        "script_reviewer": script_reviewer.PROMPT,
+        "reviewers": reviewers.PROMPT,
+    }
+    assert phrase in prompts[label]
+
+
+def test_shared_style_carries_softened_number_rule():
+    style = load_prompt("shared-style")
+    assert "不强行类比" in style
+    assert "难以直观理解、且会影响判断的数字" in style
+
+
+def test_director_chain_keeps_developer_preset_boundary():
+    # 开发者/代码界面预设的选择边界必须保留在导演链路（学习结论与分镜规则）。
+    for phrase in [
+        "终端、代码、光标走读类开发者预设",
+        "本期主题确实相关",
+        "普通观众不用读代码也能理解",
+        "能当本期事实证据",
+    ]:
+        assert phrase in director.PROMPT
+    assert "开发者界面边界" in load_prompt("component-study")
+
+
 @pytest.mark.parametrize(
     "label,phrase",
     [
@@ -148,6 +237,8 @@ def test_editing_prompt_allows_verified_image_crop():
         ("materials", "一个所有对象都能参与的共同任务"),
         ("materials", "[证据缺口]"),
         ("materials", "[未完成平台]"),
+        ("materials", "白话怎么说"),
+        ("materials", "生活尺度"),
         ("screenwriter", "每段 source_refs 必须有真实来源"),
         ("screenwriter", "不要单独宣布“我的观点”"),
         ("screenwriter", "结尾的解释与使用边界同样填写支撑它的真实 source_refs"),
@@ -165,6 +256,7 @@ def test_editing_prompt_allows_verified_image_crop():
         ("screenwriter", "不虚构第一人称体验"),
         ("screenwriter", "同一套任务和判断口径"),
         ("screenwriter", "不要把下面的方法写成固定模板"),
+        ("screenwriter", "白话在先、名称在后"),
         ("script_reviewer", "全稿问题使用空字符串"),
         ("script_reviewer", "script_discussion.rounds[-1].script.segments"),
         ("script_reviewer", "不得使用范围"),

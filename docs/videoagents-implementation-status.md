@@ -2,13 +2,13 @@
 
 2026-10-03。React 前端、FastAPI API、独立 worker、持久 LangGraph 工作流和 Remotion 生产入口已实现并完成本机联调。设计记录见 [原方案](videoagents-design.md)，操作见 [使用说明](videoagents-setup.md)，接口见 [共享契约](videoagents-implementation-contract.md)。
 
-## 2026-10-05：全部 Remotion 组件进入生产 Timeline
+## 2026-10-06：真实视频适配器与全部 Remotion 组件进入生产 Timeline
 
-生产组件不再只限 8 个适配器。新增由现有组件目录和使用指南生成的 `videoagents/component-manifest.json`，统一提供 **160 个生产 ID：8 个可参数化适配器 + 152 个固定社区预设**。每个社区预设都有横版和原生竖版实现，Remotion registry 严格核对 152 对实现，并按 Timeline 方向自动选择，因此底层共执行 304 个社区 Composition，但不会向 Agent 暴露重复的方向 ID。
+生产组件包含 `video` 在内的 9 个参数化适配器。由现有组件目录和使用指南生成的 `videoagents/component-manifest.json`，统一提供 **161 个生产 ID：9 个可参数化适配器 + 152 个固定社区预设**。每个社区预设都有横版和原生竖版实现，Remotion registry 严格核对 152 对实现，并按 Timeline 方向自动选择，因此底层共执行 304 个社区 Composition，但不会向 Agent 暴露重复的方向 ID。
 
-清单现已贯穿 `/api/catalog`、Pydantic/JSON Schema、导演动态输出 schema 与 Prompt、Python/Node Timeline 校验、React 分镜选择器和 `VideoFromTimeline`。固定预设要求 `props={}`、`asset_src=null`，阻止 CSS、URL、函数、源码路径和任意组件注入；镜头外层 title/body 仍可叠加，预设内置演示内容不能作为事实证据。真实文案、数据、步骤和图片仍由 8 个参数化适配器承载。
+清单现已贯穿 `/api/catalog`、Pydantic/JSON Schema、导演动态输出 schema 与 Prompt、Python/Node Timeline 校验、React 分镜选择器和 `VideoFromTimeline`。固定预设要求 `props={}`、`asset_src=null`，阻止 CSS、URL、函数、源码路径和任意组件注入；镜头外层 title/body 仍可叠加，预设内置演示内容不能作为事实证据。真实文案、数据、步骤、图片和视频由 9 个参数化适配器承载。
 
-许可按 `Brief.usage` 硬过滤：Snapcn/RVE/Remocn/RemotionUI/Bits 与 8 个适配器允许商业使用；108 个 Talkcraft 预设只允许 personal/unspecified。默认导演 schema 包含 160 个 ID，commercial schema 包含 52 个 ID，前端和服务端都会拒绝越权选择。
+许可按 `Brief.usage` 硬过滤：Snapcn/RVE/Remocn/RemotionUI/Bits 与 9 个适配器允许商业使用；108 个 Talkcraft 预设只允许 personal/unspecified。默认导演 schema 包含 161 个 ID，commercial schema 包含 53 个 ID，前端和服务端都会拒绝越权选择。
 
 专项验证覆盖组件清单生成漂移、全部 ID 契约、用途过滤、Prompt 完整目录、Python/Node/React 注入拒绝和 wheel 包数据。Remotion 实际用 Timeline 成功渲染 `Snapcn-TextReveal` 竖版 still（1080×1920）与 `Talkcraft-crash-zoom-punch` 横版 still（1280×720），并目视确认方向注册链路可执行。
 
@@ -143,7 +143,7 @@ D:\remotion_video\
 │  ├─ services/                 版本编辑、导入及 write-only 设置
 │  ├─ storage/                  SQLite 命令、事件、外部操作台账
 │  └─ tools/                    来源、截图、媒体、组件、时间轴
-├─ src/video-production/        独立 Remotion 入口、8 个适配器与 152 个预设注册
+├─ src/video-production/        独立 Remotion 入口、9 个适配器与 152 个预设注册
 ├─ contracts/generated/         TypeScript、JSON Schema、OpenAPI
 ├─ scripts/                     启动/停止、契约导出、渲染与 HTTP smoke
 ├─ tests/                       API、工作流、provider、worker、进程回归
@@ -161,7 +161,7 @@ D:\remotion_video\
 - 草稿、素材或对齐变更递增版本，使相关分镜、视频和审核失效。编辑状态保留，保存期间保护正在提交的草稿，旧版本写入返回 409。
 - 编剧可使用用户文案，或通过搜索与真实来源生成稿件。研究收据在模型请求前冻结，来源文件不可覆盖；实际网页截图可选启用，示意图不作为事实证据。
 - 字节 v3 HTTP 流式配音 adapter、复刻音色配置、用户音频导入与实测对齐已接入。音频绑定内容及音色 fingerprint，导演使用所选音频的实测时间，而非按字数估时。
-- 8 个参数化适配器支持真实标题、关键词、证据截图、图片聚焦、前后对比、数据卡、步骤和结论；另有 152 个社区组件作为固定视觉预设进入生产 Timeline。预设可执行但不伪装成统一可编辑模板：不接收自定义 props/素材，演示内容不作为事实证据。
+- 9 个参数化适配器支持真实标题、关键词、证据截图、图片聚焦、视频、前后对比、数据卡、步骤和结论；另有 152 个社区组件作为固定视觉预设进入生产 Timeline。预设可执行但不伪装成统一可编辑模板：不接收自定义 props/素材，演示内容不作为事实证据。
 - 最终检查包括实际 MP4 完整解码、分辨率/帧率/时长、对齐文本、产物与素材 hash、来源与用途、渲染依赖绑定。缺少完整视听复核能力时明确要求人完整观看。
 - 人工回复绑定版本、依赖 fingerprint、媒体 hash、pending token 和 LangGraph interrupt ID。旧配置回复重放不能回答后来的人审；人工确认不能绕过硬失败。
 - 明确的服务拒绝可在修正配置后由新显式命令重试；受理未知则保留 UNKNOWN 台账、阻止盲重提。配音仍可导入实际服务结果与实测对齐进行恢复。

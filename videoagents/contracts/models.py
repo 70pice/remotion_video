@@ -13,7 +13,7 @@ class Contract(BaseModel):
 class Brief(Contract):
     topic: str = Field(default="", max_length=2000)
     script_text: str = Field(default="", max_length=30000)
-    audience: str = Field(default="普通观众", max_length=500)
+    audience: str = Field(default="没有技术背景的普通大众", max_length=500)
     platform: str = Field(default="抖音竖屏", max_length=100)
     usage: Literal["personal", "commercial", "unspecified"] = "unspecified"
     target_seconds: float = Field(default=60, ge=1, le=1800)
