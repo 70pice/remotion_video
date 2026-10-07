@@ -17,6 +17,7 @@ from videoagents.nodes.common import (
     start_stage,
     state_context,
 )
+from videoagents.nodes.gates import timeline_readability_issues
 from videoagents.prompts import load_prompt
 from videoagents.prompts import render as render_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
@@ -30,7 +31,7 @@ from videoagents.tools.components import (
     prompt_component_catalog,
 )
 from videoagents.tools.timeline import (
-    asset_publishable,
+    asset_renderable,
     media_coverage_report,
     validate_media_coverage,
     validate_timeline,
@@ -179,12 +180,13 @@ class DirectorNode:
             audio = next(item for item in job.assets if item.asset_id == state["audio_asset_id"])
             feedback_stage = "render" if stage_feedback(state, "render") else "director"
             feedback = stage_feedback(state, feedback_stage)
-            if feedback and job.timeline and type(feedback.get("timeline")) is dict and job.timeline.model_dump() != feedback["timeline"]:
+            if (not state.get("extras", {}).get("timeline_rebuild") and feedback and job.timeline
+                    and type(feedback.get("timeline")) is dict and job.timeline.model_dump() != feedback["timeline"]):
                 # SQL may commit before either artifact write; restore both outputs before continuing.
                 self.service.write_json(job, "storyboard.json", job.timeline.model_dump(), "storyboard")
                 self.service.write_json(job, "timeline.json", job.timeline.model_dump(), "timeline")
                 mark_feedback_applied(self.repo, self.service, job, state, feedback_stage, "director")
-                return state_context(self.repo, state, route="timeline_gate", gate_issues=[])
+                return state_context(self.repo, state, route=self.next_route(state), gate_issues=[])
             timeline = self.plan(job, audio, Alignment.model_validate(state["alignment"]), state["duration_seconds"],
                                  state.get("research", {}), state=state)
             if feedback and type(feedback.get("timeline")) is dict and timeline.model_dump() == feedback["timeline"]:
@@ -201,8 +203,9 @@ class DirectorNode:
             if feedback:
                 mark_feedback_applied(self.repo, self.service, self.repo.get_job(job.job_id), state,
                                       feedback_stage, "director")
-            return state_context(self.repo, state,
-                                 route="timeline_gate", gate_issues=[])
+            if state.get("extras", {}).get("timeline_rebuild"):
+                state["extras"] = {**state["extras"], "timeline_rebuild": None}
+            return state_context(self.repo, state, route=self.next_route(state), gate_issues=[])
         except (CapabilityMissing, ValueError) as exc:
             return request_input(self.repo, state, "director", [str(exc)], ["timeline"], exc)
 
@@ -221,6 +224,21 @@ class DirectorNode:
         """Compatibility for callers that only need a combined classification."""
         return cls._needs_script_revision(note) or cls._needs_voice_revision(note)
 
+    def next_route(self, state: VideoState) -> str:
+        action = state.get("action")
+        if action == "storyboard":
+            job = self.repo.get_job(state["job_id"])
+            self.repo.update_job(job.job_id, job.revision, status="DRAFT", stage="director",
+                                 message="分镜已生成，本次执行结束", progress=1, pending_input=None)
+            return "end"
+        if action == "review":
+            job = self.repo.get_job(state["job_id"])
+            self.repo.update_job(job.job_id, job.revision, status="DRAFT", stage="director",
+                                 message="已移除成片审核节点；请使用 produce/final 重新生成视频", progress=1,
+                                 pending_input=None)
+            return "end"
+        return "editing"
+
     def plan(self, job: Job, audio: Asset, alignment: Alignment, duration: float,
              research: dict | None = None, state: VideoState | None = None) -> Timeline:
         asset_metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
@@ -229,11 +247,16 @@ class DirectorNode:
         if state is None and research is not None:
             context = {**context, "research": research}
         feedback = stage_feedback(context, "director", "render")
-        if feedback and job.timeline and type(feedback.get("timeline")) is dict and job.timeline.model_dump() != feedback["timeline"]:
+        rebuilding = bool(context.get("extras", {}).get("timeline_rebuild"))
+        pending = context.get("pending_snapshot") or {}
+        repair_issues = list(context.get("gate_issues", [])) if pending.get("stage") == "director" else []
+        if not rebuilding and feedback and job.timeline and type(feedback.get("timeline")) is dict and job.timeline.model_dump() != feedback["timeline"]:
             return job.timeline
+        if rebuilding and not model_available:
+            raise CapabilityMissing("重做画面需要启用导演模型重新选择素材和编排镜头，不能直接复用旧分镜", ["role_models", "timeline"])
         if feedback and not model_available:
             raise CapabilityMissing("人工返工需要导演模型读取审核意见并重新规划镜头；请启用导演模型或提供新的人工分镜", ["role_models", "timeline"])
-        if job.timeline and not feedback:
+        if job.timeline and not feedback and not rebuilding:
             if model_available:
                 self.ensure_component_study(job, context, state)
             elif production_portrait(job):
@@ -243,7 +266,11 @@ class DirectorNode:
             actual = [(item.text, item.start_ms, item.end_ms) for item in job.timeline.captions]
             if expected != actual or job.timeline.audio_src != audio.timeline_src:
                 raise ValueError("人工分镜必须保留当前实测音频及字幕时间轴")
-            return job.timeline
+            repair_issues = timeline_readability_issues(job.timeline) if production_portrait(job) else repair_issues
+            if not repair_issues:
+                return job.timeline
+            if not model_available:
+                raise ValueError("；".join(repair_issues))
         starts = {}
         for segment in alignment.segments:
             starts.setdefault(segment.segment_id, math.floor(segment.start_ms * job.brief.fps / 1000))
@@ -266,17 +293,19 @@ class DirectorNode:
             end = cut_frames[index + 1] if index + 1 < len(cut_frames) else total
             next_segment_index = cut_indices[index + 1] if index + 1 < len(cut_indices) else len(job.script.segments)
             shot_seconds = (end - start) / job.brief.fps
-            video = next((assets[asset_id] for asset_id in segment.asset_ids
-                          if asset_id in assets and assets[asset_id].mime_type.startswith("video/")
-                          and asset_publishable(assets[asset_id])
-                          and _video_covers(assets[asset_id], asset_metadata, shot_seconds)), None)
+            video = next((asset for asset in job.assets
+                          if asset.mime_type.startswith("video/")
+                          and (asset.asset_id in segment.asset_ids
+                               or bool(asset.source_url and asset.source_url in segment.source_refs))
+                          and asset_renderable(asset)
+                          and _video_covers(asset, asset_metadata, shot_seconds)), None)
             image = next((assets[asset_id] for asset_id in segment.asset_ids
                           if asset_id in assets and assets[asset_id].mime_type.startswith("image/")
-                          and asset_publishable(assets[asset_id])), None)
+                          and asset_renderable(assets[asset_id])), None)
             if not image:
                 # 编剧没有指定图片时，根据该段的出处匹配素材节点采集的真实画面。
                 image = next((asset for asset in job.assets if asset.mime_type.startswith("image/")
-                              and asset_publishable(asset) and asset.source_url in segment.source_refs), None)
+                              and asset_renderable(asset) and asset.source_url in segment.source_refs), None)
             component = "video" if video else "evidence" if image and image.role == "evidence" and image.source_url else "image_focus" if image else "title" if index == 0 else "conclusion" if index == len(cut_indices) - 1 else "keyword"
             media = video or image
             shots.append(Shot(shot_id=f"shot-{index + 1}", start_frame=start, end_frame=end,
@@ -298,23 +327,39 @@ class DirectorNode:
             schema["$defs"]["Shot"]["properties"]["asset_src"]["enum"] = [
                 asset.timeline_src for asset in job.assets
                 if asset.mime_type.startswith(("image/", "video/"))
-                and asset_publishable(asset)
+                and asset_renderable(asset)
             ] + [None]
             # 实测基线只作为本次导演输入；模型输出校验通过前不写入共享 state。
             reviewed_timeline = feedback.get("timeline") if feedback and type(feedback.get("timeline")) is dict else None
+            if repair_issues and not rebuilding:
+                reviewed_timeline = job.timeline.model_dump()
+            planning_timeline = Timeline.model_validate(reviewed_timeline) if reviewed_timeline else timeline
             coverage = media_coverage_report(
-                timeline,
+                planning_timeline,
                 job,
                 asset_metadata,
                 validate_relationships=False,
             )
-            model_state = {**context, "timeline": reviewed_timeline or timeline.model_dump(),
+            model_state = {**context, "timeline": planning_timeline.model_dump(),
                            # 音频对齐已在 timeline.captions 提供，避免在素材元信息中重复发送。
-                           "asset_metadata": {asset_id: {key: value for key, value in metadata.items()
-                               if key != "alignment"} for asset_id, metadata in context.get("asset_metadata", {}).items()},
+                           "asset_metadata": {asset.asset_id: {
+                               **{key: value for key, value in {
+                                   **context.get("asset_metadata", {}).get(asset.asset_id, {}),
+                                   **asset_metadata[asset.asset_id],
+                               }.items() if key != "alignment"},
+                               **({"renderable": asset_renderable(asset)}
+                                  if asset.mime_type.startswith(("image/", "video/")) else {}),
+                           } for asset in job.assets},
                            "extras": {**context.get("extras", {}), "component_study": study.model_dump(),
-                                      "media_coverage": coverage}}
-            value = self.model.invoke(model_state, "director", director_prompt(job.brief.usage),
+                                      "media_coverage": coverage, "timeline_repair_issues": repair_issues}}
+            instruction = director_prompt(job.brief.usage)
+            if coverage["required"]:
+                instruction += ("\n\n本次提交的硬约束：图片/视频镜头至少覆盖 "
+                                f"{coverage['target_frames']} 帧（全片 {total} 帧），"
+                                f"asset_src=null 的纯解释镜头合计最多 {total - coverage['target_frames']} 帧。"
+                                "先安排与本段旁白对应的真实素材，再保留必要解释镜头；"
+                                "提交前按 end_frame-start_frame 求和核对。")
+            value = self.model.invoke(model_state, "director", instruction,
                 fields=("brief", "script", "timeline", "research", "assets", "asset_metadata", "extras"),
                 command_id=(context.get("resume_command_id") or context.get("run_id", "")) + ":timeline",
                 output_schema=schema)
@@ -325,6 +370,9 @@ class DirectorNode:
         elif production_portrait(job):
             self.require_component_study(job, context, state)
         validate_timeline(timeline, job, asset_metadata)
+        issues = timeline_readability_issues(timeline) if production_portrait(job) else []
+        if issues:
+            raise ValueError("；".join(issues))
         if model_available:
             validate_media_coverage(timeline, job, asset_metadata)
         return timeline

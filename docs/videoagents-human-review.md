@@ -3,37 +3,33 @@
 节点实现：`videoagents/nodes/human_review.py` 的 `HumanReviewNode`。
 编排入口：`videoagents/graph/video_graph.py` 的构造函数和 `add_human_review()`。
 
-默认图现在接入三处审核：`human_review_script`（文案）、`human_review_timeline`（导演分镜）、`human_review_render`（剪辑成片）。每处使用真正的 LangGraph interrupt，未确认时不会执行下游。旧的 `human_review` 注册仍保留，以兼容此前自行编排的阶段待办。
+2026-10-07 起，默认图只接入 `human_review_script`（文案）。它使用真正的 LangGraph interrupt，未确认时不会配音。分镜人审、剪辑成片人审、成片机器审核及最终发布人审链已移除；`await_input` 保留补充输入和失败续跑能力。旧的 `human_review` 注册仍保留，供自行编排使用，正常入口没有进入它的边。
 
-项目的人工参与还包括补充信息、直接修改产物，以及提交意见让对应节点修订，完整产品要求见 [制作标准：人工参与](videoagents-storytelling-standard.md#2-人工参与是制作流程的核心)。三个默认审核节点的 `revise` 会把当前产物和说明交给编剧或导演修订，而后再次审核；自行注册且未配置返工目标的审核节点仍会回到草稿，供手工保存新版本。
+项目的人工参与还包括补充信息、直接修改产物，以及提交意见让编剧修订。文案审核的 `revise` 会把当前稿件和说明交给编剧，实际改稿后再次审核；自行注册且未配置返工目标的审核节点仍会回到草稿，供手工保存新版本。
 
 ## 当前默认主流程
 
-素材 → 编剧与文案审查讨论 → ScriptGate → 文案人工审核 → 配音 → AudioGate → 导演组件学习和分镜 → TimelineGate → 分镜人工审核 → 剪辑/Remotion → 成片人工审核 → 成片机器审核 → 最终发布人审。
+素材 → 编剧与文案审查讨论 → 文案人工审核 → 配音 → AudioGate → 导演组件学习和分镜 → 剪辑/Remotion → 结束。默认 1 轮审查；若审查要求修改，编剧最后改稿一次后直接交人工审核。
 
 | 人工审核 | 用户检查 | 要求返工时 |
 | --- | --- | --- |
 | 文案 | 普通人视角、首句观看理由、主线、事实依据、自然收尾 | 编剧消费意见生成改稿，重新机器讨论和检查，再次人工审稿 |
-| 分镜 | 音画对应、视频选段、证据、竖屏可读性、组件表达 | 导演在实测音频约束下修改分镜，再次校验与人工审核 |
-| 剪辑 | 播放实际视频，检查画面、字幕、声音与节奏 | 画面修改返回导演，分镜重新确认后再渲染，再次审核成片 |
 
-阶段确认不授予 `READY_FOR_PUBLISH`。最终机器审核与发布人工复核仍保留。
+文案确认只放行配音。成片生成后以 `DRAFT` / `complete` 结束，不授予 `READY_FOR_PUBLISH`，也不生成审核通过记录。
 
-## 继续自行编排：成功分支接入审核
+## 当前文案审核连线
 
-在构造函数中，替换原来 `script_gate` 的条件边：
+编剧初稿进入 `script_reviewer`；审查通过或最后改稿完成后进入 `human_review_script`：
 
 ```python
-graph.add_conditional_edges("script_gate", self.route, {
-    "voice": "human_review_script",
+graph.add_conditional_edges("clear_screenwriter", self.route, {
+    "script_reviewer": "script_reviewer",
+    "human_review_script": "human_review_script",
     "await_input": "await_input",
 })
 ```
 
-得到：`screenwriter / script_reviewer → script_gate → human_review_script → after_script_review → voice → …`。
-这里 `"voice"` 是 `ScriptGateNode` 返回的路由值，`"human_review_script"` 是实际目标，不用改 `nodes/gates.py` 中的节点实现。
-
-**替换原成功分支，不要追加一条普通边**；同时保留原来的错误分支，否则配音和人工审核可能同时执行。默认人工审核的注册配置是：
+实际图通过 `add_cleanup_edge()` 生成 `clear_screenwriter` 和 `clear_script_reviewer`，两个角色的输出都先清理工具调用记录。旧 `script_gate` 仅为恢复已有 checkpoint 保留，新制作不进入它。默认人工审核的注册配置是：
 
 ```python
 self.add_human_review(
@@ -46,34 +42,36 @@ self.add_human_review(
 )
 ```
 
-## 默认第二个审核点：分镜检查后、剪辑前
+## 后续制作与阶段停止
 
-在 `graph.compile(...)` 前注册：
+仅需配音时，在文案人工审核的 `POST /api/jobs/{job_id}/resume` 确认请求中加
+`"stop_after": "voice"`。Worker 恢复原 checkpoint，将本次执行目标设为 `voice`；
+顺序仍为文案确认 → 配音 → 工具清理 → 音频及时间戳校验，成功后停在
+`DRAFT` / `voice`，不进入导演、剪辑。原文案、素材和人工反馈保留。
+配音失败的输入中断也可带此选项续跑。该选项只接受 `confirm`，且只适用于
+文案审核或配音输入中断；省略时沿用原执行目标。
 
-```python
-self.add_human_review(
-    graph, "human_review_timeline",
-    stage="director",
-    title="分镜人工审核",
-    confirmation_requirements=("音画对应", "关键镜头表现力", "字幕与素材可读性"),
-    next_node="after_timeline_review",
-    revise_node="director",
-    min_note_length=10,
-)
-```
+配音完成后，通过 `POST /api/jobs/{job_id}/runs` 提交
+`{"base_revision": 当前版本, "action": "produce", "continue_from": "voice", "idempotency_key": "新的唯一键"}`。
+API 绑定已完成配音的原工作流，Worker 核对文案人工确认、音频文件和时间戳后，
+从原共享状态进入 AudioGate → 导演 → 剪辑。素材、文案、配音及人工反馈保留；
+只有当前版本停在 `DRAFT` / `voice` 且没有待办时可用。
 
-替换原 `timeline_gate` 条件边：
+已完成分镜、预览或成片后，只重做画面时，同一入口提交
+`{"base_revision": 当前版本, "action": "produce", "rebuild_from": "director", "idempotency_key": "新的唯一键"}`。
+Worker 绑定当前版本已完成的原 checkpoint，核对文案人工确认及原始音频后，
+通过 AudioGate → 导演 → 剪辑重新制作。导演重新选择素材并编排镜头，不复用旧分镜；
+文案、配音、素材和人工反馈保留。此入口要求 `DRAFT` / `director`、`render` 或
+`complete`，没有待办，且原制作输入未改变。不能同时指定 `continue_from`。
 
-```python
-graph.add_conditional_edges("timeline_gate", self.route, {
-    "editing": "human_review_timeline",
-    "await_input": "await_input",
-    "end": "human_review_timeline",
-    "reviewers": "human_review_timeline",
-})
-```
-
-这些成功分支均先审核分镜，确认后的 `after_timeline_review` 再按 action 决定结束本次 storyboard、进入 editing，或进入已有成片的 reviewers；不会让单独生成分镜意外启动渲染。preview 在剪辑人工审核确认后结束，不自动进入发布审核。
+导演成功后经 `clear_director` 直接进入剪辑；`storyboard` 动作在导演完成后结束。
+剪辑成功后经 `clear_editing` 结束；`preview` 停在 `DRAFT` / `render`，完整成片停在
+`DRAFT` / `complete`。旧 `review` 动作结束为草稿并提示审核流程已移除。
+时间轴及素材的技术校验仍由导演、剪辑节点执行，失败进入 `await_input`。
+导演节点内同时检查镜头可读时长；已有短镜头通过原导演节点重做视觉切点。
+剪辑指导只检查画面与渲染输入，输出问题只归属导演或剪辑，不重开已确认的文案
+与配音审查。剪辑输入包含程序计算的素材可用性；个人视频的素材可直接入片，
+历史“待核验”备注不阻止使用。有合适素材时必须在画面中使用，仍需匹配内容与时长。
 
 `stage` 使用 `materials`、`script`、`voice`、`director`、`render` 或 `review`；素材审核示例见 [素材节点](videoagents-materials.md)。审核节点名称需唯一，`next_node` 要是图中已有节点。也可以指定 `END`，此时确认后结束本次执行，任务回到 `DRAFT`，不会留在运行中或标记发布通过。
 
@@ -88,7 +86,7 @@ graph.add_conditional_edges("timeline_gate", self.route, {
 
 React 工作台显示阶段审核卡，并切到文案、分镜或剪辑页签。卡片直接展示对应的真实稿件、镜头清单或当前版本 preview/final 视频，不将原始素材视频当成成片。默认说明至少 10 字，可通过 `min_note_length` 调整到 0–3000。审核决定保存为 `stage_review` JSON 产物，包含节点、阶段、版本、待办 token、输入指纹、决定与说明。
 
-阶段确认仅放行当前审核点。文案、音频、分镜和成片的硬检查，以及原有的最终人工复核，仍会执行。把审核点放在阶段成功分支，并保留错误分支的 `await_input`。
+阶段确认仅放行当前审核点。文案和音频检查、导演及剪辑的技术校验仍会执行。自行编排审核点时，应放在成功分支并保留错误分支的 `await_input`。
 
 ## 自己构建 StateGraph 时直接使用
 
@@ -118,6 +116,6 @@ graph.add_conditional_edges("audio_review", self.route, {
 
 人工文案返工生成新稿后，从第一轮重新开启机器讨论，沿用本次执行冻结的每周期轮数上限。旧讨论的不可变文件保留，新稿不会追加到已用满的旧周期，也不会继承旧稿的审查通过结果；整个任务的模型调用预算仍累计计算。
 
-当前应用顺序处理一个待办，可串联多个审核节点，暂不支持并行分支同时待审。改图后重启 worker，使后续执行使用新编排；已暂停的运行应保留原节点名称和检查要求，改变待审要求时重新发起执行。旧回复不能放行新内容。
+当前应用顺序处理一个待办，可自行串联审核节点，暂不支持并行分支同时待审。改图后重启 worker，使后续执行使用新编排。旧的分镜、剪辑或发布审核待办恢复时结束为草稿，提示重新提交制作；旧回复不会继续旧审核链。现有文案审核及补充输入待办仍正常恢复。
 
 官方说明：[LangGraph Interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts)。

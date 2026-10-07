@@ -191,7 +191,7 @@ def test_generic_tools_and_operations_in_final_business_data_survive_handoff():
     assert merge_extras({}, business) == result["extras"]
 
 
-@pytest.mark.parametrize("role", ["materials", "screenwriter", "script_reviewer", "voice", "director", "editing", "reviewers"])
+@pytest.mark.parametrize("role", ["materials", "screenwriter", "script_reviewer", "voice", "director", "editing"])
 def test_every_production_role_routes_through_its_clear_node(tmp_path, role):
     with VideoProductionGraph(Repository(tmp_path / "runtime"), tmp_path / "project") as production:
         topology = production.graph.get_graph()
@@ -200,6 +200,15 @@ def test_every_production_role_routes_through_its_clear_node(tmp_path, role):
         assert outgoing[0].target == "clear_" + role
         assert not outgoing[0].conditional
         assert all(edge.conditional for edge in topology.edges if edge.source == "clear_" + role)
+
+
+def test_production_graph_has_no_removed_review_routes(tmp_path):
+    removed = {"timeline_gate", "human_review_timeline", "human_review_render", "reviewers",
+               "review_gate", "clear_reviewers", "after_timeline_review", "after_render_review"}
+    with VideoProductionGraph(Repository(tmp_path / "runtime"), tmp_path / "project") as production:
+        topology = production.graph.get_graph()
+        assert removed.isdisjoint(topology.nodes)
+        assert not any(edge.source in removed or edge.target in removed for edge in topology.edges)
 
 
 def test_clear_node_preserves_final_outputs_and_pause_binding_without_audit_references():
@@ -244,11 +253,16 @@ def test_production_graph_clears_each_completed_role_before_real_input_pause(tmp
 
     monkeypatch.setattr(MaterialsNode, "__call__", materials)
     monkeypatch.setattr(ClearToolsNode, "__call__", clear)
-    monkeypatch.setattr(JsonModel, "call", lambda *args, **kwargs: pytest.fail("Offline test reached a model"))
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        if role == "script_reviewer":
+            return {"decision": "APPROVE", "summary": "UNIT TEST：文案可进入人工审核。", "strengths": [], "issues": []}
+        pytest.fail("Offline test reached an unexpected model role")
+
+    monkeypatch.setattr(JsonModel, "call", model)
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "produce", "idempotency_key": "unit-clear"})
     with VideoProductionGraph(repo, service.project_root) as production:
         result = production.execute(repo.claim(12345))
-        assert visited == ["materials", "script"]
+        assert visited == ["materials", "script", "script"]
         assert result["extras"] == {"final_summary": "素材已核验"}
         assert result["script"]["segments"][0]["narration"] == job.brief.script_text
         paused = repo.get_job(job.job_id)

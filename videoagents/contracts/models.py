@@ -12,10 +12,12 @@ class Contract(BaseModel):
 
 class Brief(Contract):
     topic: str = Field(default="", max_length=2000)
+    creative_direction: str = Field(default="", max_length=30000)
+    # Historical jobs may contain a supplied, ready-to-read script.
     script_text: str = Field(default="", max_length=30000)
-    audience: str = Field(default="没有技术背景的普通大众", max_length=500)
+    audience: str = Field(default="对 AI 感兴趣、愿意了解前沿进展并尝试工具的人", max_length=500)
     platform: str = Field(default="抖音竖屏", max_length=100)
-    usage: Literal["personal", "commercial", "unspecified"] = "unspecified"
+    usage: Literal["personal", "commercial", "unspecified"] = "personal"
     target_seconds: float = Field(default=60, ge=1, le=1800)
     width: int = Field(default=1080, ge=240, le=3840)
     height: int = Field(default=1920, ge=240, le=3840)
@@ -48,6 +50,9 @@ class ScriptSegment(Contract):
 
 class Script(Contract):
     title: str = Field(min_length=1, max_length=300)
+    title_hook: str = Field(default="", max_length=15)
+    opening_visual: str = Field(default="", max_length=300)
+    final_answer: str = Field(default="", max_length=300)
     segments: list[ScriptSegment] = Field(min_length=1, max_length=200)
     origin: Literal["user", "model"] = "user"
     revision: int = Field(ge=1)
@@ -104,8 +109,10 @@ class ScriptDiscussion(Contract):
     revision: int = Field(ge=1)
     enabled: bool = False
     max_rounds: int = Field(default=2, ge=1, le=5)
-    status: Literal["DISABLED", "DISCUSSING", "APPROVED", "EXHAUSTED"] = "DISABLED"
+    status: Literal["DISABLED", "DISCUSSING", "APPROVED", "EXHAUSTED", "FINAL_REWRITE"] = "DISABLED"
     rounds: list[ScriptDiscussionRound] = Field(default_factory=list, max_length=5)
+    final_script: Script | None = None
+    final_response: str = Field(default="", max_length=3000)
 
     @model_validator(mode="after")
     def ordered_rounds(self) -> "ScriptDiscussion":
@@ -114,6 +121,12 @@ class ScriptDiscussion(Contract):
             for index, item in enumerate(self.rounds)
         ):
             raise ValueError("讨论轮数、顺序或文案版本不一致")
+        if self.final_script and (self.status != "FINAL_REWRITE" or self.final_script.revision != self.revision
+                                  or not self.rounds or not self.rounds[-1].critique
+                                  or self.rounds[-1].critique.decision != "REVISE"):
+            raise ValueError("最终改稿必须对应本次讨论最后一轮的修改意见")
+        if self.status == "FINAL_REWRITE" and not self.final_script:
+            raise ValueError("最终改稿缺少文案")
         return self
 
 
@@ -332,6 +345,16 @@ class RunRequest(Contract):
     base_revision: int = Field(ge=1)
     action: Literal["produce", "voice", "storyboard", "preview", "final", "review"]
     idempotency_key: str = Field(min_length=8, max_length=200)
+    continue_from: Literal["voice"] | None = None
+    rebuild_from: Literal["director"] | None = None
+
+    @model_validator(mode="after")
+    def continuation_target(self):
+        if self.continue_from is not None and self.rebuild_from is not None:
+            raise ValueError("续跑与重做画面不能同时指定")
+        if (self.continue_from is not None or self.rebuild_from is not None) and self.action not in {"produce", "storyboard", "preview", "final"}:
+            raise ValueError("配音完成后的续跑需指定分镜或视频制作目标")
+        return self
 
 
 class ResumeRequest(Contract):
@@ -340,6 +363,13 @@ class ResumeRequest(Contract):
     note: str = Field(default="", max_length=3000)
     idempotency_key: str = Field(min_length=8, max_length=200)
     pending_token: str = Field(min_length=16, max_length=100)
+    stop_after: Literal["voice"] | None = None
+
+    @model_validator(mode="after")
+    def stop_after_confirmation(self):
+        if self.stop_after is not None and self.decision != "confirm":
+            raise ValueError("只跑配音需确认当前文案或继续配音中断")
+        return self
 
 
 RoleId = Literal["materials", "screenwriter", "script_reviewer", "voice", "director", "editing", "review"]
@@ -366,7 +396,7 @@ class RoleModelConfig(Contract):
     enabled: bool = False
     provider: ModelProvider = "codex_cli"
     model: str = Field(default="", max_length=200)
-    timeout_seconds: int = Field(default=300, ge=30, le=1800)
+    timeout_seconds: int = Field(default=900, ge=30, le=1800)
 
 
 class RoleModels(Contract):
@@ -420,10 +450,14 @@ class VoiceAdvice(Contract):
         return self
 
 
+class EditingFinding(ModelFinding):
+    owner: Literal["director", "editing"]
+
+
 class EditingAdvice(Contract):
     pacing_notes: list[str] = Field(default_factory=list, max_length=30)
     layout_notes: list[str] = Field(default_factory=list, max_length=30)
-    findings: list[ModelFinding] = Field(default_factory=list, max_length=30)
+    findings: list[EditingFinding] = Field(default_factory=list, max_length=30)
 
     @field_validator("pacing_notes", "layout_notes")
     @classmethod
@@ -476,8 +510,9 @@ class MaterialResearch(Contract):
 
 class SettingsPatch(Contract):
     role_models: dict[RoleId, RoleModelConfig] | None = None
-    script_discussion_enabled: bool | None = None
+    script_discussion_enabled: bool | None = None  # 兼容旧客户端；执行时始终开启讨论。
     script_discussion_max_rounds: int | None = Field(default=None, ge=1, le=5)
+    ark_api_key: str | None = None
     search_provider: Literal["none", "opencli_google", "tavily", "google_cse"] | None = None
     search_api_key: str | None = None
     google_search_engine_id: str | None = Field(default=None, max_length=200)

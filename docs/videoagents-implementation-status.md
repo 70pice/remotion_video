@@ -2,6 +2,18 @@
 
 2026-10-03。React 前端、FastAPI API、独立 worker、持久 LangGraph 工作流和 Remotion 生产入口已实现并完成本机联调。设计记录见 [原方案](videoagents-design.md)，操作见 [使用说明](videoagents-setup.md)，接口见 [共享契约](videoagents-implementation-contract.md)。
 
+## 2026-10-07：精简分镜及成片审核链
+
+按用户决定，默认生产图只保留文案人工审核。`timeline_gate`、`human_review_timeline`、`human_review_render`、`reviewers`、`review_gate` 及其三个清理/衔接节点不再注册，共保留 18 个业务及辅助节点（不计 START/END）。文案人工确认后，配音经过音频检查进入导演，导演直接进入剪辑，生成视频后结束；缺素材及可恢复失败仍通过 `await_input` 暂停和续跑。完整路由见 [生产图精简](videoagents-graph-simplification.md)。
+
+`storyboard` 完成为 `DRAFT/director`，`preview` 完成为 `DRAFT/render`，`produce/final` 完成为 `DRAFT/complete`，不生成最终审核通过记录或 `READY_FOR_PUBLISH`。前端展示“成片已生成”，成片审核入口移除，旧报告仍可在“历史审核”查看。新 `review` 动作在 API 入队前返回 422；旧命令、已删除节点、清理节点中的旧路由或最终审核 interrupt 恢复时安全结束为草稿并提示重新提交。
+
+Fresh 验证：**709 Python、85 React、23 Remotion 时间轴测试通过**；Ruff、Python 编译、生成契约一致性、根 TypeScript/ESLint、React typecheck/build、Python wheel 构建和 `git diff --check` 通过。独立只读检查与聚焦恢复测试通过。提示词测试使用短参数名，修复 Windows `PYTEST_CURRENT_TEST` 超过 32767 字符的环境变量限制。Python 项目未配置独立静态类型检查器，编译和契约检查不替代该项。
+
+确认正式库无运行中或排队命令后重新加载 API 与 Worker；首页 HTTP 200，健康接口返回 `status=ok`、`worker_alive=true`。本轮验证未提交真实生产任务，未调用付费模型、配音或制作新视频。
+
+收尾时工作区另有并行的文案讨论及模型配置修改，已保留；上述全量结果对应本轮节点删除完成时的版本，不覆盖随后出现的并行修改。再次编译当前图确认已删除节点及其边仍不存在，`await_input` 与文案人工审核仍保留。
+
 ## 2026-10-06：真实视频适配器与全部 Remotion 组件进入生产 Timeline
 
 生产组件包含 `video` 在内的 9 个参数化适配器。由现有组件目录和使用指南生成的 `videoagents/component-manifest.json`，统一提供 **161 个生产 ID：9 个可参数化适配器 + 152 个固定社区预设**。每个社区预设都有横版和原生竖版实现，Remotion registry 严格核对 152 对实现，并按 Timeline 方向自动选择，因此底层共执行 304 个社区 Composition，但不会向 Agent 暴露重复的方向 ID。

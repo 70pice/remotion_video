@@ -111,9 +111,11 @@ def current_job(repository: Repository, state: VideoState) -> Job:
         if "brief" in changes:
             # 制作要求改变后，旧研究与来源产物不再作为当前执行的冻结依据。
             invalidated |= {"research", "material_skill_manifest", "material_tool_audit", "source"}
-            # 主题或原始文案改变，且没有同时提交不同的新稿时，清空旧生成稿。
+            # 主题、创作方向或历史原始文案改变，且没有同时提交新稿时，清空旧生成稿。
             if "script" not in changes and (
-                inputs.brief.topic != job.brief.topic or inputs.brief.script_text != job.brief.script_text
+                inputs.brief.topic != job.brief.topic
+                or inputs.brief.creative_direction != job.brief.creative_direction
+                or inputs.brief.script_text != job.brief.script_text
             ):
                 changes["script"] = None
         # & 是集合交集：上游要求、文案或素材有变化，又未提交新分镜时，清空旧分镜。
@@ -370,14 +372,16 @@ def current_discussion(repository: Repository, state: VideoState, job: Job) -> S
         discussion = ScriptDiscussion(**policy, status="DISCUSSING" if policy["enabled"] else "DISABLED")
     else:
         settings = SettingsService(repository).internal()
-        enabled = settings["script_discussion_enabled"]
-        discussion = ScriptDiscussion(run_id=state["run_id"], revision=job.revision, enabled=enabled,
-            max_rounds=settings["script_discussion_max_rounds"], status="DISCUSSING" if enabled else "DISABLED")
+        discussion = ScriptDiscussion(run_id=state["run_id"], revision=job.revision, enabled=True,
+            max_rounds=settings["script_discussion_max_rounds"], status="DISCUSSING")
         # Freeze policy before the first model request, including a request
         # that pauses without producing any draft or graph update.
         repository.update_job(job.job_id, job.revision, script_discussion=discussion)
     if discussion.run_id != state["run_id"] or discussion.revision != job.revision:
         raise Conflict("文案讨论对应的执行或版本已失效")
+    if not discussion.enabled:
+        discussion.enabled = True
+        discussion.status = "DISCUSSING"
     state["discussion_policy"] = discussion.model_dump(include={"run_id", "revision", "enabled", "max_rounds"})
     return discussion
 
@@ -385,7 +389,7 @@ def current_discussion(repository: Repository, state: VideoState, job: Job) -> S
 def save_discussion(repository: Repository, state: VideoState, discussion: ScriptDiscussion) -> Job:
     """Commit one immutable discussion receipt and its script together in SQL."""
     job = current_job(repository, state)
-    script = discussion.rounds[-1].script
+    script = discussion.final_script or discussion.rounds[-1].script
     script_changed = script != job.script
     invalidated = {"script", "script_discussion"} | (INVALIDATED if script_changed else set())
     artifacts = [item for item in job.artifacts if item.kind not in invalidated]

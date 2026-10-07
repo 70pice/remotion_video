@@ -28,9 +28,12 @@ class JobService:
         def edit(job: Job) -> Job:
             new_revision = job.revision + 1
             if request.brief:
-                brief_changed = request.brief.script_text != job.brief.script_text or request.brief.topic != job.brief.topic
-                if not request.brief.topic.strip() and not request.brief.script_text.strip():
-                    raise ValueError("主题和文案不能同时为空")
+                brief_changed = (request.brief.creative_direction != job.brief.creative_direction
+                                 or request.brief.script_text != job.brief.script_text
+                                 or request.brief.topic != job.brief.topic)
+                if not (request.brief.topic.strip() or request.brief.creative_direction.strip()
+                        or request.brief.script_text.strip()):
+                    raise ValueError("主题和创作方向不能同时为空")
                 if brief_changed:
                     job.script = None
                 job.brief = request.brief

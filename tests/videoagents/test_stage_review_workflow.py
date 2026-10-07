@@ -21,10 +21,10 @@ from videoagents.graph import VideoProductionGraph
 from videoagents.nodes.common import state_context
 from videoagents.nodes.director import DirectorNode
 from videoagents.nodes.editing import EditingNode
-from videoagents.nodes.gates import AudioGateNode, ReviewGateNode, ScriptGateNode, TimelineGateNode
+from videoagents.nodes.gates import AudioGateNode, ScriptGateNode
 from videoagents.nodes.materials import MaterialsNode
-from videoagents.nodes.reviewers import ReviewersNode
 from videoagents.nodes.screenwriter import ScreenwriterNode
+from videoagents.nodes.script_reviewer import ScriptReviewerNode
 from videoagents.nodes.voice import VoiceNode
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
@@ -73,8 +73,9 @@ def staged_pipeline(tmp_path, monkeypatch):
                     width=1080, height=1920, fps=30, duration_in_frames=30,
                     shots=[Shot(shot_id="shot-1", start_frame=0, end_frame=30, component_id="keyword",
                                 title=f"UNIT 第 {calls[name]} 版分镜")])
-            if name == "review_gate":
+            if name == "editing":
                 changes["status"] = "DRAFT"
+                changes["progress"] = 1
             current = repo.update_job(current.job_id, current.revision, **changes)
             if name == "editing":
                 # JSON bytes explicitly represent a fake render receipt, never a playable video.
@@ -86,15 +87,13 @@ def staged_pipeline(tmp_path, monkeypatch):
 
     for cls, name, route, stage in (
         (MaterialsNode, "materials", "screenwriter", "materials"),
-        (ScreenwriterNode, "screenwriter", "script_gate", "script"),
+        (ScreenwriterNode, "screenwriter", "script_reviewer", "script"),
+        (ScriptReviewerNode, "script_reviewer", "human_review_script", "script"),
         (ScriptGateNode, "script_gate", "voice", "script"),
         (VoiceNode, "voice", "audio_gate", "voice"),
         (AudioGateNode, "audio_gate", "director", "voice"),
-        (DirectorNode, "director", "timeline_gate", "director"),
-        (TimelineGateNode, "timeline_gate", "editing", "director"),
-        (EditingNode, "editing", "reviewers", "render"),
-        (ReviewersNode, "reviewers", "review_gate", "review"),
-        (ReviewGateNode, "review_gate", "end", "review"),
+        (DirectorNode, "director", "editing", "director"),
+        (EditingNode, "editing", "end", "render"),
     ):
         monkeypatch.setattr(cls, "__call__", stub(name, route, stage))
     return repo, project, job, calls, feedback_seen
@@ -117,73 +116,33 @@ def run_or_resume(pipeline, decision=None, note="UNIT：已核对当前阶段内
     return repo.get_job(job.job_id), checkpoint
 
 
-def test_default_flow_requires_three_distinct_approvals_before_downstream(staged_pipeline):
+def test_default_flow_requires_only_script_approval_before_rendering(staged_pipeline):
     _, _, _, calls, _ = staged_pipeline
     current, checkpoint = run_or_resume(staged_pipeline)
     assert current.pending_input["node_name"] == "human_review_script"
     assert checkpoint.interrupts and calls["voice"] == calls["director"] == calls["editing"] == 0
-    tokens = [current.pending_input["pending_token"]]
 
     current, checkpoint = run_or_resume(staged_pipeline, "confirm")
-    assert current.pending_input["node_name"] == "human_review_timeline"
-    assert checkpoint.interrupts and calls["voice"] == calls["director"] == 1
-    assert calls["editing"] == calls["reviewers"] == 0
-    tokens.append(current.pending_input["pending_token"])
-
-    current, checkpoint = run_or_resume(staged_pipeline, "confirm")
-    assert current.pending_input["node_name"] == "human_review_render"
-    assert checkpoint.interrupts and calls["editing"] == 1 and calls["reviewers"] == 0
-    tokens.append(current.pending_input["pending_token"])
-
-    current, checkpoint = run_or_resume(staged_pipeline, "confirm")
-    assert not checkpoint.interrupts and calls["reviewers"] == calls["review_gate"] == 1
-    assert len(set(tokens)) == 3
-    assert len(checkpoint.values["human_reviews"]) == 3
-    assert current.status != "READY_FOR_PUBLISH" and current.review is None
+    assert not checkpoint.interrupts
+    assert calls["voice"] == calls["director"] == calls["editing"] == 1
+    assert len(checkpoint.values["human_reviews"]) == 1
+    assert current.status == "DRAFT" and current.stage == "render" and current.progress == 1
+    assert current.review is None
 
 
-@pytest.mark.parametrize("stage,approvals,target", [
-    ("script", 0, "screenwriter"), ("director", 1, "director"), ("render", 2, "director"),
-])
-def test_default_revise_returns_to_role_and_requires_a_fresh_approval(staged_pipeline, stage, approvals, target):
+def test_script_revise_returns_to_writer_and_requires_a_fresh_approval(staged_pipeline):
     _, _, _, calls, feedback_seen = staged_pipeline
     current, _ = run_or_resume(staged_pipeline)
-    for _ in range(approvals):
-        current, _ = run_or_resume(staged_pipeline, "confirm")
     token = current.pending_input["pending_token"]
     before = calls.copy()
-    note = f"UNIT：请根据 {stage} 当前内容修改画面或表达，重新审核。"
+    note = "UNIT：请根据 script 当前内容修改画面或表达，重新审核。"
     current, checkpoint = run_or_resume(staged_pipeline, "revise", note)
-    expected_node = "human_review_script" if stage == "script" else "human_review_timeline"
-    assert current.pending_input["node_name"] == expected_node and checkpoint.interrupts
+    assert current.pending_input["node_name"] == "human_review_script" and checkpoint.interrupts
     assert current.pending_input["pending_token"] != token
-    assert calls[target] == before[target] + 1
-    assert feedback_seen[-1] == (target, stage, note)
-    assert calls["voice"] == before["voice"] and calls["editing"] == before["editing"]
-    assert calls["reviewers"] == 0 and current.status == "NEEDS_HUMAN"
-    if stage == "render":
-        # A rejected video cannot be regenerated before the revised storyboard is approved.
-        current, _ = run_or_resume(staged_pipeline, "confirm")
-        assert current.pending_input["node_name"] == "human_review_render"
-        assert calls["editing"] == before["editing"] + 1 and calls["reviewers"] == 0
-
-
-def test_render_script_revise_returns_to_screenwriter_and_requires_script_approval(staged_pipeline):
-    _, _, _, calls, feedback_seen = staged_pipeline
-    current, _ = run_or_resume(staged_pipeline)
-    current, _ = run_or_resume(staged_pipeline, "confirm")
-    current, _ = run_or_resume(staged_pipeline, "confirm")
-    assert current.pending_input["node_name"] == "human_review_render"
-    before = calls.copy()
-    note = "UNIT：请改旁白文案，删掉重复免责声明并把结论前置。"
-
-    current, checkpoint = run_or_resume(staged_pipeline, "revise", note)
-
-    assert checkpoint.interrupts and current.pending_input["node_name"] == "human_review_script"
-    assert calls["director"] == before["director"] + 1
     assert calls["screenwriter"] == before["screenwriter"] + 1
+    assert feedback_seen[-1] == ("screenwriter", "script", note)
     assert calls["voice"] == before["voice"] and calls["editing"] == before["editing"]
-    assert feedback_seen[-1] == ("screenwriter", "render", note)
+    assert current.status == "NEEDS_HUMAN"
 
 
 @pytest.mark.parametrize("prior_rounds", [1, 2, 5])

@@ -99,6 +99,7 @@ type Field = FieldLabel &
           | "voice_model"
           | "voice_access_token"
           | "voice_api_key"
+          | "ark_api_key"
           | "search_api_key"
           | "google_search_engine_id"
           | "aligner_url"
@@ -108,6 +109,18 @@ type Field = FieldLabel &
       }
   );
 const sections: { title: string; description: string; fields: Field[] }[] = [
+  {
+    title: "文案模型认证",
+    description: "Claude Code CLI 调用豆包 Pro 2.1 时使用火山方舟密钥。",
+    fields: [
+      {
+        key: "ark_api_key",
+        label: "火山方舟 API Key",
+        secret: true,
+        configured: "ark_api_key_configured",
+      },
+    ],
+  },
   {
     title: "你的声音",
     description: "接入你提供的字节接口和复刻音色。",
@@ -210,17 +223,13 @@ function showVoiceField(key: string, provider: unknown): boolean {
   );
 }
 
-function discussionEnabled(settings: Settings): boolean {
-  return settings.script_discussion_enabled === true;
-}
-
 function discussionMaxRounds(settings: Settings): number {
   const value = settings.script_discussion_max_rounds;
-  return typeof value === "number" && Number.isFinite(value) ? value : 2;
+  return typeof value === "number" && Number.isFinite(value) ? value : 1;
 }
 
 function clampDiscussionRounds(value: number): number {
-  if (!Number.isFinite(value)) return 2;
+  if (!Number.isFinite(value)) return 1;
   return Math.min(5, Math.max(1, Math.round(value)));
 }
 
@@ -329,11 +338,6 @@ export function createSettingsPayload(
     readRoleModels(saved),
   );
   if (Object.keys(roles).length) payload.role_models = roles;
-  if (
-    typeof values.script_discussion_enabled === "boolean" &&
-    values.script_discussion_enabled !== saved.script_discussion_enabled
-  )
-    payload.script_discussion_enabled = values.script_discussion_enabled;
   if (
     typeof values.script_discussion_max_rounds === "number" &&
     values.script_discussion_max_rounds !==
@@ -516,6 +520,7 @@ export function SettingsForm({
             const selectedEntry = roleCatalog?.models.find(
               (entry) => entry.id === config.model,
             );
+            const fixedVoiceGuidance = role.id === "voice";
             return (
               <section
                 className="panel form-panel role-model-card"
@@ -527,17 +532,28 @@ export function SettingsForm({
                     <input
                       type="checkbox"
                       aria-label={`启用${role.label}模型`}
-                      checked={config.enabled}
+                      checked={fixedVoiceGuidance || config.enabled}
+                      disabled={fixedVoiceGuidance}
                       onChange={(event) =>
                         updateRole({ enabled: event.target.checked })
                       }
                     />
-                    {config.enabled ? "已启用" : "未启用"}
+                    {fixedVoiceGuidance
+                      ? "配音指导固定开启"
+                      : config.enabled
+                        ? "已启用"
+                        : "未启用"}
                   </label>
                 </div>
                 <p className="muted small role-description">
                   {role.description}
                 </p>
+                {fixedVoiceGuidance && (
+                  <p className="muted small">
+                    新合成配音先完成 Agent 指导，指导失败或未完成时暂停。
+                    已有音频不会自动重做。
+                  </p>
+                )}
                 <label>
                   提供方
                   <select
@@ -663,20 +679,9 @@ export function SettingsForm({
             <div>
               <h2>文案讨论</h2>
               <p className="muted small">
-                启用后编剧和文案审查会交替工作，审查通过后继续后续节点；达到上限仍需修改时，流程会暂停等待处理。
+                编剧和文案审查会按轮数交替工作。审查通过后进入文案人工审核；达到轮数上限仍需修改时，编剧最后改稿一次，再交人工审核。
               </p>
             </div>
-            <label className="check-label">
-              <input
-                type="checkbox"
-                aria-label="启用文案讨论"
-                checked={discussionEnabled(values)}
-                onChange={(event) =>
-                  onChange("script_discussion_enabled", event.target.checked)
-                }
-              />
-              {discussionEnabled(values) ? "已启用" : "未启用"}
-            </label>
           </div>
           <label>
             最大审查轮数
@@ -696,7 +701,7 @@ export function SettingsForm({
             />
           </label>
           <p className="muted small">
-            这个开关不会自动启用任何 CLI
+            轮数不会自动启用任何 CLI
             模型，也不会对已有任务发起请求；每个角色仍按上面的独立模型配置执行。
           </p>
         </section>
@@ -880,7 +885,8 @@ export function SettingsForm({
                     </label>
                     <p className="muted small">
                       语速范围 0.5～2.0 倍。情感风格需要
-                      seed-tts-2.0-expressive；standard 不支持情感指导。
+                      seed-tts-2.0-expressive；standard 不支持配音指导。
+                      新合成配音必须完成指导；已有音频不会自动重做。
                     </p>
                   </>
                 )}
@@ -889,7 +895,7 @@ export function SettingsForm({
                   新版声音复刻默认资源为
                   seed-icl-2.0，请按账号实际开通的资源填写。
                   {values.voice_provider === "byte_ws" &&
-                    "语音合成模型可从 expressive/standard 建议中选择，也可自由填写账号支持的模型 ID；该模型与配音角色的 CLI 指导模型独立。"}
+                    "语音合成模型可从 expressive/standard 建议中选择，也可自由填写账号支持的模型 ID；新合成要求 expressive + WebSocket 才能应用配音指导，该模型与配音角色的 CLI 指导模型独立。"}
                 </p>
               )}
               {section.title === "检索与时间对齐" && (

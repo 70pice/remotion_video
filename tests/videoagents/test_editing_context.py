@@ -1,6 +1,14 @@
 """The editing Agent gets exact shot semantics without raw word-caption bloat."""
 
-from videoagents.nodes.editing import compact_timeline_for_editing, has_unapplied_human_feedback
+import pytest
+
+from videoagents.contracts import Asset, Brief, Script, ScriptSegment, Timeline
+from videoagents.nodes.editing import EditingNode, compact_timeline_for_editing, has_unapplied_human_feedback
+from videoagents.services.jobs import JobService
+from videoagents.state import VideoState, job_context
+from videoagents.storage import Repository
+
+PENDING_REVIEW_LICENSE = "真实来源视频；尚未确认再利用许可，请在发布审核时核验"
 
 
 def test_compact_timeline_for_editing_keeps_shots_and_projects_caption_windows():
@@ -60,3 +68,93 @@ def test_editing_only_receives_unapplied_human_feedback():
     assert not has_unapplied_human_feedback(applied)
     assert has_unapplied_human_feedback(pending)
     assert not has_unapplied_human_feedback({"human_feedback": []})
+
+
+def test_editing_model_receives_renderable_visual_metadata_without_audio_alignment_or_mutating_inputs(tmp_path, monkeypatch):
+    repo = Repository(tmp_path / "runtime")
+    service = JobService(repo, tmp_path / "project")
+    job = repo.create_job(Brief(topic="Muse", target_seconds=2, width=240, height=426, fps=15))
+    audio = Asset(asset_id="unit-audio", name="unit.wav", role="audio", mime_type="audio/wav",
+                  size_bytes=1, sha256="a" * 64, artifact_id="unit-audio-artifact",
+                  url="/api/artifacts/unit-audio-artifact",
+                  timeline_src=f"videoagents/{job.job_id}/assets/unit.wav")
+    video = Asset(asset_id="unit-video", name="unit.mp4", role="evidence", mime_type="video/mp4",
+                  size_bytes=1, sha256="b" * 64, artifact_id="unit-video-artifact",
+                  url="/api/artifacts/unit-video-artifact", source_url="https://example.test/muse",
+                  license_note=PENDING_REVIEW_LICENSE,
+                  timeline_src=f"videoagents/{job.job_id}/assets/unit.mp4")
+    blocked = Asset(asset_id="unit-blocked", name="blocked.png", role="evidence", mime_type="image/png",
+                    size_bytes=1, sha256="c" * 64, artifact_id="unit-blocked-artifact",
+                    url="/api/artifacts/unit-blocked-artifact", source_url="https://example.test/blocked",
+                    license_note="真实网页截图；仅作核验依据，不直接发布",
+                    timeline_src=f"videoagents/{job.job_id}/assets/blocked.png")
+    script = Script(title="Muse", origin="user", revision=job.revision,
+                    segments=[ScriptSegment(segment_id="s1", narration="观点：这是测试文案。",
+                                            source_refs=["https://example.test/muse"], asset_ids=[video.asset_id])])
+    timeline = Timeline(job_id=job.job_id, revision=job.revision, width=job.brief.width,
+                        height=job.brief.height, fps=job.brief.fps, duration_in_frames=30,
+                        audio_src=audio.timeline_src,
+                        shots=[{"shot_id": "shot-1", "start_frame": 0, "end_frame": 30,
+                                "component_id": "video", "title": "真实视频",
+                                "asset_src": video.timeline_src, "source_label": "example.test",
+                                "props": {"start_seconds": 0, "fit": "contain"}}],
+                        captions=[{"text": "观点：这是测试文案。", "start_ms": 0.0, "end_ms": 1800.0}])
+    job = repo.update_job(job.job_id, job.revision, assets=[audio, video, blocked],
+                          script=script, timeline=timeline)
+    repo.update_asset_metadata(audio.asset_id, {
+        "duration_seconds": 2.0,
+        "alignment": {"origin": "unit", "segments": [{"text": "should not reach editing"}]},
+    })
+    repo.update_asset_metadata(video.asset_id, {
+        "duration_seconds": 2.4,
+        "width": 960,
+        "height": 540,
+        "origin": "materials",
+        "alignment": {"origin": "should be stripped"},
+    })
+    repo.update_asset_metadata(blocked.asset_id, {"width": 800, "height": 600, "origin": "materials"})
+    original_script = job.script.model_dump()
+    original_timeline = job.timeline.model_dump()
+    node = EditingNode(repo, service)
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+    monkeypatch.setattr("videoagents.nodes.editing.render", lambda *args, **kwargs: pytest.fail("blocking preflight reached render"))
+    calls = []
+
+    def call(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        calls.append((job_id, revision, role, context, command_id, output_schema))
+        return {"pacing_notes": ["UNIT TEST：保留原时间轴"],
+                "layout_notes": ["UNIT TEST：素材元数据已传入"],
+                "findings": [{"severity": "error", "owner": "editing", "blocking": True,
+                              "message": "UNIT TEST：停在模型预检，不渲染"}]}
+
+    monkeypatch.setattr(node.model, "call", call)
+    state = VideoState(**job_context(job), run_id="unit-editing-context", action="produce",
+                       asset_metadata={audio.asset_id: {"alignment": {"origin": "state copy should not leak"}},
+                                       video.asset_id: {"duration_seconds": 99, "alignment": {"origin": "state leak"}}})
+
+    with pytest.raises(ValueError, match="剪辑模型预检未通过"):
+        node.render_video(job, "final", state=state)
+
+    assert len(calls) == 1
+    job_id, revision, role, context, command_id, schema = calls[0]
+    assert (job_id, revision, role, command_id) == (
+        job.job_id, job.revision, "editing", "unit-editing-context")
+    assert schema["title"] == "EditingAdvice"
+    assert audio.asset_id not in context["asset_metadata"]
+    assert context["asset_metadata"][video.asset_id] == {
+        "duration_seconds": 2.4,
+        "width": 960,
+        "height": 540,
+        "origin": "materials",
+        "renderable": True,
+    }
+    assert context["asset_metadata"][blocked.asset_id] == {
+        "width": 800,
+        "height": 600,
+        "origin": "materials",
+        "renderable": False,
+    }
+    assert all("alignment" not in metadata for metadata in context["asset_metadata"].values())
+    assert "captions" not in context["timeline"]
+    assert repo.get_job(job.job_id).script.model_dump() == original_script
+    assert repo.get_job(job.job_id).timeline.model_dump() == original_timeline

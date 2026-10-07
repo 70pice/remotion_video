@@ -27,7 +27,7 @@ NODE_TYPES = [MaterialsNode, ScreenwriterNode, ScriptReviewerNode, VoiceNode, Di
 
 def make_node(node_type, repo, service):
     if node_type is AwaitInputNode:
-        return node_type(repo, service, ReviewersNode(repo, service))
+        return node_type(repo, service)
     if node_type in {MaterialsNode, ScreenwriterNode, ScriptReviewerNode, VoiceNode, DirectorNode, EditingNode, ReviewersNode}:
         return node_type(repo, service)
     return node_type(repo)
@@ -63,13 +63,17 @@ def test_screenwriter_node_saves_output_and_routes_without_a_graph(tmp_path):
 
     result = ScreenwriterNode(repo, service)(state)
     saved = repo.get_job(job.job_id)
-    assert result["route"] == "script_gate" and not result["gate_issues"]
+    assert result["route"] == "script_reviewer" and not result["gate_issues"]
     assert saved.stage == "script" and saved.status == "RUNNING"
     assert saved.script.segments[0].narration == job.brief.script_text
     artifact = next(item for item in saved.artifacts if item.kind == "script")
     assert json.loads(repo.artifact_path(artifact.artifact_id)[0].read_text(encoding="utf-8")) == saved.script.model_dump()
-    gate = ScriptGateNode(repo)({**state, **result})
-    assert gate["route"] == "voice" and gate["gate_issues"] == []
-    assert gate["script"] == saved.script.model_dump()
-    assert gate["brief"] == saved.brief.model_dump()
-    assert gate["assets"] == [item.model_dump() for item in saved.assets]
+    reviewer = ScriptReviewerNode(repo, service)
+    reviewer.model.call = lambda *args, **kwargs: {
+        "decision": "APPROVE", "summary": "UNIT TEST：文案可进入人工审核。", "strengths": [], "issues": [],
+    }
+    review = reviewer({**state, **result})
+    assert review["route"] == "human_review_script" and review["gate_issues"] == []
+    assert review["script"] == saved.script.model_dump()
+    assert review["brief"] == saved.brief.model_dump()
+    assert review["assets"] == [item.model_dump() for item in saved.assets]

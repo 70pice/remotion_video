@@ -114,12 +114,14 @@ def test_screenwriter_returns_latest_job_context_after_saving_script_and_artifac
     result = ScreenwriterNode(repo, service)(state)
     saved = repo.get_job(job.job_id)
 
-    assert result["route"] == "script_gate"
+    assert result["route"] == "script_reviewer"
     assert result["status"] == saved.status == "RUNNING"
     assert result["stage"] == saved.stage == "script"
     assert result["brief"] == saved.brief.model_dump()
     assert result["script"] == saved.script.model_dump()
-    assert result["script_discussion"] is None
+    assert result["script_discussion"]["enabled"] is True
+    assert result["script_discussion"]["status"] == "DISCUSSING"
+    assert len(result["script_discussion"]["rounds"]) == 1
     assert result["artifacts"] == [item.model_dump() for item in saved.artifacts]
     assert result["settings"]["voice_configured"] is True
     assert result["settings"]["voice_api_key_configured"] is True
@@ -336,8 +338,8 @@ def test_state_context_drops_stale_component_study_when_artifact_is_missing(tmp_
     assert context["extras"]["component_study"] is None
 
 
-@pytest.mark.parametrize("enabled,max_rounds,status", [(True, 5, "DISCUSSING"), (False, 3, "DISABLED")])
-def test_new_run_freezes_fresh_discussion_policy_instead_of_reusing_previous_run(tmp_path, enabled, max_rounds, status):
+@pytest.mark.parametrize("enabled,max_rounds", [(True, 5), (False, 3)])
+def test_new_run_freezes_fresh_discussion_policy_instead_of_reusing_previous_run(tmp_path, enabled, max_rounds):
     repo = Repository(tmp_path / "runtime")
     SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=enabled,
                                               script_discussion_max_rounds=max_rounds))
@@ -353,13 +355,13 @@ def test_new_run_freezes_fresh_discussion_policy_instead_of_reusing_previous_run
     saved = repo.get_job(job.job_id)
 
     assert discussion.run_id == "NEW-run"
-    assert discussion.enabled is enabled
+    assert discussion.enabled is True
     assert discussion.max_rounds == max_rounds
-    assert discussion.status == status
+    assert discussion.status == "DISCUSSING"
     assert discussion.rounds == []
     assert saved.script_discussion.run_id == "NEW-run"
     assert state["discussion_policy"] == {"run_id": "NEW-run", "revision": job.revision,
-                                          "enabled": enabled, "max_rounds": max_rounds}
+                                          "enabled": True, "max_rounds": max_rounds}
 
 
 def test_request_input_commits_custom_state_patch_before_pending_event(tmp_path):

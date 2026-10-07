@@ -2,6 +2,10 @@
 
 角色实现统一放在 `videoagents/nodes/`。一个节点类同时负责本阶段的业务、状态更新、保存产物和返回路由，直接注册进 LangGraph。`videoagents/graph/video_graph.py` 负责注册、连线、checkpoint 和命令恢复。
 
+2026-10-07 当前生产图只保留文案人工审核，导演直接进入剪辑，成片生成后结束。
+`timeline_gate`、分镜/成片人审和最终成片审核链不再注册；旧审核实现用于历史兼容，
+不代表当前默认流程。完整节点与路由见 [生产图精简](videoagents-graph-simplification.md)。
+
 ```text
 videoagents/
 ├─ nodes/
@@ -11,10 +15,10 @@ videoagents/
 │  ├─ voice.py           VoiceNode：配音指导、真实音频和实测对齐
 │  ├─ director.py        DirectorNode：按音频时间生成和保存分镜
 │  ├─ editing.py         EditingNode：剪辑指导、Remotion 渲染和产物登记
-│  ├─ reviewers.py       ReviewersNode：检查成片、来源、对齐和用途
-│  ├─ gates.py           ScriptGateNode / AudioGateNode / TimelineGateNode / ReviewGateNode
+│  ├─ reviewers.py       旧成片审核实现及依赖指纹工具，当前图不注册 ReviewersNode
+│  ├─ gates.py           当前图使用 ScriptGateNode / AudioGateNode；其余为旧审核实现
 │  ├─ human_review.py    HumanReviewNode：可自行接入的阶段人工审核
-│  ├─ await_input.py     AwaitInputNode：等待补充输入、最终人工复核和发布包
+│  ├─ await_input.py     AwaitInputNode：等待补充输入及失败恢复
 │  ├─ clear_tools.py     ClearToolsNode：每个模型角色完成后清空工具历史
 │  └─ common.py          共用的版本/取消校验、阶段状态、讨论保存和输入请求
 ├─ graph/
@@ -32,8 +36,8 @@ videoagents/
 以编剧为例，从 `ScreenwriterNode.__call__(state)` 开始读：
 
 1. `start_stage()` 先检查数据库中的版本和取消状态，将 `VideoState` 中的业务输入差异保存并补齐上下文，然后将阶段标记为运行中。
-2. 读取素材节点冻结的研究包和本次执行冻结的讨论配置。`write_script(job)` 生成初稿；开启讨论时，后续轮次通过 `rewrite(job, discussion)` 读取审查反馈并改稿。CLI 模型调用也在这个文件里。
-3. 保存文案及 JSON 产物，用 `state_context()` 返回包含当前业务数据的上下文；开启讨论时路由为 `script_reviewer`，未开启时为 `script_gate`。
+2. 读取素材节点冻结的研究包和本次执行冻结的审查轮数。`write_script(job)` 生成初稿；审查要求修改时，`rewrite(job, discussion)` 读取意见并改稿。CLI 模型调用也在这个文件里。
+3. 保存文案及 JSON 产物，用 `state_context()` 返回包含当前业务数据的上下文；初稿路由到 `script_reviewer`，最后改稿路由到 `human_review_script`。
 4. 能力或输入不足时，`request_input()` 保存待办并返回 `{"route": "await_input", ...}`。
 
 其他角色也从 `__call__` 开始读。`collect()`、`prepare_audio()`、`plan()`、`render_video()`、`review()` 是所在节点内部的业务步骤，没有独立 Agent 类。当前起点是 `START → materials → clear_materials → screenwriter`，平台清单和交接见 [素材节点](videoagents-materials.md)。
@@ -46,14 +50,14 @@ videoagents/
 graph.add_node("screenwriter", ScreenwriterNode(repository, self.service))
 self.add_cleanup_edge(graph, "screenwriter", {
     "script_reviewer": "script_reviewer",
-    "script_gate": "script_gate",
+    "human_review_script": "human_review_script",
     "await_input": "await_input",
 })
 ```
 
 `ScreenwriterNode(...)` 创建节点对象；`add_node` 把对象注册为 `screenwriter`。工作流到达它时，LangGraph 调用对象的 `__call__(state)`。返回的增量更新共享状态，先进入 `clear_screenwriter` 清理工具历史，然后 `self.route(state)` 读取 `route`，条件边再选择下一个节点。
 
-素材、编剧、文案审查、配音、导演、剪辑、审核七个角色均使用 `add_cleanup_edge()`；检查和等待节点沿用原条件边。自己编排角色后的人工审核时，修改 `add_cleanup_edge()` 的路由映射，保留清理节点。例如让 `script_gate` 路由先进入自定义人工审核；不要另加一条绕过清理的角色条件边。
+素材、编剧、文案审查、配音、导演、剪辑六个生产角色均使用 `add_cleanup_edge()`；音频检查和等待输入节点沿用条件边。文案人工审核已经接在编剧与文案审查之后；自己编排其他审核点时，修改相应路由映射并保留清理节点。
 
 调整业务去对应的节点文件；调整顺序和分支去图文件。编剧与文案审查的交替、轮数和记录见 [文案讨论](videoagents-script-discussion.md)。插入人工审核仍使用 `add_human_review()`，示例见 [人工审核编排](videoagents-human-review.md)。原有节点和恢复 API 保留；已经执行到文案后阶段的旧 checkpoint 不会补做新讨论，启动新执行后按新配置进入。
 

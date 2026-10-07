@@ -222,7 +222,9 @@ def test_expressive_plan_synthesizes_each_segment_and_offsets_real_timestamps(tm
     assert metadata["segment_stitch"][0]["retained_acoustic_tail_ms"] == 0
 
 
-def test_standard_model_with_segment_plan_falls_back_to_whole_script(tmp_path, monkeypatch):
+def test_standard_model_with_segment_plan_pauses_instead_of_unguided_synthesis(tmp_path, monkeypatch):
+    from videoagents.providers.llm import CapabilityMissing
+
     repo, service, job = two_segment_job(tmp_path)
     settings = SettingsService(repo)
     settings.patch(SettingsPatch(
@@ -258,9 +260,9 @@ def test_standard_model_with_segment_plan_falls_back_to_whole_script(tmp_path, m
         }
 
     monkeypatch.setattr("videoagents.nodes.voice.synthesize", provider)
-    VoiceNode(repo, service).prepare_audio(job, "UNIT-whole-command", prefer_generation=True)
-    assert len(calls) == 1 and calls[0][0] == "第一段。\n第二段。"
-    assert "delivery_style" not in calls[0][1] and "operation_key" not in calls[0][1]
+    with pytest.raises(CapabilityMissing, match="expressive"):
+        VoiceNode(repo, service).prepare_audio(job, "UNIT-whole-command", prefer_generation=True)
+    assert calls == []
 
 
 @pytest.mark.parametrize("cancelled", [False, True])

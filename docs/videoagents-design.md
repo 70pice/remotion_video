@@ -2,6 +2,8 @@
 
 日期：2026-10-03。这是实施前通过审查的设计记录，保留当时的源码和外部资料核验结论。当前实现、实际测试及边界见 [实现与验证记录](videoagents-implementation-status.md)，启动操作见 [使用说明](videoagents-setup.md)。设计中的未来扩展不能当作已实测功能。
 
+2026-10-07 用户更新：当前生产图只保留文案人工审核，导演直接进入剪辑，视频生成后结束；本文中的后续成片审核设计属于历史方案。当前编排见 [生产图精简](videoagents-graph-simplification.md)。
+
 最新实现已将素材独立为第一个节点：`materials → screenwriter`，并增加文案审查讨论。历史方案中的编剧采集职责已迁入素材节点；当前交接与平台能力见 [素材研究节点](videoagents-materials.md)。2026-10-06 已将全部 152 个社区组件以固定视觉预设接入生产 Timeline，并加入真实视频适配器，与 9 个参数化适配器组成 161 个生产 ID；当前事实以 [实现与验证记录](videoagents-implementation-status.md) 为准。
 
 ## 1. 目标与设计决定

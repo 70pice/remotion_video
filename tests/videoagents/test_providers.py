@@ -85,6 +85,10 @@ def test_generated_voice_with_changed_script_is_not_reused(monkeypatch, tmp_path
     from videoagents.services.jobs import JobService
     repo = Repository(tmp_path / "runtime")
     service = JobService(repo, tmp_path / "project")
+    SettingsService(repo).patch(SettingsPatch(voice_provider="byte_ws", voice_model="seed-tts-2.0-expressive"))
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", lambda *args, **kwargs: {
+        "delivery_notes": ["UNIT TEST: preserve narration and speak naturally."], "findings": [],
+    })
     job = repo.create_job(Brief(topic="test"))
     old = Asset(asset_id="old-generated", name="old.mp3", role="audio", mime_type="audio/mpeg", size_bytes=1,
         sha256="a" * 64, artifact_id="old-artifact", url="/api/artifacts/old-artifact", timeline_src=f"videoagents/{job.job_id}/assets/old.mp3")
@@ -133,6 +137,9 @@ def test_ws_model_change_invalidates_generated_audio(monkeypatch, tmp_path):
         "voice_fingerprint": fingerprint({"voice_id": "unit-voice", "resource_id": "seed-icl-2.0", "provider": "byte_ws", "model": "seed-tts-2.0-standard"})})
     repo.select_audio(job.job_id, old.asset_id)
     SettingsService(repo).patch(SettingsPatch(voice_model="seed-tts-2.0-expressive"))
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", lambda *args, **kwargs: {
+        "delivery_notes": ["UNIT TEST: preserve narration and speak naturally."], "findings": [],
+    })
     calls = []
     def request(*args, **kwargs):
         calls.append(args[3])

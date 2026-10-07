@@ -75,7 +75,7 @@ class ScriptGateNode:
 
     def __call__(self, state: VideoState) -> dict[str, Any]:
         job = current_job(self.repo, state)
-        issues = script_issues(job)
+        issues = script_issues(job, state.get("research"))
         if issues:
             return request_input(self.repo, state, "script", issues, ["script", "source_urls", "assets"])
         return state_context(self.repo, state, route="voice", gate_issues=[])

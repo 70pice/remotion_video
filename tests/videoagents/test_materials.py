@@ -59,6 +59,47 @@ def patch_valid_image_probe(monkeypatch):
                         lambda path: {"streams": [{"codec_type": "video", "width": 64, "height": 64}]})
 
 
+def patch_material_visual_probes(monkeypatch, *, duration_seconds=8.5):
+    def detect(data, path=None):
+        if data.startswith(b"\x89PNG\r\n\x1a\n"):
+            return "image/png", ".png"
+        if len(data) > 12 and data[4:8] == b"ftyp":
+            return "video/mp4", ".mp4"
+        raise AssertionError("unexpected media fixture")
+
+    monkeypatch.setattr("videoagents.nodes.materials.detect_media", detect)
+    patch_valid_image_probe(monkeypatch)
+    monkeypatch.setattr("videoagents.nodes.materials.video_metadata",
+                        lambda path: {"duration_seconds": duration_seconds, "width": 688,
+                                      "height": 1080, "frame_rate": 30.0})
+    monkeypatch.setattr("videoagents.nodes.materials.decode_check", lambda path: None)
+
+
+def save_image_and_video_research(repo, service, job):
+    folder = repo.root / "jobs" / job.job_id / "revisions" / str(job.revision) / "skills-research"
+    folder.mkdir(parents=True, exist_ok=True)
+    source = folder / "source.txt"
+    source.write_text("官方资料展示 Muse 的实际界面与视频。", encoding="utf-8")
+    image = folder / "screen.png"
+    image.write_bytes(PNG_BYTES)
+    video = folder / "demo.mp4"
+    video.write_bytes(MP4_BYTES)
+    research = MaterialsNode(repo, service).save_research(job, {
+        "sources": [{"url": "https://example.com/muse", "title": "Muse", "platform": "web",
+                     "text_file": source.name, "sha256": sha256(source)}],
+        "visuals": [
+            {"source_url": "https://example.com/muse", "kind": "screenshot",
+             "file": image.name, "sha256": sha256(image), "image_url": "https://example.com/screen.png",
+             "description": "Muse 截图"},
+            {"source_url": "https://example.com/muse", "kind": "video",
+             "file": video.name, "sha256": sha256(video), "media_url": "https://example.com/demo.mp4",
+             "description": "Muse 演示视频"},
+        ],
+        "limitations": [],
+    }, folder)
+    return research, repo.get_job(job.job_id), image, video
+
+
 def patch_material_model(monkeypatch):
     calls = []
 
@@ -216,7 +257,7 @@ def test_screenwriter_consumes_frozen_research_and_tamper_is_blocked(tmp_path, m
     result = ScreenwriterNode(repo, service)(state_for(repo.get_job(job.job_id)))
     current = repo.get_job(job.job_id)
 
-    assert result["route"] == "script_gate"
+    assert result["route"] == "script_reviewer"
     assert calls[0][0] == "screenwriter"
     assert calls[0][1]["research"]["sources"][0]["url"] == "https://example.com/muse"
     assert current.script.segments[0].asset_ids == [current.assets[0].asset_id]
@@ -283,6 +324,51 @@ def test_materials_model_reads_inputs_from_shared_state(tmp_path, monkeypatch):
     assert calls[0][1]["brief"]["topic"] == "shared topic"
     assert set(calls[0][1]) == {"brief", "assets", "settings"}
     assert calls[0][2]["title"] == "MaterialResearch"
+
+
+def test_default_personal_materials_mark_images_and_videos_ready_for_draft_video(tmp_path, monkeypatch):
+    repo, service = make_repo(tmp_path)
+    job = repo.create_job(Brief(topic="Muse 个人视频素材"))
+    assert job.brief.usage == "personal"
+    patch_material_visual_probes(monkeypatch, duration_seconds=8.5)
+
+    research, current, image_path, video_path = save_image_and_video_research(repo, service, job)
+
+    assert [visual["license_status"] for visual in research["visuals"]] == ["personal_use", "personal_use"]
+    assert research["sources"][0]["asset_ids"] == [asset.asset_id for asset in current.assets]
+    image, video = current.assets
+    assert image.mime_type == "image/png"
+    assert video.mime_type == "video/mp4"
+    assert image.source_url == video.source_url == "https://example.com/muse"
+    assert image.sha256 == sha256(image_path)
+    assert video.sha256 == sha256(video_path)
+    assert image.license_note == "真实网页截图/来源图片；个人视频制作，素材可直接入片；保留原始来源"
+    assert video.license_note == "真实来源视频；个人视频制作，素材可直接入片；保留原始来源"
+    assert "尚未确认" not in image.license_note + video.license_note
+    assert "待核验" not in image.license_note + video.license_note
+    image_metadata = repo.asset_metadata(image.asset_id)
+    video_metadata = repo.asset_metadata(video.asset_id)
+    assert image_metadata["source_url"] == "https://example.com/muse"
+    assert image_metadata["image_url"] == "https://example.com/screen.png"
+    assert image_metadata["width"] == 64 and image_metadata["height"] == 64
+    assert video_metadata["source_url"] == "https://example.com/muse"
+    assert video_metadata["media_url"] == "https://example.com/demo.mp4"
+    assert video_metadata["duration_seconds"] == 8.5
+    assert video_metadata["width"] == 688 and video_metadata["height"] == 1080
+
+
+def test_commercial_materials_keep_review_required_receipts_and_visual_status(tmp_path, monkeypatch):
+    repo, service = make_repo(tmp_path)
+    job = repo.create_job(Brief(topic="Muse 商业视频素材", usage="commercial"))
+    patch_material_visual_probes(monkeypatch, duration_seconds=6.25)
+
+    research, current, _, _ = save_image_and_video_research(repo, service, job)
+
+    assert [visual["license_status"] for visual in research["visuals"]] == ["needs_review", "needs_review"]
+    image, video = current.assets
+    assert image.license_note == "真实网页截图/来源图片；尚未确认再利用许可，请在发布审核时核验"
+    assert video.license_note == "真实来源视频；尚未确认再利用许可，请在发布审核时核验"
+    assert repo.asset_metadata(video.asset_id)["duration_seconds"] == 6.25
 
 
 def test_materials_accepts_verified_video_visual_and_records_metadata(tmp_path, monkeypatch):

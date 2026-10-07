@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
-import type { Decision, Job, RunAction } from "../../api/types";
-import { displayedStatus, isPublishReady } from "../../api/jobStatus";
+import type { Job } from "../../api/types";
+import { displayedStatus, isProductionComplete } from "../../api/jobStatus";
 import { Empty, Notice, StatusBadge } from "../../components/ui";
 import { getStageReviewPending } from "./stageReview";
 
@@ -18,48 +17,27 @@ const ownerNames: Record<string, string> = {
 
 export function ReviewPanel({
   job,
-  locked,
-  run,
-  resume,
   seek,
 }: {
   job: Job;
-  locked: boolean;
-  run: (action: RunAction) => void;
-  resume: (decision: Decision, note: string) => void;
+  locked?: boolean;
+  run?: unknown;
+  resume?: unknown;
   seek: (seconds: number) => void;
 }) {
-  const [note, setNote] = useState("");
-  const [played, setPlayed] = useState(false);
   const stageReviewPending = getStageReviewPending(job);
-  useEffect(() => {
-    setPlayed(false);
-  }, [
-    job.revision,
-    job.review?.media_sha256,
-    job.pending_input?.pending_token,
-  ]);
   const review = job.review;
   const hardErrors =
     review?.findings.some(
       (finding) => finding.blocking && finding.severity === "error",
     ) ?? false;
-  const pendingToken = job.pending_input?.pending_token;
-  const hasPendingToken = typeof pendingToken === 'string' && pendingToken.length >= 16;
-  const canConfirm =
-    job.status === "NEEDS_HUMAN" && !hardErrors && hasPendingToken;
-  const hasVideo = job.artifacts.some(
-    (artifact) =>
-      artifact.mime_type.startsWith("video/") &&
-      artifact.revision === job.revision,
-  );
-  const actualReady = isPublishReady(job);
+  const productionComplete = isProductionComplete(job);
   if (stageReviewPending) {
     return (
       <div className="feature-section">
         <div className="section-heading">
           <div>
-            <h2>审核与复核</h2>
+            <h2>历史审核</h2>
             <p>当前正在等待阶段人工审核，请使用工作台顶部的审核卡处理。</p>
           </div>
         </div>
@@ -70,25 +48,18 @@ export function ReviewPanel({
     <div className="feature-section">
       <div className="section-heading">
         <div>
-          <h2>审核与复核</h2>
-          <p>检查画面、音画对应、事实来源和素材用途。</p>
+          <h2>历史审核</h2>
+          <p>查看旧流程留下的问题记录；当前制作流程生成成片后直接结束。</p>
         </div>
-        <button
-          className="button secondary"
-          disabled={locked || !hasVideo}
-          onClick={() => run("review")}
-        >
-          审核当前视频
-        </button>
       </div>
-      {actualReady && (
+      {productionComplete && (
         <Notice tone="success">
-          当前成片通过内部交付审核。发布前仍需按目标平台要求确认。
+          当前成片已生成。发布前仍需人工按目标平台要求另行判断。
         </Notice>
       )}
       {!review ? (
         <Empty title="还没有审核结果">
-          生成当前版本视频后，发起审核查看问题与交付状态。
+          新流程不再发起成片审核；这里仅保留历史审核报告。
         </Empty>
       ) : (
         <>
@@ -100,7 +71,7 @@ export function ReviewPanel({
                 项需要处理
               </strong>
               <small className="muted">
-                审核针对当前产物与素材 ·{" "}
+                历史报告针对当时产物与素材 ·{" "}
                 {review.human_confirmed ? "已完成人工复核" : "尚未人工确认"}
               </small>
             </div>
@@ -153,77 +124,11 @@ export function ReviewPanel({
               </article>
             ))}
           </div>
-          <div className="panel form-panel">
-            <h3>人工复核</h3>
-            <p className="muted small">
-              完整播放当前成片，核对事实与授权。错误必须修复后重验，人工确认只处理可复核事项。
-            </p>
-            <label>
-              复核或返工说明
-              <textarea
-                rows={3}
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-                placeholder="记录已核对的来源、授权说明，或需要调整的具体问题"
-                disabled={locked}
-              />
-            </label>
-            <label className="check-label">
-              <input
-                type="checkbox"
-                checked={played}
-                disabled={locked}
-                onChange={(event) => setPlayed(event.target.checked)}
-              />
-              我已完整播放当前成片，核对事实、音画和素材用途
-            </label>
-            <div className="button-row">
-              <button
-                className="button primary"
-                disabled={locked || !canConfirm || !note.trim() || !played}
-                onClick={() => resume("confirm", note)}
-              >
-                确认已核对当前版本
-              </button>
-              <button
-                className="button secondary"
-                disabled={
-                  locked ||
-                  !hasPendingToken ||
-                  ![
-                    "NEEDS_INPUT",
-                    "NEEDS_HUMAN",
-                    "REJECTED",
-                    "FAILED",
-                  ].includes(job.status)
-                }
-                onClick={() => resume("revise", note)}
-              >
-                根据问题返工
-              </button>
-              <button
-                className="button danger"
-                disabled={
-                  locked ||
-                  !hasPendingToken ||
-                  ![
-                    "NEEDS_INPUT",
-                    "NEEDS_HUMAN",
-                    "REJECTED",
-                    "FAILED",
-                  ].includes(job.status)
-                }
-                onClick={() => resume("cancel", note)}
-              >
-                结束当前任务
-              </button>
-            </div>
-            {hardErrors && (
-              <small className="danger-text">
-                存在阻止交付的错误，请在对应工作区修复后重新审核。
-              </small>
-            )}
-          </div>
+          {hardErrors && (
+            <Notice tone="error">
+              历史报告中存在阻止交付的错误，请在对应工作区修复后重新制作。
+            </Notice>
+          )}
         </>
       )}
     </div>

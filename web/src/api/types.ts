@@ -40,6 +40,7 @@ export type Decision = ResumeRequest["decision"];
 export type RoleId = keyof RoleModels;
 export type ModelProvider = RoleModelConfig["provider"];
 export interface Settings extends Record<string, unknown> {
+  ark_api_key_configured?: boolean;
   voice_api_key_configured?: boolean;
   voice_access_token_configured?: boolean;
   voice_configured?: boolean;

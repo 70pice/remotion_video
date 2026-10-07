@@ -167,6 +167,18 @@ function ScriptStagePreview({ job }: { job: Job }) {
         <small className="muted">第 {script.revision} 版 · {script.origin}</small>
       </div>
       <strong>{script.title}</strong>
+      {(script.title_hook || script.opening_visual || script.final_answer) && (
+        <div className="stage-review-script-meta">
+          <small className="muted">
+            创作信息仅用于审核开头画面和主答案，实际口播以段落内容为准。
+          </small>
+          {script.title_hook && <small>前3秒画面字：{script.title_hook}</small>}
+          {script.opening_visual && (
+            <small>开头画面建议：{script.opening_visual}</small>
+          )}
+          {script.final_answer && <small>一句主答案：{script.final_answer}</small>}
+        </div>
+      )}
       <div className="stage-review-script">
         {script.segments.map((segment, index) => (
           <article key={segment.segment_id}>

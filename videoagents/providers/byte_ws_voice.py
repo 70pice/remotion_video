@@ -502,7 +502,9 @@ def synthesize(repository: Repository, job_id: str, revision: int, text: str, co
     style = configured_style.strip()
     notes = delivery_style.strip()
     if notes:
-        style = (style + "\n" + notes if style else notes)[:2000]
+        style = style + "\n" + notes if style else notes
+    if len(style) > 2000:
+        raise CapabilityMissing("用户风格与配音 Agent 指导合计超过 2000 字；请精简后继续，不能截掉指导。", ["voice_style", "voice_guidance"])
     if style and not supports_voice_style(config):
         raise CapabilityMissing("当前风格指导仅支持字节 WebSocket 的 seed-tts-2.0-expressive；standard 不会应用此风格", ["voice_model", "voice_style"])
     request = {"event": int(Event.START_SESSION), "namespace": "BidirectionalTTS", "req_params": {"model": config.get("voice_model", "seed-tts-2.0-expressive"),

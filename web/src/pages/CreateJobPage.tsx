@@ -6,10 +6,11 @@ import { Notice, PageHeading } from "../components/ui";
 
 const initialBrief: Brief = {
   topic: "",
+  creative_direction: "",
   script_text: "",
-  audience: "没有技术背景的普通大众",
+  audience: "对 AI 感兴趣、愿意了解前沿进展并尝试工具的人",
   platform: "抖音",
-  usage: "unspecified",
+  usage: "personal",
   target_seconds: 60,
   width: 1080,
   height: 1920,
@@ -27,8 +28,8 @@ export function CreateJobPage() {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (busy) return;
-    if (!brief.topic.trim() && !brief.script_text.trim()) {
-      setError("请填写主题或已有文案。");
+    if (!brief.topic.trim() && !brief.creative_direction.trim()) {
+      setError("请填写主题或本期创作方向。");
       return;
     }
     setBusy(true);
@@ -75,12 +76,12 @@ export function CreateJobPage() {
               />
             </label>
             <label>
-              已有口播文案
+              本期创作方向
               <textarea
                 rows={10}
-                value={brief.script_text}
-                onChange={(event) => change("script_text", event.target.value)}
-                placeholder="如果已经有文案，粘贴在这里。没有文案时，可只填写主题。"
+                value={brief.creative_direction}
+                onChange={(event) => change("creative_direction", event.target.value)}
+                placeholder="写你想讲的问题、角度、重点或希望观众看完明白什么；不需要写成口播稿。"
               />
             </label>
             <label>

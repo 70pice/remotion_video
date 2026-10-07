@@ -33,6 +33,12 @@ def supports_voice_style(config: dict[str, Any]) -> bool:
     return config.get("voice_provider") == "byte_ws" and config.get("voice_model") == "seed-tts-2.0-expressive"
 
 
+def enforce_fixed_role_settings(role_models: dict[str, Any]) -> dict[str, Any]:
+    roles = RoleModels.model_validate(role_models).model_dump()
+    roles["voice"]["enabled"] = True
+    return roles
+
+
 def protect(value: str) -> str:
     if os.name != "nt":
         return "local:" + base64.b64encode(value.encode()).decode()
@@ -90,7 +96,7 @@ class SettingsService:
             env_name = "VIDEOAGENTS_" + key.upper()
             if os.getenv(env_name):
                 result[key] = os.environ[env_name]
-        result["role_models"] = RoleModels.model_validate(result["role_models"]).model_dump()
+        result["role_models"] = enforce_fixed_role_settings(result["role_models"])
         return result
 
     def public(self) -> dict[str, Any]:
@@ -102,6 +108,7 @@ class SettingsService:
         tools = platform_catalog(settings)
         result.update({
             "llm_configured": any(value["enabled"] for value in settings["role_models"].values()),
+            "ark_api_key_configured": bool(settings.get("ark_api_key")),
             "cli_availability": cli_availability(),
             "search_configured": (settings.get("search_provider") == "opencli_google" and any(
                 item["id"] == "google" and item["status"] in {"native_installed", "native_ready"} for item in tools)) or bool(settings.get("search_api_key")) and (
@@ -121,11 +128,12 @@ class SettingsService:
 
     def patch(self, patch: SettingsPatch) -> dict[str, Any]:
         values = patch.model_dump(exclude_none=True, exclude_unset=True)
+        values.pop("script_discussion_enabled", None)
         if "role_models" in values:
             roles = self.internal()["role_models"]
             for role, updates in values["role_models"].items():
                 roles[role].update(updates)
-            values["role_models"] = RoleModels.model_validate(roles).model_dump()
+            values["role_models"] = enforce_fixed_role_settings(roles)
         for key in {"aligner_url"}:
             if values.get(key):
                 validate_url(values[key], local_provider=True)

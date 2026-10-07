@@ -12,7 +12,7 @@ from videoagents.state import VideoState, job_context
 from videoagents.storage import Repository
 from videoagents.tools.components import component_study_payload
 from videoagents.tools.timeline import (
-    asset_publishable,
+    asset_renderable,
     media_coverage_report,
     validate_media_coverage,
     validate_timeline,
@@ -77,6 +77,15 @@ def director_job(tmp_path, image=True, video=False, video_seconds=2.5, usage="un
     return DirectorNode(repo, service), job, audio, alignment
 
 
+PENDING_REVIEW_LICENSE = "真实网页截图/来源图片；尚未确认再利用许可，请在发布审核时核验"
+
+
+def with_license(job, repo, **notes):
+    assets = [asset.model_copy(update={"license_note": notes[asset.asset_id]})
+              if asset.asset_id in notes else asset for asset in job.assets]
+    return repo.update_job(job.job_id, job.revision, assets=assets)
+
+
 def test_director_returns_only_shots_and_keeps_provider_alignment_in_code(tmp_path, monkeypatch):
     node, job, audio, alignment = director_job(tmp_path)
     state = VideoState(**job_context(job), run_id="unit-compact-director",
@@ -111,6 +120,52 @@ def test_director_rounds_fractional_audio_duration_up_to_preserve_the_tail(tmp_p
     assert result.duration_in_frames / result.fps > 2.001
 
 
+def test_visual_rebuild_uses_model_instead_of_reusing_completed_timeline(tmp_path, monkeypatch):
+    node, job, audio, alignment = director_job(tmp_path)
+    monkeypatch.setattr(node.model, "available", lambda role: False)
+    old = node.plan(job, audio, alignment, 2.0)
+    old.shots[0].component_id = "keyword"
+    old.shots[0].asset_src = None
+    old.shots[0].props = {}
+    job = node.repo.update_job(job.job_id, job.revision, timeline=old)
+    state = VideoState(**job_context(job), run_id="unit-rebuild",
+                       gate_issues=["素材覆盖不足"], pending_snapshot={"stage": "director"},
+                       extras={"component_study": valid_study(job.brief.usage), "timeline_rebuild": True})
+    calls = []
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+
+    def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        calls.append(role)
+        assert context["timeline"] != old.model_dump()
+        assert context["timeline"]["shots"][0]["component_id"] == "evidence"
+        assert context["extras"]["timeline_rebuild"] is True
+        assert context["extras"]["media_coverage"]["actual_media_ratio"] == 1
+        assert context["extras"]["media_coverage"]["required"] is True
+        assert "至少覆盖 22 帧（全片 30 帧）" in instruction
+        assert context["extras"]["timeline_repair_issues"] == ["素材覆盖不足"]
+        shot = dict(context["timeline"]["shots"][0], title="重新选择素材的镜头",
+                    component_id="image_focus", asset_src=job.assets[1].timeline_src)
+        return {"shots": [shot]}
+
+    monkeypatch.setattr(node.model, "call", model)
+    result = node.plan(job, audio, alignment, 2.0, state=state)
+    assert calls == ["director"]
+    assert result.shots[0].title != old.shots[0].title
+    assert result.audio_src == old.audio_src and result.captions == old.captions
+
+
+def test_visual_rebuild_without_director_model_cannot_render_old_timeline(tmp_path, monkeypatch):
+    from videoagents.providers.llm import CapabilityMissing
+
+    node, job, audio, alignment = director_job(tmp_path)
+    monkeypatch.setattr(node.model, "available", lambda role: False)
+    old = node.plan(job, audio, alignment, 2.0)
+    job = node.repo.update_job(job.job_id, job.revision, timeline=old)
+    state = VideoState(**job_context(job), extras={"timeline_rebuild": True})
+    with pytest.raises(CapabilityMissing, match="重做画面需要启用导演模型"):
+        node.plan(job, audio, alignment, 2.0, state=state)
+
+
 def test_director_node_retains_new_component_study_in_job_and_handoff(tmp_path, monkeypatch):
     node, job, audio, alignment = director_job(tmp_path)
     node.repo.update_asset_metadata(audio.asset_id, {
@@ -130,7 +185,7 @@ def test_director_node_retains_new_component_study_in_job_and_handoff(tmp_path, 
     monkeypatch.setattr(node.model, "call", model)
     result = node(state)
     saved = node.repo.get_job(job.job_id)
-    assert result["route"] == "timeline_gate"
+    assert result["route"] == "editing"
     assert {item.kind for item in saved.artifacts} >= {"component_study", "storyboard", "timeline"}
     assert result["extras"]["component_study"] == valid_study(job.brief.usage)
     assert saved.timeline.audio_src == audio.timeline_src
@@ -162,7 +217,8 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
     assert "组件研究助理" in calls[0][0]
     assert set(calls[0][1]) == {"brief"}
     instruction, context, schema = calls[1]
-    assert instruction == PROMPT
+    assert instruction.startswith(PROMPT)
+    assert ("本次提交的硬约束" in instruction) is image
     assert set(context) == {"brief", "script", "timeline", "research", "assets", "asset_metadata", "extras"}
     assert "component_study" in context["extras"]
     assert context["extras"]["media_coverage"]["target_ratio"] == 0.7
@@ -235,7 +291,7 @@ def test_verification_only_image_is_excluded_from_schema_coverage_and_timeline(t
     monkeypatch.setattr(node.model, "call", model)
     result = node.plan(job, audio, alignment, 2.0)
 
-    assert not asset_publishable(blocked)
+    assert not asset_renderable(blocked)
     assert calls[1][0]["extras"]["media_coverage"]["required"] is False
     assert calls[1][0]["extras"]["media_coverage"]["eligible_capacity_frames"] == 0
     assert calls[1][1]["$defs"]["Shot"]["properties"]["asset_src"]["enum"] == [None]
@@ -245,6 +301,63 @@ def test_verification_only_image_is_excluded_from_schema_coverage_and_timeline(t
     })]})
     with pytest.raises(ValueError, match="许可回执明确仅供核验"):
         validate_timeline(invalid, job)
+
+
+def test_pending_review_assets_enter_director_schema_baseline_and_coverage(tmp_path, monkeypatch):
+    node, job, audio, alignment = director_job(tmp_path, image=True, video=True, video_seconds=2.5)
+    image = next(asset for asset in job.assets if asset.mime_type.startswith("image/"))
+    video = next(asset for asset in job.assets if asset.mime_type.startswith("video/"))
+    job = with_license(job, node.repo, **{
+        image.asset_id: PENDING_REVIEW_LICENSE,
+        video.asset_id: PENDING_REVIEW_LICENSE.replace("图片", "视频"),
+    })
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+    calls = []
+
+    def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        calls.append((context, output_schema))
+        if "reviewed_preset_ids" in json.dumps(output_schema or {}):
+            return valid_study(job.brief.usage)
+        assert context["timeline"]["shots"][0]["component_id"] == "video"
+        assert context["timeline"]["shots"][0]["asset_src"] == video.timeline_src
+        coverage = context["extras"]["media_coverage"]
+        assert coverage["required"] is True
+        assert coverage["eligible_capacity_frames"] == 30
+        assert coverage["actual_media_frames"] == 30
+        assert coverage["actual_media_ratio"] == 1.0
+        assert context["asset_metadata"][image.asset_id]["renderable"] is True
+        assert context["asset_metadata"][video.asset_id]["renderable"] is True
+        return {"shots": context["timeline"]["shots"]}
+
+    monkeypatch.setattr(node.model, "call", model)
+    timeline = node.plan(job, audio, alignment, 2.0)
+
+    schema = calls[1][1]
+    allowed_sources = schema["$defs"]["Shot"]["properties"]["asset_src"]["enum"]
+    assert image.timeline_src in allowed_sources
+    assert video.timeline_src in allowed_sources
+    assert timeline.shots[0].component_id == "video"
+    assert timeline.shots[0].asset_src == video.timeline_src
+
+
+def test_pending_review_assets_still_make_seventy_percent_media_required(tmp_path, monkeypatch):
+    node, job, audio, alignment = director_job(tmp_path, image=True)
+    image = next(asset for asset in job.assets if asset.mime_type.startswith("image/"))
+    job = with_license(job, node.repo, **{image.asset_id: PENDING_REVIEW_LICENSE})
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+
+    def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        if "reviewed_preset_ids" in json.dumps(output_schema or {}):
+            return valid_study(job.brief.usage)
+        assert context["extras"]["media_coverage"]["required"] is True
+        shot = copy.deepcopy(context["timeline"]["shots"][0])
+        shot.update(component_id="title", asset_src=None, source_label="", props={})
+        return {"shots": [shot]}
+
+    monkeypatch.setattr(node.model, "call", model)
+
+    with pytest.raises(ValueError, match="足以覆盖全片超过 70%.*实际图片/视频镜头仅覆盖 0.0%"):
+        node.plan(job, audio, alignment, 2.0)
 
 
 def test_director_filters_noncommercial_presets_from_commercial_jobs(tmp_path, monkeypatch):
@@ -457,7 +570,8 @@ def test_shared_final_state_is_read_without_committing_unvalidated_baseline(tmp_
     context, command = calls[1]
     assert context["research"]["sources"][0]["text"] == "已冻结的最终证据"
     assert "tools" not in context["research"]
-    assert context["asset_metadata"] == {"unit-image": {"description": "最终图片描述"}}
+    assert context["asset_metadata"]["unit-image"] == {"description": "最终图片描述", "renderable": True}
+    assert context["asset_metadata"].get("unit-audio") == {}
     assert command == "unit-resume-command:timeline"
     expected_state = copy.deepcopy(original_state)
     expected_state["extras"] = {"component_study": valid_study(job.brief.usage)}
@@ -533,7 +647,9 @@ def test_production_manual_timeline_accepts_valid_component_study_without_model(
 
 
 def test_stale_component_study_is_refreshed_when_director_model_is_enabled(tmp_path, monkeypatch):
-    node, job, audio, alignment = director_job(tmp_path, production=True)
+    # Study renewal is independent of images; a two-second evidence shot is
+    # intentionally invalid under production reading-duration constraints.
+    node, job, audio, alignment = director_job(tmp_path, production=True, image=False)
     stale = valid_study(job.brief.usage, source_fingerprint="0" * 64)
     state = VideoState(**job_context(job), run_id="unit-refresh", extras={"component_study": stale})
     monkeypatch.setattr(node.model, "available", lambda role: True)
@@ -563,6 +679,30 @@ def test_director_baseline_prefers_video_only_when_it_covers_the_shot(tmp_path, 
     if expected_component == "video":
         assert timeline.shots[0].asset_src.endswith(".mp4")
         assert timeline.shots[0].props == {"start_seconds": 0, "fit": "contain"}
+
+
+@pytest.mark.parametrize("video_seconds,expected_component", [(2.5, "video"), (1.0, "evidence")])
+def test_director_baseline_matches_source_refs_video_before_image_when_duration_covers(tmp_path, monkeypatch, video_seconds, expected_component):
+    node, job, audio, alignment = director_job(tmp_path, image=True, video=True, video_seconds=video_seconds)
+    image = next(asset for asset in job.assets if asset.mime_type.startswith("image/"))
+    video = next(asset for asset in job.assets if asset.mime_type.startswith("video/"))
+    job = with_license(job, node.repo, **{
+        image.asset_id: PENDING_REVIEW_LICENSE,
+        video.asset_id: PENDING_REVIEW_LICENSE.replace("图片", "视频"),
+    })
+    script = Script(title="Muse", origin="user", revision=job.revision,
+                    segments=[ScriptSegment(segment_id="s1", narration="观点：这是测试文案。",
+                                            source_refs=["https://example.test/muse"], asset_ids=[])])
+    job = node.repo.update_job(job.job_id, job.revision, script=script)
+    monkeypatch.setattr(node.model, "available", lambda role: False)
+
+    timeline = node.plan(job, audio, alignment, 2.0)
+
+    assert timeline.shots[0].component_id == expected_component
+    if expected_component == "video":
+        assert timeline.shots[0].asset_src == video.timeline_src
+    else:
+        assert timeline.shots[0].asset_src == image.timeline_src
 
 
 def test_model_director_requires_seventy_percent_media_when_linked_supply_is_sufficient(tmp_path, monkeypatch):

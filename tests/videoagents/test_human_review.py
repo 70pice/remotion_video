@@ -25,6 +25,17 @@ from worker.runner import Worker
 NOTE = "UNIT TEST：已核对本阶段文案表达、事实来源及素材。"
 
 
+def approve_script_reviewer(monkeypatch, handler=None):
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        if role == "script_reviewer":
+            return {"decision": "APPROVE", "summary": "UNIT TEST：文案可进入人工审核。", "strengths": [], "issues": []}
+        if handler:
+            return handler(self, job_id, revision, role, instruction, context, command_id, output_schema)
+        raise AssertionError(f"Unexpected model role: {role}")
+
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
+
+
 def tone(seconds=1):
     output = io.BytesIO()
     with wave.open(output, "wb") as media:
@@ -54,14 +65,7 @@ def wired_job(tmp_path, monkeypatch):
     SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False))
     project = tmp_path / "project"
     job = repo.create_job(Brief(script_text="观点：人工审核测试。"))
-    add_edges = StateGraph.add_conditional_edges
-
-    def wire_script_review(builder, source, path, path_map=None, **kwargs):
-        if source == "script_gate":
-            path_map = dict(path_map, voice="human_review")
-        return add_edges(builder, source, path, path_map, **kwargs)
-
-    monkeypatch.setattr(StateGraph, "add_conditional_edges", wire_script_review)
+    approve_script_reviewer(monkeypatch)
     calls = []
 
     def downstream(self, state):
@@ -85,18 +89,26 @@ def answer(repo, job, decision="confirm", note=NOTE, key="UNIT-resume"):
         "idempotency_key": key})
 
 
-def test_stage_reviews_are_registered_and_script_review_is_on_default_flow(tmp_path):
+def test_only_script_review_is_registered_on_default_flow(tmp_path, monkeypatch):
     repo = Repository(tmp_path / "runtime")
     SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False))
+    approve_script_reviewer(monkeypatch)
     job = repo.create_job(Brief(script_text="观点：默认流程测试。"))
     with VideoProductionGraph(repo, tmp_path / "project") as graph:
         topology = graph.graph.get_graph()
-        for node in ("human_review", "human_review_script", "human_review_timeline", "human_review_render"):
+        for node in ("human_review", "human_review_script"):
             assert node in topology.nodes
+        for node in ("timeline_gate", "human_review_timeline", "human_review_render",
+                     "reviewers", "review_gate", "clear_reviewers",
+                     "after_timeline_review", "after_render_review"):
+            assert node not in topology.nodes
         assert not any(edge.target == "human_review" and edge.source != "human_review" for edge in topology.edges)
-        assert any(edge.source == "script_gate" and edge.target == "human_review_script" for edge in topology.edges)
-        assert any(edge.source == "timeline_gate" and edge.target == "human_review_timeline" for edge in topology.edges)
-        assert any(edge.source == "clear_editing" and edge.target == "human_review_render" for edge in topology.edges)
+        assert any(edge.source == "clear_script_reviewer" and edge.target == "human_review_script" for edge in topology.edges)
+        assert any(edge.source == "clear_director" and edge.target == "editing" for edge in topology.edges)
+        assert any(edge.source == "clear_editing" and edge.target == "__end__" for edge in topology.edges)
+        removed = {"timeline_gate", "human_review_timeline", "human_review_render", "reviewers",
+                   "review_gate", "clear_reviewers", "after_timeline_review", "after_render_review"}
+        assert not any(edge.source in removed or edge.target in removed for edge in topology.edges)
     result = start(repo, tmp_path / "project", job)
     assert result.status == "NEEDS_HUMAN" and result.stage == "script"
     assert result.pending_input["kind"] == "stage_review"
@@ -127,22 +139,33 @@ def test_wired_review_pauses_before_downstream_and_recovers_after_reopen(wired_j
     assert receipt["dependency_fingerprint"] == paused.pending_input["dependency_fingerprint"]
 
 
-@pytest.mark.parametrize("decision,status", [("revise", "DRAFT"), ("cancel", "CANCELLED")])
-def test_revise_and_cancel_stop_without_running_downstream(wired_job, decision, status):
+@pytest.mark.parametrize("decision", ["revise", "cancel"])
+def test_revise_and_cancel_stop_without_running_downstream(wired_job, monkeypatch, decision):
     repo, project, job, calls = wired_job
     paused = start(repo, project, job)
+    if decision == "revise":
+        def rewrite(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+            assert role == "screenwriter"
+            return {"response": "UNIT：已按人工意见改写。", "script": {"title": "修订稿", "origin": "model",
+                "revision": revision, "segments": [{"segment_id": "s1", "narration": "观点：修订后的测试文案。"}]}}
+
+        approve_script_reviewer(monkeypatch, rewrite)
     answer(repo, paused, decision, "UNIT：此阶段需要修改")
     Worker(repo, project).once()
     current = repo.get_job(job.job_id)
-    assert current.status == status and current.pending_input is None and not calls
+    if decision == "cancel":
+        assert current.status == "CANCELLED" and current.pending_input is None and not calls
+    else:
+        assert current.status == "NEEDS_HUMAN" and current.stage == "script" and not calls
+        assert current.pending_input["node_name"] == "human_review_script"
+        assert current.pending_input["pending_token"] != paused.pending_input["pending_token"]
+        assert current.script.segments[0].narration == "观点：修订后的测试文案。"
     report = next(item for item in current.artifacts if item.kind == "stage_review")
     assert json.loads(repo.artifact_path(report.artifact_id)[0].read_text(encoding="utf-8"))["decision"] == decision
     if decision == "revise":
-        updated = JobService(repo, project).draft(job.job_id, DraftRequest(base_revision=current.revision,
-            brief=current.brief.model_copy(update={"script_text": "观点：修订后的测试文案。"})))
-        new_pause = start(repo, project, updated, "UNIT-new-revision")
-        assert new_pause.revision == current.revision + 1 and new_pause.status == "NEEDS_HUMAN"
-        assert new_pause.pending_input["pending_token"] != paused.pending_input["pending_token"]
+        answer(repo, current, key="UNIT-confirm-revision")
+        Worker(repo, project).once()
+        assert calls == [job.job_id]
 
 
 def test_short_note_creates_new_pending_and_old_reply_cannot_release_it(wired_job):
@@ -426,7 +449,7 @@ def test_screenwriter_feedback_replay_after_sql_before_applied_receipt_does_not_
         action="produce", run_id="UNIT-replay", thread_id="UNIT-replay", extras={"human_feedback": feedback}))
     result = ScreenwriterNode(repo, service)(replay)
     assert calls == ["观点：旧稿。"]
-    assert result["route"] == "script_gate"
+    assert result["route"] == "script_reviewer"
     current = repo.get_job(job.job_id)
     assert current.script.segments[0].narration == "观点：新稿。"
     assert any(item.kind == "human_feedback_applied" for item in current.artifacts)
@@ -603,7 +626,7 @@ def test_director_feedback_replay_after_sql_before_applied_receipt_does_not_call
         alignment=alignment.model_dump(), duration_seconds=1.0, extras={"human_feedback": feedback}))
     result = DirectorNode(repo, service)(replay)
     assert calls == [old_timeline.shots[0].body]
-    assert result["route"] == "timeline_gate"
+    assert result["route"] == "end"
     current = repo.get_job(job.job_id)
     assert current.timeline.shots[0].body == "观点：新分镜画面。"
     assert any(item.kind == "human_feedback_applied" for item in current.artifacts)

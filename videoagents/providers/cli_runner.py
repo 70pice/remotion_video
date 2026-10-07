@@ -96,6 +96,10 @@ def executable_prefix(provider: str) -> list[str] | None:
     if not found and os.name == "nt" and name in {"claude", "traecli"}:
         candidate = Path.home() / ".local" / "bin" / (name + ".exe")
         found = str(candidate) if candidate.is_file() else None
+    if not found and os.name == "nt" and name == "claude":
+        packages = Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "WinGet" / "Packages"
+        found = next((str(path) for path in packages.glob("Anthropic.ClaudeCode_*/claude.exe")
+                      if path.is_file()), None)
     if not found:
         return None
     path = Path(found).resolve()
@@ -190,8 +194,14 @@ def _research_environment(research: bool) -> dict[str, str]:
     return env
 
 
-def _cli_environment(provider: str, research: bool, control: Path) -> tuple[dict[str, str], Path | None]:
+def _cli_environment(provider: str, research: bool, control: Path,
+                     ark_api_key: str | None = None) -> tuple[dict[str, str], Path | None]:
     env = _research_environment(research)
+    if provider == "claude_code_cli" and ark_api_key:
+        # Pass the credential only to this child process, never in arguments or graph state.
+        env.pop("ANTHROPIC_API_KEY", None)
+        env["ANTHROPIC_AUTH_TOKEN"] = ark_api_key
+        env["ANTHROPIC_BASE_URL"] = "https://ark.cn-beijing.volces.com/api/compatible"
     if provider not in {"codex_cli", "trae_cli"}:
         return env, None
     if provider == "codex_cli":
@@ -317,7 +327,7 @@ def _claude_result(output: str) -> CliResult:
 
 def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema: dict[str, Any],
             cancelled=lambda: False, *, research_directory: Path | None = None,
-            audit_path: Path | None = None) -> CliResult:
+            audit_path: Path | None = None, ark_api_key: str | None = None) -> CliResult:
     if cancelled():
         raise CliFailure("cli_cancelled", submitted=False)
     research = research_directory is not None
@@ -353,7 +363,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                             + "response_json 内的对象遵循上面的业务 schema，外层仅有 response_json 一个字段。")
         source.write_text(transport_prompt, encoding="utf-8")
         args = build_arguments(provider, prefix, model, directory, schema, research=research)
-        environment, staged_auth = _cli_environment(provider, research, control)
+        environment, staged_auth = _cli_environment(provider, research, control, ark_api_key)
         job = WindowsJob()
         audit_handle = None
         try:

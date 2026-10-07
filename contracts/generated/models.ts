@@ -42,6 +42,7 @@ export interface Asset {
 
 export interface Brief {
   topic: string;
+  creative_direction: string;
   script_text: string;
   audience: string;
   platform: string;
@@ -88,7 +89,14 @@ export interface DraftRequest {
 export interface EditingAdvice {
   pacing_notes: Array<string>;
   layout_notes: Array<string>;
-  findings: Array<ModelFinding>;
+  findings: Array<EditingFinding>;
+}
+
+export interface EditingFinding {
+  severity: "error" | "warning" | "info";
+  message: string;
+  owner: "director" | "editing";
+  blocking: boolean;
 }
 
 export interface Finding {
@@ -175,6 +183,7 @@ export interface ResumeRequest {
   note?: string;
   idempotency_key: string;
   pending_token: string;
+  stop_after?: "voice" | null;
 }
 
 export interface Review {
@@ -207,10 +216,15 @@ export interface RunRequest {
   base_revision: number;
   action: "produce" | "voice" | "storyboard" | "preview" | "final" | "review";
   idempotency_key: string;
+  continue_from?: "voice" | null;
+  rebuild_from?: "director" | null;
 }
 
 export interface Script {
   title: string;
+  title_hook: string;
+  opening_visual: string;
+  final_answer: string;
   segments: Array<ScriptSegment>;
   origin: "user" | "model";
   revision: number;
@@ -235,8 +249,10 @@ export interface ScriptDiscussion {
   revision: number;
   enabled: boolean;
   max_rounds: number;
-  status: "DISABLED" | "DISCUSSING" | "APPROVED" | "EXHAUSTED";
+  status: "DISABLED" | "DISCUSSING" | "APPROVED" | "EXHAUSTED" | "FINAL_REWRITE";
   rounds: Array<ScriptDiscussionRound>;
+  final_script: Script | null;
+  final_response: string;
 }
 
 export interface ScriptDiscussionRound {
@@ -263,6 +279,7 @@ export interface SettingsPatch {
   role_models?: Partial<Record<"materials" | "screenwriter" | "script_reviewer" | "voice" | "director" | "editing" | "review", Partial<RoleModelConfig>>> | null;
   script_discussion_enabled?: boolean | null;
   script_discussion_max_rounds?: number | null;
+  ark_api_key?: string | null;
   search_provider?: "none" | "opencli_google" | "tavily" | "google_cse" | null;
   search_api_key?: string | null;
   google_search_engine_id?: string | null;

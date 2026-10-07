@@ -2,13 +2,17 @@
 
 **VideoAgents 全栈视频工作台**通过 React 前端、FastAPI 接口、多 Agent 工作流和
 Remotion 渲染，制作面向普通大众的 AI 科普、AI 新闻/产品解释和 AI 工具使用
-视频。默认不要求观众懂编程或 AI 专业术语；素材、文案、配音、导演、剪辑和
-审核共同把专业信息翻译成生活与工作中能听懂、能判断、能使用的内容。运行
+视频。默认不要求观众懂编程或 AI 专业术语；素材、文案、配音、导演和剪辑
+共同把专业信息翻译成生活与工作中能听懂、能判断、能使用的内容。运行
 `npm run studio:dev` 后打开 `http://127.0.0.1:5173`。首次安装、配置、操作和
 故障排查见 [VideoAgents 使用说明](docs/videoagents-setup.md)；代码 Review 入口
 见 [实现与验证记录](docs/videoagents-implementation-status.md)，原方案见
 [工作流设计](docs/videoagents-design.md)。React 学习阅读顺序见
 [前端说明](web/README.md)。
+
+当前生产图只在文案通过机器检查后等待人工确认，随后完成配音、分镜和剪辑。
+成片生成后结束，缺素材或执行能力不足时仍可补充输入并续跑；详见
+[生产图精简](docs/videoagents-graph-simplification.md)。
 
 下面保留原有单集视频作为渲染兼容性回归样片。它不是当前账号的受众定位，
 也不是 Agent 的选题或文案示例；正式生产统一从 VideoAgents 工作流进入。

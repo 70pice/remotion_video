@@ -869,6 +869,12 @@
             "title": "Topic",
             "default": ""
           },
+          "creative_direction": {
+            "type": "string",
+            "maxLength": 30000,
+            "title": "Creative Direction",
+            "default": ""
+          },
           "script_text": {
             "type": "string",
             "maxLength": 30000,
@@ -879,7 +885,7 @@
             "type": "string",
             "maxLength": 500,
             "title": "Audience",
-            "default": "没有技术背景的普通大众"
+            "default": "对 AI 感兴趣、愿意了解前沿进展并尝试工具的人"
           },
           "platform": {
             "type": "string",
@@ -895,7 +901,7 @@
               "unspecified"
             ],
             "title": "Usage",
-            "default": "unspecified"
+            "default": "personal"
           },
           "target_seconds": {
             "type": "number",
@@ -1361,6 +1367,18 @@
             "maxLength": 100,
             "minLength": 16,
             "title": "Pending Token"
+          },
+          "stop_after": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "voice"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stop After"
           }
         },
         "additionalProperties": false,
@@ -1450,7 +1468,7 @@
             "maximum": 1800.0,
             "minimum": 30.0,
             "title": "Timeout Seconds",
-            "default": 300
+            "default": 900
           }
         },
         "additionalProperties": false,
@@ -1481,6 +1499,30 @@
             "maxLength": 200,
             "minLength": 8,
             "title": "Idempotency Key"
+          },
+          "continue_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "voice"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continue From"
+          },
+          "rebuild_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "director"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rebuild From"
           }
         },
         "additionalProperties": false,
@@ -1499,6 +1541,24 @@
             "maxLength": 300,
             "minLength": 1,
             "title": "Title"
+          },
+          "title_hook": {
+            "type": "string",
+            "maxLength": 15,
+            "title": "Title Hook",
+            "default": ""
+          },
+          "opening_visual": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Opening Visual",
+            "default": ""
+          },
+          "final_answer": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Final Answer",
+            "default": ""
           },
           "segments": {
             "items": {
@@ -1647,7 +1707,8 @@
               "DISABLED",
               "DISCUSSING",
               "APPROVED",
-              "EXHAUSTED"
+              "EXHAUSTED",
+              "FINAL_REWRITE"
             ],
             "title": "Status",
             "default": "DISABLED"
@@ -1659,6 +1720,22 @@
             "type": "array",
             "maxItems": 5,
             "title": "Rounds"
+          },
+          "final_script": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Script"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "final_response": {
+            "type": "string",
+            "maxLength": 3000,
+            "title": "Final Response",
+            "default": ""
           }
         },
         "additionalProperties": false,
@@ -1800,6 +1877,17 @@
               }
             ],
             "title": "Script Discussion Max Rounds"
+          },
+          "ark_api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ark Api Key"
           },
           "search_provider": {
             "anyOf": [

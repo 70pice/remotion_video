@@ -21,6 +21,7 @@ const baseJob = {
   updated_at: "2026-10-03T00:00:00Z",
   brief: {
     topic: "测试",
+    creative_direction: "",
     script_text: "",
     audience: "",
     platform: "",
@@ -265,6 +266,9 @@ describe("stage review pending state", () => {
       }),
       script: {
         title: "Muse 是什么",
+        title_hook: "AI应用怎么选",
+        opening_visual: "前3秒展示一张AI应用榜单，再切到用户的选择问题。",
+        final_answer: "先从要完成的任务出发，再选对应的AI应用。",
         origin: "model",
         revision: 4,
         segments: [
@@ -290,6 +294,10 @@ describe("stage review pending state", () => {
 
     expect(markup).toContain("待审文案");
     expect(markup).toContain("Muse 是什么");
+    expect(markup).toContain("前3秒画面字：AI应用怎么选");
+    expect(markup).toContain("开头画面建议：前3秒展示一张AI应用榜单");
+    expect(markup).toContain("一句主答案：先从要完成的任务出发");
+    expect(markup).toContain("实际口播以段落内容为准");
     expect(markup).toContain("如果你的电脑能自己安排今天的工作");
     expect(markup).toContain("首句具体，尽早建立观看理由");
   });
@@ -511,5 +519,61 @@ describe("stage review pending state", () => {
 
     expect(markup).toContain("当前正在等待阶段人工审核");
     expect(markup).not.toContain("确认已核对当前版本");
+  });
+
+  it("renders historical review reports without starting or confirming final review", () => {
+    const job = {
+      ...baseJob,
+      status: "DRAFT",
+      stage: "complete",
+      artifacts: [
+        {
+          artifact_id: "current-final-video",
+          kind: "final",
+          name: "当前成片.mp4",
+          mime_type: "video/mp4",
+          size_bytes: 2048,
+          sha256: "final-sha",
+          url: "/api/artifacts/current-final-video",
+          revision: 4,
+        },
+      ],
+      review: {
+        status: "PASS",
+        findings: [
+          {
+            finding_id: "finding-1",
+            severity: "info",
+            blocking: false,
+            category: "delivery",
+            owner: "review",
+            message: "历史审核记录",
+            start_frame: null,
+            end_frame: null,
+          },
+        ],
+        media_sha256: "final-sha",
+        dependency_fingerprint: "fp-final",
+        coverage: [],
+        human_confirmed: false,
+      },
+      pending_input: null,
+    } as Job;
+    const markup = renderToStaticMarkup(
+      createElement(ReviewPanel, {
+        job,
+        locked: false,
+        run: () => undefined,
+        resume: () => undefined,
+        seek: () => undefined,
+      }),
+    );
+
+    expect(markup).toContain("历史审核");
+    expect(markup).toContain("成片已生成");
+    expect(markup).toContain("历史审核记录");
+    expect(markup).not.toContain("审核当前视频");
+    expect(markup).not.toContain("确认已核对当前版本");
+    expect(markup).not.toContain("根据问题返工");
   });
 });

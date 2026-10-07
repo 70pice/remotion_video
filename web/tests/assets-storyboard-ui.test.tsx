@@ -17,6 +17,7 @@ const job: Job = {
   latest_event_id: 1,
   brief: {
     topic: "Muse是什么",
+    creative_direction: "",
     script_text: "",
     audience: "普通观众",
     platform: "抖音",
@@ -70,6 +71,9 @@ describe("asset and fixed-format UI", () => {
     const markup = renderToStaticMarkup(createElement(CreateJobPage));
 
     expect(markup).toContain("抖音竖屏 · 1080 × 1920 · 30 fps");
+    expect(markup).toContain("本期创作方向");
+    expect(markup).toContain("对 AI 感兴趣、愿意了解前沿进展并尝试工具的人");
+    expect(markup).not.toContain("已有口播文案");
     expect(markup).not.toContain("通用横屏");
     expect(markup).not.toContain("16:9");
     expect(markup).not.toContain(">帧率<");

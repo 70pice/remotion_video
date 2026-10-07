@@ -24,7 +24,7 @@ describe("independent role model settings", () => {
     expect(markup).not.toContain("private-local-path");
   });
 
-  it("starts writing roles on Doubao and keeps all role defaults independent", () => {
+  it("starts writing roles on Claude Code Doubao and keeps all role defaults independent", () => {
     const roles = readRoleModels({});
     expect(Object.keys(roles)).toEqual([
       "materials",
@@ -37,18 +37,25 @@ describe("independent role model settings", () => {
     ]);
     expect(roles.screenwriter).toEqual({
       enabled: true,
-      provider: "trae_cli",
-      model: "Doubao-Seed-2.1-Pro",
-      timeout_seconds: 300,
+      provider: "claude_code_cli",
+      model: "doubao-seed-2-1-pro-260915",
+      timeout_seconds: 900,
     });
     expect(roles.script_reviewer).toEqual(roles.screenwriter);
+    expect(roles.voice).toEqual({
+      enabled: true,
+      provider: "codex_cli",
+      model: "",
+      timeout_seconds: 900,
+    });
     for (const { id } of modelRoles) {
-      if (id === "screenwriter" || id === "script_reviewer") continue;
+      if (id === "screenwriter" || id === "script_reviewer" || id === "voice")
+        continue;
       expect(roles[id]).toEqual({
         enabled: false,
         provider: "codex_cli",
         model: "",
-        timeout_seconds: 300,
+        timeout_seconds: 900,
       });
     }
     roles.voice.model = "voice-model";
@@ -79,7 +86,6 @@ describe("independent role model settings", () => {
           timeout_seconds: 30,
         },
         screenwriter: {
-          provider: "claude_code_cli",
           model: "screenwriter-model",
           timeout_seconds: 230,
         },
@@ -89,7 +95,6 @@ describe("independent role model settings", () => {
           timeout_seconds: 430,
         },
         voice: {
-          enabled: true,
           provider: "claude_code_cli",
           timeout_seconds: 630,
         },
@@ -133,6 +138,41 @@ describe("independent role model settings", () => {
     expect(buildRoleModelsPatch(saved, saved)).toEqual({});
   });
 
+  it("keeps voice guidance fixed on while other roles can still be disabled", () => {
+    const legacy = readRoleModels({
+      role_models: {
+        voice: {
+          enabled: false,
+          provider: "codex_cli",
+          model: "legacy-voice",
+          timeout_seconds: 900,
+        },
+      },
+    });
+    expect(legacy.voice.enabled).toBe(true);
+
+    const saved = readRoleModels({});
+    const draft: RoleModels = {
+      ...saved,
+      voice: { ...saved.voice, enabled: false, model: "voice-guidance-model" },
+      director: { ...saved.director, enabled: false },
+    };
+    expect(buildRoleModelsPatch(draft, saved)).toEqual({
+      voice: { model: "voice-guidance-model" },
+    });
+
+    const enabledDirector = {
+      ...saved,
+      director: { ...saved.director, enabled: true },
+    };
+    expect(
+      buildRoleModelsPatch(
+        { ...enabledDirector, director: { ...enabledDirector.director, enabled: false } },
+        enabledDirector,
+      ),
+    ).toEqual({ director: { enabled: false } });
+  });
+
   it("does not overwrite newer role fields and can intentionally restore the CLI default model", () => {
     const saved = readRoleModels({});
     saved.review = { ...saved.review, model: "previous-model" };
@@ -167,6 +207,7 @@ describe("independent role model settings", () => {
       voice_provider: "byte_http",
       voice_api_key: "new-voice-key",
       voice_access_token: "",
+      ark_api_key: "new-ark-key",
       search_provider: "tavily",
       search_api_key: "",
       google_search_engine_id: "unit-cx",
@@ -180,6 +221,7 @@ describe("independent role model settings", () => {
       voice_api_key: "new-voice-key",
       voice_style: "",
       voice_speech_rate: 0,
+      ark_api_key: "new-ark-key",
       search_provider: "tavily",
       google_search_engine_id: "unit-cx",
       research_platforms: ["web", "youtube"],
@@ -213,10 +255,9 @@ describe("independent role model settings", () => {
     ).toMatchObject({ voice_style: "", voice_speech_rate: 0 });
   });
 
-  it("patches script discussion settings only when they changed", () => {
+  it("patches only script discussion round settings when they changed", () => {
     const saved: Settings = {
       role_models: readRoleModels({}),
-      script_discussion_enabled: false,
       script_discussion_max_rounds: 2,
     };
     expect(createSettingsPayload({ ...saved }, saved)).toEqual({});
@@ -225,13 +266,11 @@ describe("independent role model settings", () => {
       createSettingsPayload(
         {
           ...saved,
-          script_discussion_enabled: true,
           script_discussion_max_rounds: 6,
         },
         saved,
       ),
     ).toEqual({
-      script_discussion_enabled: true,
       script_discussion_max_rounds: 5,
     });
   });
@@ -263,7 +302,11 @@ describe("role settings form", () => {
     for (const { label } of modelRoles) {
       expect(markup).toContain(`aria-label="启用${label}模型"`);
       expect(markup).toContain(`aria-label="${label}模型提供方"`);
-      expect(markup).toContain(`aria-label="${label}模型选择"`);
+      expect(markup).toContain(
+        label === "编剧" || label === "文案审查"
+          ? `aria-label="${label}模型名称"`
+          : `aria-label="${label}模型选择"`,
+      );
       expect(markup).toContain(`aria-label="${label}模型超时秒数"`);
     }
     expect(markup.match(/value="claude_code_cli"/g)).toHaveLength(7);
@@ -273,12 +316,20 @@ describe("role settings form", () => {
       "仅影响后续实际调用；已有文案、分镜和产物不会自动重做。",
     );
     expect(markup).toContain("真实声音仍由字节配音接口生成");
+    expect(markup).toContain("配音指导固定开启");
+    const voiceEnableInput = markup.match(
+      /<input[^>]+aria-label="启用配音模型"[^>]*>/,
+    )?.[0];
+    expect(voiceEnableInput).toContain('checked=""');
+    expect(voiceEnableInput).toContain('disabled=""');
     expect(markup).toContain("视频仍由 Remotion 实际渲染");
     expect(markup).toContain("审查编剧稿件的事实、钩子、逻辑、画面与版权风险");
-    expect(markup).toContain('aria-label="启用文案讨论"');
+    expect(markup).not.toContain('aria-label="启用文案讨论"');
     expect(markup).toContain('aria-label="文案讨论最大审查轮数"');
-    expect(markup).toContain("达到上限仍需修改时，流程会暂停等待处理");
-    expect(markup).toContain("不会自动启用任何 CLI");
+    expect(markup).toContain('value="1"');
+    expect(markup).toContain("达到轮数上限仍需修改时，编剧最后改稿一次，再交人工审核");
+    expect(markup).toContain("轮数不会自动启用任何 CLI");
+    expect(markup).toContain("火山方舟 API Key");
     expect(markup).not.toContain("编剧与导演模型");
   });
 
@@ -299,7 +350,9 @@ describe("role settings form", () => {
     expect(wsMarkup).toContain('语速范围 0.5～2.0 倍');
     expect(wsMarkup).toContain('情感风格需要');
     expect(wsMarkup).toContain('seed-tts-2.0-expressive');
-    expect(wsMarkup).toContain('standard 不支持情感指导');
+    expect(wsMarkup).toContain('standard 不支持配音指导');
+    expect(wsMarkup).toContain('新合成配音必须完成指导');
+    expect(wsMarkup).toContain('已有音频不会自动重做');
     expect(wsMarkup).not.toContain('保存时会转换成后端');
 
     const httpMarkup = renderForm(false, { voice_provider: "byte_http" });
@@ -318,12 +371,17 @@ describe("role settings form", () => {
     );
     for (const { label } of modelRoles) {
       expect(fieldset).toContain(`aria-label="启用${label}模型"`);
-      expect(fieldset).toContain(`aria-label="${label}模型选择"`);
     }
+    expect(fieldset).toContain('aria-label="素材模型选择"');
+    expect(fieldset).toContain('aria-label="编剧模型名称"');
+    expect(fieldset).toContain('aria-label="文案审查模型名称"');
     expect(fieldset).toContain("新鉴权 API Key");
+    expect(fieldset).toContain("火山方舟 API Key");
     expect(fieldset).toContain(
       '<button class="button primary" disabled="">正在保存…</button>',
     );
-    expect(renderForm(false)).not.toContain('disabled=""');
+    expect(renderForm(false)).not.toContain(
+      '<fieldset class="editor-fieldset" disabled="">',
+    );
   });
 });

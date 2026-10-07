@@ -84,7 +84,7 @@ export function MaterialsContent({ job, research }: { job: Job; research: Resear
             <img src={asset.url} alt={asset.name} loading="lazy" />
           </a>
           <strong>{visual?.kind === "screenshot" ? "网页截图" : "来源图片"} · {visual?.title || asset.name}</strong>
-          <small>{formatBytes(asset.size_bytes)} · 再利用许可待审核</small>
+          <small>{formatBytes(asset.size_bytes)} · {job.brief.usage === "personal" ? "个人视频素材" : "再利用许可待审核"}</small>
           {visual?.knowledge_excerpt && <p className="muted small">{visual.knowledge_excerpt.slice(0, 180)}</p>}
           {(visual?.source_url || asset.source_url) && <a href={visual?.source_url || asset.source_url} target="_blank" rel="noreferrer">查看素材出处</a>}
         </article>;

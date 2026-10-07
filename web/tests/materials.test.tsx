@@ -8,7 +8,7 @@ import { createSettingsPayload, SettingsForm } from "../src/pages/SettingsPage";
 const job: Job = {
   job_id: "materials-test", revision: 1, status: "RUNNING", stage: "materials",
   message: "", progress: null, created_at: "unit", updated_at: "unit", latest_event_id: 1,
-  brief: { topic: "Muse是什么", script_text: "", audience: "初学者", platform: "抖音", usage: "commercial",
+  brief: { topic: "Muse是什么", creative_direction: "", script_text: "", audience: "初学者", platform: "抖音", usage: "commercial",
     target_seconds: 45, width: 1080, height: 1920, fps: 30, source_urls: [] },
   script: null, script_discussion: null, timeline: null, review: null, pending_input: null,
   artifacts: [], assets: [{ asset_id: "real-image", name: "Muse 来源截图", role: "evidence",
@@ -47,6 +47,20 @@ describe("materials research workspace", () => {
     expect(markup).toContain("再利用许可待审核");
     expect(markup).toContain("下载来源快照");
     expect(markup).not.toContain("https://unregistered.test/image");
+  });
+
+  it("shows personal video materials without a pending license review label", () => {
+    const personalJob: Job = { ...job, brief: { ...job.brief, usage: "personal" } };
+    const markup = renderToStaticMarkup(createElement(MaterialsContent, {
+      job: personalJob,
+      research: { visuals: [{ asset_id: "real-image", kind: "screenshot",
+        source_url: "https://example.org/muse", license_status: "personal_use" }] },
+    }));
+
+    expect(markup).toContain("个人视频素材");
+    expect(markup).not.toContain("再利用许可待审核");
+    expect(markup).toContain('src="/api/artifacts/image-artifact"');
+    expect(markup).toContain("查看素材出处");
   });
 
   it("ignores an old revision research artifact", () => {
