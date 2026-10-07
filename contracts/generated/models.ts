@@ -89,7 +89,14 @@ export interface DraftRequest {
 export interface EditingAdvice {
   pacing_notes: Array<string>;
   layout_notes: Array<string>;
-  findings: Array<ModelFinding>;
+  findings: Array<EditingFinding>;
+}
+
+export interface EditingFinding {
+  severity: "error" | "warning" | "info";
+  message: string;
+  owner: "director" | "editing";
+  blocking: boolean;
 }
 
 export interface Finding {
@@ -176,6 +183,7 @@ export interface ResumeRequest {
   note?: string;
   idempotency_key: string;
   pending_token: string;
+  stop_after?: "voice" | null;
 }
 
 export interface Review {
@@ -208,10 +216,15 @@ export interface RunRequest {
   base_revision: number;
   action: "produce" | "voice" | "storyboard" | "preview" | "final" | "review";
   idempotency_key: string;
+  continue_from?: "voice" | null;
+  rebuild_from?: "director" | null;
 }
 
 export interface Script {
   title: string;
+  title_hook: string;
+  opening_visual: string;
+  final_answer: string;
   segments: Array<ScriptSegment>;
   origin: "user" | "model";
   revision: number;

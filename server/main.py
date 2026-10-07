@@ -143,7 +143,7 @@ def create_app(runtime_dir: Path | None = None, project_root: Path | None = None
         require_portrait_production(repository.get_job(job_id).brief)
         if command.action == "review":
             raise HTTPException(422, "成片审核流程已移除，请使用制作或渲染动作")
-        return repository.enqueue(job_id, command.model_dump())
+        return repository.enqueue(job_id, command.model_dump(exclude_none=True))
 
     @app.post("/api/jobs/{job_id}/cancel", response_model=Job, dependencies=protected)
     def cancel(job_id: str):
@@ -152,7 +152,7 @@ def create_app(runtime_dir: Path | None = None, project_root: Path | None = None
     @app.post("/api/jobs/{job_id}/resume", response_model=Job, status_code=202, dependencies=protected)
     def resume(job_id: str, command: ResumeRequest):
         require_portrait_production(repository.get_job(job_id).brief)
-        payload = command.model_dump()
+        payload = command.model_dump(exclude_none=True)
         payload["action"] = "resume"
         return repository.enqueue(job_id, payload)
 

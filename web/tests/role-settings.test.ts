@@ -39,16 +39,23 @@ describe("independent role model settings", () => {
       enabled: true,
       provider: "claude_code_cli",
       model: "doubao-seed-2-1-pro-260915",
-      timeout_seconds: 300,
+      timeout_seconds: 900,
     });
     expect(roles.script_reviewer).toEqual(roles.screenwriter);
+    expect(roles.voice).toEqual({
+      enabled: true,
+      provider: "codex_cli",
+      model: "",
+      timeout_seconds: 900,
+    });
     for (const { id } of modelRoles) {
-      if (id === "screenwriter" || id === "script_reviewer") continue;
+      if (id === "screenwriter" || id === "script_reviewer" || id === "voice")
+        continue;
       expect(roles[id]).toEqual({
         enabled: false,
         provider: "codex_cli",
         model: "",
-        timeout_seconds: 300,
+        timeout_seconds: 900,
       });
     }
     roles.voice.model = "voice-model";
@@ -88,7 +95,6 @@ describe("independent role model settings", () => {
           timeout_seconds: 430,
         },
         voice: {
-          enabled: true,
           provider: "claude_code_cli",
           timeout_seconds: 630,
         },
@@ -130,6 +136,41 @@ describe("independent role model settings", () => {
       director: { enabled: false },
     });
     expect(buildRoleModelsPatch(saved, saved)).toEqual({});
+  });
+
+  it("keeps voice guidance fixed on while other roles can still be disabled", () => {
+    const legacy = readRoleModels({
+      role_models: {
+        voice: {
+          enabled: false,
+          provider: "codex_cli",
+          model: "legacy-voice",
+          timeout_seconds: 900,
+        },
+      },
+    });
+    expect(legacy.voice.enabled).toBe(true);
+
+    const saved = readRoleModels({});
+    const draft: RoleModels = {
+      ...saved,
+      voice: { ...saved.voice, enabled: false, model: "voice-guidance-model" },
+      director: { ...saved.director, enabled: false },
+    };
+    expect(buildRoleModelsPatch(draft, saved)).toEqual({
+      voice: { model: "voice-guidance-model" },
+    });
+
+    const enabledDirector = {
+      ...saved,
+      director: { ...saved.director, enabled: true },
+    };
+    expect(
+      buildRoleModelsPatch(
+        { ...enabledDirector, director: { ...enabledDirector.director, enabled: false } },
+        enabledDirector,
+      ),
+    ).toEqual({ director: { enabled: false } });
   });
 
   it("does not overwrite newer role fields and can intentionally restore the CLI default model", () => {
@@ -275,6 +316,12 @@ describe("role settings form", () => {
       "仅影响后续实际调用；已有文案、分镜和产物不会自动重做。",
     );
     expect(markup).toContain("真实声音仍由字节配音接口生成");
+    expect(markup).toContain("配音指导固定开启");
+    const voiceEnableInput = markup.match(
+      /<input[^>]+aria-label="启用配音模型"[^>]*>/,
+    )?.[0];
+    expect(voiceEnableInput).toContain('checked=""');
+    expect(voiceEnableInput).toContain('disabled=""');
     expect(markup).toContain("视频仍由 Remotion 实际渲染");
     expect(markup).toContain("审查编剧稿件的事实、钩子、逻辑、画面与版权风险");
     expect(markup).not.toContain('aria-label="启用文案讨论"');
@@ -303,7 +350,9 @@ describe("role settings form", () => {
     expect(wsMarkup).toContain('语速范围 0.5～2.0 倍');
     expect(wsMarkup).toContain('情感风格需要');
     expect(wsMarkup).toContain('seed-tts-2.0-expressive');
-    expect(wsMarkup).toContain('standard 不支持情感指导');
+    expect(wsMarkup).toContain('standard 不支持配音指导');
+    expect(wsMarkup).toContain('新合成配音必须完成指导');
+    expect(wsMarkup).toContain('已有音频不会自动重做');
     expect(wsMarkup).not.toContain('保存时会转换成后端');
 
     const httpMarkup = renderForm(false, { voice_provider: "byte_http" });
@@ -331,6 +380,8 @@ describe("role settings form", () => {
     expect(fieldset).toContain(
       '<button class="button primary" disabled="">正在保存…</button>',
     );
-    expect(renderForm(false)).not.toContain('disabled=""');
+    expect(renderForm(false)).not.toContain(
+      '<fieldset class="editor-fieldset" disabled="">',
+    );
   });
 });

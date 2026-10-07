@@ -266,6 +266,9 @@ describe("stage review pending state", () => {
       }),
       script: {
         title: "Muse 是什么",
+        title_hook: "AI应用怎么选",
+        opening_visual: "前3秒展示一张AI应用榜单，再切到用户的选择问题。",
+        final_answer: "先从要完成的任务出发，再选对应的AI应用。",
         origin: "model",
         revision: 4,
         segments: [
@@ -291,6 +294,10 @@ describe("stage review pending state", () => {
 
     expect(markup).toContain("待审文案");
     expect(markup).toContain("Muse 是什么");
+    expect(markup).toContain("前3秒画面字：AI应用怎么选");
+    expect(markup).toContain("开头画面建议：前3秒展示一张AI应用榜单");
+    expect(markup).toContain("一句主答案：先从要完成的任务出发");
+    expect(markup).toContain("实际口播以段落内容为准");
     expect(markup).toContain("如果你的电脑能自己安排今天的工作");
     expect(markup).toContain("首句具体，尽早建立观看理由");
   });

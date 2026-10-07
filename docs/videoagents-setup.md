@@ -90,7 +90,7 @@ CLI 必须安装在启动 API 和 worker 的同一系统用户下。Claude Code 
 
 App 当前对话选中的模型、用户 `config.toml` 的默认模型、工作台七个角色保存的模型是不同的配置位置。工作台使用 `--ignore-user-config` 隔离用户工具和规则，并将每个角色选择的模型通过 `--model` 传入；留空使用隔离调用的 CLI 内置默认值，不继承 App 当前对话的模型。GPT 6.1 的原始模型 ID 为 `gpt-6.1-sol`，可以在 Settings 为各角色分别选择。[官方模型选择说明](https://learn.chatgpt.com/docs/models)。
 
-如果 CLI 不在 PATH，可在启动工作台前设置 `VIDEOAGENTS_CODEX_EXECUTABLE` 或 `VIDEOAGENTS_CLAUDE_EXECUTABLE` 为绝对入口路径。Windows 支持 `.exe`、官方 npm shim 或 `.js` 入口；npm shim 转为 `node.exe + 官方入口`，不执行拼接的 shell 命令。模型名称也作为独立 argv 传入。超时范围为 30–1800 秒，每任务版本的模型调用上限统一由 `max_llm_calls` 控制。
+如果 CLI 不在 PATH，可在启动工作台前设置 `VIDEOAGENTS_CODEX_EXECUTABLE` 或 `VIDEOAGENTS_CLAUDE_EXECUTABLE` 为绝对入口路径。Windows 支持 `.exe`、官方 npm shim 或 `.js` 入口；npm shim 转为 `node.exe + 官方入口`，不执行拼接的 shell 命令。模型名称也作为独立 argv 传入。各角色模型超时默认 900 秒，可设置范围为 30–1800 秒；每任务版本的模型调用上限统一由 `max_llm_calls` 控制，默认 20 次。已有保存设置优先于默认值，需通过 Settings 更新；调用次数上限与文案审阅轮数分别配置。
 
 每次调用使用临时空目录及结构化输出，避免加载项目指令。Codex 使用 read-only、ephemeral、忽略用户配置/规则、禁止 shell/多代理/插件/浏览器等功能；调用启动时从用户 `CODEX_HOME` 读取登录态，在临时 `CODEX_HOME` 中隔离 SQLite/日志写入，并在 `thread.started` 后删除临时认证副本，任务目录不会保存凭据。Claude 禁用内置工具与普通 hooks，限定空 MCP 配置，禁止持久会话。工具事件或未知协议会终止调用。组织管理策略可能施加额外配置或 hooks，这些设置不能被工作台承诺完全覆盖。Codex 的事后工具事件检查也不是工具执行前的完全隔离保证。
 

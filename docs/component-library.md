@@ -1,5 +1,7 @@
 # 现成 Remotion 组件库
 
+导演学习入口见 [镜头知识库](knowledge/remotion-shot-library.md)，包含用户指定飞书表的全部 4 个工作表及 152 条组件目录。该快照与现有组件路径、表达内容和适用场景逐项对应；生产调用继续使用完整组件资料和源码指纹。
+
 实际源码分成两套：竖版在 `src/components/component-vertical`，横版在 `src/components/component-horizontal`。每个来源库下的 `entries/<slug>.tsx` 提供单独的演示入口。`src/components/community` 保留注册、目录元数据和共享工具，与每一期视频的模板分开。
 
 运行时统一固定 Remotion 4.0.532。此前 4.0.531 的发布包含空 JavaScript 文件，会令 Studio 报 `getRenderQueue is not a function`；本次使用[官方修复版本](https://github.com/remotion-dev/remotion/releases/tag/v4.0.532)，组件的上游 commit 保持原记录。

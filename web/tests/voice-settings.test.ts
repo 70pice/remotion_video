@@ -120,7 +120,9 @@ describe("ByteDance voice transport settings", () => {
     expect(markup).toContain('aria-label="情感与讲述风格"');
     expect(markup).toContain('aria-label="语速（倍速）"');
     expect(markup).toContain('语速范围 0.5～2.0 倍');
-    expect(markup).toContain('standard 不支持情感指导');
+    expect(markup).toContain('standard 不支持配音指导');
+    expect(markup).toContain('新合成配音必须完成指导');
+    expect(markup).toContain('已有音频不会自动重做');
     expect(markup).not.toContain('保存时会转换成后端');
     expect(markup).toContain("与配音角色的 CLI 指导模型独立");
     expect(markup).toContain("seed-icl-2.0（按账号实际资源填写）");

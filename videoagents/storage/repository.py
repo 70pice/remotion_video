@@ -177,11 +177,47 @@ class Repository:
                 raise Conflict("任务版本已变化，请刷新后重试")
             if db.execute("SELECT 1 FROM commands WHERE job_id=? AND status IN ('PENDING','CLAIMED')", (job_id,)).fetchone():
                 raise Conflict("任务已有待执行或执行中的命令")
+            if payload.get("continue_from") is not None or payload.get("rebuild_from") is not None:
+                rebuilding = payload.get("rebuild_from") == "director"
+                valid_stage = job.stage in {"director", "render", "complete"} if rebuilding else job.stage == "voice"
+                if (payload.get("action") not in {"produce", "storyboard", "preview", "final"}
+                        or (not rebuilding and payload.get("continue_from") != "voice")
+                        or (rebuilding and payload.get("continue_from") is not None)
+                        or job.status != "DRAFT" or not valid_stage or job.pending_input or not job.script
+                        or (rebuilding and not job.timeline)):
+                    raise Conflict("仅可从已完成分镜或视频的草稿重做画面" if rebuilding else "仅可从已完成配音的草稿继续制作")
+                thread_id = None
+                for row in db.execute("SELECT command_id,payload FROM commands WHERE job_id=? AND status='DONE' ORDER BY created_at DESC", (job_id,)):
+                    previous = json.loads(row["payload"])
+                    if previous.get("base_revision") != job.revision:
+                        continue
+                    if rebuilding:
+                        if previous.get("action") == "resume":
+                            thread_id = previous.get("pending_input", {}).get("thread_id")
+                        elif previous.get("action") in {"produce", "storyboard", "preview", "final"}:
+                            thread_id = previous.get("continuation_thread_id") or "job:" + job_id + ":run:" + row["command_id"]
+                    elif previous.get("action") == "voice":
+                        thread_id = "job:" + job_id + ":run:" + row["command_id"]
+                    elif previous.get("action") == "resume" and previous.get("stop_after") == "voice":
+                        thread_id = previous.get("pending_input", {}).get("thread_id")
+                    if thread_id:
+                        break
+                if not thread_id:
+                    raise Conflict("没有当前版本已完成画面制作的工作流记录" if rebuilding else "没有当前版本已完成配音的工作流记录")
+                # Resolve under the queue transaction; a replay uses this same checkpoint.
+                payload = dict(payload, continuation_thread_id=thread_id)
             if payload.get("action") == "resume":
                 if job.status not in {"NEEDS_INPUT", "NEEDS_HUMAN"} or not job.pending_input:
                     raise Conflict("当前任务没有可恢复的中断")
                 if not job.pending_input.get("thread_id") or payload.get("pending_token") != job.pending_input.get("pending_token"):
                     raise Conflict("恢复回复绑定的中断已变化，请刷新当前待办")
+                if payload.get("stop_after") is not None:
+                    pending = job.pending_input
+                    script_review = (pending.get("kind") == "stage_review" and pending.get("stage") == "script"
+                                     and pending.get("node_name") in {"human_review_script", "human_review"})
+                    voice_input = pending.get("kind") == "input" and pending.get("stage") == "voice"
+                    if payload["stop_after"] != "voice" or payload.get("decision") != "confirm" or not (script_review or voice_input):
+                        raise Conflict("只跑配音仅适用于文案确认或配音失败续跑")
                 payload = dict(payload, pending_input=job.pending_input)
             else:
                 job.review, job.pending_input = None, None

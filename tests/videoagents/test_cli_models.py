@@ -451,7 +451,7 @@ def test_role_routes_and_unknown_survives_provider_change(tmp_path, monkeypatch)
     model = JsonModel(repo)
     for role in ("script_reviewer", "voice", "director", "editing", "review"):
         assert model.call("fixture-job", 1, role, "test", {}, "command") == {"model": role + "-model"}
-    assert calls[-1] == ("claude_code_cli", "review-model", 300)
+    assert calls[-1] == ("claude_code_cli", "review-model", 900)
     with pytest.raises(CapabilityMissing) as first:
         model.call("fixture-job", 1, "screenwriter", "test", {}, "command")
     assert first.value.operation_status == "UNKNOWN"
@@ -593,7 +593,8 @@ def test_cancelled_role_preserves_job_cancellation_and_submission_receipt(tmp_pa
     job = repo.create_job(Brief(script_text="这是我的主观看法。"))
     repo.update_job(job.job_id, script=Script(title="fixture", origin="user", revision=1,
         segments=[ScriptSegment(segment_id="s1", narration="这是我的主观看法。")]))
-    SettingsService(repo).patch(SettingsPatch(role_models={"voice": {"enabled": True}}))
+    SettingsService(repo).patch(SettingsPatch(role_models={"voice": {"enabled": True}}, voice_provider="byte_ws",
+        voice_model="seed-tts-2.0-expressive"))
     monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *args: ["fixture-cli"])
     def cancel(*args, **kwargs):
         repo.cancel(job.job_id)

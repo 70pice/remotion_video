@@ -35,16 +35,19 @@ class ScriptReviewerNode:
             if not discussion.rounds:
                 raise ValueError("文案讨论缺少编剧提交的稿件")
             turn = discussion.rounds[-1]
+            context = agent_state(self.repo, job, state)
             if turn.critique is None:
-                context = agent_state(self.repo, job, state)
                 context["script_discussion"] = discussion.model_dump()
                 segment_ids = [item.segment_id for item in turn.script.segments]
                 schema = ScriptCritique.model_json_schema()
                 # 每次调用仅允许当前稿件的段落 ID；空字符串表示全稿问题。
                 schema["$defs"]["ScriptCritiqueIssue"]["properties"]["segment_id"]["enum"] = ["", *segment_ids]
+                fields = ("brief", "script", "script_discussion", "research", "assets")
+                if context.get("extras", {}).get("human_feedback"):
+                    fields = (*fields, "extras")
                 value = self.model.invoke(
                     context, "script_reviewer", PROMPT,
-                    fields=("brief", "script", "script_discussion", "research", "assets"),
+                    fields=fields,
                     output_schema=schema,
                 )
                 critique = ScriptCritique.model_validate(value)
@@ -59,7 +62,7 @@ class ScriptReviewerNode:
                 job = self.repo.get_job(job.job_id)
             result = state_context(self.repo, state, gate_issues=[])
             if discussion.status == "APPROVED":
-                issues = script_issues(self.repo.get_job(job.job_id))
+                issues = script_issues(self.repo.get_job(job.job_id), context.get("research"))
                 if issues:
                     return request_input(self.repo, state, "script", issues, ["script", "source_urls", "assets"])
                 return {**result, "route": "human_review_script"}

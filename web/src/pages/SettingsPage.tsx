@@ -520,6 +520,7 @@ export function SettingsForm({
             const selectedEntry = roleCatalog?.models.find(
               (entry) => entry.id === config.model,
             );
+            const fixedVoiceGuidance = role.id === "voice";
             return (
               <section
                 className="panel form-panel role-model-card"
@@ -531,17 +532,28 @@ export function SettingsForm({
                     <input
                       type="checkbox"
                       aria-label={`启用${role.label}模型`}
-                      checked={config.enabled}
+                      checked={fixedVoiceGuidance || config.enabled}
+                      disabled={fixedVoiceGuidance}
                       onChange={(event) =>
                         updateRole({ enabled: event.target.checked })
                       }
                     />
-                    {config.enabled ? "已启用" : "未启用"}
+                    {fixedVoiceGuidance
+                      ? "配音指导固定开启"
+                      : config.enabled
+                        ? "已启用"
+                        : "未启用"}
                   </label>
                 </div>
                 <p className="muted small role-description">
                   {role.description}
                 </p>
+                {fixedVoiceGuidance && (
+                  <p className="muted small">
+                    新合成配音先完成 Agent 指导，指导失败或未完成时暂停。
+                    已有音频不会自动重做。
+                  </p>
+                )}
                 <label>
                   提供方
                   <select
@@ -873,7 +885,8 @@ export function SettingsForm({
                     </label>
                     <p className="muted small">
                       语速范围 0.5～2.0 倍。情感风格需要
-                      seed-tts-2.0-expressive；standard 不支持情感指导。
+                      seed-tts-2.0-expressive；standard 不支持配音指导。
+                      新合成配音必须完成指导；已有音频不会自动重做。
                     </p>
                   </>
                 )}
@@ -882,7 +895,7 @@ export function SettingsForm({
                   新版声音复刻默认资源为
                   seed-icl-2.0，请按账号实际开通的资源填写。
                   {values.voice_provider === "byte_ws" &&
-                    "语音合成模型可从 expressive/standard 建议中选择，也可自由填写账号支持的模型 ID；该模型与配音角色的 CLI 指导模型独立。"}
+                    "语音合成模型可从 expressive/standard 建议中选择，也可自由填写账号支持的模型 ID；新合成要求 expressive + WebSocket 才能应用配音指导，该模型与配音角色的 CLI 指导模型独立。"}
                 </p>
               )}
               {section.title === "检索与时间对齐" && (

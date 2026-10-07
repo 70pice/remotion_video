@@ -272,7 +272,8 @@ class MaterialsNode:
             else:
                 asset = self.attach_image(job, path, item.source_url,
                     "capture" if item.kind == "screenshot" else "source_image", item.description, item.image_url)
-            self.add_visual(research, sources[item.source_url], asset, item.kind, item.image_url, item.media_url)
+            self.add_visual(research, sources[item.source_url], asset, item.kind, item.image_url, item.media_url,
+                            usage=job.brief.usage)
         current = self.active(job)
         known_urls = list(dict.fromkeys(current.brief.source_urls + urls))[:50]
         if known_urls != current.brief.source_urls:
@@ -298,7 +299,9 @@ class MaterialsNode:
         asset_id = uuid.uuid4().hex
         asset = Asset(asset_id=asset_id, name=(description or path.name)[:200], role="evidence", mime_type=mime,
             size_bytes=artifact.size_bytes, sha256=artifact.sha256, source_url=source_url,
-            license_note="真实网页截图/来源图片；尚未确认再利用许可，请在发布审核时核验",
+            license_note=("真实网页截图/来源图片；个人视频制作，素材可直接入片；保留原始来源"
+                          if current.brief.usage == "personal" else
+                          "真实网页截图/来源图片；尚未确认再利用许可，请在发布审核时核验"),
             artifact_id=artifact.artifact_id, url=artifact.url,
             timeline_src=f"videoagents/{job.job_id}/assets/{asset_id}{extension}")
         self.service.freeze_asset(asset)
@@ -326,7 +329,9 @@ class MaterialsNode:
         asset_id = uuid.uuid4().hex
         asset = Asset(asset_id=asset_id, name=(description or path.name)[:200], role="evidence", mime_type=mime,
             size_bytes=artifact.size_bytes, sha256=artifact.sha256, source_url=source_url,
-            license_note="真实来源视频；尚未确认再利用许可，请在发布审核时核验",
+            license_note=("真实来源视频；个人视频制作，素材可直接入片；保留原始来源"
+                          if current.brief.usage == "personal" else
+                          "真实来源视频；尚未确认再利用许可，请在发布审核时核验"),
             artifact_id=artifact.artifact_id, url=artifact.url,
             timeline_src=f"videoagents/{job.job_id}/assets/{asset_id}{extension}")
         self.service.freeze_asset(asset)
@@ -339,9 +344,11 @@ class MaterialsNode:
         return asset
 
     @staticmethod
-    def add_visual(research: dict, source: dict, asset: Asset, kind: str, image_url: str, media_url: str = "") -> None:
+    def add_visual(research: dict, source: dict, asset: Asset, kind: str, image_url: str, media_url: str = "",
+                   *, usage: str = "unspecified") -> None:
         source["asset_ids"].append(asset.asset_id)
         research["visuals"].append({"asset_id": asset.asset_id, "kind": kind, "source_url": source["url"],
             "image_url": image_url, "title": source["title"], "description": asset.name,
             "media_url": media_url, "artifact_id": asset.artifact_id, "artifact_url": asset.url,
-            "knowledge_excerpt": source.get("text", "")[:1000], "license_status": "needs_review"})
+            "knowledge_excerpt": source.get("text", "")[:1000],
+            "license_status": "personal_use" if usage == "personal" else "needs_review"})

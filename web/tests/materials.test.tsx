@@ -49,6 +49,20 @@ describe("materials research workspace", () => {
     expect(markup).not.toContain("https://unregistered.test/image");
   });
 
+  it("shows personal video materials without a pending license review label", () => {
+    const personalJob: Job = { ...job, brief: { ...job.brief, usage: "personal" } };
+    const markup = renderToStaticMarkup(createElement(MaterialsContent, {
+      job: personalJob,
+      research: { visuals: [{ asset_id: "real-image", kind: "screenshot",
+        source_url: "https://example.org/muse", license_status: "personal_use" }] },
+    }));
+
+    expect(markup).toContain("个人视频素材");
+    expect(markup).not.toContain("再利用许可待审核");
+    expect(markup).toContain('src="/api/artifacts/image-artifact"');
+    expect(markup).toContain("查看素材出处");
+  });
+
   it("ignores an old revision research artifact", () => {
     const old = { ...job, artifacts: [{ artifact_id: "old", name: "research.json", kind: "research", revision: 0,
       mime_type: "application/json", sha256: "b".repeat(64), size_bytes: 100, url: "/api/artifacts/old" }] };

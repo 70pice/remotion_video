@@ -170,7 +170,7 @@ def clean_handoff(state: VideoState) -> VideoState:
         result["research"] = research_output(result["research"])
     asset_fields = {"origin", "source_url", "image_url", "description", "width", "height", "collection_key",
                     "duration_seconds", "alignment", "script_fingerprint", "voice_fingerprint",
-                    "voice_model", "voice_style", "voice_speech_rate"}
+                    "voice_model", "voice_style", "voice_speech_rate", "renderable"}
     artifact_fields = {"source_url", "dependency_fingerprint"}
     for name, allowed in (("asset_metadata", asset_fields), ("artifact_metadata", artifact_fields)):
         if name in result:

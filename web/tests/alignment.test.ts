@@ -7,6 +7,9 @@ import {
 
 const script: Script = {
   title: "实测字幕",
+  title_hook: "",
+  opening_visual: "",
+  final_answer: "",
   origin: "user",
   revision: 1,
   segments: [

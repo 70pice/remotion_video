@@ -231,14 +231,31 @@ def test_standard_model_does_not_silently_ignore_explicit_style(configured, monk
     assert operation(repo) is None and metric(repo) is None
 
 
-def test_user_style_has_priority_when_guidance_exceeds_length_limit(configured, monkeypatch):
+@pytest.mark.parametrize("user_style,notes", [
+    ("u" * 2000, "guide"),
+    ("u" * 1999, "guide"),
+    ("用户风格" * 400, "额外建议" * 3000),
+], ids=["full-user-style", "near-full-user-style", "long-guidance"])
+def test_overlong_combined_style_pauses_before_submission(configured, monkeypatch, user_style, notes):
     repo, config = configured
-    config.update(voice_model="seed-tts-2.0-expressive", voice_style="用户风格" * 400)
+    config.update(voice_model="seed-tts-2.0-expressive", voice_style=user_style)
+    monkeypatch.setattr(ws, "_open_websocket", lambda *a: pytest.fail("truncated guidance reached provider"))
+    with pytest.raises(CapabilityMissing, match="2000"):
+        ws.synthesize(repo, "unit-job", 1, "测试", "command-one", delivery_style=notes)
+    assert config["voice_style"] == user_style
+    assert operation(repo) is None and metric(repo) is None
+
+
+def test_combined_style_at_limit_preserves_complete_guidance(configured, monkeypatch):
+    repo, config = configured
+    user_style, notes = "u" * 1990, "guidance!"
+    config.update(voice_model="seed-tts-2.0-expressive", voice_style=user_style)
     connection = FixtureConnection()
     fixture_transport(monkeypatch, connection)
-    ws.synthesize(repo, "unit-job", 1, "测试", "command-one", delivery_style="额外建议" * 3000)
+    result = ws.synthesize(repo, "unit-job", 1, "测试", "command-one", delivery_style=notes)
     style = json.loads(connection.sent[1][2]["req_params"]["additions"])["context_texts"]
-    assert len(style) == 1 and style[0].startswith(config["voice_style"]) and len(style[0]) <= 2000
+    assert style == [user_style + "\n" + notes]
+    assert result["voice_style"] == style[0] and len(style[0]) == 2000
 
 
 def test_request_fingerprint_records_performance_config_snapshot(configured, monkeypatch):

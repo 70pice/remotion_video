@@ -53,6 +53,9 @@ function discussion(
         response: "",
         script: {
           title: "第一稿",
+          title_hook: "提前订更稳",
+          opening_visual: "展示房价截图和住客犹豫的选择。",
+          final_answer: "先看真实价格变化，再决定要不要提前订。",
           origin: "model",
           revision: 7,
           segments: [
@@ -84,6 +87,9 @@ function discussion(
         response: "已补充来源，并把口播改短。",
         script: {
           title: "第二稿",
+          title_hook: "看完再订",
+          opening_visual: "用一张来源截图带出订房决策。",
+          final_answer: "提前订不是绝对便宜，但能减少临近涨价的风险。",
           origin: "model",
           revision: 7,
           segments: [
@@ -152,6 +158,9 @@ describe("ScriptDiscussionPanel", () => {
             response: "按第二轮意见又补了一版，等待审查。",
             script: {
               title: "第三稿",
+              title_hook: "",
+              opening_visual: "",
+              final_answer: "",
               origin: "model",
               revision: 7,
               segments: [
@@ -207,6 +216,9 @@ describe("ScriptDiscussionPanel", () => {
             response: "<img src=x onerror=alert(1)>",
             script: {
               title: "<script>alert(1)</script>",
+              title_hook: "",
+              opening_visual: "",
+              final_answer: "",
               origin: "model",
               revision: 7,
               segments: [

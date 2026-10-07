@@ -19,26 +19,24 @@ ALLOWED_PROPS = {
 }
 MEDIA_COMPONENT_IDS = frozenset({"video", "evidence", "image_focus"})
 MEDIA_COVERAGE_TARGET = 0.7
-NON_PUBLISHABLE_LICENSE_MARKERS = (
-    "尚未确认再利用许可",
-    "许可待核验",
+NON_RENDERABLE_LICENSE_MARKERS = (
     "仅作核验依据",
     "不直接发布",
+    "禁止使用",
+    "禁止再利用",
 )
 
 
-def asset_publishable(asset) -> bool:
-    """Treat explicit verification-only receipts as unavailable to render.
+def asset_renderable(asset) -> bool:
+    """Allow pending publication review in drafts; honor explicit use restrictions.
 
-    Research images may be downloaded so agents can read and redraw their
-    facts, but a downloaded byte is not automatically licensed for a public
-    video.  The materials node records that distinction in ``license_note``;
-    keep such assets out of both the 70% capacity calculation and Timeline
-    execution.
+    Rendering a draft does not approve publication or change the original
+    license receipt. Only explicit verification-only or prohibited-use assets
+    are excluded from Timeline execution and media capacity calculations.
     """
 
     note = asset.license_note.casefold()
-    return not any(marker.casefold() in note for marker in NON_PUBLISHABLE_LICENSE_MARKERS)
+    return not any(marker.casefold() in note for marker in NON_RENDERABLE_LICENSE_MARKERS)
 
 
 def _normalized(value: str) -> str:
@@ -127,7 +125,7 @@ def media_coverage_report(
             for asset in job.assets
             if asset.role in {"evidence", "illustration"}
             and asset.mime_type.startswith(("image/", "video/"))
-            and asset_publishable(asset)
+            and asset_renderable(asset)
             and (
                 asset.asset_id in linked_ids
                 or bool(asset.source_url and asset.source_url in segment.source_refs)
@@ -281,8 +279,8 @@ def validate_timeline(timeline: Timeline, job: Job, asset_metadata: dict[str, di
                     raise ValueError("镜头图片必须来自此任务已导入的图片")
                 if not re.search(r"\.(png|jpe?g|webp)$", shot.asset_src, re.I):
                     raise ValueError("镜头图片扩展名不支持")
-            if asset is not None and not asset_publishable(asset):
-                raise ValueError("镜头素材的许可回执明确仅供核验或仍待确认，不能直接进入发布画面")
+            if asset is not None and not asset_renderable(asset):
+                raise ValueError("镜头素材的许可回执明确仅供核验或禁止使用，不能进入制作画面")
         if shot.component_id in {"evidence", "image_focus"} and not shot.asset_src:
             raise ValueError("证据/图片组件需要真实图片")
         if shot.component_id == "video":

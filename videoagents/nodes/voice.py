@@ -23,7 +23,7 @@ from videoagents.contracts import (
 from videoagents.nodes.common import agent_state, request_input, start_stage, state_context
 from videoagents.prompts import compose
 from videoagents.providers.aligner import align
-from videoagents.providers.byte_voice import synthesize
+from videoagents.providers.byte_voice import SubmissionUnknown, synthesize
 from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService, supports_voice_style, voice_fingerprint
@@ -438,23 +438,7 @@ class VoiceNode:
         audio = None
         selected = self.repo.active_audio(job.job_id)
         candidates = [asset for asset in reversed(job.assets) if asset.role == "audio" and (not selected or asset.asset_id == selected)]
-        delivery_style = ""
-        performances: list[VoiceSegmentPerformance] = []
-        if self.model.available("voice"):
-            value = self.model.invoke(agent_state(self.repo, job, state), "voice", PROMPT,
-                fields=("brief", "script", "settings"), command_id=command_id,
-                output_schema=VoiceAdvice.model_json_schema())
-            advice = VoiceAdvice.model_validate(value)
-            self.service.write_json(job, "voice_guidance.json", advice.model_dump(), "voice_guidance")
-            blocked = [item.message for item in advice.findings if item.blocking or item.severity == "error"]
-            if blocked:
-                raise ValueError("配音模型预检未通过：" + "；".join(blocked))
-            delivery_style = "\n".join(advice.delivery_notes)[:2000]
-            if advice.segment_performances:
-                performances = validate_segment_performances(job, advice.segment_performances)
-        # Guidance can take long enough for settings to change. Filter existing
-        # audio with the configuration at selection, then attach generated audio
-        # with the provider's actual request fingerprint.
+        # 先复用匹配音频或人工导入音频，不重配，也不把新建议标成已应用。
         settings = SettingsService(self.repo).internal()
         voice_hash = voice_fingerprint(settings)
         if not (prefer_generation and SettingsService(self.repo).public()["voice_configured"]):
@@ -475,18 +459,52 @@ class VoiceNode:
                 metadata["alignment"] = alignment.model_dump()
                 self.repo.update_asset_metadata(audio.asset_id, metadata)
             return audio, alignment, duration
+
+        for provider in ("byte_ws", "byte_http"):
+            unsettled = self.repo.unsettled_operation(job.job_id, provider, job.revision)
+            if unsettled:
+                raise SubmissionUnknown(
+                    "本版本已有未决配音提交；请先对账或导入真实音频，再继续配音指导。", ["voice_operation"],
+                    operation_id=unsettled["operation_id"], request_id=unsettled.get("request_id"),
+                )
+        if not supports_voice_style(settings):
+            raise CapabilityMissing(
+                "配音指导固定开启；新合成只支持字节 WebSocket 的 seed-tts-2.0-expressive，standard/HTTP 不能应用指导。",
+                ["voice_provider", "voice_model"],
+            )
+        if not self.model.available("voice"):
+            raise CapabilityMissing("新合成配音必须先完成配音 Agent 指导；请配置配音角色 CLI 模型。", ["role_models"])
+        value = self.model.invoke(agent_state(self.repo, job, state), "voice", PROMPT,
+            fields=("brief", "script", "settings"), command_id=command_id,
+            output_schema=VoiceAdvice.model_json_schema())
+        advice = VoiceAdvice.model_validate(value)
+        self.service.write_json(job, "voice_guidance.json", advice.model_dump(), "voice_guidance")
+        blocked = [item.message for item in advice.findings if item.blocking or item.severity == "error"]
+        if blocked:
+            raise ValueError("配音模型预检未通过：" + "；".join(blocked))
+        delivery_style = "\n".join(advice.delivery_notes)
+        performances = validate_segment_performances(job, advice.segment_performances) if advice.segment_performances else []
+        if not delivery_style and not performances:
+            raise ValueError("新合成配音必须先完成有效配音指导：请提供全局讲述建议或完整逐段表演计划。")
+        # 指导可能耗时较长；重读配置，不能因中途切换模型而丢弃指导。
+        settings = SettingsService(self.repo).internal()
+        voice_hash = voice_fingerprint(settings)
         def cancelled():
             return self.repo.get_job(job.job_id).status == "CANCELLED"
 
-        if performances and supports_voice_style(settings):
+        if not supports_voice_style(settings):
+            raise CapabilityMissing(
+                "配音指导固定开启；新合成只支持字节 WebSocket 的 seed-tts-2.0-expressive，standard/HTTP 不能应用指导。",
+                ["voice_provider", "voice_model"],
+            )
+        if performances:
             return self.prepare_segmented_audio(
                 job, command_id, script_hash, voice_hash, performances, cancelled
             )
         text = "\n".join(segment.narration for segment in job.script.segments)
         options: dict[str, Any] = {"cancelled": cancelled}
-        # 已有同配置音频照常复用；只有实际新合成才附加指导，用户风格由供应商配置快照优先合并。
-        if delivery_style and supports_voice_style(settings):
-            options["delivery_style"] = delivery_style
+        # 用户风格由供应商配置快照优先合并，新合成始终携带 Agent 的指导。
+        options["delivery_style"] = delivery_style
         value = synthesize(self.repo, job.job_id, job.revision, text, command_id, **options)
         path = Path(value["path"])
         duration = audio_duration(path)

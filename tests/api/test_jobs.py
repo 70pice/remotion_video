@@ -44,6 +44,26 @@ def test_session_csrf_and_cross_origin_before_mutation(client):
     assert len(client.get("/api/jobs").json()) == 1
 
 
+def test_continue_from_voice_requires_completed_stage_and_video_target(client):
+    job = create(client)
+    payload = {"base_revision": job["revision"], "action": "produce", "continue_from": "voice",
+               "idempotency_key": "UNIT-continue-voice"}
+    assert client.post(f"/api/jobs/{job['job_id']}/runs", json=payload).status_code == 409
+    assert client.post(f"/api/jobs/{job['job_id']}/runs", json={**payload, "action": "voice"}).status_code == 422
+
+
+def test_visual_rebuild_requires_completed_visuals_and_exclusive_video_target(client):
+    job = create(client)
+    url = f"/api/jobs/{job['job_id']}/runs"
+    payload = {"base_revision": job["revision"], "action": "produce", "rebuild_from": "director",
+               "idempotency_key": "UNIT-rebuild-visuals"}
+    assert client.post(url, json=payload).status_code == 409
+    for changes in ({"action": "voice"}, {"continue_from": "voice"}, {"rebuild_from": "editing"}):
+        assert client.post(url, json={**payload, **changes}).status_code == 422
+    with client.app.state.repository.connection() as db:
+        assert db.execute("SELECT COUNT(*) FROM commands").fetchone()[0] == 0
+
+
 def test_creative_direction_can_create_and_update_a_job_without_script_text(client):
     created = client.post("/api/jobs", json={"creative_direction": "想讲清这款工具适合谁"})
     assert created.status_code == 201
@@ -65,6 +85,45 @@ def test_creative_direction_can_create_and_update_a_job_without_script_text(clie
     assert updated.json()["revision"] == 2
     assert updated.json()["brief"]["creative_direction"] == brief["creative_direction"]
     assert updated.json()["script"] is None
+
+
+def test_script_creative_fields_are_defaulted_and_preserved_in_drafts(client):
+    job = create(client)
+    response = client.patch(f"/api/jobs/{job['job_id']}/draft", json={
+        "base_revision": job["revision"],
+        "script": {
+            "title": "旧格式文案",
+            "revision": job["revision"],
+            "origin": "user",
+            "segments": [{
+                "segment_id": "s1",
+                "narration": "旧格式仍然可以保存。",
+                "screen_text": "",
+                "source_refs": [],
+                "asset_ids": [],
+            }],
+        },
+    })
+    assert response.status_code == 200
+    script = response.json()["script"]
+    assert script["title_hook"] == ""
+    assert script["opening_visual"] == ""
+    assert script["final_answer"] == ""
+
+    response = client.patch(f"/api/jobs/{job['job_id']}/draft", json={
+        "base_revision": response.json()["revision"],
+        "script": {
+            **script,
+            "title_hook": "先看榜单",
+            "opening_visual": "前3秒展示AI应用榜单和一个普通人的选择题。",
+            "final_answer": "先看你要解决哪件事，再决定用哪类AI工具。",
+        },
+    })
+    assert response.status_code == 200
+    script = response.json()["script"]
+    assert script["title_hook"] == "先看榜单"
+    assert script["opening_visual"].startswith("前3秒展示AI应用榜单")
+    assert script["final_answer"] == "先看你要解决哪件事，再决定用哪类AI工具。"
 
 
 def test_durable_idempotency_and_revision_conflict(client):
@@ -165,14 +224,18 @@ def test_seven_role_defaults_and_partial_settings_merge(client):
     initial = client.get("/api/settings").json()
     roles = {"materials", "screenwriter", "script_reviewer", "voice", "director", "editing", "review"}
     assert set(initial["role_models"]) == roles
+    assert initial["max_llm_calls"] == 20
     assert initial["role_models"]["screenwriter"] == {
         "enabled": True, "provider": "claude_code_cli",
-        "model": "doubao-seed-2-1-pro-260915", "timeout_seconds": 300,
+        "model": "doubao-seed-2-1-pro-260915", "timeout_seconds": 900,
     }
     assert initial["role_models"]["script_reviewer"] == initial["role_models"]["screenwriter"]
     assert all(initial["role_models"][role] == {
-        "enabled": False, "provider": "codex_cli", "model": "", "timeout_seconds": 300,
-    } for role in roles - {"screenwriter", "script_reviewer"})
+        "enabled": False, "provider": "codex_cli", "model": "", "timeout_seconds": 900,
+    } for role in roles - {"screenwriter", "script_reviewer", "voice"})
+    assert initial["role_models"]["voice"] == {
+        "enabled": True, "provider": "codex_cli", "model": "", "timeout_seconds": 900,
+    }
     assert initial["llm_configured"] is True
     assert set(initial["cli_availability"]) == {"codex_cli", "trae_cli", "claude_code_cli"}
     assert all(isinstance(value["available"], bool) for value in initial["cli_availability"].values())
@@ -185,6 +248,9 @@ def test_seven_role_defaults_and_partial_settings_merge(client):
         "enabled": False, "provider": "claude_code_cli", "model": "unit-model", "timeout_seconds": 180}
     assert changed.json()["role_models"]["voice"] == initial["role_models"]["voice"]
     assert changed.json()["llm_configured"] is True
+    disabled_voice = client.patch("/api/settings", json={"role_models": {"voice": {"enabled": False}}})
+    assert disabled_voice.status_code == 200
+    assert disabled_voice.json()["role_models"]["voice"]["enabled"] is True
     for payload in ({"role_models": {"other": {"enabled": True}}},
                     {"role_models": {"voice": {"provider": "http"}}},
                     {"role_models": {"voice": {"timeout_seconds": 29}}},

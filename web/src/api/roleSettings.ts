@@ -56,15 +56,27 @@ function defaultRole(role: RoleId): RoleModelConfig {
       enabled: true,
       provider: "claude_code_cli",
       model: doubaoScriptModel,
-      timeout_seconds: 300,
+      timeout_seconds: 900,
+    };
+  }
+  if (role === "voice") {
+    return {
+      enabled: true,
+      provider: "codex_cli",
+      model: "",
+      timeout_seconds: 900,
     };
   }
   return {
     enabled: false,
     provider: "codex_cli",
     model: "",
-    timeout_seconds: 300,
+    timeout_seconds: 900,
   };
+}
+
+function fixedRole(role: RoleId, config: RoleModelConfig): RoleModelConfig {
+  return role === "voice" ? { ...config, enabled: true } : config;
 }
 
 export function readRoleModels(settings: Settings): RoleModels {
@@ -78,7 +90,7 @@ export function readRoleModels(settings: Settings): RoleModels {
     review: defaultRole("review"),
   };
   for (const { id } of modelRoles) {
-    roles[id] = { ...roles[id], ...settings.role_models?.[id] };
+    roles[id] = fixedRole(id, { ...roles[id], ...settings.role_models?.[id] });
   }
   return roles;
 }
@@ -90,8 +102,8 @@ export function buildRoleModelsPatch(
 ): NonNullable<SettingsPatch["role_models"]> {
   const patch: NonNullable<SettingsPatch["role_models"]> = {};
   for (const { id } of modelRoles) {
-    const next = draft[id];
-    const previous = saved[id];
+    const next = fixedRole(id, draft[id]);
+    const previous = fixedRole(id, saved[id]);
     const changes: Partial<RoleModelConfig> = {};
     if (next.enabled !== previous.enabled) changes.enabled = next.enabled;
     if (next.provider !== previous.provider) changes.provider = next.provider;

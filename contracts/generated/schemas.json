@@ -224,7 +224,7 @@
           "type": "string"
         },
         "audience": {
-          "default": "没有技术背景的普通大众",
+          "default": "对 AI 感兴趣、愿意了解前沿进展并尝试工具的人",
           "maxLength": 500,
           "title": "Audience",
           "type": "string"
@@ -236,7 +236,7 @@
           "type": "string"
         },
         "usage": {
-          "default": "unspecified",
+          "default": "personal",
           "enum": [
             "personal",
             "commercial",
@@ -468,6 +468,24 @@
           "maxLength": 300,
           "minLength": 1,
           "title": "Title",
+          "type": "string"
+        },
+        "title_hook": {
+          "default": "",
+          "maxLength": 15,
+          "title": "Title Hook",
+          "type": "string"
+        },
+        "opening_visual": {
+          "default": "",
+          "maxLength": 300,
+          "title": "Opening Visual",
+          "type": "string"
+        },
+        "final_answer": {
+          "default": "",
+          "maxLength": 300,
+          "title": "Final Answer",
           "type": "string"
         },
         "segments": {
@@ -757,6 +775,46 @@
       "title": "DraftRequest",
       "type": "object"
     },
+    "EditingFinding": {
+      "additionalProperties": false,
+      "properties": {
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "message": {
+          "maxLength": 1500,
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        },
+        "owner": {
+          "enum": [
+            "director",
+            "editing"
+          ],
+          "title": "Owner",
+          "type": "string"
+        },
+        "blocking": {
+          "title": "Blocking",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "severity",
+        "message",
+        "owner",
+        "blocking"
+      ],
+      "title": "EditingFinding",
+      "type": "object"
+    },
     "EditingAdvice": {
       "additionalProperties": false,
       "properties": {
@@ -778,7 +836,7 @@
         },
         "findings": {
           "items": {
-            "$ref": "#/$defs/ModelFinding"
+            "$ref": "#/$defs/EditingFinding"
           },
           "maxItems": 30,
           "title": "Findings",
@@ -1515,6 +1573,19 @@
           "minLength": 16,
           "title": "Pending Token",
           "type": "string"
+        },
+        "stop_after": {
+          "anyOf": [
+            {
+              "const": "voice",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stop After"
         }
       },
       "required": [
@@ -1551,7 +1622,7 @@
           "type": "string"
         },
         "timeout_seconds": {
-          "default": 300,
+          "default": 900,
           "maximum": 1800,
           "minimum": 30,
           "title": "Timeout Seconds",
@@ -1614,6 +1685,32 @@
           "minLength": 8,
           "title": "Idempotency Key",
           "type": "string"
+        },
+        "continue_from": {
+          "anyOf": [
+            {
+              "const": "voice",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Continue From"
+        },
+        "rebuild_from": {
+          "anyOf": [
+            {
+              "const": "director",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rebuild From"
         }
       },
       "required": [

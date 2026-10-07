@@ -8,6 +8,9 @@ function initialScript(job: Job): Script {
     job.script ?? {
       title:
         job.brief.topic || (job.brief.creative_direction || job.brief.script_text).slice(0, 40) || "我的视频",
+      title_hook: "",
+      opening_visual: "",
+      final_answer: "",
       origin: "user",
       revision: job.revision,
       segments: [
@@ -56,6 +59,10 @@ export function ScriptEditor({
         position === index ? { ...segment, ...change } : segment,
       ),
     }));
+  };
+  const updateScript = (change: Partial<Script>) => {
+    setDirty(true);
+    setDraft((current) => ({ ...current, ...change }));
   };
   const save = async () => {
     if (busy || locked) return;
@@ -137,15 +144,50 @@ export function ScriptEditor({
           视频标题
           <input
             value={draft.title}
-            maxLength={100}
+            maxLength={300}
             disabled={locked}
-            onChange={(event) => {
-              setDirty(true);
-              setDraft((current) => ({
-                ...current,
-                title: event.target.value,
-              }));
-            }}
+            onChange={(event) => updateScript({ title: event.target.value })}
+          />
+        </label>
+        <div className="form-grid">
+          <label>
+            前3秒画面字
+            <input
+              value={draft.title_hook}
+              maxLength={15}
+              disabled={locked}
+              onChange={(event) =>
+                updateScript({ title_hook: event.target.value })
+              }
+              placeholder="15字以内"
+            />
+            <small className="muted">
+              创作信息，用来审开头屏幕字，不会当成口播。
+            </small>
+          </label>
+          <label>
+            开头画面建议
+            <input
+              value={draft.opening_visual}
+              maxLength={300}
+              disabled={locked}
+              onChange={(event) =>
+                updateScript({ opening_visual: event.target.value })
+              }
+              placeholder="一句话说明前3秒该看到什么"
+            />
+          </label>
+        </div>
+        <label>
+          一句主答案
+          <input
+            value={draft.final_answer}
+            maxLength={300}
+            disabled={locked}
+            onChange={(event) =>
+              updateScript({ final_answer: event.target.value })
+            }
+            placeholder="给观众带走的一句话，不替代段落口播"
           />
         </label>
       </div>

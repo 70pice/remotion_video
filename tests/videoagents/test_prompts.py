@@ -55,8 +55,9 @@ def test_legacy_programmer_focused_root_prompt_does_not_return():
     assert not (PROMPTS_DIR.parents[1] / "screenwriter-prompt-v2.md").exists()
 
 
-def test_new_jobs_default_to_a_general_public_audience():
-    assert Brief(topic="AI 新闻").audience == "没有技术背景的普通大众"
+def test_new_jobs_default_to_ai_interested_audience_and_preserve_explicit_audience():
+    assert Brief(topic="AI 新闻").audience == "对 AI 感兴趣、愿意了解前沿进展并尝试工具的人"
+    assert Brief(topic="AI 新闻", audience="没有技术背景的普通大众").audience == "没有技术背景的普通大众"
 
 
 def test_markdown_ships_as_package_data():
@@ -198,16 +199,15 @@ def test_editing_prompt_treats_current_timeline_as_authoritative():
     assert "旧值写成现状或据此阻断" in editing.PROMPT
 
 
-def test_script_prompts_limit_defensive_copy_and_require_a_clear_choice_map():
-    assert "专门用于“不能" in screenwriter.PROMPT
-    assert "文字合计不得超过约 10%" in screenwriter.PROMPT
-    assert "不得在\nPrompt 层预设任何具体产品、对象、任务清单" in screenwriter.PROMPT
-    for leaked_example in ("整理长材料", "改图做海报", "写程序和跑复杂任务"):
-        assert leaked_example not in screenwriter.PROMPT
-    assert "前两句交付答案" in screenwriter.REWRITE_PROMPT
-    assert "不得沿用 Prompt 预设的具体产品、任务清单" in screenwriter.REWRITE_PROMPT
-    assert "删掉了哪些重复" in screenwriter.REWRITE_PROMPT
-    assert "防守内容超过全部 narration" in script_reviewer.PROMPT
+def test_script_prompts_limit_repetition_without_dropping_necessary_evidence_boundaries():
+    assert "合计不超过 10%" in screenwriter.PROMPT
+    assert "不是本期事实或预设推荐" in screenwriter.PROMPT
+    assert "什么任务优先选谁" in screenwriter.PROMPT
+    assert "不是文案审查任务，不能返回 ScriptCritique" in screenwriter.REWRITE_PROMPT
+    assert "旧稿的通过结论不能沿用" in screenwriter.REWRITE_PROMPT
+    assert "同一必要边界只说一次" in screenwriter.REWRITE_PROMPT
+    assert "不受这个预算压制" in screenwriter.PROMPT
+    assert "不能仅因占比就逼编剧删除" in script_reviewer.PROMPT
     assert "不能因为稿件“很谨慎”就 APPROVE" in script_reviewer.PROMPT
 
 
@@ -227,9 +227,12 @@ RUNTIME_PROMPTS = [
     "materials", "screenwriter", "screenwriter-rewrite", "script-reviewer",
     "voice", "director", "editing", "reviewers",
 ])
-def test_every_runtime_prompt_pins_general_public_audience(prompt):
-    # 受众契约来自共享风格层；任何角色都不能把“懂技术”当默认前提。
-    assert "没有技术背景的普通大众" in prompt
+def test_every_runtime_prompt_inherits_ai_interested_audience(prompt):
+    # 主动关注 AI 不等于会编程；具体深度来自本期 brief，而非作者身份。
+    assert "主动关注 AI、愿意探索新能力和新工具的人" in prompt
+    assert "不预设他们会编程" in prompt
+    assert "编辑取向" in prompt
+    assert "brief.audience" in prompt
 
 
 @pytest.mark.parametrize("prompt", [
@@ -240,27 +243,26 @@ def test_every_runtime_prompt_pins_general_public_audience(prompt):
     editing.PROMPT,
     reviewers.PROMPT,
 ], ids=["screenwriter", "screenwriter-rewrite", "script-reviewer", "voice", "editing", "reviewers"])
-def test_noncatalog_prompts_drop_programmer_default_examples(prompt):
-    # 旧版默认示例是 Codex/Claude Code 对打、读文件改代码跑测试；受众改为
-    # 普通大众后，这些不能再作为范例或话题出现在非组件清单的 Prompt 中。
-    for banned in ["Codex", "Claude Code", "改代码", "跑测试", "报错找到相关文件"]:
-        assert banned not in prompt, banned
+def test_noncatalog_prompts_keep_developer_scenarios_tied_to_topic(prompt):
+    # 编程工具也可以是主题；禁止用作者身份把所有选题变成编程教程。
+    assert "博主是程序员不等于观众是程序员" in prompt
+    assert "本期主题确实相关" in prompt
+    assert "预设内置的演示代码" in prompt
 
 
-def test_director_catalog_is_the_only_programmer_reference():
+def test_director_catalog_retains_developer_presets_with_topic_boundary():
     # 导演 Prompt 末尾的完整组件清单必然列出 Talkcraft-claude-code 等预设
-    # ID；除此之外，正文里不应再出现 Codex/Claude Code 字样。
+    # ID；正文继续要求主题相关，不能当作通用 AI 氛围。
     body, _, catalog = director.PROMPT.partition("## 本任务允许的完整组件清单")
-    assert "Codex" not in body
-    assert "Claude Code" not in body
+    assert "本期主题确实相关" in body
     assert "Talkcraft-claude-code" in catalog
 
 
 @pytest.mark.parametrize("label,phrase", [
     ("materials", "难以直观理解、且影响判断的数字"),
     ("materials", "不用类比"),
-    ("screenwriter", "难以直观理解且影响判断的数字"),
-    ("screenwriter", "直观数字不强行类比"),
+    ("screenwriter", "难以直观理解、且会影响判断的数字"),
+    ("screenwriter", "不强行类比"),
     ("script_reviewer", "直观数字不要求类比"),
     ("reviewers", "被强行类比"),
 ])
@@ -309,22 +311,18 @@ def test_director_chain_keeps_developer_preset_boundary():
         ("materials", "SVG、HTML、PDF、GIF、AVIF 不能作为"),
         ("screenwriter", "每段 source_refs 必须有真实来源"),
         ("screenwriter", "不要单独宣布“我的观点”"),
-        ("screenwriter", "结尾的解释与使用边界同样填写支撑它的真实 source_refs"),
-        ("screenwriter", "双产品或多产品比较题必须先选一个所有对象都能参与的具体任务"),
-        ("screenwriter", "三方及以上比较仍沿用同一共同任务矩阵"),
-        ("screenwriter", "购买题"),
-        ("screenwriter", "付费增量"),
-        ("screenwriter", "现有方案已经够用的人"),
-        ("screenwriter", "来源和 limitations 是写作边界，不是旁白内容"),
-        ("screenwriter", "前两段禁止从产品定义、产品分类、背景沿革或能力清单起笔"),
-        ("screenwriter", "不要把“没有实测”“不能证明”“按……理解”写成固定口播免责声明"),
-        ("screenwriter", "第一段直接进入一个正在发生的具体任务"),
-        ("screenwriter", "像一个人在讲一件事，不像六张产品介绍卡"),
-        ("screenwriter", "悬念不能靠藏住所有答案"),
-        ("screenwriter", "不虚构第一人称体验"),
-        ("screenwriter", "同一套任务和判断口径"),
-        ("screenwriter", "不要把下面的方法写成固定模板"),
-        ("screenwriter", "白话在先、名称在后"),
+        ("screenwriter", "结尾的判断也要有依据"),
+        ("screenwriter", "一个本期受众都能进入的具体任务"),
+        ("screenwriter", "成本与上手门槛"),
+        ("screenwriter", "来源和 limitations 是写作边界"),
+        ("screenwriter", "不要从产品定义、行业背景、能力清单起笔"),
+        ("screenwriter", "不假装第一人称经历"),
+        ("screenwriter", "brief.creative_direction"),
+        ("screenwriter", "research.sources"),
+        ("screenwriter", "title_hook"),
+        ("screenwriter", "opening_visual"),
+        ("screenwriter", "final_answer"),
+        ("screenwriter", "先用动作或结果解释"),
         ("script_reviewer", "全稿问题使用空字符串"),
         ("script_reviewer", "script_discussion.rounds[-1].script.segments"),
         ("script_reviewer", "不得使用范围"),

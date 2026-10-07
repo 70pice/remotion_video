@@ -2,7 +2,7 @@
 
 import pytest
 
-from videoagents.contracts import Asset, Brief, Script, ScriptSegment
+from videoagents.contracts import Asset, Brief, Script, ScriptDiscussion, ScriptSegment
 from videoagents.nodes.screenwriter import ScreenwriterNode, script_issues
 from videoagents.services.jobs import JobService
 from videoagents.storage import Repository
@@ -32,6 +32,47 @@ def test_creative_direction_is_model_input_not_finished_narration(tmp_path, monk
     assert calls[0][1:3] == ("screenwriter", ("brief", "research", "assets"))
     assert "不是已有口播稿" in calls[0][3]
     assert script.segments[0].narration != direction
+
+
+@pytest.mark.parametrize("applied", [False, True], ids=["human-rewrite", "final-machine-rewrite"])
+def test_rewrite_keeps_human_direction_after_feedback_is_applied(tmp_path, monkeypatch, applied):
+    repository = Repository(tmp_path / "runtime")
+    source = "https://example.com/report"
+    job = repository.create_job(Brief(topic="报告解读", source_urls=[source]))
+    asset = Asset(asset_id="chart", name="chart.png", role="evidence", mime_type="image/png",
+                  size_bytes=100, sha256="a" * 64, source_url=source, artifact_id="chart-artifact",
+                  url="/api/artifacts/chart-artifact", timeline_src="videoagents/unit/chart.png")
+    original = Script(title="旧稿", origin="model", revision=job.revision,
+                      segments=[ScriptSegment(segment_id="s1", narration="报告主要统计了付费情况。",
+                                              source_refs=[source], asset_ids=[asset.asset_id])])
+    job = repository.update_job(job.job_id, script=original, assets=[asset])
+    discussion = ScriptDiscussion(run_id="UNIT-rewrite", revision=job.revision,
+                                  status="EXHAUSTED", max_rounds=1,
+                                  rounds=[{"round": 1, "script": original.model_dump(), "critique": {
+                                      "decision": "REVISE", "summary": "修正判断归属", "issues": [{
+                                          "category": "fact", "concern": "趋势是本期判断。",
+                                          "suggestion": "不要把本期判断归给报告作者。",
+                                      }],
+                                  }}])
+    feedback = {"decision": "revise", "note": "用使用深度的差距作主题，保持三个观点。",
+                "applied": applied, "pending_token": "UNIT-feedback", "script": original.model_dump()}
+    state = {"job_id": job.job_id, "revision": job.revision, "run_id": "UNIT-rewrite",
+             "brief": job.brief.model_dump(), "script": original.model_dump(),
+             "assets": [asset.model_dump()], "research": {"sources": [{"url": source}]},
+             "extras": {"human_feedback": {"script": feedback}}}
+    captured = []
+
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        captured.append(context)
+        value = original.model_dump()
+        value["segments"][0]["narration"] = "付费样本中的使用方式存在差别。"
+        return {"script": value, "response": "保留人工主题，修正机器指出的问题。"}
+
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
+    ScreenwriterNode(repository, JobService(repository, tmp_path)).rewrite(job, discussion, state)
+    assert captured[0]["extras"]["human_feedback"]["script"] == feedback
+    assert captured[0]["script_discussion"]["rounds"][0]["critique"]["decision"] == "REVISE"
+    assert state["extras"]["human_feedback"]["script"]["applied"] is applied
 
 
 def test_user_script_does_not_bind_first_video_to_every_paragraph(tmp_path):

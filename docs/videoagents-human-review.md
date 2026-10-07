@@ -44,10 +44,34 @@ self.add_human_review(
 
 ## 后续制作与阶段停止
 
+仅需配音时，在文案人工审核的 `POST /api/jobs/{job_id}/resume` 确认请求中加
+`"stop_after": "voice"`。Worker 恢复原 checkpoint，将本次执行目标设为 `voice`；
+顺序仍为文案确认 → 配音 → 工具清理 → 音频及时间戳校验，成功后停在
+`DRAFT` / `voice`，不进入导演、剪辑。原文案、素材和人工反馈保留。
+配音失败的输入中断也可带此选项续跑。该选项只接受 `confirm`，且只适用于
+文案审核或配音输入中断；省略时沿用原执行目标。
+
+配音完成后，通过 `POST /api/jobs/{job_id}/runs` 提交
+`{"base_revision": 当前版本, "action": "produce", "continue_from": "voice", "idempotency_key": "新的唯一键"}`。
+API 绑定已完成配音的原工作流，Worker 核对文案人工确认、音频文件和时间戳后，
+从原共享状态进入 AudioGate → 导演 → 剪辑。素材、文案、配音及人工反馈保留；
+只有当前版本停在 `DRAFT` / `voice` 且没有待办时可用。
+
+已完成分镜、预览或成片后，只重做画面时，同一入口提交
+`{"base_revision": 当前版本, "action": "produce", "rebuild_from": "director", "idempotency_key": "新的唯一键"}`。
+Worker 绑定当前版本已完成的原 checkpoint，核对文案人工确认及原始音频后，
+通过 AudioGate → 导演 → 剪辑重新制作。导演重新选择素材并编排镜头，不复用旧分镜；
+文案、配音、素材和人工反馈保留。此入口要求 `DRAFT` / `director`、`render` 或
+`complete`，没有待办，且原制作输入未改变。不能同时指定 `continue_from`。
+
 导演成功后经 `clear_director` 直接进入剪辑；`storyboard` 动作在导演完成后结束。
 剪辑成功后经 `clear_editing` 结束；`preview` 停在 `DRAFT` / `render`，完整成片停在
 `DRAFT` / `complete`。旧 `review` 动作结束为草稿并提示审核流程已移除。
 时间轴及素材的技术校验仍由导演、剪辑节点执行，失败进入 `await_input`。
+导演节点内同时检查镜头可读时长；已有短镜头通过原导演节点重做视觉切点。
+剪辑指导只检查画面与渲染输入，输出问题只归属导演或剪辑，不重开已确认的文案
+与配音审查。剪辑输入包含程序计算的素材可用性；个人视频的素材可直接入片，
+历史“待核验”备注不阻止使用。有合适素材时必须在画面中使用，仍需匹配内容与时长。
 
 `stage` 使用 `materials`、`script`、`voice`、`director`、`render` 或 `review`；素材审核示例见 [素材节点](videoagents-materials.md)。审核节点名称需唯一，`next_node` 要是图中已有节点。也可以指定 `END`，此时确认后结束本次执行，任务回到 `DRAFT`，不会留在运行中或标记发布通过。
 

@@ -15,11 +15,12 @@ DEFAULT_VOICE_STYLE = (
 )
 DEFAULT_SCRIPT_MODEL = "doubao-seed-2-1-pro-260915"
 DEFAULT_ROLE_MODELS = RoleModels(
+    voice=RoleModelConfig(enabled=True),
     screenwriter=RoleModelConfig(
-        enabled=True, provider="claude_code_cli", model=DEFAULT_SCRIPT_MODEL, timeout_seconds=300
+        enabled=True, provider="claude_code_cli", model=DEFAULT_SCRIPT_MODEL, timeout_seconds=900
     ),
     script_reviewer=RoleModelConfig(
-        enabled=True, provider="claude_code_cli", model=DEFAULT_SCRIPT_MODEL, timeout_seconds=300
+        enabled=True, provider="claude_code_cli", model=DEFAULT_SCRIPT_MODEL, timeout_seconds=900
     ),
 ).model_dump()
 DEFAULT_SETTINGS = {
@@ -33,7 +34,7 @@ DEFAULT_SETTINGS = {
     "voice_endpoint": "https://openspeech.bytedance.com/api/v3/tts/unidirectional",
     "voice_model": "seed-tts-2.0-expressive",
     "voice_style": DEFAULT_VOICE_STYLE, "voice_speech_rate": 0,
-    "aligner_url": "", "capture_enabled": True, "max_llm_calls": 12,
+    "aligner_url": "", "capture_enabled": True, "max_llm_calls": 20,
     "max_voice_chars": 10000, "render_timeout_seconds": 1800,
 }
 SECRET_FIELDS = {"llm_api_key", "search_api_key", "voice_access_token", "voice_api_key", "aligner_api_key", "ark_api_key"}

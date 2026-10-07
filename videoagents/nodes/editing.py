@@ -6,6 +6,7 @@ from typing import Any
 
 from videoagents.contracts import EditingAdvice, Job
 from videoagents.nodes.common import agent_state, request_input, start_stage, state_context
+from videoagents.nodes.gates import timeline_readability_issues
 from videoagents.nodes.reviewers import dependency_fingerprint
 from videoagents.prompts import compose
 from videoagents.providers.llm import CapabilityMissing, JsonModel
@@ -13,10 +14,14 @@ from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.state import VideoState
 from videoagents.storage import Repository
-from videoagents.tools.timeline import validate_timeline
+from videoagents.tools.timeline import asset_renderable, validate_timeline
 from worker.process_manager import render
 
 PROMPT = compose("shared-style", "editing")
+
+
+class DirectorInputError(ValueError):
+    """A visual plan issue must return to its owning production node."""
 
 
 def has_unapplied_human_feedback(extras: dict[str, Any]) -> bool:
@@ -85,6 +90,8 @@ class EditingNode:
         mode = "preview" if state["action"] == "preview" else "final"
         try:
             self.render_video(job, mode, state=state)
+        except DirectorInputError as exc:
+            return request_input(self.repo, state, "director", [str(exc)], ["timeline"], exc)
         except (CapabilityMissing, ValueError, TimeoutError) as exc:
             return request_input(self.repo, state, "render", [str(exc)], getattr(exc, "fields", ["render"]), exc)
         if mode == "preview":
@@ -98,12 +105,20 @@ class EditingNode:
             raise ValueError("没有可执行分镜")
         metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
         validate_timeline(job.timeline, job, metadata)
+        issues = timeline_readability_issues(job.timeline) if (job.brief.width, job.brief.height, job.brief.fps) == (1080, 1920, 30) else []
+        if issues:
+            raise DirectorInputError("；".join(issues))
         if self.model.available("editing"):
             context = agent_state(self.repo, job, state)
             if state is None:
                 context = {**context, "action": mode}
-            context = {**context, "timeline": compact_timeline_for_editing(context["timeline"])}
-            fields = ("brief", "script", "timeline", "assets", "action")
+            context = {**context, "timeline": compact_timeline_for_editing(context["timeline"]),
+                       "asset_metadata": {asset.asset_id: {
+                           **{key: value for key, value in metadata[asset.asset_id].items() if key != "alignment"},
+                           "renderable": asset_renderable(asset),
+                       } for asset in job.assets
+                           if asset.mime_type.startswith(("image/", "video/"))}}
+            fields = ("brief", "script", "timeline", "assets", "asset_metadata", "action")
             if has_unapplied_human_feedback(context.get("extras", {})):
                 fields = (*fields, "extras")
             value = self.model.invoke(context, "editing", PROMPT,
@@ -114,6 +129,8 @@ class EditingNode:
             self.service.write_json(job, "editing_guidance.json", advice.model_dump(), "editing_guidance")
             blocked = [item.message for item in advice.findings if item.blocking or item.severity == "error"]
             if blocked:
+                if any(item.owner == "director" for item in advice.findings if item.blocking or item.severity == "error"):
+                    raise DirectorInputError("剪辑发现分镜问题：" + "；".join(blocked))
                 raise ValueError("剪辑模型预检未通过：" + "；".join(blocked))
         for asset in job.assets:
             self.service.freeze_asset(asset)

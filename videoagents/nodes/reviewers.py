@@ -44,12 +44,13 @@ class ReviewersNode:
                state: VideoState | None = None) -> Review:
         findings = []
         coverage = ["media_probe", "full_decode", "timeline_contract", "source_structure", "audio_alignment", "usage_and_license"]
+        context = agent_state(self.repo, job, state)
 
         def add(category: str, message: str, owner: str, severity: str = "error", blocking: bool = True):
             findings.append(Finding(finding_id=f"{category}-{len(findings) + 1}", severity=severity,
                                     category=category, message=message, owner=owner, blocking=blocking))
 
-        for issue in script_issues(job):
+        for issue in script_issues(job, context.get("research")):
             add("source", issue, "screenwriter")
         if job.brief.usage == "unspecified":
             add("usage", "请明确个人/商业用途后再申请发布审核", "user")
@@ -133,7 +134,6 @@ class ReviewersNode:
             except Exception as exc:
                 add("media", "最终视频探测/完整解码失败：" + str(exc)[:400], "editing")
         if model_review and self.model.available("review") and job.script:
-            context = agent_state(self.repo, job, state)
             value = self.model.invoke(context, "review", PROMPT,
                 fields=("brief", "script", "timeline", "assets", "research", "alignment"),
                 command_id=context.get("resume_command_id", context.get("run_id", "")),

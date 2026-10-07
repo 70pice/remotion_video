@@ -70,7 +70,8 @@ def test_voice_performance_settings_round_trip_and_defaults(client):
     defaults = client.get("/api/settings").json()
     assert defaults["voice_model"] == "seed-tts-2.0-expressive"
     assert "不要播音腔" in defaults["voice_style"] and defaults["voice_speech_rate"] == 0
-    assert defaults["role_models"]["voice"]["enabled"] is False
+    assert defaults["role_models"]["voice"]["enabled"] is True
+    assert client.patch("/api/settings", json={"role_models": {"voice": {"enabled": False}}}).json()["role_models"]["voice"]["enabled"] is True
     result = client.patch("/api/settings", json={"voice_style": "自然、有情绪起伏，开头突出疑问。", "voice_speech_rate": -12})
     assert result.status_code == 200
     saved = client.get("/api/settings").json()

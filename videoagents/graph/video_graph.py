@@ -9,9 +9,10 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command
 
+from videoagents.contracts import Job
 from videoagents.nodes.await_input import AwaitInputNode
 from videoagents.nodes.clear_tools import ClearToolsNode
-from videoagents.nodes.common import state_context
+from videoagents.nodes.common import state_context, validate_context_assets
 from videoagents.nodes.director import DirectorNode
 from videoagents.nodes.editing import EditingNode
 from videoagents.nodes.gates import AudioGateNode, ScriptGateNode
@@ -139,6 +140,8 @@ class VideoProductionGraph(AbstractContextManager):
             return None
         if payload["base_revision"] != job.revision:
             raise Conflict("排队命令的版本已失效")
+        if payload.get("continue_from") == "voice" or payload.get("rebuild_from") == "director":
+            return self.continue_after_voice(command, job)
         if payload["action"] == "review":
             return self.stop_removed_review(VideoState(job_id=job.job_id, revision=job.revision))
         if payload["action"] == "resume":
@@ -173,7 +176,10 @@ class VideoProductionGraph(AbstractContextManager):
             decision = {"decision": payload["decision"], "note": payload.get("note", ""), "pending_token": payload["pending_token"]}
             # Interrupt IDs also key the actual LangGraph resume map, so a
             # response can only be delivered to the selected recorded pause.
-            result = self.graph.invoke(Command(update={"resume_command_id": command["command_id"]}, resume={target.id: decision}), config)
+            update = {"resume_command_id": command["command_id"]}
+            if payload.get("stop_after") == "voice":
+                update["action"] = "voice"
+            result = self.graph.invoke(Command(update=update, resume={target.id: decision}), config)
             self.sync_pending(config, job)
             return state_context(self.repo, result)
         thread_id = "job:" + job.job_id + ":run:" + command["command_id"]
@@ -192,6 +198,49 @@ class VideoProductionGraph(AbstractContextManager):
                               action=payload["action"], run_id=command["command_id"], thread_id=thread_id,
                               gate_issues=[], extras={}))
         result = self.graph.invoke(state, config)
+        self.sync_pending(config, job)
+        return state_context(self.repo, result)
+
+    def continue_after_voice(self, command: dict[str, Any], job: Job) -> Any:
+        """Continue frozen audio or rebuild visuals through existing graph nodes."""
+        payload = command["payload"]
+        rebuilding = payload.get("rebuild_from") == "director"
+        config = {"configurable": {"thread_id": payload["continuation_thread_id"]}, "recursion_limit": 60}
+        saved = self.graph.get_state(config)
+        state = saved.values
+        if not state or state.get("job_id") != job.job_id or state.get("revision") != job.revision:
+            raise Conflict("续跑的工作流状态缺失或版本已变化")
+        if state.get("resume_command_id") == command["command_id"]:
+            # A reclaimed command resumes the nodes it already scheduled. Never
+            # jump over a new input interrupt or repeat a completed render.
+            result = self.graph.invoke(None, config) if saved.next and not saved.interrupts else state
+            self.sync_pending(config, job)
+            return state_context(self.repo, result)
+        finished = (state.get("stage") in {"director", "render", "complete"}
+                    and state.get("action") in {"produce", "storyboard", "preview", "final"}) if rebuilding else (
+                    state.get("stage") == "voice" and state.get("action") == "voice")
+        if saved.next or saved.interrupts or state.get("route") != "end" or not finished:
+            raise Conflict("原工作流尚未完成画面制作" if rebuilding else "原工作流尚未在配音完成处结束")
+        for name in (("brief", "script", "assets", "timeline") if rebuilding else ("brief", "script", "assets")):
+            if state.get(name) != job.model_dump()[name]:
+                raise Conflict("配音完成后的制作输入已变化，请重新制作并审核")
+        validate_context_assets(self.repo, job)
+        current = state_context(self.repo, state)
+        for name in ("audio_asset_id", "alignment", "duration_seconds"):
+            if not current.get(name) or current[name] != state.get(name):
+                raise Conflict("配音或对齐元数据已变化，请重新核验")
+        receipt_ids = {item.artifact_id for item in job.artifacts if item.kind == "stage_review" and item.revision == job.revision}
+        approvals = [item for item in current["human_reviews"] if item.get("artifact_id") in receipt_ids and item.get("kind") == "stage_review"
+                     and item.get("stage") == "script" and item.get("revision") == job.revision
+                     and item.get("decision") == "confirm" and item.get("node_name") in {"human_review_script", "human_review"}]
+        if not approvals or not any(item in state.get("human_reviews", []) for item in approvals):
+            raise Conflict("续跑缺少已保存的文案人工确认")
+        # Command.goto on the existing checkpoint schedules audio validation;
+        # START/materials and the already completed voice node are not invoked.
+        update = {"action": payload["action"], "resume_command_id": command["command_id"]}
+        if rebuilding:
+            update["extras"] = {"timeline_rebuild": True}
+        result = self.graph.invoke(Command(update=update, goto="audio_gate"), config)
         self.sync_pending(config, job)
         return state_context(self.repo, result)
 

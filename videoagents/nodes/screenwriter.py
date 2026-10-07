@@ -34,6 +34,7 @@ from videoagents.storage import Repository
 NARRATIVE_PROMPT = compose("shared-style", "screenwriter")
 PROMPT = NARRATIVE_PROMPT + "\n\n" + load_prompt("screenwriter-draft")
 REWRITE_PROMPT = NARRATIVE_PROMPT + "\n\n" + load_prompt("screenwriter-rewrite")
+SOURCE_DIGEST = re.compile(r"^[a-f0-9]{64}$")
 
 
 # 人工审核选择“返工”后，意见保存在 state.extras.human_feedback 中；stage_feedback
@@ -131,7 +132,9 @@ class ScreenwriterNode:
         if feedback and type(feedback.get("script")) is dict:
             context = {**context, "script": feedback["script"]}
         fields = ("brief", "script", "script_discussion", "research", "assets")
-        if feedback:
+        # Applied feedback still defines the episode's direction during the
+        # final rewrite; only active feedback opens a new discussion cycle.
+        if context.get("extras", {}).get("human_feedback"):
             fields = (*fields, "extras")
         value = self.model.invoke(
             context, "screenwriter", REWRITE_PROMPT,
@@ -143,7 +146,8 @@ class ScreenwriterNode:
         script = rewrite.script.model_copy(update={"origin": "model", "revision": job.revision})
         if feedback and type(feedback.get("script")) is dict and same_script_body(script, feedback["script"]):
             raise ValueError("人工返工未产生文案修改，请补充更明确的修改意见")
-        issues = script_issues(self.repo.get_job(job.job_id).model_copy(update={"script": script}))
+        issues = script_issues(self.repo.get_job(job.job_id).model_copy(update={"script": script}),
+                               context.get("research"))
         if issues:
             raise ValueError("讨论改稿未通过来源检查：" + "；".join(issues))
         return script, rewrite.response
@@ -174,7 +178,8 @@ class ScreenwriterNode:
             script = rewrite.script.model_copy(update={"origin": "model", "revision": job.revision})
             if type(reviewed) is dict and same_script_body(script, reviewed):
                 raise ValueError("人工返工未产生文案修改，请补充更明确的修改意见")
-            issues = script_issues(self.repo.get_job(job.job_id).model_copy(update={"script": script}))
+            issues = script_issues(self.repo.get_job(job.job_id).model_copy(update={"script": script}),
+                                   research)
             if issues:
                 raise ValueError("人工返工改稿未通过来源检查：" + "；".join(issues))
             return script, research
@@ -201,11 +206,53 @@ class ScreenwriterNode:
             script = Script.model_validate(value)
         return script, research
 
-def script_issues(job: Job) -> list[str]:
+
+def valid_source_url(url: str) -> bool:
+    parsed = urlparse(url)
+    return (parsed.scheme in {"http", "https"} and bool(parsed.hostname)
+            and parsed.username is None and parsed.password is None)
+
+
+def trusted_research_source_urls(job: Job, research: dict | None) -> set[str]:
+    """Return URLs whose source text was already frozen by the materials node."""
+
+    if type(research) is not dict or research.get("status") != "COMPLETED":
+        return set()
+    source_artifacts = {
+        (artifact.artifact_id, artifact.sha256)
+        for artifact in job.artifacts
+        if artifact.kind == "source"
+    }
+    urls: set[str] = set()
+    for item in research.get("sources", []):
+        if type(item) is not dict:
+            continue
+        text = item.get("text")
+        digest = item.get("sha256")
+        artifact_id = item.get("artifact_id")
+        if not (isinstance(text, str) and text.strip()):
+            continue
+        if item.get("knowledge_status") != "skill_read":
+            continue
+        if not (isinstance(digest, str) and SOURCE_DIGEST.fullmatch(digest)):
+            continue
+        if not (isinstance(artifact_id, str) and artifact_id.strip()):
+            continue
+        if (artifact_id, digest) not in source_artifacts:
+            continue
+        for key in ("url", "final_url"):
+            url = item.get(key)
+            if isinstance(url, str) and valid_source_url(url):
+                urls.add(url)
+    return urls
+
+
+def script_issues(job: Job, research: dict | None = None) -> list[str]:
     if not job.script:
         return ["没有有效短视频文案"]
     known_assets = {asset.asset_id: asset for asset in job.assets}
-    known_sources = set(job.brief.source_urls) | {asset.source_url for asset in job.assets if asset.source_url}
+    research_sources = trusted_research_source_urls(job, research)
+    known_sources = set(job.brief.source_urls) | {asset.source_url for asset in job.assets if asset.source_url} | research_sources
     issues = []
     for segment in job.script.segments:
         # 旧任务曾用可朗读的观点标签表示纯主观段落，保留旧稿读取/校验兼容。
@@ -213,8 +260,7 @@ def script_issues(job: Job) -> list[str]:
         if not segment.source_refs and not segment.narration.startswith(("观点：", "个人感受：")):
             issues.append(f"段落 {segment.segment_id} 缺少支撑本段内容的真实来源，请补充来源或删除无依据的说法")
         for source in segment.source_refs:
-            parsed = urlparse(source)
-            if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username:
+            if not valid_source_url(source):
                 issues.append(f"段落 {segment.segment_id} 来源 URL 无效")
             elif source not in known_sources:
                 issues.append(f"段落 {segment.segment_id} 来源不在用户来源或真实素材清单中")
