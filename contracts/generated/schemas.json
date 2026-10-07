@@ -211,6 +211,12 @@
           "title": "Topic",
           "type": "string"
         },
+        "creative_direction": {
+          "default": "",
+          "maxLength": 30000,
+          "title": "Creative Direction",
+          "type": "string"
+        },
         "script_text": {
           "default": "",
           "maxLength": 30000,
@@ -1015,7 +1021,8 @@
             "DISABLED",
             "DISCUSSING",
             "APPROVED",
-            "EXHAUSTED"
+            "EXHAUSTED",
+            "FINAL_REWRITE"
           ],
           "title": "Status",
           "type": "string"
@@ -1027,6 +1034,23 @@
           "maxItems": 5,
           "title": "Rounds",
           "type": "array"
+        },
+        "final_script": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Script"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "final_response": {
+          "default": "",
+          "maxLength": 3000,
+          "title": "Final Response",
+          "type": "string"
         }
       },
       "required": [
@@ -1674,6 +1698,18 @@
           ],
           "default": null,
           "title": "Script Discussion Max Rounds"
+        },
+        "ark_api_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ark Api Key"
         },
         "search_provider": {
           "anyOf": [

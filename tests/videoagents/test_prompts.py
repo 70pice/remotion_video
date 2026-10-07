@@ -223,7 +223,10 @@ RUNTIME_PROMPTS = [
 ]
 
 
-@pytest.mark.parametrize("prompt", RUNTIME_PROMPTS)
+@pytest.mark.parametrize("prompt", RUNTIME_PROMPTS, ids=[
+    "materials", "screenwriter", "screenwriter-rewrite", "script-reviewer",
+    "voice", "director", "editing", "reviewers",
+])
 def test_every_runtime_prompt_pins_general_public_audience(prompt):
     # 受众契约来自共享风格层；任何角色都不能把“懂技术”当默认前提。
     assert "没有技术背景的普通大众" in prompt
@@ -236,7 +239,7 @@ def test_every_runtime_prompt_pins_general_public_audience(prompt):
     voice.PROMPT,
     editing.PROMPT,
     reviewers.PROMPT,
-])
+], ids=["screenwriter", "screenwriter-rewrite", "script-reviewer", "voice", "editing", "reviewers"])
 def test_noncatalog_prompts_drop_programmer_default_examples(prompt):
     # 旧版默认示例是 Codex/Claude Code 对打、读文件改代码跑测试；受众改为
     # 普通大众后，这些不能再作为范例或话题出现在非组件清单的 Prompt 中。

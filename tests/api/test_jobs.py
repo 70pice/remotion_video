@@ -7,7 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from server.main import create_app
-from videoagents.contracts import Review
+from videoagents.contracts import Review, Script, ScriptSegment
 
 
 def tone(seconds=2):
@@ -44,6 +44,29 @@ def test_session_csrf_and_cross_origin_before_mutation(client):
     assert len(client.get("/api/jobs").json()) == 1
 
 
+def test_creative_direction_can_create_and_update_a_job_without_script_text(client):
+    created = client.post("/api/jobs", json={"creative_direction": "想讲清这款工具适合谁"})
+    assert created.status_code == 201
+    job = created.json()
+    assert job["brief"]["creative_direction"] == "想讲清这款工具适合谁"
+    assert job["brief"]["script_text"] == ""
+    assert job["script"] is None
+
+    repository = client.app.state.repository
+    repository.update_job(job["job_id"], job["revision"], script=Script(
+        title="旧方向的稿件", revision=job["revision"],
+        segments=[ScriptSegment(segment_id="s1", narration="旧方向的口播。")],
+    ))
+    brief = {**job["brief"], "creative_direction": "改为从真实使用任务讲起"}
+    updated = client.patch(f"/api/jobs/{job['job_id']}/draft", json={
+        "base_revision": job["revision"], "brief": brief,
+    })
+    assert updated.status_code == 200
+    assert updated.json()["revision"] == 2
+    assert updated.json()["brief"]["creative_direction"] == brief["creative_direction"]
+    assert updated.json()["script"] is None
+
+
 def test_durable_idempotency_and_revision_conflict(client):
     job = create(client)
     command = {"base_revision": 1, "action": "produce", "idempotency_key": "unique-command"}
@@ -60,6 +83,18 @@ def test_durable_idempotency_and_revision_conflict(client):
     result = client.patch(f"/api/jobs/{job['job_id']}/draft", json={"base_revision": 1, "brief": job["brief"]})
     assert result.status_code == 200
     assert result.json()["revision"] == 2
+
+
+def test_removed_review_action_is_rejected_before_enqueue(client):
+    job = create(client)
+    response = client.post(f"/api/jobs/{job['job_id']}/runs", json={
+        "base_revision": job["revision"], "action": "review", "idempotency_key": "removed-review",
+    })
+    assert response.status_code == 422
+    assert "成片审核流程已移除" in response.json()["detail"]
+    assert client.get(f"/api/jobs/{job['job_id']}").json()["status"] == "DRAFT"
+    with client.app.state.repository.connection() as db:
+        assert db.execute("SELECT COUNT(*) FROM commands").fetchone()[0] == 0
 
 
 def test_upload_real_audio_range_and_explicit_alignment_hash(client):
@@ -131,8 +166,8 @@ def test_seven_role_defaults_and_partial_settings_merge(client):
     roles = {"materials", "screenwriter", "script_reviewer", "voice", "director", "editing", "review"}
     assert set(initial["role_models"]) == roles
     assert initial["role_models"]["screenwriter"] == {
-        "enabled": True, "provider": "trae_cli",
-        "model": "Doubao-Seed-2.1-Pro", "timeout_seconds": 300,
+        "enabled": True, "provider": "claude_code_cli",
+        "model": "doubao-seed-2-1-pro-260915", "timeout_seconds": 300,
     }
     assert initial["role_models"]["script_reviewer"] == initial["role_models"]["screenwriter"]
     assert all(initial["role_models"][role] == {
@@ -160,16 +195,20 @@ def test_seven_role_defaults_and_partial_settings_merge(client):
 
 def test_discussion_settings_persist_without_overwriting_writer_or_starting_calls(client):
     initial = client.get("/api/settings").json()
-    assert initial["script_discussion_enabled"] is True
-    assert initial["script_discussion_max_rounds"] == 2
+    assert "script_discussion_enabled" not in initial
+    assert initial["script_discussion_max_rounds"] == 1
+    assert initial["ark_api_key_configured"] is False
     response = client.patch("/api/settings", json={
         "script_discussion_enabled": False, "script_discussion_max_rounds": 3,
         "role_models": {"script_reviewer": {"enabled": True, "provider": "claude_code_cli", "model": "review-model"}},
+        "ark_api_key": "test-only-ark-secret",
     })
     assert response.status_code == 200
+    assert "test-only-ark-secret" not in response.text
     saved = client.get("/api/settings").json()
-    assert saved["script_discussion_enabled"] is False
+    assert "script_discussion_enabled" not in saved
     assert saved["script_discussion_max_rounds"] == 3
+    assert saved["ark_api_key_configured"] is True
     assert saved["role_models"]["screenwriter"] == initial["role_models"]["screenwriter"]
     assert saved["role_models"]["script_reviewer"]["model"] == "review-model"
     for value in (0, 6, 2.5, "2", True):

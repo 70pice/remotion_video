@@ -120,7 +120,7 @@ export function JobsPage() {
           <Empty
             title={jobs.length ? "这里暂时没有任务" : "开始你的第一条视频"}
           >
-            提供主题或已有文案，让编剧、配音、导演、剪辑和审核依次协作。
+            提供主题或本期创作方向，让编剧、配音、导演和剪辑依次协作。
           </Empty>
         ) : (
           <div className="job-list">
@@ -137,7 +137,7 @@ export function JobsPage() {
                   <h3>
                     {job.script?.title ||
                       job.brief.topic ||
-                      job.brief.script_text.slice(0, 30)}
+                      (job.brief.creative_direction || job.brief.script_text).slice(0, 30)}
                   </h3>
                   <p>
                     {job.brief.platform} · {job.brief.target_seconds} 秒 ·{" "}

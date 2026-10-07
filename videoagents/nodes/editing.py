@@ -90,7 +90,8 @@ class EditingNode:
         if mode == "preview":
             job = self.repo.update_job(job.job_id, job.revision, status="DRAFT", message="真实预览已渲染，可试听并调整分镜", stage="render", progress=1)
             return state_context(self.repo, state, route="end")
-        return state_context(self.repo, state, route="reviewers")
+        job = self.repo.update_job(job.job_id, job.revision, status="DRAFT", message="成片已渲染完成，可人工查看后决定是否发布", stage="complete", progress=1)
+        return state_context(self.repo, state, route="end")
 
     def render_video(self, job: Job, mode: str, state: VideoState | None = None) -> None:
         if not job.timeline:

@@ -24,7 +24,7 @@ describe("independent role model settings", () => {
     expect(markup).not.toContain("private-local-path");
   });
 
-  it("starts writing roles on Doubao and keeps all role defaults independent", () => {
+  it("starts writing roles on Claude Code Doubao and keeps all role defaults independent", () => {
     const roles = readRoleModels({});
     expect(Object.keys(roles)).toEqual([
       "materials",
@@ -37,8 +37,8 @@ describe("independent role model settings", () => {
     ]);
     expect(roles.screenwriter).toEqual({
       enabled: true,
-      provider: "trae_cli",
-      model: "Doubao-Seed-2.1-Pro",
+      provider: "claude_code_cli",
+      model: "doubao-seed-2-1-pro-260915",
       timeout_seconds: 300,
     });
     expect(roles.script_reviewer).toEqual(roles.screenwriter);
@@ -79,7 +79,6 @@ describe("independent role model settings", () => {
           timeout_seconds: 30,
         },
         screenwriter: {
-          provider: "claude_code_cli",
           model: "screenwriter-model",
           timeout_seconds: 230,
         },
@@ -167,6 +166,7 @@ describe("independent role model settings", () => {
       voice_provider: "byte_http",
       voice_api_key: "new-voice-key",
       voice_access_token: "",
+      ark_api_key: "new-ark-key",
       search_provider: "tavily",
       search_api_key: "",
       google_search_engine_id: "unit-cx",
@@ -180,6 +180,7 @@ describe("independent role model settings", () => {
       voice_api_key: "new-voice-key",
       voice_style: "",
       voice_speech_rate: 0,
+      ark_api_key: "new-ark-key",
       search_provider: "tavily",
       google_search_engine_id: "unit-cx",
       research_platforms: ["web", "youtube"],
@@ -213,10 +214,9 @@ describe("independent role model settings", () => {
     ).toMatchObject({ voice_style: "", voice_speech_rate: 0 });
   });
 
-  it("patches script discussion settings only when they changed", () => {
+  it("patches only script discussion round settings when they changed", () => {
     const saved: Settings = {
       role_models: readRoleModels({}),
-      script_discussion_enabled: false,
       script_discussion_max_rounds: 2,
     };
     expect(createSettingsPayload({ ...saved }, saved)).toEqual({});
@@ -225,13 +225,11 @@ describe("independent role model settings", () => {
       createSettingsPayload(
         {
           ...saved,
-          script_discussion_enabled: true,
           script_discussion_max_rounds: 6,
         },
         saved,
       ),
     ).toEqual({
-      script_discussion_enabled: true,
       script_discussion_max_rounds: 5,
     });
   });
@@ -263,7 +261,11 @@ describe("role settings form", () => {
     for (const { label } of modelRoles) {
       expect(markup).toContain(`aria-label="启用${label}模型"`);
       expect(markup).toContain(`aria-label="${label}模型提供方"`);
-      expect(markup).toContain(`aria-label="${label}模型选择"`);
+      expect(markup).toContain(
+        label === "编剧" || label === "文案审查"
+          ? `aria-label="${label}模型名称"`
+          : `aria-label="${label}模型选择"`,
+      );
       expect(markup).toContain(`aria-label="${label}模型超时秒数"`);
     }
     expect(markup.match(/value="claude_code_cli"/g)).toHaveLength(7);
@@ -275,10 +277,12 @@ describe("role settings form", () => {
     expect(markup).toContain("真实声音仍由字节配音接口生成");
     expect(markup).toContain("视频仍由 Remotion 实际渲染");
     expect(markup).toContain("审查编剧稿件的事实、钩子、逻辑、画面与版权风险");
-    expect(markup).toContain('aria-label="启用文案讨论"');
+    expect(markup).not.toContain('aria-label="启用文案讨论"');
     expect(markup).toContain('aria-label="文案讨论最大审查轮数"');
-    expect(markup).toContain("达到上限仍需修改时，流程会暂停等待处理");
-    expect(markup).toContain("不会自动启用任何 CLI");
+    expect(markup).toContain('value="1"');
+    expect(markup).toContain("达到轮数上限仍需修改时，编剧最后改稿一次，再交人工审核");
+    expect(markup).toContain("轮数不会自动启用任何 CLI");
+    expect(markup).toContain("火山方舟 API Key");
     expect(markup).not.toContain("编剧与导演模型");
   });
 
@@ -318,9 +322,12 @@ describe("role settings form", () => {
     );
     for (const { label } of modelRoles) {
       expect(fieldset).toContain(`aria-label="启用${label}模型"`);
-      expect(fieldset).toContain(`aria-label="${label}模型选择"`);
     }
+    expect(fieldset).toContain('aria-label="素材模型选择"');
+    expect(fieldset).toContain('aria-label="编剧模型名称"');
+    expect(fieldset).toContain('aria-label="文案审查模型名称"');
     expect(fieldset).toContain("新鉴权 API Key");
+    expect(fieldset).toContain("火山方舟 API Key");
     expect(fieldset).toContain(
       '<button class="button primary" disabled="">正在保存…</button>',
     );

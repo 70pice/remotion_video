@@ -13,13 +13,13 @@ DEFAULT_VOICE_STYLE = (
     "遇到转折和反常识信息时先收一下，再加重真正关键的内容；结论坚定收住。"
     "不要字字加重，不要全程兴奋，也不要一口气读完。"
 )
-DEFAULT_SCRIPT_MODEL = "Doubao-Seed-2.1-Pro"
+DEFAULT_SCRIPT_MODEL = "doubao-seed-2-1-pro-260915"
 DEFAULT_ROLE_MODELS = RoleModels(
     screenwriter=RoleModelConfig(
-        enabled=True, provider="trae_cli", model=DEFAULT_SCRIPT_MODEL, timeout_seconds=300
+        enabled=True, provider="claude_code_cli", model=DEFAULT_SCRIPT_MODEL, timeout_seconds=300
     ),
     script_reviewer=RoleModelConfig(
-        enabled=True, provider="trae_cli", model=DEFAULT_SCRIPT_MODEL, timeout_seconds=300
+        enabled=True, provider="claude_code_cli", model=DEFAULT_SCRIPT_MODEL, timeout_seconds=300
     ),
 ).model_dump()
 DEFAULT_SETTINGS = {
@@ -28,7 +28,7 @@ DEFAULT_SETTINGS = {
     "research_platforms": ["web", "x", "youtube", "zhihu", "reddit", "bilibili", "google"],
     "research_results_per_platform": 3, "research_max_searches": 8, "research_max_sources": 12,
     "research_max_visuals": 8, "research_download_images": True,
-    "script_discussion_enabled": True, "script_discussion_max_rounds": 2,
+    "script_discussion_max_rounds": 1,
     "voice_provider": "none", "voice_app_id": "", "voice_resource_id": "", "voice_id": "",
     "voice_endpoint": "https://openspeech.bytedance.com/api/v3/tts/unidirectional",
     "voice_model": "seed-tts-2.0-expressive",
@@ -36,4 +36,4 @@ DEFAULT_SETTINGS = {
     "aligner_url": "", "capture_enabled": True, "max_llm_calls": 12,
     "max_voice_chars": 10000, "render_timeout_seconds": 1800,
 }
-SECRET_FIELDS = {"llm_api_key", "search_api_key", "voice_access_token", "voice_api_key", "aligner_api_key"}
+SECRET_FIELDS = {"llm_api_key", "search_api_key", "voice_access_token", "voice_api_key", "aligner_api_key", "ark_api_key"}

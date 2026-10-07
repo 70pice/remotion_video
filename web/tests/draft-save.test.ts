@@ -4,6 +4,7 @@ import { finishBriefSave } from "../src/api/draftState";
 
 const brief: Brief = {
   topic: "测试",
+  creative_direction: "",
   script_text: "",
   audience: "普通观众",
   platform: "通用竖屏",

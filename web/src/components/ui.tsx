@@ -6,6 +6,7 @@ export const statusLabels: Record<string, string> = {
   RUNNING: "制作中",
   NEEDS_INPUT: "待补充",
   NEEDS_HUMAN: "待复核",
+  PRODUCTION_COMPLETE: "成片已生成",
   READY_FOR_PUBLISH: "审核通过",
   REJECTED: "未通过",
   FAILED: "执行失败",

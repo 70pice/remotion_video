@@ -869,6 +869,12 @@
             "title": "Topic",
             "default": ""
           },
+          "creative_direction": {
+            "type": "string",
+            "maxLength": 30000,
+            "title": "Creative Direction",
+            "default": ""
+          },
           "script_text": {
             "type": "string",
             "maxLength": 30000,
@@ -1647,7 +1653,8 @@
               "DISABLED",
               "DISCUSSING",
               "APPROVED",
-              "EXHAUSTED"
+              "EXHAUSTED",
+              "FINAL_REWRITE"
             ],
             "title": "Status",
             "default": "DISABLED"
@@ -1659,6 +1666,22 @@
             "type": "array",
             "maxItems": 5,
             "title": "Rounds"
+          },
+          "final_script": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Script"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "final_response": {
+            "type": "string",
+            "maxLength": 3000,
+            "title": "Final Response",
+            "default": ""
           }
         },
         "additionalProperties": false,
@@ -1800,6 +1823,17 @@
               }
             ],
             "title": "Script Discussion Max Rounds"
+          },
+          "ark_api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ark Api Key"
           },
           "search_provider": {
             "anyOf": [

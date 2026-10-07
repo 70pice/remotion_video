@@ -42,6 +42,7 @@ export interface Asset {
 
 export interface Brief {
   topic: string;
+  creative_direction: string;
   script_text: string;
   audience: string;
   platform: string;
@@ -235,8 +236,10 @@ export interface ScriptDiscussion {
   revision: number;
   enabled: boolean;
   max_rounds: number;
-  status: "DISABLED" | "DISCUSSING" | "APPROVED" | "EXHAUSTED";
+  status: "DISABLED" | "DISCUSSING" | "APPROVED" | "EXHAUSTED" | "FINAL_REWRITE";
   rounds: Array<ScriptDiscussionRound>;
+  final_script: Script | null;
+  final_response: string;
 }
 
 export interface ScriptDiscussionRound {
@@ -263,6 +266,7 @@ export interface SettingsPatch {
   role_models?: Partial<Record<"materials" | "screenwriter" | "script_reviewer" | "voice" | "director" | "editing" | "review", Partial<RoleModelConfig>>> | null;
   script_discussion_enabled?: boolean | null;
   script_discussion_max_rounds?: number | null;
+  ark_api_key?: string | null;
   search_provider?: "none" | "opencli_google" | "tavily" | "google_cse" | null;
   search_api_key?: string | null;
   google_search_engine_id?: string | null;

@@ -184,7 +184,7 @@ class DirectorNode:
                 self.service.write_json(job, "storyboard.json", job.timeline.model_dump(), "storyboard")
                 self.service.write_json(job, "timeline.json", job.timeline.model_dump(), "timeline")
                 mark_feedback_applied(self.repo, self.service, job, state, feedback_stage, "director")
-                return state_context(self.repo, state, route="timeline_gate", gate_issues=[])
+                return state_context(self.repo, state, route=self.next_route(state), gate_issues=[])
             timeline = self.plan(job, audio, Alignment.model_validate(state["alignment"]), state["duration_seconds"],
                                  state.get("research", {}), state=state)
             if feedback and type(feedback.get("timeline")) is dict and timeline.model_dump() == feedback["timeline"]:
@@ -201,8 +201,7 @@ class DirectorNode:
             if feedback:
                 mark_feedback_applied(self.repo, self.service, self.repo.get_job(job.job_id), state,
                                       feedback_stage, "director")
-            return state_context(self.repo, state,
-                                 route="timeline_gate", gate_issues=[])
+            return state_context(self.repo, state, route=self.next_route(state), gate_issues=[])
         except (CapabilityMissing, ValueError) as exc:
             return request_input(self.repo, state, "director", [str(exc)], ["timeline"], exc)
 
@@ -220,6 +219,21 @@ class DirectorNode:
     def _needs_voice_or_script(cls, note: str) -> bool:
         """Compatibility for callers that only need a combined classification."""
         return cls._needs_script_revision(note) or cls._needs_voice_revision(note)
+
+    def next_route(self, state: VideoState) -> str:
+        action = state.get("action")
+        if action == "storyboard":
+            job = self.repo.get_job(state["job_id"])
+            self.repo.update_job(job.job_id, job.revision, status="DRAFT", stage="director",
+                                 message="分镜已生成，本次执行结束", progress=1, pending_input=None)
+            return "end"
+        if action == "review":
+            job = self.repo.get_job(state["job_id"])
+            self.repo.update_job(job.job_id, job.revision, status="DRAFT", stage="director",
+                                 message="已移除成片审核节点；请使用 produce/final 重新生成视频", progress=1,
+                                 pending_input=None)
+            return "end"
+        return "editing"
 
     def plan(self, job: Job, audio: Asset, alignment: Alignment, duration: float,
              research: dict | None = None, state: VideoState | None = None) -> Timeline:

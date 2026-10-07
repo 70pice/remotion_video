@@ -30,7 +30,7 @@ const tabs = [
   ["voice", "配音", "04"],
   ["storyboard", "分镜", "05"],
   ["render", "剪辑", "06"],
-  ["review", "审核", "07"],
+  ["review", "历史审核", "07"],
 ] as const;
 type Tab = (typeof tabs)[number][0];
 
@@ -253,7 +253,7 @@ export function JobWorkspacePage({ jobId }: { jobId: string }) {
                 else setTab("review");
               }}
             >
-              {stageReviewPending ? "查看待审核 →" : "查看审核 →"}
+              {stageReviewPending ? "查看待审核 →" : "查看历史审核 →"}
             </button>
           ) : (
             <button
@@ -354,6 +354,20 @@ export function JobWorkspacePage({ jobId }: { jobId: string }) {
                 保存后将作为新版本制作要求：抖音竖屏 · 1080 × 1920 · 30 fps
               </Notice>
               <div className="form-grid">
+                <label>
+                  本期创作方向
+                  <textarea
+                    rows={5}
+                    value={briefDraft.creative_direction}
+                    onChange={(event) =>
+                      setBriefDraft({
+                        ...briefDraft,
+                        creative_direction: event.target.value,
+                      })
+                    }
+                    placeholder="本期想讲的问题、角度和重点；不需要写成口播稿。"
+                  />
+                </label>
                 <label>
                   目标受众
                   <input

@@ -130,7 +130,7 @@ def test_director_node_retains_new_component_study_in_job_and_handoff(tmp_path, 
     monkeypatch.setattr(node.model, "call", model)
     result = node(state)
     saved = node.repo.get_job(job.job_id)
-    assert result["route"] == "timeline_gate"
+    assert result["route"] == "editing"
     assert {item.kind for item in saved.artifacts} >= {"component_study", "storyboard", "timeline"}
     assert result["extras"]["component_study"] == valid_study(job.brief.usage)
     assert saved.timeline.audio_src == audio.timeline_src

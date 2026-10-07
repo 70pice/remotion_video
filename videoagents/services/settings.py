@@ -102,6 +102,7 @@ class SettingsService:
         tools = platform_catalog(settings)
         result.update({
             "llm_configured": any(value["enabled"] for value in settings["role_models"].values()),
+            "ark_api_key_configured": bool(settings.get("ark_api_key")),
             "cli_availability": cli_availability(),
             "search_configured": (settings.get("search_provider") == "opencli_google" and any(
                 item["id"] == "google" and item["status"] in {"native_installed", "native_ready"} for item in tools)) or bool(settings.get("search_api_key")) and (
@@ -121,6 +122,7 @@ class SettingsService:
 
     def patch(self, patch: SettingsPatch) -> dict[str, Any]:
         values = patch.model_dump(exclude_none=True, exclude_unset=True)
+        values.pop("script_discussion_enabled", None)
         if "role_models" in values:
             roles = self.internal()["role_models"]
             for role, updates in values["role_models"].items():

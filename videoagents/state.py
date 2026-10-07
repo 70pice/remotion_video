@@ -94,7 +94,7 @@ class VideoState(TypedDict, total=False):
     progress: float | None  # 当前进度，取值 0～1；无法确定进度时为 None。
     created_at: str  # 任务创建时间，使用 ISO 8601 字符串。
     updated_at: str  # 任务最近一次持久化更新时间，使用 ISO 8601 字符串。
-    brief: dict[str, Any]  # 制作要求：主题、原始文案、受众、平台、尺寸、用途和来源链接。
+    brief: dict[str, Any]  # 制作要求：主题、创作方向、历史原始文案、受众、平台、尺寸、用途和来源链接。
     script: dict[str, Any] | None  # 当前完整口播稿及段落的画面文字、来源和素材引用；未生成时为 None。
     script_discussion: dict[str, Any] | None  # 编剧与文案审查的每轮稿件、意见、回应及讨论状态。
     timeline: dict[str, Any] | None  # 可执行分镜：镜头、帧区间、字幕、音频路径及 Remotion 参数。
@@ -123,7 +123,7 @@ class VideoState(TypedDict, total=False):
     human_review_rounds: dict[str, int]  # 按人工审核节点名记录已处理轮次，用于生成不同轮次的待办身份。
     pending_snapshot: dict[str, Any] | None  # checkpoint 中的原始待办快照，防止旧回复被用于新的待办。
     settings: dict[str, Any]  # 模型和制作配置的公开快照；不含密钥，真实调用仍读取当时的配置。
-    discussion_policy: dict[str, Any]  # 本次执行冻结的讨论开关、最大轮次及执行/版本身份。
+    discussion_policy: dict[str, Any]  # 本次执行冻结的讨论轮次及执行/版本身份；旧任务仍可读取 enabled 字段。
     extras: Annotated[dict[str, Any], merge_extras]  # 自定义最终 JSON；浅合并，遗漏保留、None 留值，工具历史字段清除。
 
 

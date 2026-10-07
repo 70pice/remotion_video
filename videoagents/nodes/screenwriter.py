@@ -36,6 +36,12 @@ PROMPT = NARRATIVE_PROMPT + "\n\n" + load_prompt("screenwriter-draft")
 REWRITE_PROMPT = NARRATIVE_PROMPT + "\n\n" + load_prompt("screenwriter-rewrite")
 
 
+# 人工审核选择“返工”后，意见保存在 state.extras.human_feedback 中；stage_feedback
+# 只取有备注且尚未应用的意见。这里的 feedback 是人工返工意见，不是机器文案审查的 critique。
+# 成片审核通常交导演处理；仅当目标是编剧，或备注明确要求修改旁白文案时，
+# 才优先把 render 阶段的意见交给编剧。其他情况读取 script 阶段的人工意见。
+# 返回 (意见所属阶段, 意见内容)；没有适用意见时返回 ("script", None)。
+# 阶段名供调用方在处理后标记对应意见已应用，避免续跑时重复改稿。
 def active_script_feedback(state: VideoState) -> tuple[str, dict[str, Any] | None]:
     """Prefer rejected-render feedback when it asks the writer to revise narration."""
     render_feedback = stage_feedback(state, "render")
@@ -65,17 +71,7 @@ class ScreenwriterNode:
         job = start_stage(self.repo, state, "script", "编剧根据素材节点的来源与图片创作文案")
         discussion = current_discussion(self.repo, state, job)
         try:
-            if discussion.enabled:
-                return self.discuss(state, job, discussion)
-            feedback_stage, feedback = active_script_feedback(state)
-            script, research = self.write_script(job, state)
-            job = self.repo.update_job(job.job_id, job.revision, script=script, script_discussion=None)
-            self.service.write_json(job, "script.json", script.model_dump(), "script")
-            if feedback:
-                mark_feedback_applied(self.repo, self.service, self.repo.get_job(job.job_id), state,
-                                      feedback_stage, "screenwriter")
-            return state_context(self.repo, state, route="script_gate",
-                                 research=research, gate_issues=[])
+            return self.discuss(state, job, discussion)
         except (CapabilityMissing, ValueError) as exc:
             return request_input(self.repo, state, "script", [str(exc)], getattr(exc, "fields", ["script"]), exc)
 
@@ -84,14 +80,16 @@ class ScreenwriterNode:
         feedback_stage, feedback = active_script_feedback(state)
         if feedback and discussion.rounds:
             reviewed = feedback.get("script")
-            latest = discussion.rounds[-1].script.model_dump()
+            latest = (discussion.final_script or discussion.rounds[-1].script).model_dump()
             if type(reviewed) is dict and not same_script_body(latest, reviewed):
                 mark_feedback_applied(self.repo, self.service, self.repo.get_job(job.job_id), state,
-                                      "script", "screenwriter")
-                return state_context(self.repo, state, route="script_reviewer", research=research, gate_issues=[])
+                                      feedback_stage, "screenwriter")
+                route = "human_review_script" if discussion.status in {"APPROVED", "FINAL_REWRITE"} else "script_reviewer"
+                return state_context(self.repo, state, route=route, research=research, gate_issues=[])
         # A saved unreviewed draft or terminal discussion is reused on replay.
         # Human revision feedback explicitly opens a new discussion turn.
-        if feedback or not discussion.rounds or (discussion.status == "DISCUSSING" and discussion.rounds[-1].critique):
+        if feedback or not discussion.rounds or (discussion.status in {"DISCUSSING", "EXHAUSTED"}
+                                                and discussion.rounds[-1].critique):
             if not discussion.rounds:
                 script, research = self.write_script(job, state)
                 response = ""
@@ -103,6 +101,16 @@ class ScreenwriterNode:
                     # 旧讨论已有不可变产物；不能把新稿追加到已用满的旧周期，
                     # 也不能沿用旧稿的通过结果。先改稿再重置，以便失败重放复用模型回执。
                     discussion.rounds = []
+                    discussion.final_script = None
+                    discussion.final_response = ""
+                elif len(discussion.rounds) >= discussion.max_rounds:
+                    # 最后一轮审查指出问题后，编剧改一次稿，交给人工判断，不再调用机器审查。
+                    discussion.status = "FINAL_REWRITE"
+                    discussion.final_script = script
+                    discussion.final_response = response
+                    job = save_discussion(self.repo, state, discussion)
+                    return state_context(self.repo, state, route="human_review_script",
+                                         research=research, gate_issues=[])
             discussion.rounds.append(ScriptDiscussionRound(round=len(discussion.rounds) + 1,
                                                            script=script, response=response))
             job = save_discussion(self.repo, state, discussion)
@@ -111,7 +119,8 @@ class ScreenwriterNode:
                                       feedback_stage, "screenwriter")
         else:
             job = self.repo.get_job(job.job_id)
-        return state_context(self.repo, state, route="script_reviewer", research=research, gate_issues=[])
+        route = "human_review_script" if discussion.status in {"APPROVED", "FINAL_REWRITE"} else "script_reviewer"
+        return state_context(self.repo, state, route=route, research=research, gate_issues=[])
 
     def rewrite(self, job: Job, discussion: ScriptDiscussion,
                 state: VideoState | None = None) -> tuple[Script, str]:
@@ -169,6 +178,8 @@ class ScreenwriterNode:
             if issues:
                 raise ValueError("人工返工改稿未通过来源检查：" + "；".join(issues))
             return script, research
+        # Only historical ready-to-read scripts use this shortcut. New jobs pass
+        # a creative_direction and must be written by the model from research.
         if brief.script_text.strip():
             chunks = [item.strip() for item in re.split(r"\n+", brief.script_text) if item.strip()]
             # This splits narrative paragraphs, never estimates speech timing.

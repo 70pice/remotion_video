@@ -21,6 +21,7 @@ const baseJob = {
   updated_at: "2026-10-03T00:00:00Z",
   brief: {
     topic: "测试",
+    creative_direction: "",
     script_text: "",
     audience: "",
     platform: "",
@@ -511,5 +512,61 @@ describe("stage review pending state", () => {
 
     expect(markup).toContain("当前正在等待阶段人工审核");
     expect(markup).not.toContain("确认已核对当前版本");
+  });
+
+  it("renders historical review reports without starting or confirming final review", () => {
+    const job = {
+      ...baseJob,
+      status: "DRAFT",
+      stage: "complete",
+      artifacts: [
+        {
+          artifact_id: "current-final-video",
+          kind: "final",
+          name: "当前成片.mp4",
+          mime_type: "video/mp4",
+          size_bytes: 2048,
+          sha256: "final-sha",
+          url: "/api/artifacts/current-final-video",
+          revision: 4,
+        },
+      ],
+      review: {
+        status: "PASS",
+        findings: [
+          {
+            finding_id: "finding-1",
+            severity: "info",
+            blocking: false,
+            category: "delivery",
+            owner: "review",
+            message: "历史审核记录",
+            start_frame: null,
+            end_frame: null,
+          },
+        ],
+        media_sha256: "final-sha",
+        dependency_fingerprint: "fp-final",
+        coverage: [],
+        human_confirmed: false,
+      },
+      pending_input: null,
+    } as Job;
+    const markup = renderToStaticMarkup(
+      createElement(ReviewPanel, {
+        job,
+        locked: false,
+        run: () => undefined,
+        resume: () => undefined,
+        seek: () => undefined,
+      }),
+    );
+
+    expect(markup).toContain("历史审核");
+    expect(markup).toContain("成片已生成");
+    expect(markup).toContain("历史审核记录");
+    expect(markup).not.toContain("审核当前视频");
+    expect(markup).not.toContain("确认已核对当前版本");
+    expect(markup).not.toContain("根据问题返工");
   });
 });

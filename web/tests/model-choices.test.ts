@@ -213,7 +213,7 @@ describe("dynamic directory form", () => {
     expect(switchedMarkup).toContain('value="claude/custom-id"');
   });
 
-  it("renders the TRAE catalog and keeps Doubao 2.1 Pro selected for writing roles", () => {
+  it("renders the TRAE catalog while writing roles default to Claude Code Doubao", () => {
     const roles = readRoleModels({});
     const settings = { role_models: roles };
     const markup = renderForm({
@@ -222,9 +222,11 @@ describe("dynamic directory form", () => {
       traeModelCatalog: traeCatalog,
     });
     expect(markup).toContain("TRAE CLI 本机模型列表");
-    expect(markup).toContain("Seed-2.1-Pro · Doubao-Seed-2.1-Pro");
-    expect(markup.match(/value="catalog:Doubao-Seed-2.1-Pro" selected=""/g)).toHaveLength(2);
-    expect(markup).toContain('aria-label="编剧模型选择"');
-    expect(markup).toContain('aria-label="文案审查模型选择"');
+    expect(markup).toContain("已读取 1 个模型");
+    expect(markup).not.toContain("Seed-2.1-Pro · Doubao-Seed-2.1-Pro");
+    expect(markup).not.toContain('value="catalog:Doubao-Seed-2.1-Pro" selected=""');
+    expect(markup).toContain('aria-label="编剧模型名称"');
+    expect(markup).toContain('aria-label="文案审查模型名称"');
+    expect(markup.match(/value="doubao-seed-2-1-pro-260915"/g)).toHaveLength(2);
   });
 });

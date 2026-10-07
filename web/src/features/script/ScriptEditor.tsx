@@ -7,7 +7,7 @@ function initialScript(job: Job): Script {
   return (
     job.script ?? {
       title:
-        job.brief.topic || job.brief.script_text.slice(0, 40) || "我的视频",
+        job.brief.topic || (job.brief.creative_direction || job.brief.script_text).slice(0, 40) || "我的视频",
       origin: "user",
       revision: job.revision,
       segments: [
@@ -108,7 +108,7 @@ export function ScriptEditor({
               <p>
                 {job.script?.segments
                   .map((segment) => segment.narration)
-                  .join("\n\n") || job.brief.script_text}
+                  .join("\n\n") || job.brief.script_text || "尚无已保存文案"}
               </p>
             </div>
             <div>

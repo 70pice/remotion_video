@@ -126,8 +126,8 @@ class Repository:
         return job
 
     def create_job(self, brief: Brief) -> Job:
-        if not brief.topic.strip() and not brief.script_text.strip():
-            raise ValueError("请提供主题或短视频文案")
+        if not brief.topic.strip() and not brief.creative_direction.strip() and not brief.script_text.strip():
+            raise ValueError("请提供主题或本期创作方向")
         job = Job(job_id=uuid.uuid4().hex, revision=1, status="DRAFT", stage="idle", message="草稿已保存",
                   created_at=now(), updated_at=now(), brief=brief)
         with self.connection(immediate=True) as db:

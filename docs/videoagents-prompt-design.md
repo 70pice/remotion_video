@@ -16,6 +16,8 @@
 
 创作标准现在以独立 Markdown 存放在 [videoagents/prompts/](../videoagents/prompts/)，每个角色一个文件，节点里只保留同名的 `PROMPT` 常量。这样调 Prompt 不需要读节点代码，也能在编辑器里直接 Review diff。不新增 agent 文件夹，也不把 Prompt 藏在模型供应商层。运行时用户要求通过当前节点实际读取的业务字段传入；没有提供的意见不能假装已经收到。
 
+新任务的 `brief.creative_direction` 是用户给的本期方向、切入角度和重点。素材节点以此确定研究问题，编剧结合核验后的资料创作完整口播，不能把方向原文直接当成朗读稿。`brief.script_text` 只为历史任务保留旧的现成文案路径。
+
 | 节点 | 本次模型读取的业务输入 | 最终产出 | Prompt 文件 |
 | --- | --- | --- | --- |
 | 素材 | brief、assets、settings 中的检索配置 | MaterialResearch；实际正文、图片和截图经校验后进入研究与资产清单 | [materials.md](../videoagents/prompts/materials.md) |

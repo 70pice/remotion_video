@@ -95,6 +95,9 @@ class JsonModel:
         research_mode = research_directory is not None
         if research_mode and (role != "materials" or config["provider"] != "codex_cli"):
             raise CapabilityMissing("工具研究模式仅支持素材角色使用 Codex CLI", ["role_models"])
+        ark_model = config["provider"] == "claude_code_cli" and config["model"].lower().startswith("doubao-")
+        if ark_model and not settings.get("ark_api_key"):
+            raise CapabilityMissing("请先配置火山方舟 API Key，供 Claude Code CLI 调用豆包模型", ["ark_api_key"])
         schema = output_schema or {"type": "object"}
         provider = "llm:" + role
         command_id = command_id or self.repo.active_command_id(job_id)
@@ -144,6 +147,8 @@ class JsonModel:
                       + instruction + "\n仅返回符合给定 schema 的 JSON 对象。\n上下文：\n" + json.dumps(context, ensure_ascii=False))
         try:
             kwargs = {"research_directory": research_directory, "audit_path": audit_path} if research_mode else {}
+            if ark_model:
+                kwargs["ark_api_key"] = settings["ark_api_key"]
             response = run_cli(config["provider"], config["model"], config["timeout_seconds"], prompt, schema,
                                cancelled=lambda: self.cancelled(job_id), **kwargs)
             response_data = normalize_business_result(response.data)

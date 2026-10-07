@@ -8,6 +8,32 @@ from videoagents.services.jobs import JobService
 from videoagents.storage import Repository
 
 
+def test_creative_direction_is_model_input_not_finished_narration(tmp_path, monkeypatch):
+    repository = Repository(tmp_path / "runtime")
+    direction = "从住客找不到酒店入口的经历切入，解释路线选择。"
+    source = "https://example.com/route"
+    job = repository.create_job(Brief(creative_direction=direction, source_urls=[source]))
+    state = {"brief": job.brief.model_dump(), "script": None, "assets": [],
+             "research": {"sources": [{"url": source}], "visuals": []}}
+    node = ScreenwriterNode(repository, JobService(repository, tmp_path))
+    calls = []
+
+    def write(context, role, instruction, *, fields, output_schema):
+        calls.append((context, role, fields, instruction))
+        return {"title": "从地铁站怎么找到酒店入口", "segments": [{
+            "segment_id": "s1", "narration": "出站后先沿着有路牌的方向走。",
+            "screen_text": "先看路牌", "source_refs": [source], "asset_ids": [],
+        }]}
+
+    monkeypatch.setattr(node.model, "invoke", write)
+    script, _ = node.write_script(job, state=state)
+    assert len(calls) == 1
+    assert calls[0][0]["brief"]["creative_direction"] == direction
+    assert calls[0][1:3] == ("screenwriter", ("brief", "research", "assets"))
+    assert "不是已有口播稿" in calls[0][3]
+    assert script.segments[0].narration != direction
+
+
 def test_user_script_does_not_bind_first_video_to_every_paragraph(tmp_path):
     repository = Repository(tmp_path / "runtime")
     job = repository.create_job(Brief(topic="测试", script_text="第一段任务。\n第二段边界。"))

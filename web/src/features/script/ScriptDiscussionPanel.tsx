@@ -6,6 +6,7 @@ const statusText: Record<ScriptDiscussion["status"], string> = {
   DISCUSSING: "讨论中",
   APPROVED: "文案讨论通过",
   EXHAUSTED: "达到审查轮数上限",
+  FINAL_REWRITE: "最后一轮改稿待人工审阅",
 };
 
 const categoryText: Record<string, string> = {
@@ -82,7 +83,7 @@ export function ScriptDiscussionPanel({ job }: { job: Job }) {
         </Notice>
       ) : discussion.status === "APPROVED" ? (
         <Notice>
-          文案讨论已通过；后续仍需来源与素材检查，最终发布资格由审核节点和人工复核决定。
+          文案讨论已通过；后续仍需来源与素材检查，发布仍由人工判断。
         </Notice>
       ) : null}
       <div className="discussion-meta">

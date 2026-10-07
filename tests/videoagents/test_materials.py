@@ -216,7 +216,7 @@ def test_screenwriter_consumes_frozen_research_and_tamper_is_blocked(tmp_path, m
     result = ScreenwriterNode(repo, service)(state_for(repo.get_job(job.job_id)))
     current = repo.get_job(job.job_id)
 
-    assert result["route"] == "script_gate"
+    assert result["route"] == "script_reviewer"
     assert calls[0][0] == "screenwriter"
     assert calls[0][1]["research"]["sources"][0]["url"] == "https://example.com/muse"
     assert current.script.segments[0].asset_ids == [current.assets[0].asset_id]

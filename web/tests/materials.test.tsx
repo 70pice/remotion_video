@@ -8,7 +8,7 @@ import { createSettingsPayload, SettingsForm } from "../src/pages/SettingsPage";
 const job: Job = {
   job_id: "materials-test", revision: 1, status: "RUNNING", stage: "materials",
   message: "", progress: null, created_at: "unit", updated_at: "unit", latest_event_id: 1,
-  brief: { topic: "Muse是什么", script_text: "", audience: "初学者", platform: "抖音", usage: "commercial",
+  brief: { topic: "Muse是什么", creative_direction: "", script_text: "", audience: "初学者", platform: "抖音", usage: "commercial",
     target_seconds: 45, width: 1080, height: 1920, fps: 30, source_urls: [] },
   script: null, script_discussion: null, timeline: null, review: null, pending_input: null,
   artifacts: [], assets: [{ asset_id: "real-image", name: "Muse 来源截图", role: "evidence",

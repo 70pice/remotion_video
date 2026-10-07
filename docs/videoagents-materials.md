@@ -2,7 +2,7 @@
 
 ## 流程和职责
 
-流程调整为 `START → materials → screenwriter → script_reviewer（可选讨论）→ script_gate → voice → director → editing → reviewers`。
+当前制作流程为 `START → materials → screenwriter ↔ script_reviewer → human_review_script → voice → director → editing`。文案审查固定开启；达到轮数上限仍要求修改时，编剧最后改稿一次再进入人工审核。
 
 `materials` 负责检索、读取来源、采集真实图片与网页截图；编剧只消费冻结的研究结果。导演同时获得素材文件、出处、说明和与口播段落的关联。节点仍统一定义在 `videoagents/nodes/`。
 

@@ -48,13 +48,13 @@ export const modelRoles = [
   description: string;
 }>;
 
-export const doubaoScriptModel = "Doubao-Seed-2.1-Pro";
+export const doubaoScriptModel = "doubao-seed-2-1-pro-260915";
 
 function defaultRole(role: RoleId): RoleModelConfig {
   if (role === "screenwriter" || role === "script_reviewer") {
     return {
       enabled: true,
-      provider: "trae_cli",
+      provider: "claude_code_cli",
       model: doubaoScriptModel,
       timeout_seconds: 300,
     };

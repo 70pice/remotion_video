@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { Job } from "../src/api/types";
-import { displayedStatus, isPublishReady } from "../src/api/jobStatus";
+import {
+  displayedStatus,
+  isProductionComplete,
+  isPublishReady,
+} from "../src/api/jobStatus";
 
 describe("publish readiness display", () => {
   const base = {
@@ -39,5 +43,37 @@ describe("publish readiness display", () => {
         artifacts: [{ ...artifact, sha256: "different" }],
       } as Job),
     ).toBe(false);
+  });
+});
+
+describe("production completion display", () => {
+  const base = {
+    status: "DRAFT",
+    stage: "complete",
+    revision: 5,
+    artifacts: [],
+  } as unknown as Job;
+
+  it("shows production complete only for the current final video", () => {
+    const artifact = {
+      kind: "final",
+      revision: 5,
+      mime_type: "video/mp4",
+      sha256: "final-sha",
+    };
+
+    expect(isProductionComplete({ ...base, artifacts: [artifact] } as Job)).toBe(
+      true,
+    );
+    expect(displayedStatus({ ...base, artifacts: [artifact] } as Job)).toBe(
+      "PRODUCTION_COMPLETE",
+    );
+    expect(
+      isProductionComplete({
+        ...base,
+        artifacts: [{ ...artifact, revision: 4 }],
+      } as Job),
+    ).toBe(false);
+    expect(isProductionComplete(base)).toBe(false);
   });
 });

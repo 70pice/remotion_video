@@ -70,8 +70,8 @@ def _model_script():
 
 def _enable_discussion(repo: Repository, *, rounds: int = 2, screenwriter: bool = True, reviewer: bool = True):
     roles = {
-        "screenwriter": {"enabled": screenwriter},
-        "script_reviewer": {"enabled": reviewer},
+        "screenwriter": {"enabled": screenwriter, "provider": "codex_cli"},
+        "script_reviewer": {"enabled": reviewer, "provider": "codex_cli"},
     }
     if screenwriter:
         roles["screenwriter"]["model"] = "unit-writer"
@@ -105,10 +105,16 @@ def _rewrite_with_narration(index: int):
     return value
 
 
-def test_explicitly_disabled_script_discussion_never_calls_reviewer(monkeypatch, tmp_path):
+def test_explicitly_disabled_script_discussion_setting_is_ignored(monkeypatch, tmp_path):
     repo, service, job = _job(tmp_path)
     SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False))
-    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", lambda *a, **k: pytest.fail("discussion called a model"))
+    calls = []
+
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        calls.append(role)
+        return _critique("APPROVE")
+
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "produce", "idempotency_key": "default-off"})
 
     assert Worker(repo, service.project_root).once()
@@ -116,7 +122,9 @@ def test_explicitly_disabled_script_discussion_never_calls_reviewer(monkeypatch,
     current = repo.get_job(job.job_id)
     assert current.status == "NEEDS_HUMAN" and current.stage == "script"
     assert current.pending_input["node_name"] == "human_review_script"
-    assert current.script_discussion is None
+    assert calls == ["script_reviewer"]
+    assert current.script_discussion.enabled is True
+    assert current.script_discussion.status == "APPROVED"
     assert current.script.segments[0].narration == "事实：这条文案有真实来源。"
 
 
@@ -159,19 +167,29 @@ def test_script_discussion_revise_then_approve_updates_script_and_history(monkey
     assert {item.kind for item in current.artifacts} >= {"script", "script_discussion"}
 
 
-def test_script_discussion_exhaustion_never_auto_approves(monkeypatch, tmp_path):
+def test_script_discussion_final_rewrite_then_human_review(monkeypatch, tmp_path):
     repo, service, job = _job(tmp_path)
     _enable_discussion(repo, rounds=1)
-    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", lambda *a, **k: _critique("REVISE"))
+    calls = []
+
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        calls.append(role)
+        return _critique("REVISE") if role == "script_reviewer" else _rewrite()
+
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "produce", "idempotency_key": "exhaust"})
 
     assert Worker(repo, service.project_root).once()
 
     current = repo.get_job(job.job_id)
-    assert current.status == "NEEDS_INPUT" and current.stage == "script"
-    assert current.script_discussion.status == "EXHAUSTED"
+    assert calls == ["script_reviewer", "screenwriter"]
+    assert current.status == "NEEDS_HUMAN" and current.stage == "script"
+    assert current.pending_input["node_name"] == "human_review_script"
+    assert current.script_discussion.status == "FINAL_REWRITE"
     assert len(current.script_discussion.rounds) == 1
-    assert "仍未通过" in current.message
+    assert current.script_discussion.rounds[0].critique.decision == "REVISE"
+    assert current.script_discussion.final_script.segments[0].narration == "事实：改成更有冲击力的开头。"
+    assert current.script.segments[0].narration == "事实：改成更有冲击力的开头。"
 
 
 def test_missing_reviewer_model_pauses_and_resume_reuses_saved_draft(monkeypatch, tmp_path):
@@ -262,14 +280,15 @@ def test_reviewer_schema_and_instruction_use_only_current_draft_ids(monkeypatch,
 
     def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
         calls.append((role, instruction, context, output_schema))
-        return _critique("REVISE", segment_id=issue_id)
+        return _critique("REVISE", segment_id=issue_id) if role == "script_reviewer" else _rewrite()
 
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "produce", "idempotency_key": "exact-draft-ids"})
 
     assert Worker(repo, service.project_root).once()
 
-    assert len(calls) == 1 and calls[0][0] == "script_reviewer"
+    assert [item[0] for item in calls] == ["script_reviewer", "screenwriter"]
+    assert calls[0][0] == "script_reviewer"
     _, instruction, context, schema = calls[0]
     draft = context["script_discussion"]["rounds"][-1]["script"]
     assert [item["segment_id"] for item in draft["segments"]] == segment_ids
@@ -279,7 +298,7 @@ def test_reviewer_schema_and_instruction_use_only_current_draft_ids(monkeypatch,
     # Each call narrows its own transport schema, without changing the shared contract.
     assert "enum" not in ScriptCritique.model_json_schema()["$defs"]["ScriptCritiqueIssue"]["properties"]["segment_id"]
     current = repo.get_job(job.job_id)
-    assert current.script_discussion.status == "EXHAUSTED"
+    assert current.script_discussion.status == "FINAL_REWRITE"
     assert current.script_discussion.rounds[0].critique.issues[0].segment_id == issue_id
 
 
@@ -372,12 +391,14 @@ def test_script_discussion_honors_five_round_limit(monkeypatch, tmp_path):
     assert Worker(repo, service.project_root).once()
 
     current = repo.get_job(job.job_id)
-    assert current.status == "NEEDS_INPUT" and current.stage == "script"
+    assert current.status == "NEEDS_HUMAN" and current.stage == "script"
+    assert current.pending_input["node_name"] == "human_review_script"
     assert current.script_discussion.max_rounds == 5
-    assert current.script_discussion.status == "EXHAUSTED"
+    assert current.script_discussion.status == "FINAL_REWRITE"
     assert len(current.script_discussion.rounds) == 5
     assert calls.count("script_reviewer") == 5
-    assert calls.count("screenwriter") == 4
+    assert calls.count("screenwriter") == 5
+    assert current.script_discussion.final_script.segments[0].narration == "事实：第 5 次改稿仍保留真实来源。"
 
 
 def test_paused_discussion_keeps_frozen_max_rounds_after_settings_change(monkeypatch, tmp_path):
@@ -391,15 +412,23 @@ def test_paused_discussion_keeps_frozen_max_rounds_after_settings_change(monkeyp
 
     SettingsService(repo).patch(SettingsPatch(script_discussion_max_rounds=5,
                                               role_models={"script_reviewer": {"enabled": True, "model": "unit-reviewer"}}))
-    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", lambda *a, **k: _critique("REVISE"))
+    calls = []
+
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        calls.append(role)
+        return _critique("REVISE") if role == "script_reviewer" else _rewrite()
+
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
     _resume(repo, paused, "freeze-rounds-resume")
 
     assert Worker(repo, service.project_root).once()
 
     current = repo.get_job(job.job_id)
     assert current.script_discussion.max_rounds == 1
-    assert current.script_discussion.status == "EXHAUSTED"
+    assert current.script_discussion.status == "FINAL_REWRITE"
     assert len(current.script_discussion.rounds) == 1
+    assert calls == ["script_reviewer", "screenwriter"]
+    assert current.status == "NEEDS_HUMAN" and current.stage == "script"
 
 
 def test_unknown_reviewer_submission_blocks_model_switch_resubmission(monkeypatch, tmp_path):

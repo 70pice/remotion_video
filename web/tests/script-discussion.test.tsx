@@ -15,6 +15,7 @@ const baseJob: Job = {
   updated_at: "2026-10-03T00:00:00Z",
   brief: {
     topic: "酒店短视频",
+    creative_direction: "",
     script_text: "",
     audience: "住客",
     platform: "抖音",
@@ -44,6 +45,8 @@ function discussion(
     enabled: true,
     max_rounds: 2,
     status: "DISCUSSING",
+    final_script: null,
+    final_response: "",
     rounds: [
       {
         round: 1,

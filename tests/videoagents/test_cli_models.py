@@ -40,6 +40,19 @@ def test_structured_subprocess_and_utf8_stdin(tmp_path, monkeypatch, provider):
     assert result.usage == {"output_tokens": 2}
 
 
+def test_claude_ark_credential_is_child_environment_only(tmp_path, monkeypatch):
+    code = "import os\n"
+    code += "value={'response_json':json.dumps({'base':os.getenv('ANTHROPIC_BASE_URL'),"
+    code += "'authenticated':os.getenv('ANTHROPIC_AUTH_TOKEN')=='UNIT-ark-key'})}\n"
+    code += "print(json.dumps({'type':'result','subtype':'success','is_error':False,'structured_output':value}))\n"
+    fixture_cli(tmp_path, monkeypatch, code)
+    result = run_cli("claude_code_cli", "doubao-seed-2-1-pro-260915", 5, "fixture", {"type": "object"},
+                     ark_api_key="UNIT-ark-key")
+    assert result.data == {"base": "https://ark.cn-beijing.volces.com/api/compatible", "authenticated": True}
+    assert os.getenv("ANTHROPIC_AUTH_TOKEN") != "UNIT-ark-key"
+    assert "UNIT-ark-key" not in repr(result)
+
+
 @pytest.mark.parametrize("code,reason", [
     ("print(json.dumps({'type':'item.started','item':{'type':'command_execution'}}))\ntime.sleep(30)", "unexpected_tool_event"),
     ("print('not JSON')", "invalid_cli_output"),
@@ -446,6 +459,14 @@ def test_role_routes_and_unknown_survives_provider_change(tmp_path, monkeypatch)
     with pytest.raises(CapabilityMissing) as repeat:
         model.call("fixture-job", 1, "screenwriter", "changed", {}, "new-command")
     assert repeat.value.operation_id == first.value.operation_id and len(calls) == 6
+
+
+def test_default_doubao_role_requires_ark_credential(tmp_path, monkeypatch):
+    repo = Repository(tmp_path / "runtime")
+    monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *args: ["fixture-cli"])
+    with pytest.raises(CapabilityMissing) as error:
+        JsonModel(repo).call("fixture-job", 1, "screenwriter", "test", {}, "command")
+    assert error.value.fields == ["ark_api_key"]
 
 
 def test_plain_mode_reuses_legacy_completed_operation_hash_without_mode(tmp_path, monkeypatch):

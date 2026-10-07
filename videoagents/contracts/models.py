@@ -12,6 +12,8 @@ class Contract(BaseModel):
 
 class Brief(Contract):
     topic: str = Field(default="", max_length=2000)
+    creative_direction: str = Field(default="", max_length=30000)
+    # Historical jobs may contain a supplied, ready-to-read script.
     script_text: str = Field(default="", max_length=30000)
     audience: str = Field(default="没有技术背景的普通大众", max_length=500)
     platform: str = Field(default="抖音竖屏", max_length=100)
@@ -104,8 +106,10 @@ class ScriptDiscussion(Contract):
     revision: int = Field(ge=1)
     enabled: bool = False
     max_rounds: int = Field(default=2, ge=1, le=5)
-    status: Literal["DISABLED", "DISCUSSING", "APPROVED", "EXHAUSTED"] = "DISABLED"
+    status: Literal["DISABLED", "DISCUSSING", "APPROVED", "EXHAUSTED", "FINAL_REWRITE"] = "DISABLED"
     rounds: list[ScriptDiscussionRound] = Field(default_factory=list, max_length=5)
+    final_script: Script | None = None
+    final_response: str = Field(default="", max_length=3000)
 
     @model_validator(mode="after")
     def ordered_rounds(self) -> "ScriptDiscussion":
@@ -114,6 +118,12 @@ class ScriptDiscussion(Contract):
             for index, item in enumerate(self.rounds)
         ):
             raise ValueError("讨论轮数、顺序或文案版本不一致")
+        if self.final_script and (self.status != "FINAL_REWRITE" or self.final_script.revision != self.revision
+                                  or not self.rounds or not self.rounds[-1].critique
+                                  or self.rounds[-1].critique.decision != "REVISE"):
+            raise ValueError("最终改稿必须对应本次讨论最后一轮的修改意见")
+        if self.status == "FINAL_REWRITE" and not self.final_script:
+            raise ValueError("最终改稿缺少文案")
         return self
 
 
@@ -476,8 +486,9 @@ class MaterialResearch(Contract):
 
 class SettingsPatch(Contract):
     role_models: dict[RoleId, RoleModelConfig] | None = None
-    script_discussion_enabled: bool | None = None
+    script_discussion_enabled: bool | None = None  # 兼容旧客户端；执行时始终开启讨论。
     script_discussion_max_rounds: int | None = Field(default=None, ge=1, le=5)
+    ark_api_key: str | None = None
     search_provider: Literal["none", "opencli_google", "tavily", "google_cse"] | None = None
     search_api_key: str | None = None
     google_search_engine_id: str | None = Field(default=None, max_length=200)
