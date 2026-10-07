@@ -147,6 +147,30 @@ test('explicit reveals stay hidden before the measured cue and finish within 15 
   assert.equal(markup(CuedMotion, {delay: 8}), markup(Motion, {delay: 8}), 'omitted cues preserve the old animation exactly');
 });
 
+test('ASCII identifiers can request a fitted single line instead of orphan wrapping', async () => {
+  const source = await fs.readFile(path.join(root, 'src/video-production/adapters/layout.tsx'), 'utf8');
+  const compiled = ts.transpileModule(source, {compilerOptions: {
+    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX,
+  }}).outputText;
+  const nodeRequire = createRequire(import.meta.url);
+  const imports = (name) => name === 'remotion' ? {
+    spring,
+    useCurrentFrame: () => 0,
+    useVideoConfig: () => ({fps: 30, width: 1080, height: 1920, durationInFrames: 115}),
+  } : nodeRequire(name);
+  const module = {exports: {}};
+  new Function('require', 'module', 'exports', compiled)(imports, module, module.exports);
+  const {FittedText} = module.exports;
+  const markup = renderToStaticMarkup(createElement(FittedText, {
+    text: 'DeepPlanning', width: 880, height: 800, fontSize: 128, minFontSize: 40,
+    lineHeight: 1.18, preferSingleLine: true,
+  }));
+  assert.match(markup, /white-space:nowrap/);
+  assert.match(markup, /overflow-wrap:normal/);
+  const size = Number(markup.match(/font-size:([\d.]+)px/)[1]);
+  assert.ok(size < 128 && size >= 40, `single-line identifier font size was ${size}`);
+});
+
 test('shots form a complete half-open partition: reject gaps, overlaps, duplicate IDs and missing ending', () => {
   for (const secondStart of [29, 31]) {
     const timeline = fixture();

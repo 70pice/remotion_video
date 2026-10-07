@@ -258,6 +258,27 @@ def test_codex_research_mode_allows_tool_events_and_writes_sanitized_audit(tmp_p
     assert "secret" not in audit_text and "output_tokens" not in audit_text
 
 
+def test_codex_research_control_home_is_next_to_workspace_instead_of_default_temp(tmp_path, monkeypatch):
+    code = (
+        "import os\nfrom pathlib import Path\n"
+        "home=Path(os.environ['CODEX_HOME'])\n"
+        "value={'response_json':json.dumps({'home':str(home),'cwd':str(Path.cwd())})}\n"
+        "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(value)}}))\n"
+        "print(json.dumps({'type':'turn.completed'}))\n"
+    )
+    fixture_cli(tmp_path, monkeypatch, code)
+    workspace = tmp_path / "job" / "revisions" / "1" / "skills-research"
+
+    result = run_cli(
+        "codex_cli", "", 5, "fixture", {"type": "object"}, research_directory=workspace,
+    )
+
+    control_home = cli_runner.Path(result.data["home"])
+    assert cli_runner.Path(result.data["cwd"]) == workspace
+    assert control_home.parent.parent == workspace.parent
+    assert not control_home.exists()
+
+
 def test_codex_uses_ephemeral_home_and_removes_staged_auth_after_thread_start(tmp_path, monkeypatch):
     source_home = tmp_path / "authenticated-codex-home"
     source_home.mkdir()

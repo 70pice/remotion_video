@@ -16,7 +16,8 @@ export const TitleAdapter = ({shot}: AdapterProps) => {
   return <div style={{height: contentHeight, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
     {eyebrow ? <Motion><div style={{fontSize: 28 * unit, color: muted, marginBottom: 50 * unit, letterSpacing: 2 * unit}}>{eyebrow}</div></Motion> : null}
     <Motion><FittedText text={shot.title} width={contentWidth} height={titleHeight}
-      fontSize={126 * unit} minFontSize={42 * unit} lineHeight={1.22} /></Motion>
+      fontSize={126 * unit} minFontSize={42 * unit} lineHeight={1.22}
+      preferSingleLine={/^[A-Za-z0-9][A-Za-z0-9._+:/-]*$/.test(shot.title)} /></Motion>
     <Motion delay={5}><div style={{height: 9 * unit, width: 136 * unit, background: shot.accent_color, margin: `${42 * unit}px 0`}} />
       <Body text={shot.body} height={bodyHeight} />
     </Motion>
@@ -35,8 +36,10 @@ export const KeywordAdapter = ({shot}: AdapterProps) => {
       width={contentWidth} height={contextHeight} fontSize={30 * unit} minFontSize={18 * unit} style={{color: muted}} /></Motion>
     <Motion delay={3}><div style={{position: 'relative', padding: `${32 * unit}px ${28 * unit}px`, marginLeft: -28 * unit}}>
       <div style={{position: 'absolute', inset: 0, background: shot.accent_color, transform: `scaleX(${reveal})`, transformOrigin: 'left', borderRadius: 12 * unit}} />
-      <FittedText text={keyword} width={contentWidth} height={textBudget * (shot.body ? 0.58 : 0.98)}
-        fontSize={128 * unit} minFontSize={40 * unit} lineHeight={1.18} style={{position: 'relative', color: contrastingInk(shot.accent_color)}} />
+      <FittedText text={keyword} width={contentWidth - 56 * unit} height={textBudget * (shot.body ? 0.58 : 0.98)}
+        fontSize={128 * unit} minFontSize={40 * unit} lineHeight={1.18}
+        preferSingleLine={/^[A-Za-z0-9][A-Za-z0-9._+:/-]*$/.test(keyword)}
+        style={{position: 'relative', color: contrastingInk(shot.accent_color)}} />
     </div></Motion>
     <Motion delay={8} style={{marginTop: 52 * unit}}><Body text={shot.body} height={textBudget * 0.42} /></Motion>
   </div>;

@@ -24,41 +24,54 @@ export const useLayout = () => {
   return {width, height, fps, durationInFrames, unit, vertical, margin, contentWidth, contentHeight, headerHeight, bodyHeight};
 };
 
-const fittedSize = (text: string, width: number, height: number, max: number, min: number, lineHeight: number) => {
+const fittedSize = (text: string, width: number, height: number, max: number, min: number, lineHeight: number,
+  preferSingleLine: boolean) => {
   // Measure actual installed Chinese glyphs and keep space for browser wrapping
   // around punctuation. Text is never silently clipped.
   const canvas = typeof document === 'undefined' ? null : document.createElement('canvas');
   const context = canvas?.getContext('2d');
+  const glyphWidth = (character: string, size: number) => {
+    if (context) context.font = `700 ${size}px ${productionFont}`;
+    return context?.measureText(character).width ?? size * (/^[\x20-\x7E]$/.test(character) ? 0.65 : 1);
+  };
   const countLines = (size: number) => {
     if (context) context.font = `700 ${size}px ${productionFont}`;
     let lines = 1;
     let used = 0;
     for (const character of text) {
       if (character === '\n') { lines += 1; used = 0; continue; }
-      const glyph = context?.measureText(character).width ?? size * (/^[\x20-\x7E]$/.test(character) ? 0.65 : 1);
+      const glyph = glyphWidth(character, size);
       if (used + glyph > width) { lines += 1; used = glyph; } else used += glyph;
     }
     return lines;
   };
   for (let size = max; size >= min; size -= Math.max(1, max / 80)) {
+    if (preferSingleLine) {
+      const measured = [...text].reduce((total, character) => total + glyphWidth(character, size), 0);
+      if (measured <= width * 0.96 && size * lineHeight <= height * 0.92) return size;
+      continue;
+    }
     if (countLines(size) * size * lineHeight <= height * 0.92) return size;
   }
   throw new Error('Text exceeds the safe area. Shorten this field or split it into more shots.');
 };
 
-export const FittedText = ({text, width, height, fontSize, minFontSize = 22, lineHeight = 1.36, style}: {
+export const FittedText = ({text, width, height, fontSize, minFontSize = 22, lineHeight = 1.36,
+  preferSingleLine = false, style}: {
   text: string;
   width: number;
   height: number;
   fontSize: number;
   minFontSize?: number;
   lineHeight?: number;
+  preferSingleLine?: boolean;
   style?: CSSProperties;
 }) => {
-  const size = useMemo(() => fittedSize(text, width, height, fontSize, minFontSize, lineHeight),
-    [text, width, height, fontSize, minFontSize, lineHeight]);
-  return <div style={{width, maxWidth: '100%', fontSize: size, lineHeight, whiteSpace: 'pre-wrap',
-    overflowWrap: 'anywhere', fontWeight: 700, ...style}}>{text}</div>;
+  const size = useMemo(() => fittedSize(text, width, height, fontSize, minFontSize, lineHeight, preferSingleLine),
+    [text, width, height, fontSize, minFontSize, lineHeight, preferSingleLine]);
+  return <div style={{width, maxWidth: '100%', fontSize: size, lineHeight,
+    whiteSpace: preferSingleLine ? 'nowrap' : 'pre-wrap', overflowWrap: preferSingleLine ? 'normal' : 'anywhere',
+    fontWeight: 700, ...style}}>{text}</div>;
 };
 
 export const Motion = ({children, delay = 0, style}: {children: ReactNode; delay?: number; style?: CSSProperties}) => {

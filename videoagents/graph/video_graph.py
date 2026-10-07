@@ -83,7 +83,9 @@ class VideoProductionGraph(AbstractContextManager):
         graph.add_conditional_edges("after_script_review", self.route, {"voice": "voice"})
         self.add_cleanup_edge(graph, "voice", {"audio_gate": "audio_gate", "await_input": "await_input"})
         graph.add_conditional_edges("audio_gate", self.route, {"director": "director", "await_input": "await_input", "end": END})
-        self.add_cleanup_edge(graph, "director", {"timeline_gate": "timeline_gate", "await_input": "await_input"})
+        self.add_cleanup_edge(graph, "director", {
+            "timeline_gate": "timeline_gate", "screenwriter": "screenwriter", "await_input": "await_input",
+        })
         graph.add_conditional_edges("timeline_gate", self.route, {"editing": "human_review_timeline", "await_input": "await_input", "end": "human_review_timeline", "reviewers": "human_review_timeline"})
         graph.add_conditional_edges("after_timeline_review", self.route, {"editing": "editing", "reviewers": "reviewers", "end": END})
         self.add_cleanup_edge(graph, "editing", {"reviewers": "human_review_render", "await_input": "await_input", "end": "human_review_render"})

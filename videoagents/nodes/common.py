@@ -22,6 +22,23 @@ from videoagents.tools.media import sha256
 from videoagents.tools.timeline import safe_media_source
 from worker.process_manager import RenderCancelled
 
+SCRIPT_REVISION_PATTERNS = (
+    "改旁白文案", "重写旁白", "改口播文案", "改文案正文", "重写文案",
+    "修改文案", "删掉免责声明", "减少免责声明", "删防御", "减少卸责",
+    "结论前置", "防御性文案",
+)
+
+
+def needs_script_revision(note: str) -> bool:
+    """Return whether human feedback explicitly asks to change narration.
+
+    Render review normally routes back to the director.  A small subset of
+    render feedback is actually a copy rewrite request and must continue to
+    the screenwriter; purely visual feedback must not dirty the retained
+    script when a new revision restores an unapplied review receipt.
+    """
+    return any(pattern in note for pattern in SCRIPT_REVISION_PATTERNS)
+
 
 def validate_context_assets(repository: Repository, job: Job) -> None:
     """Bind context-supplied media to this job's registered file receipts."""
@@ -137,6 +154,7 @@ def state_context(repository: Repository, state: VideoState, **overrides: Any) -
     context.setdefault("pending_snapshot", None)
     context["settings"] = SettingsService(repository).public()
     context["extras"] = merge_extras(state.get("extras", {}), overrides.pop("extras", {}))
+    context["extras"] = restore_unapplied_human_feedback(repository, job, context["extras"])
     metadata = {item.asset_id: repository.asset_metadata(item.asset_id) for item in job.assets}
     context["asset_metadata"] = metadata
     context["artifact_metadata"] = {item.artifact_id: repository.artifact_metadata(item.artifact_id)
@@ -205,6 +223,84 @@ def merge_human_feedback(extras: dict[str, Any], stage: str, patch: dict[str, An
     entry.update(patch)
     merged[stage] = entry
     return merge_extras(extras, {"human_feedback": merged})
+
+
+def restore_unapplied_human_feedback(repository: Repository, job: Job,
+                                     extras: dict[str, Any]) -> dict[str, Any]:
+    """Restore the latest durable ``revise`` receipt across job revisions.
+
+    Creating a new draft is the supported escape hatch for a logical role's
+    UNKNOWN submission.  Stage-review artifacts intentionally survive that
+    edit, so an instruction which has no matching ``human_feedback_applied``
+    receipt must also survive into the new graph execution.  New receipts
+    contain the exact reviewed subject snapshot; legacy receipts fall back to
+    the current retained script/timeline so old jobs can use the same path.
+    """
+    latest: dict[str, tuple[Artifact, dict[str, Any]]] = {}
+    applied_tokens: set[str] = set()
+    for artifact in job.artifacts:
+        if artifact.kind not in {"stage_review", "human_feedback_applied"}:
+            continue
+        path, _, owner = repository.artifact_path(artifact.artifact_id)
+        if owner != job.job_id or sha256(path) != artifact.sha256:
+            raise Conflict("人工反馈记录已改变")
+        receipt = json.loads(path.read_text(encoding="utf-8"))
+        if artifact.kind == "human_feedback_applied":
+            token = receipt.get("pending_token")
+            if receipt.get("applied") is True and isinstance(token, str):
+                applied_tokens.add(token)
+            continue
+        stage = receipt.get("stage")
+        if isinstance(stage, str):
+            # Job.artifacts is append ordered; the latest decision for a stage
+            # supersedes an earlier decision from the same or older revision.
+            latest[stage] = (artifact, receipt)
+
+    current_feedback = extras.get("human_feedback", {})
+    if type(current_feedback) is not dict:
+        current_feedback = {}
+    restored = dict(current_feedback)
+    for stage, (artifact, receipt) in latest.items():
+        token = receipt.get("pending_token")
+        if receipt.get("decision") != "revise" or not isinstance(token, str) or token in applied_tokens:
+            continue
+        entry = receipt.get("feedback")
+        if type(entry) is not dict:
+            entry = {
+                "stage": stage,
+                "node_name": receipt.get("node_name"),
+                "pending_token": token,
+                "decision": "revise",
+                "note": receipt.get("note"),
+                "target": receipt.get("revise_route"),
+                "artifact_id": artifact.artifact_id,
+                "applied": False,
+            }
+            if stage in {"script", "render"}:
+                entry["script"] = job.script.model_dump() if job.script else None
+            if stage in {"director", "render"}:
+                entry["timeline"] = job.timeline.model_dump() if job.timeline else None
+            if stage == "render":
+                entry["render_artifacts"] = [item.model_dump() for item in job.artifacts
+                                               if item.kind in {"preview", "final", "cover", "captions"}]
+        else:
+            entry = dict(entry)
+        entry.setdefault("stage", stage)
+        entry.setdefault("pending_token", token)
+        entry.setdefault("decision", "revise")
+        entry.setdefault("note", receipt.get("note"))
+        entry.setdefault("artifact_id", artifact.artifact_id)
+        entry.setdefault("applied", False)
+        entry.setdefault("source_revision", artifact.revision)
+        existing = restored.get(stage)
+        if type(existing) is dict and existing.get("pending_token") == token:
+            entry.update(existing)
+        elif type(existing) is dict and existing.get("decision") == "revise" and existing.get("applied") is not True:
+            # A checkpoint-local instruction is at least as recent as the
+            # artifacts it was created from and may contain a richer snapshot.
+            continue
+        restored[stage] = entry
+    return merge_extras(extras, {"human_feedback": restored}) if restored else extras
 
 
 def stage_feedback(state: VideoState, *stages: str) -> dict[str, Any] | None:

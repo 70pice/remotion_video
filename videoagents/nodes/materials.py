@@ -6,7 +6,7 @@ import shutil
 import uuid
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urldefrag, urlparse
 
 from videoagents.contracts import Asset, Job, MaterialResearch
 from videoagents.nodes.common import agent_state, request_input, start_stage, state_context
@@ -69,6 +69,44 @@ class MaterialsNode:
             return
         if not address.is_global:
             raise ValueError("素材来源不得指向私网或保留地址")
+
+    @staticmethod
+    def normalize_manifest_urls(output: Any) -> Any:
+        """Drop browser-only URL fragments before validating a research bundle.
+
+        Official image pages sometimes publish Markdown URLs such as
+        ``image.jpg#center``.  The fragment is not sent in an HTTP request and
+        therefore cannot identify different downloaded bytes.  Keeping it in
+        the durable manifest only makes an otherwise valid, already verified
+        asset fail the public-URL policy.  Credentials, schemes, hosts and all
+        query parameters remain untouched and are still checked below.
+        """
+
+        if type(output) is not dict:
+            return output
+        result = dict(output)
+        sources = result.get("sources")
+        if type(sources) is list:
+            result["sources"] = [
+                {**item, "url": urldefrag(item.get("url", ""))[0]}
+                if type(item) is dict and isinstance(item.get("url"), str)
+                else item
+                for item in sources
+            ]
+        visuals = result.get("visuals")
+        if type(visuals) is list:
+            normalized = []
+            for item in visuals:
+                if type(item) is not dict:
+                    normalized.append(item)
+                    continue
+                value = dict(item)
+                for key in ("source_url", "image_url", "media_url"):
+                    if isinstance(value.get(key), str):
+                        value[key] = urldefrag(value[key])[0]
+                normalized.append(value)
+            result["visuals"] = normalized
+        return result
 
     @staticmethod
     def research_file(folder: Path, relative: str, digest: str, max_bytes: int) -> Path:
@@ -138,7 +176,7 @@ class MaterialsNode:
     def save_research(self, job: Job, output: dict, folder: Path) -> dict:
         """校验模型交付的真实文件，登记来源和画面，冻结给后续节点使用。"""
         settings = SettingsService(self.repo).internal()
-        bundle = MaterialResearch.model_validate(output)
+        bundle = MaterialResearch.model_validate(self.normalize_manifest_urls(output))
         if not bundle.sources:
             detail = "；".join(bundle.limitations)[:1500]
             raise CapabilityMissing("技能研究未读取到可用正文；" + (detail or "请补充来源链接或检查检索能力"), ["source_urls", "role_models"])

@@ -47,12 +47,20 @@ def staged_pipeline(tmp_path, monkeypatch):
             current = repo.get_job(state["job_id"])
             changes = {"stage": stage, "status": "RUNNING"}
             feedback = state.get("extras", {}).get("human_feedback", {})
+            render_feedback = feedback.get("render", {})
+            render_script_revision = (
+                render_feedback.get("applied") is False
+                and any(value in render_feedback.get("note", "") for value in ("改旁白文案", "重写文案", "防御性文案"))
+            )
             if name in {"screenwriter", "director"}:
                 target = "script" if name == "screenwriter" else "director"
-                if name == "director" and feedback.get("render", {}).get("applied") is False:
+                if name == "screenwriter" and render_script_revision:
+                    target = "render"
+                elif name == "director" and feedback.get("render", {}).get("applied") is False:
                     target = "render"
                 entry = feedback.get(target)
-                if entry and entry.get("decision") == "revise" and not entry.get("applied"):
+                routed_to_writer = name == "director" and target == "render" and render_script_revision
+                if entry and entry.get("decision") == "revise" and not entry.get("applied") and not routed_to_writer:
                     feedback_seen.append((name, target, entry["note"]))
                     feedback = {**feedback, target: {**entry, "applied": True}}
                     state["extras"] = merge_extras(state.get("extras", {}), {"human_feedback": feedback})
@@ -72,7 +80,8 @@ def staged_pipeline(tmp_path, monkeypatch):
                 # JSON bytes explicitly represent a fake render receipt, never a playable video.
                 service.write_json(current, f"unit-render-{calls[name]}.json",
                                    {"unit_render": calls[name]}, "final")
-            return state_context(repo, state, route=route)
+            next_route = "screenwriter" if name == "director" and render_script_revision else route
+            return state_context(repo, state, route=next_route)
         return invoke
 
     for cls, name, route, stage in (
@@ -157,6 +166,24 @@ def test_default_revise_returns_to_role_and_requires_a_fresh_approval(staged_pip
         current, _ = run_or_resume(staged_pipeline, "confirm")
         assert current.pending_input["node_name"] == "human_review_render"
         assert calls["editing"] == before["editing"] + 1 and calls["reviewers"] == 0
+
+
+def test_render_script_revise_returns_to_screenwriter_and_requires_script_approval(staged_pipeline):
+    _, _, _, calls, feedback_seen = staged_pipeline
+    current, _ = run_or_resume(staged_pipeline)
+    current, _ = run_or_resume(staged_pipeline, "confirm")
+    current, _ = run_or_resume(staged_pipeline, "confirm")
+    assert current.pending_input["node_name"] == "human_review_render"
+    before = calls.copy()
+    note = "UNIT：请改旁白文案，删掉重复免责声明并把结论前置。"
+
+    current, checkpoint = run_or_resume(staged_pipeline, "revise", note)
+
+    assert checkpoint.interrupts and current.pending_input["node_name"] == "human_review_script"
+    assert calls["director"] == before["director"] + 1
+    assert calls["screenwriter"] == before["screenwriter"] + 1
+    assert calls["voice"] == before["voice"] and calls["editing"] == before["editing"]
+    assert feedback_seen[-1] == ("screenwriter", "render", note)
 
 
 @pytest.mark.parametrize("prior_rounds", [1, 2, 5])

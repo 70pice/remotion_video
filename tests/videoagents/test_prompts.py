@@ -145,9 +145,70 @@ def test_director_prompt_contains_visual_palette_contract():
     assert "不得新增 theme、background、CSS、坐标等字段" in prompt
 
 
+def test_director_prompt_defines_half_open_contiguous_frame_ranges():
+    prompt = director.PROMPT
+
+    assert "[start_frame, end_frame)" in prompt
+    assert "shots[i].start_frame == shots[i-1].end_frame" in prompt
+    assert "绝不能在上一镜" in prompt
+    assert "end_frame == duration_in_frames" in prompt
+    assert "[0,140)`、`[140,279)" in prompt
+    assert "[0,140)`、`[141,279)" in prompt
+
+
+def test_director_and_editing_prompts_block_flash_shots():
+    director_prompt = director.PROMPT
+    editing_prompt = editing.PROMPT
+
+    assert "ceil(1.5*fps)" in director_prompt
+    assert "30 fps 时至少 45 帧" in director_prompt
+    assert "ceil(2.5*fps)" in director_prompt
+    assert "30 fps 时至少 75 帧" in director_prompt
+    assert "不得为转场或组件入场单独创建" in director_prompt
+    assert "不能让组件只出现一下就切走" in director_prompt
+
+    assert "普通镜头少于 `ceil(1.5*fps)` 帧" in editing_prompt
+    assert "时少于 45 帧）就是闪现镜头" in editing_prompt
+    assert "`ceil(2.5*fps)` 帧" in editing_prompt
+    assert "时少于 75 帧）就是不可读镜头" in editing_prompt
+    assert "severity=error、owner=director、blocking=true" in editing_prompt
+    assert "最低可读下限不等于统一切镜秒数" in editing_prompt
+    assert "cue + 15 + ceil(2.5*fps)" in director_prompt
+    assert "30 fps 时 cue 后至少留" in director_prompt
+    assert "至少保留 90 帧" in editing_prompt
+    assert "最后一张卡" in director_prompt and "最后一张卡" in editing_prompt
+
+
+def test_director_prompt_forbids_empty_optional_props_text():
+    prompt = director.PROMPT
+
+    assert "没有 body 或 detail 时必须直接省略该键" in prompt
+    assert '不能输出 `body: ""`、`detail: ""`' in prompt
+    assert "“可选”绝不表示可以填写空字符串" in prompt
+
+
 def test_editing_prompt_allows_verified_image_crop():
     # 图片裁剪已由时间轴验证与渲染器支持，预检不能再按旧白名单误拒绝。
     assert "image_focus.crop{x,y,width,height}" in editing.PROMPT
+
+
+def test_editing_prompt_treats_current_timeline_as_authoritative():
+    assert "timeline` 是当前待渲染分镜的唯一现状来源" in editing.PROMPT
+    assert "该数值必须与当前" in editing.PROMPT
+    assert "旧值写成现状或据此阻断" in editing.PROMPT
+
+
+def test_script_prompts_limit_defensive_copy_and_require_a_clear_choice_map():
+    assert "专门用于“不能" in screenwriter.PROMPT
+    assert "文字合计不得超过约 10%" in screenwriter.PROMPT
+    assert "不得在\nPrompt 层预设任何具体产品、对象、任务清单" in screenwriter.PROMPT
+    for leaked_example in ("整理长材料", "改图做海报", "写程序和跑复杂任务"):
+        assert leaked_example not in screenwriter.PROMPT
+    assert "前两句交付答案" in screenwriter.REWRITE_PROMPT
+    assert "不得沿用 Prompt 预设的具体产品、任务清单" in screenwriter.REWRITE_PROMPT
+    assert "删掉了哪些重复" in screenwriter.REWRITE_PROMPT
+    assert "防守内容超过全部 narration" in script_reviewer.PROMPT
+    assert "不能因为稿件“很谨慎”就 APPROVE" in script_reviewer.PROMPT
 
 
 RUNTIME_PROMPTS = [
@@ -239,6 +300,10 @@ def test_director_chain_keeps_developer_preset_boundary():
         ("materials", "[未完成平台]"),
         ("materials", "白话怎么说"),
         ("materials", "生活尺度"),
+        ("materials", "command_execution"),
+        ("materials", "不能把一次补丁工具失败误报为整个工作目录不可写"),
+        ("materials", "PNG、JPEG 或 WebP"),
+        ("materials", "SVG、HTML、PDF、GIF、AVIF 不能作为"),
         ("screenwriter", "每段 source_refs 必须有真实来源"),
         ("screenwriter", "不要单独宣布“我的观点”"),
         ("screenwriter", "结尾的解释与使用边界同样填写支撑它的真实 source_refs"),

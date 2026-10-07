@@ -11,6 +11,7 @@ from videoagents.contracts import Alignment, Asset, Caption, Job, Shot, Timeline
 from videoagents.nodes.common import (
     agent_state,
     mark_feedback_applied,
+    needs_script_revision,
     request_input,
     stage_feedback,
     start_stage,
@@ -28,7 +29,12 @@ from videoagents.tools.components import (
     component_study_payload,
     prompt_component_catalog,
 )
-from videoagents.tools.timeline import media_coverage_report, validate_media_coverage, validate_timeline
+from videoagents.tools.timeline import (
+    asset_publishable,
+    media_coverage_report,
+    validate_media_coverage,
+    validate_timeline,
+)
 
 COMPONENT_PROPS_EXAMPLES = {
     "title": {"eyebrow": "给定主题"}, "keyword": {"keyword": "给定关键词"},
@@ -164,10 +170,12 @@ class DirectorNode:
         try:
             feedback_stage = "render" if stage_feedback(state, "render") else "director"
             feedback = stage_feedback(state, feedback_stage)
-            if feedback and feedback.get("note") and self._needs_voice_or_script(feedback["note"]):
+            if feedback and feedback.get("note") and self._needs_script_revision(feedback["note"]):
+                return state_context(self.repo, state, route="screenwriter", gate_issues=[])
+            if feedback and feedback.get("note") and self._needs_voice_revision(feedback["note"]):
                 return request_input(self.repo, state, "voice",
-                    ["成片返工意见涉及旁白、语速或音频，导演无法只靠镜头修复；请先调整配音或文案后重新制作。"],
-                    ["voice", "script", "timeline"])
+                    ["成片返工意见涉及语速、发音或音频，导演无法只靠镜头修复；请先调整配音后重新制作。"],
+                    ["voice", "timeline"])
             audio = next(item for item in job.assets if item.asset_id == state["audio_asset_id"])
             feedback_stage = "render" if stage_feedback(state, "render") else "director"
             feedback = stage_feedback(state, feedback_stage)
@@ -199,11 +207,19 @@ class DirectorNode:
             return request_input(self.repo, state, "director", [str(exc)], ["timeline"], exc)
 
     @staticmethod
-    def _needs_voice_or_script(note: str) -> bool:
+    def _needs_script_revision(note: str) -> bool:
+        return needs_script_revision(note)
+
+    @staticmethod
+    def _needs_voice_revision(note: str) -> bool:
         patterns = ("改配音", "重配音", "调整配音", "改音频", "重做音频", "调整音频",
-                    "改语速", "语速太", "语速过", "调整语速", "改发音", "读音错误",
-                    "改旁白文案", "重写旁白", "改口播文案", "改文案正文")
+                    "改语速", "语速太", "语速过", "调整语速", "改发音", "读音错误")
         return any(pattern in note for pattern in patterns)
+
+    @classmethod
+    def _needs_voice_or_script(cls, note: str) -> bool:
+        """Compatibility for callers that only need a combined classification."""
+        return cls._needs_script_revision(note) or cls._needs_voice_revision(note)
 
     def plan(self, job: Job, audio: Asset, alignment: Alignment, duration: float,
              research: dict | None = None, state: VideoState | None = None) -> Timeline:
@@ -252,12 +268,15 @@ class DirectorNode:
             shot_seconds = (end - start) / job.brief.fps
             video = next((assets[asset_id] for asset_id in segment.asset_ids
                           if asset_id in assets and assets[asset_id].mime_type.startswith("video/")
+                          and asset_publishable(assets[asset_id])
                           and _video_covers(assets[asset_id], asset_metadata, shot_seconds)), None)
-            image = next((assets[asset_id] for asset_id in segment.asset_ids if asset_id in assets and assets[asset_id].mime_type.startswith("image/")), None)
+            image = next((assets[asset_id] for asset_id in segment.asset_ids
+                          if asset_id in assets and assets[asset_id].mime_type.startswith("image/")
+                          and asset_publishable(assets[asset_id])), None)
             if not image:
                 # 编剧没有指定图片时，根据该段的出处匹配素材节点采集的真实画面。
                 image = next((asset for asset in job.assets if asset.mime_type.startswith("image/")
-                              and asset.source_url in segment.source_refs), None)
+                              and asset_publishable(asset) and asset.source_url in segment.source_refs), None)
             component = "video" if video else "evidence" if image and image.role == "evidence" and image.source_url else "image_focus" if image else "title" if index == 0 else "conclusion" if index == len(cut_indices) - 1 else "keyword"
             media = video or image
             shots.append(Shot(shot_id=f"shot-{index + 1}", start_frame=start, end_frame=end,
@@ -279,6 +298,7 @@ class DirectorNode:
             schema["$defs"]["Shot"]["properties"]["asset_src"]["enum"] = [
                 asset.timeline_src for asset in job.assets
                 if asset.mime_type.startswith(("image/", "video/"))
+                and asset_publishable(asset)
             ] + [None]
             # 实测基线只作为本次导演输入；模型输出校验通过前不写入共享 state。
             reviewed_timeline = feedback.get("timeline") if feedback and type(feedback.get("timeline")) is dict else None
@@ -343,7 +363,13 @@ class DirectorNode:
     def study_components(self, job: Job, context: VideoState) -> ComponentStudy:
         prompt, payload = component_study_prompt(job.brief.usage)
         value = self.model.invoke(context, "director", prompt,
-            fields=("brief", "script", "research", "assets", "asset_metadata"),
+            # The full 152-preset source guide is already embedded in the
+            # instruction.  Script, research and per-asset metadata neither
+            # change that guide nor the usage-filtered allow-list; forwarding
+            # them here only duplicates a very large job context.  In a real
+            # 4-5 minute run that pushed the Seed CLI request beyond its
+            # practical context limit before timeline planning even began.
+            fields=("brief",),
             command_id=(context.get("resume_command_id") or context.get("run_id", "")) + ":component-study",
             output_schema=ComponentStudy.model_json_schema())
         study = ComponentStudy.model_validate(value)

@@ -86,6 +86,26 @@ def test_skills_ingests_real_files_freezes_results_and_removes_tool_artifacts(se
     assert not calls[0]["audit_path"].is_relative_to(calls[0]["research_directory"])
 
 
+def test_skills_strips_browser_only_url_fragments_before_validation(setup, monkeypatch):
+    repo, _, node, job = setup
+
+    def add_fragments(data, _folder):
+        data["sources"][0]["url"] = URL + "#overview"
+        data["visuals"][0]["source_url"] = URL + "#overview"
+        data["visuals"][0]["image_url"] = "https://example.com/image.png?size=large#center"
+
+    install_output(monkeypatch, node, mutate=add_fragments)
+    result = node(state(job))
+    saved = repo.get_job(job.job_id)
+
+    assert result["route"] == "screenwriter"
+    assert result["research"]["sources"][0]["url"] == URL
+    assert result["research"]["visuals"][0]["source_url"] == URL
+    assert result["research"]["visuals"][0]["image_url"] == "https://example.com/image.png?size=large"
+    metadata = repo.asset_metadata(saved.assets[0].asset_id)
+    assert metadata["image_url"] == "https://example.com/image.png?size=large"
+
+
 def test_skills_audit_rebuilds_whitelist_instead_of_publishing_file_contents(setup, monkeypatch):
     repo, _, node, job = setup
 

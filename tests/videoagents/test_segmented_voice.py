@@ -116,6 +116,27 @@ def test_segment_timeline_uses_requested_total_pause_without_double_counting(tmp
     assert clips[0].inserted_pause_after_seconds == pytest.approx(0.2)
 
 
+def test_segment_timeline_drops_sub_sample_rounding_pause(tmp_path):
+    path = tmp_path / "tone.wav"
+    path.write_bytes(tone())
+    clips = segment_clips([
+        SegmentAudio(
+            "s1", path, 2,
+            [{"word": "第一段", "startTime": 0.2, "endTime": 1.0}],
+            300,
+            acoustic_end_seconds=1.123456,
+        ),
+        SegmentAudio(
+            "s2", path, 2,
+            [{"word": "第二段", "startTime": 0.2, "endTime": 1.0}],
+            0,
+            acoustic_end_seconds=1.0,
+        ),
+    ])
+
+    assert clips[0].inserted_pause_after_seconds == 0.0
+
+
 def test_stitch_retains_acoustic_tail_beyond_provider_last_word_end(tmp_path, monkeypatch):
     source = tmp_path / "tail.wav"
     source.write_bytes(tone_window(1.8, 0.2, 1.45))

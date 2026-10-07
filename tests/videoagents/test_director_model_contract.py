@@ -11,7 +11,12 @@ from videoagents.services.jobs import JobService
 from videoagents.state import VideoState, job_context
 from videoagents.storage import Repository
 from videoagents.tools.components import component_study_payload
-from videoagents.tools.timeline import media_coverage_report, validate_media_coverage, validate_timeline
+from videoagents.tools.timeline import (
+    asset_publishable,
+    media_coverage_report,
+    validate_media_coverage,
+    validate_timeline,
+)
 
 
 def valid_study(usage="unspecified", **overrides):
@@ -155,6 +160,7 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
 
     assert len(calls) == 2
     assert "组件研究助理" in calls[0][0]
+    assert set(calls[0][1]) == {"brief"}
     instruction, context, schema = calls[1]
     assert instruction == PROMPT
     assert set(context) == {"brief", "script", "timeline", "research", "assets", "asset_metadata", "extras"}
@@ -208,6 +214,37 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
             if component in {"image_focus", "evidence"}:
                 candidate["shots"][0].update(asset_src=expected[0], source_label="example.test")
             validate_timeline(Timeline.model_validate(candidate), job)
+
+
+def test_verification_only_image_is_excluded_from_schema_coverage_and_timeline(tmp_path, monkeypatch):
+    node, job, audio, alignment = director_job(tmp_path, image=True)
+    image = next(asset for asset in job.assets if asset.mime_type.startswith("image/"))
+    blocked = image.model_copy(update={
+        "license_note": "真实网页截图；尚未确认再利用许可，仅作核验依据，不直接发布",
+    })
+    job = node.repo.update_job(job.job_id, job.revision, assets=[audio, blocked])
+    calls = []
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+
+    def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        calls.append((context, output_schema))
+        if "reviewed_preset_ids" in json.dumps(output_schema or {}):
+            return valid_study(job.brief.usage)
+        return {"shots": context["timeline"]["shots"]}
+
+    monkeypatch.setattr(node.model, "call", model)
+    result = node.plan(job, audio, alignment, 2.0)
+
+    assert not asset_publishable(blocked)
+    assert calls[1][0]["extras"]["media_coverage"]["required"] is False
+    assert calls[1][0]["extras"]["media_coverage"]["eligible_capacity_frames"] == 0
+    assert calls[1][1]["$defs"]["Shot"]["properties"]["asset_src"]["enum"] == [None]
+    assert result.shots[0].asset_src is None
+    invalid = result.model_copy(update={"shots": [result.shots[0].model_copy(update={
+        "component_id": "evidence", "asset_src": blocked.timeline_src, "source_label": "example.test",
+    })]})
+    with pytest.raises(ValueError, match="许可回执明确仅供核验"):
+        validate_timeline(invalid, job)
 
 
 def test_director_filters_noncommercial_presets_from_commercial_jobs(tmp_path, monkeypatch):

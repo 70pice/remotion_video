@@ -16,6 +16,7 @@ from videoagents.nodes.common import (
     agent_state,
     current_discussion,
     mark_feedback_applied,
+    needs_script_revision,
     request_input,
     save_discussion,
     stage_feedback,
@@ -33,6 +34,17 @@ from videoagents.storage import Repository
 NARRATIVE_PROMPT = compose("shared-style", "screenwriter")
 PROMPT = NARRATIVE_PROMPT + "\n\n" + load_prompt("screenwriter-draft")
 REWRITE_PROMPT = NARRATIVE_PROMPT + "\n\n" + load_prompt("screenwriter-rewrite")
+
+
+def active_script_feedback(state: VideoState) -> tuple[str, dict[str, Any] | None]:
+    """Prefer rejected-render feedback when it asks the writer to revise narration."""
+    render_feedback = stage_feedback(state, "render")
+    if render_feedback and (
+        render_feedback.get("target") == "screenwriter"
+        or needs_script_revision(str(render_feedback.get("note", "")))
+    ):
+        return "render", render_feedback
+    return "script", stage_feedback(state, "script")
 
 
 def same_script_body(script: Script | dict[str, Any], snapshot: dict[str, Any]) -> bool:
@@ -55,13 +67,13 @@ class ScreenwriterNode:
         try:
             if discussion.enabled:
                 return self.discuss(state, job, discussion)
-            feedback = stage_feedback(state, "script")
+            feedback_stage, feedback = active_script_feedback(state)
             script, research = self.write_script(job, state)
             job = self.repo.update_job(job.job_id, job.revision, script=script, script_discussion=None)
             self.service.write_json(job, "script.json", script.model_dump(), "script")
             if feedback:
                 mark_feedback_applied(self.repo, self.service, self.repo.get_job(job.job_id), state,
-                                      "script", "screenwriter")
+                                      feedback_stage, "screenwriter")
             return state_context(self.repo, state, route="script_gate",
                                  research=research, gate_issues=[])
         except (CapabilityMissing, ValueError) as exc:
@@ -69,7 +81,7 @@ class ScreenwriterNode:
 
     def discuss(self, state: VideoState, job: Job, discussion: ScriptDiscussion) -> dict[str, Any]:
         research = state.get("research", {})
-        feedback = stage_feedback(state, "script")
+        feedback_stage, feedback = active_script_feedback(state)
         if feedback and discussion.rounds:
             reviewed = feedback.get("script")
             latest = discussion.rounds[-1].script.model_dump()
@@ -96,7 +108,7 @@ class ScreenwriterNode:
             job = save_discussion(self.repo, state, discussion)
             if feedback:
                 mark_feedback_applied(self.repo, self.service, self.repo.get_job(job.job_id), state,
-                                      "script", "screenwriter")
+                                      feedback_stage, "screenwriter")
         else:
             job = self.repo.get_job(job.job_id)
         return state_context(self.repo, state, route="script_reviewer", research=research, gate_issues=[])
@@ -106,7 +118,7 @@ class ScreenwriterNode:
         # This path intentionally bypasses write_script's existing-draft cache.
         context = agent_state(self.repo, job, state)
         context["script_discussion"] = discussion.model_dump()
-        feedback = stage_feedback(context, "script")
+        _, feedback = active_script_feedback(context)
         if feedback and type(feedback.get("script")) is dict:
             context = {**context, "script": feedback["script"]}
         fields = ("brief", "script", "script_discussion", "research", "assets")
@@ -134,7 +146,7 @@ class ScreenwriterNode:
         assets = [Asset.model_validate(item) for item in context["assets"]]
         research = context.get("research", {"sources": [], "visuals": []})
         urls = [source["url"] for source in research.get("sources", [])] or list(brief.source_urls)
-        feedback = stage_feedback(context, "script")
+        _, feedback = active_script_feedback(context)
         if context.get("script") and not feedback:
             return Script.model_validate(context["script"]), research
         if context.get("script") and feedback:

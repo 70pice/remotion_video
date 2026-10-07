@@ -13,7 +13,7 @@ from videoagents.graph import VideoProductionGraph
 from videoagents.nodes.common import mark_feedback_applied, request_input, stage_feedback, state_context
 from videoagents.nodes.director import DirectorNode
 from videoagents.nodes.human_review import HumanReviewNode
-from videoagents.nodes.screenwriter import ScreenwriterNode
+from videoagents.nodes.screenwriter import ScreenwriterNode, active_script_feedback
 from videoagents.nodes.voice import VoiceNode
 from videoagents.providers.llm import CapabilityMissing
 from videoagents.services.jobs import JobService
@@ -472,12 +472,48 @@ def test_screenwriter_feedback_rejects_noop_rewrite(tmp_path, monkeypatch):
     assert not any(item.kind == "human_feedback_applied" for item in repo.get_job(job.job_id).artifacts)
 
 
+def test_screenwriter_ignores_visual_only_render_feedback():
+    state = VideoState(job_id="UNIT-job", revision=1, action="final", extras={"human_feedback": {
+        "render": {
+            "decision": "revise",
+            "note": "UNIT：请仅修复 DeepPlanning 的画面断行并保持旁白不变。",
+            "pending_token": "UNIT-render-token",
+            "target": "director",
+            "applied": False,
+        },
+    }})
+
+    stage, feedback = active_script_feedback(state)
+
+    assert stage == "script"
+    assert feedback is None
+
+
+def test_screenwriter_consumes_render_feedback_that_requests_copy_rewrite():
+    state = VideoState(job_id="UNIT-job", revision=1, action="final", extras={"human_feedback": {
+        "render": {
+            "decision": "revise",
+            "note": "UNIT：防御性文案太多，请改旁白文案并把结论前置。",
+            "pending_token": "UNIT-render-token",
+            "target": "director",
+            "applied": False,
+        },
+    }})
+
+    stage, feedback = active_script_feedback(state)
+
+    assert stage == "render"
+    assert feedback and feedback["pending_token"] == "UNIT-render-token"
+
+
 def test_director_feedback_allows_visual_mismatch_language_without_voice_block(tmp_path):
     repo = Repository(tmp_path / "runtime")
     service = JobService(repo, tmp_path / "project")
     node = DirectorNode(repo, service)
     assert not node._needs_voice_or_script("画面与旁白不对应，请重新匹配素材和镜头")
     assert node._needs_voice_or_script("语速太快，请调整语速后再做视频")
+    assert node._needs_script_revision("防御性文案太多，请改旁白文案并把结论前置")
+    assert not node._needs_voice_revision("防御性文案太多，请改旁白文案并把结论前置")
 
 def test_director_feedback_does_not_reuse_cached_timeline_without_model(tmp_path):
     repo = Repository(tmp_path / "runtime")
@@ -649,6 +685,52 @@ def test_revise_route_returns_feedback_to_configured_model_node(tmp_path):
     report = next(item for item in current.artifacts if item.kind == "stage_review")
     receipt = json.loads(repo.artifact_path(report.artifact_id)[0].read_text(encoding="utf-8"))
     assert receipt["decision"] == "revise"
+    assert receipt["feedback"]["note"] == "UNIT：画面节奏需要返工"
+    assert receipt["feedback"]["target"] == "director"
+
+
+def test_unapplied_review_feedback_survives_new_revision_until_consumed(tmp_path):
+    from langgraph.types import Command
+
+    repo = Repository(tmp_path / "runtime")
+    service = JobService(repo, tmp_path / "project")
+    job = repo.create_job(Brief(script_text="观点：需要返工的旧稿。"))
+    script = Script(title="旧稿", origin="user", revision=job.revision,
+                    segments=[ScriptSegment(segment_id="s1", narration="观点：需要返工的旧稿。")])
+    repo.update_job(job.job_id, job.revision, script=script)
+
+    with VideoProductionGraph(repo, service.project_root) as production:
+        builder = StateGraph(VideoState)
+        production.add_human_review(builder, "render_review", stage="render", title="成片确认",
+                                    confirmation_requirements=("完整播放",), next_node=END,
+                                    revise_node="director", min_note_length=0)
+        builder.add_node("director", lambda state: {**state, "route": "end"})
+        builder.add_edge(START, "render_review")
+        builder.add_edge("director", END)
+        graph = builder.compile(checkpointer=production.checkpointer)
+        state = VideoState(job_id=job.job_id, revision=job.revision, run_id="UNIT-old-revision",
+                           thread_id="UNIT-old-revision", action="produce")
+        config = {"configurable": {"thread_id": state["thread_id"]}}
+        graph.invoke(state, config)
+        pending = repo.get_job(job.job_id).pending_input
+        saved = graph.get_state(config).interrupts[0]
+        graph.invoke(Command(resume={saved.id: {"decision": "revise",
+            "note": "UNIT：删掉防御性文案并把结论前置。",
+            "pending_token": pending["pending_token"]}}), config)
+
+    previous = repo.get_job(job.job_id)
+    revised = service.draft(job.job_id, DraftRequest(base_revision=previous.revision, script=previous.script))
+    recovered = state_context(repo, VideoState(job_id=job.job_id, revision=revised.revision,
+        run_id="UNIT-new-revision", thread_id="UNIT-new-revision", action="produce"))
+    feedback = stage_feedback(recovered, "render")
+    assert feedback["note"] == "UNIT：删掉防御性文案并把结论前置。"
+    assert feedback["source_revision"] == previous.revision
+    assert feedback["script"]["title"] == "旧稿"
+
+    mark_feedback_applied(repo, service, revised, recovered, "render", "screenwriter")
+    clean = state_context(repo, VideoState(job_id=job.job_id, revision=revised.revision,
+        run_id="UNIT-after-applied", thread_id="UNIT-after-applied", action="produce"))
+    assert stage_feedback(clean, "render") is None
 
 
 @pytest.mark.parametrize("config", [{"node_name": "../unsafe"}, {"stage": "complete"},

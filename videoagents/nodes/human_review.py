@@ -96,7 +96,8 @@ class HumanReviewNode:
         if self.stage == "director":
             return {"timeline": job.timeline.model_dump() if job.timeline else None}
         if self.stage == "render":
-            return {"timeline": job.timeline.model_dump() if job.timeline else None,
+            return {"script": job.script.model_dump() if job.script else None,
+                    "timeline": job.timeline.model_dump() if job.timeline else None,
                     "render_artifacts": [item.model_dump() for item in job.artifacts
                                           if item.kind in {"preview", "final", "cover", "captions"}]}
         return {}
@@ -169,7 +170,13 @@ class HumanReviewNode:
             status, message, route = "DRAFT", "人工审核要求返工，请修改对应产物并提交新版本", "end"
         else:
             status, message, route = "CANCELLED", "人工审核已取消任务", "end"
-        self._record(job, receipt, status, message)
+        # Persist the complete revision instruction as part of the immutable
+        # review receipt.  The checkpoint still carries the same payload for
+        # the normal in-run route, while the durable copy lets a versioned
+        # draft recover an unapplied instruction after an UNKNOWN operation
+        # makes the old graph execution unsafe to resume.
+        recorded_receipt = dict(receipt, feedback=feedback[self.stage]) if feedback else receipt
+        self._record(job, recorded_receipt, status, message)
         rounds = dict(state.get("human_review_rounds", {}))
         rounds[self.node_name] = rounds.get(self.node_name, 0) + 1
         overrides = {"human_decision": receipt, "stage_review_pending": None, "human_review_rounds": rounds}

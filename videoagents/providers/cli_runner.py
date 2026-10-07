@@ -39,7 +39,7 @@ CODEX_RESEARCH_DISABLED = (
 )
 TRAE_DISABLED = (
     "shell_tool", "unified_exec", "apply_patch_freeform", "multi_agent", "multi_agent_v2",
-    "apps", "remote_plugin", "plugins", "hooks", "plugin_hooks", "browser_use",
+    "apps", "plugins", "hooks", "plugin_hooks", "browser_use",
     "browser_use_external", "computer_use", "in_app_browser", "image_generation", "tool_suggest",
     "skill_mcp_dependency_install", "tool_search", "workspace_dependencies", "shell_snapshot",
     "goals", "memories", "task_v2", "workspace_undo", "codex_git_commit",
@@ -328,7 +328,14 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
         raise CliFailure("cli_not_installed", submitted=False)
     if research:
         research_directory.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="videoagents-cli-") as temporary:
+    # Codex refuses to create its Linux sandbox helper aliases when CODEX_HOME
+    # lives below the system temporary directory. Research mode needs those
+    # helpers for command_execution, so keep the isolated control directory
+    # next to the durable job revision instead of under /tmp. The randomized
+    # directory is still outside the model-writable research workspace and is
+    # removed in full after the call.
+    control_parent = research_directory.parent if research_directory is not None else None
+    with tempfile.TemporaryDirectory(prefix=".videoagents-cli-", dir=control_parent) as temporary:
         control = Path(temporary)
         directory = research_directory if research else control
         schema = control / "output-schema.json"

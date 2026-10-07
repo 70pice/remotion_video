@@ -35,6 +35,7 @@ from worker.process_manager import RenderCancelled, terminate_tree
 from worker.windows_job import WindowsJob
 
 PROMPT = compose("shared-style", "voice")
+VOICE_SAMPLE_RATE = 24000
 
 
 def normalized(text: str) -> str:
@@ -273,7 +274,14 @@ def segment_clips(segments: list[SegmentAudio]) -> list[SegmentClip]:
             acoustic_end = segment.acoustic_end_seconds or ends[index]
             preserved_tail = trim_ends[index] - acoustic_end
             preserved_lead = starts[index + 1] - trim_starts[index + 1]
-            inserted = max(0.0, requested - preserved_tail - preserved_lead)
+            remaining = requested - preserved_tail - preserved_lead
+            # Adding and subtracting measured floating-point timestamps can
+            # leave a tiny positive remainder even when the requested pause is
+            # already fully represented by the retained tail and next lead.
+            # Formatting that remainder to six decimals yields duration=0,
+            # which FFmpeg treats as an unbounded anullsrc.  A pause shorter
+            # than one output sample is not representable, so drop it.
+            inserted = remaining if remaining >= 1 / VOICE_SAMPLE_RATE else 0.0
         clips.append(SegmentClip(
             segment_id=segment.segment_id,
             path=segment.path,

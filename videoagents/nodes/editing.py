@@ -1,5 +1,6 @@
 """Freeze verified media, render a real MP4 and register inspectable outputs."""
 
+import copy
 import uuid
 from typing import Any
 
@@ -16,6 +17,62 @@ from videoagents.tools.timeline import validate_timeline
 from worker.process_manager import render
 
 PROMPT = compose("shared-style", "editing")
+
+
+def has_unapplied_human_feedback(extras: dict[str, Any]) -> bool:
+    """Only expose revision feedback that still needs an agent response.
+
+    Applied receipts retain the reviewed script/timeline snapshot for audit
+    purposes.  Passing those immutable snapshots back to the editor after the
+    director has already changed ``job.timeline`` lets the model mistake the
+    old reviewed Timeline for the current executable one.
+    """
+
+    feedback = extras.get("human_feedback", {})
+    if type(feedback) is not dict:
+        return False
+    return any(
+        type(item) is dict
+        and item.get("decision") == "revise"
+        and item.get("applied") is not True
+        for item in feedback.values()
+    )
+
+
+def compact_timeline_for_editing(timeline: dict[str, Any]) -> dict[str, Any]:
+    """Project word captions into per-shot windows for the no-tool editor.
+
+    The authoritative Timeline remains unchanged in state and on disk.  The
+    editor needs exact shot bounds and the words audible inside each shot, but
+    not more than a thousand individual caption objects.  This final-output
+    projection keeps those semantics while avoiding output-format failures
+    caused by an unnecessarily large CLI context.
+    """
+
+    result = copy.deepcopy(timeline)
+    captions = result.pop("captions", [])
+    fps = result.get("fps")
+    windows = []
+    if type(fps) is int and fps > 0:
+        for shot in result.get("shots", []):
+            start_ms = shot["start_frame"] * 1000 / fps
+            end_ms = shot["end_frame"] * 1000 / fps
+            active = [item for item in captions if item["end_ms"] > start_ms and item["start_ms"] < end_ms]
+            windows.append({
+                "shot_id": shot["shot_id"],
+                "start_ms": start_ms,
+                "end_ms": end_ms,
+                "caption_start_ms": active[0]["start_ms"] if active else None,
+                "caption_end_ms": active[-1]["end_ms"] if active else None,
+                "text": "".join(item["text"] for item in active),
+            })
+    result["caption_summary"] = {
+        "count": len(captions),
+        "first_start_ms": captions[0]["start_ms"] if captions else None,
+        "last_end_ms": captions[-1]["end_ms"] if captions else None,
+        "windows": windows,
+    }
+    return result
 
 
 class EditingNode:
@@ -44,8 +101,9 @@ class EditingNode:
             context = agent_state(self.repo, job, state)
             if state is None:
                 context = {**context, "action": mode}
+            context = {**context, "timeline": compact_timeline_for_editing(context["timeline"])}
             fields = ("brief", "script", "timeline", "assets", "action")
-            if context.get("extras", {}).get("human_feedback"):
+            if has_unapplied_human_feedback(context.get("extras", {})):
                 fields = (*fields, "extras")
             value = self.model.invoke(context, "editing", PROMPT,
                 fields=fields,
