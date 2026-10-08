@@ -19,7 +19,6 @@ from videoagents.nodes.common import (
     state_context,
 )
 from videoagents.nodes.gates import timeline_readability_issues
-from videoagents.prompts import load_prompt
 from videoagents.prompts import render as render_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.jobs import JobService
@@ -109,7 +108,7 @@ class DirectorPlan(BaseModel):
 def component_study_prompt(usage: str) -> tuple[str, dict[str, Any]]:
     payload = component_study_payload(usage)
     return (
-        load_prompt("shared-style") + "\n\n" + render_prompt(
+        render_prompt(
             "component-study",
             component_source_guide=json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
         ),
@@ -153,7 +152,7 @@ def _video_covers(asset: Asset, metadata: dict[str, dict[str, Any]], shot_second
 def director_prompt(usage: str) -> str:
     """Build the complete component guide for this job's license context."""
 
-    return load_prompt("shared-style") + "\n\n" + render_prompt(
+    return render_prompt(
         "director",
         component_props=json.dumps(COMPONENT_PROPS_EXAMPLES, ensure_ascii=False, separators=(",", ":")),
         component_catalog=prompt_component_catalog(usage),

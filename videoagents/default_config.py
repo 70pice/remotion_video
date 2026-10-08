@@ -28,7 +28,7 @@ DEFAULT_SETTINGS = {
     "google_search_engine_id": "",
     "research_platforms": ["web", "x", "youtube", "zhihu", "reddit", "bilibili", "google"],
     "research_results_per_platform": 3, "research_max_searches": 8, "research_max_sources": 12,
-    "research_max_visuals": 8, "research_download_images": True,
+    "research_download_images": True,
     "script_discussion_max_rounds": 1,
     "voice_provider": "none", "voice_app_id": "", "voice_resource_id": "", "voice_id": "",
     "voice_endpoint": "https://openspeech.bytedance.com/api/v3/tts/unidirectional",

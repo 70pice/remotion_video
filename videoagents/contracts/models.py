@@ -15,7 +15,7 @@ class Brief(Contract):
     creative_direction: str = Field(default="", max_length=30000)
     # Historical jobs may contain a supplied, ready-to-read script.
     script_text: str = Field(default="", max_length=30000)
-    audience: str = Field(default="对 AI 感兴趣、愿意了解前沿进展并尝试工具的人", max_length=500)
+    audience: str = Field(default="关心 AI 如何影响自己的钱、工作和生活的普通人，无需技术背景", max_length=500)
     platform: str = Field(default="抖音竖屏", max_length=100)
     usage: Literal["personal", "commercial", "unspecified"] = "personal"
     target_seconds: float = Field(default=60, ge=1, le=1800)
@@ -508,7 +508,7 @@ class MaterialResearch(Contract):
     """素材 Agent 的最终清单，不包含原始工具对话。"""
 
     sources: list[MaterialSourceFile] = Field(max_length=30)
-    visuals: list[MaterialVisualFile] = Field(max_length=20)
+    visuals: list[MaterialVisualFile]
     limitations: list[str] = Field(max_length=40)
 
     @field_validator("limitations")
@@ -531,7 +531,7 @@ class SettingsPatch(Contract):
     research_results_per_platform: int | None = Field(default=None, ge=1, le=5)
     research_max_searches: int | None = Field(default=None, ge=1, le=32)
     research_max_sources: int | None = Field(default=None, ge=1, le=30)
-    research_max_visuals: int | None = Field(default=None, ge=0, le=20)
+    research_max_visuals: int | None = Field(default=None, ge=0, deprecated=True)  # 兼容旧客户端；不再限制素材数量。
     research_download_images: bool | None = None
     voice_provider: Literal["none", "byte_http", "byte_ws"] | None = None
     voice_app_id: str | None = None

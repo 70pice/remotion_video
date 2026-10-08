@@ -29,7 +29,7 @@ VideoState → MaterialsNode.collect()
   → 冻结 research / assets → VideoState → 编剧与导演
 ```
 
-业务 Prompt 独立保存在 `videoagents/prompts/materials.md`，`materials.py` 的 `PROMPT` 仅负责加载共享风格与角色规则。没有单独的规划 Prompt、方法、契约或规划产物。
+业务 Prompt 独立保存在 `videoagents/prompts/materials.md`，`materials.py` 的 `PROMPT` 只加载素材角色规则。没有单独的规划 Prompt、方法、契约或规划产物。
 素材研究目前要求启用素材模型并选择 `codex_cli`；模型关闭或选择尚不支持研究的 CLI 时暂停并提示能力缺口。
 
 每版本研究目录为 `jobs/<job_id>/revisions/<revision>/skills-research/`。
@@ -38,7 +38,9 @@ VideoState → MaterialsNode.collect()
 目录只是执行空间，不进入下一个 Agent 的输入。`material-skill-manifest.json` 与脱敏的
 `material-tool-audit-*.jsonl` 仅用于追溯，`VideoState` 中只传最终研究结果和已登记素材。
 
-搜索调用数属于 Prompt 指令预算；来源与画面数量由 Python 强制限制。
+搜索调用数属于 Prompt 指令预算；来源数量由 Python 按设置限制。
+图片、截图和视频采集不设数量上限，素材 Agent 按目标时长、内容覆盖与可替换画面决定采集量。
+旧客户端或旧安装保存的 `research_max_visuals` 会被忽略，不再限制清单或模型研究。
 CLI 调用账本保留原有 `UNKNOWN` 阻断，切换 CLI 或模型不能绕过未知提交。
 已完成的研究同版本复用，不因配置变化自动重新抓取；需要刷新请保存新版本。
 

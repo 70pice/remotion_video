@@ -8,7 +8,7 @@ from videoagents.contracts import EditingAdvice, Job
 from videoagents.nodes.common import agent_state, request_input, start_stage, state_context
 from videoagents.nodes.gates import timeline_readability_issues
 from videoagents.nodes.reviewers import dependency_fingerprint
-from videoagents.prompts import compose
+from videoagents.prompts import load_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
@@ -17,7 +17,7 @@ from videoagents.storage import Repository
 from videoagents.tools.timeline import asset_renderable, validate_timeline
 from worker.process_manager import render
 
-PROMPT = compose("shared-style", "editing")
+PROMPT = load_prompt("editing")
 
 
 class DirectorInputError(ValueError):

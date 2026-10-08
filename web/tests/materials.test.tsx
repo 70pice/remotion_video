@@ -77,13 +77,14 @@ describe("materials research workspace", () => {
       research_tools: [{ id: "x", label: "X / Twitter", status: "search_ready", detail: "公开索引检索" }] };
     const patch = createSettingsPayload(values, {});
     expect(patch).toEqual({ search_provider: "opencli_google", research_platforms: ["x", "youtube", "reddit"],
-      research_max_searches: 8, research_max_visuals: 0, capture_enabled: true, research_download_images: true });
+      research_max_searches: 8, capture_enabled: true, research_download_images: true });
     const markup = renderToStaticMarkup(createElement(SettingsForm, { saved: values, values, busy: false,
       onChange: () => undefined, onSubmit: () => undefined }));
     expect(markup).toContain("无需搜索 API Key");
     expect(markup).toContain("公开索引检索");
     expect(markup).toContain("X / Twitter");
-    expect(markup).toContain('aria-label="图片/截图采集尝试上限"');
+    expect(markup).toContain("画面素材不设数量上限");
+    expect(markup).not.toContain('aria-label="图片/截图采集尝试上限"');
     expect(markup).not.toContain('aria-label="素材研究方式"');
   });
 });

@@ -1,6 +1,6 @@
 # 短视频黄金指标与创作规则
 
-整理日期：2026-10-05。已接入共享风格、文案初稿、讨论改稿、文案审查、
+整理日期：2026-10-05。已接入文案初稿、讨论改稿、文案审查、
 导演、剪辑预检与最终复核的固定 Prompt；
 不是后台数据采集功能，也不代表已经发布或验证了视频成绩。
 
@@ -88,8 +88,6 @@ Notion 记录是创作方法资料，不是本期产品或事件的事实依据�
 - [script-reviewer.md](../videoagents/prompts/script-reviewer.md)：增加相应的
   审查方法，继续使用已有 `hook / logic / clarity / fact` 类别及真实段落 ID，
   不改变 `ScriptCritique` 的 JSON 契约和讨论路由。
-- [shared-style.md](../videoagents/prompts/shared-style.md)：黄金指标作为全链路
-  共同目标，分别由各角色在其职责内承担。
 - [director.md](../videoagents/prompts/director.md)：将开头窗口、视觉解释、
   持续信息交付与收藏转述价值落实到现有分镜生成。
 - [editing.md](../videoagents/prompts/editing.md)：根据实测时间检查画面交付
@@ -97,7 +95,7 @@ Notion 记录是创作方法资料，不是本期产品或事件的事实依据�
 - [review.md](../videoagents/prompts/review.md)：复核承诺、证据与画面的一致性，
   避免为了互动扩大结论或隐藏条件。
 
-Prompt 加载器有缓存，节点常量在模块导入时组成；长期运行的 API 和 worker
+Prompt 加载器有缓存，节点常量在模块导入时读取；长期运行的 API 和 worker
 需重启后读取新内容。已经保存的稿件和分镜不会因修改 Prompt 自动重做。
 加载与节点契约测试可以验证各角色读取新规则及已有契约未破坏，
 不能验证真实留存、完播或互动效果；仍需后续实际稿件 Review 与发布数据。

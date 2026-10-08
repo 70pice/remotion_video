@@ -70,7 +70,7 @@ class JsonModel:
                 # 研究配置是素材 Agent 的业务约束；密钥、CLI 状态和工具日志仍不进入模型上下文。
                 context["settings"] = {key: context["settings"][key] for key in (
                     "research_skills", "search_provider", "research_platforms", "research_results_per_platform",
-                    "research_max_searches", "research_max_sources", "research_max_visuals",
+                    "research_max_searches", "research_max_sources",
                     "capture_enabled", "research_download_images"
                 ) if key in context["settings"]}
             else:

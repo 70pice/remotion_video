@@ -371,16 +371,16 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
     assert set(props["evidence"]["highlight"]) == {"x", "y", "width", "height"}
     assert set(props["video"]) == {"start_seconds", "end_seconds", "fit", "crop"}
     for requirement in [
-        "steps.items 必须是 1 到 4 个对象", "必填 title（最多48字），可选 body（最多96字）",
-        "data.items 必须是 1 到 4 个对象", "必填 label（最多48字）和 value（最多40字），可选 detail（最多64字）",
-        "left_title/right_title（最多48字）及 left_body/right_body（最多160字）四项",
-        "eyebrow（最多48字）", "keyword（最多40字）", "call_to_action（最多72字）",
-        "video 仅可选 start_seconds、end_seconds、fit、crop",
-        "image_focus 可选 focal_x/focal_y/crop，或 focus_cues",
-        "x + width <= 1 且 y + height <= 1", "width/height 必须大于0", "所有文字字段必须非空",
-        "title 最多100字、body 最多240字、source_label 最多160字",
-        "eligible_capacity_ratio", "actual_media_ratio", "超过 70%",
-        "占当前可用内容区约 70%～85%", "跨入无关联段落",
+        "steps.items：1–4 个对象", "必填 title（≤48），可选 body（≤96）",
+        "data.items：1–4 个对象", "必填 label（≤48）、value（≤40），可选 detail（≤64）",
+        "必须齐全 left_title/right_title（≤48）与 left_body/right_body（≤160）",
+        "eyebrow（≤48）", "keyword（≤40）", "call_to_action（≤72）",
+        "video：可选 start_seconds（默认 0）、end_seconds（>start 且 ≤实测时长）、fit（contain|cover）、crop",
+        "image_focus：可选 focal_x/focal_y/crop 或 focus_cues",
+        "x+width≤1、y+height≤1", "width/height>0", "已提供的文字必须非空",
+        "title≤100 字、body≤240 字、source_label≤160 字",
+        "extras.media_coverage", "actual_media_ratio", "超过 70%",
+        "约占内容区 70%–85%", "跨入无关联段落",
     ]:
         assert requirement in instruction
     assert "HyperFrames" not in instruction

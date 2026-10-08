@@ -63,7 +63,7 @@ self.add_cleanup_edge(graph, "screenwriter", {
 
 ## 修改模型提示词
 
-七个模型角色的提示词独立保存在 `videoagents/prompts/*.md`；节点文件顶部保留兼容的 `PROMPT` 常量，编剧另保留 `REWRITE_PROMPT`。共享创作标准位于 `shared-style.md`，导演的组件参数示例由加载器注入；动态 schema 只限制当前稿件的段落 ID、当前任务可用的图片路径等运行条件。
+七个模型角色的提示词独立保存在 `videoagents/prompts/*.md`；节点文件顶部保留兼容的 `PROMPT` 常量，编剧另保留 `REWRITE_PROMPT`。各角色只加载自己的 Prompt；编剧初稿/改稿可拼接本角色交付指令，导演和组件学习只渲染各自模板。动态 schema 只限制当前稿件的段落 ID、当前任务可用的图片路径等运行条件。
 
 例如编剧的模型调用：
 

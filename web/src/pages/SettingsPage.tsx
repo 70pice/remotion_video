@@ -83,7 +83,6 @@ type Field = FieldLabel &
           | "research_results_per_platform"
           | "research_max_searches"
           | "research_max_sources"
-          | "research_max_visuals"
           | "max_voice_chars"
           | "render_timeout_seconds"
         >;
@@ -180,7 +179,6 @@ const sections: { title: string; description: string; fields: Field[] }[] = [
       },
       { key: "research_max_searches", label: "素材检索调用上限", type: "number" },
       { key: "research_max_sources", label: "来源读取上限", type: "number" },
-      { key: "research_max_visuals", label: "图片/截图采集尝试上限", type: "number" },
       { key: "max_voice_chars", label: "配音字数上限", type: "number" },
       {
         key: "render_timeout_seconds",
@@ -782,8 +780,8 @@ export function SettingsForm({
                     <input
                       aria-label={field.label}
                       type={field.secret ? "password" : (field.type ?? "text")}
-                      min={field.key === "research_max_visuals" ? 0 : field.type === "number" ? 1 : undefined}
-                      max={field.key === "research_results_per_platform" ? 5 : field.key === "research_max_searches" ? 32 : field.key === "research_max_sources" ? 30 : field.key === "research_max_visuals" ? 20 : undefined}
+                      min={field.type === "number" ? 1 : undefined}
+                      max={field.key === "research_results_per_platform" ? 5 : field.key === "research_max_searches" ? 32 : field.key === "research_max_sources" ? 30 : undefined}
                       maxLength={field.key === "voice_model" ? 200 : undefined}
                       list={
                         field.key === "voice_model"
@@ -916,7 +914,7 @@ export function SettingsForm({
                   <div className="research-tool-list">
                     <p className="muted small">
                       素材 Agent 会按勾选平台尽力研究；下面的工具状态只说明本机已发现的检索入口。
-                      搜索调用上限是指令预算，来源与画面数量由接收端校验。
+                      搜索调用上限是指令预算；画面素材不设数量上限，数量跟随选题、证据覆盖和导演可用画面。
                     </p>
                     {(values.research_tools ?? []).map((tool) => {
                       const selected = (

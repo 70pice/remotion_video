@@ -6,7 +6,7 @@ from videoagents.contracts import Alignment, ContentReviewAdvice, Finding, Job, 
 from videoagents.nodes.common import agent_state, request_input, start_stage, state_context
 from videoagents.nodes.screenwriter import script_issues
 from videoagents.nodes.voice import validate_alignment
-from videoagents.prompts import compose
+from videoagents.prompts import load_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState
@@ -15,7 +15,7 @@ from videoagents.storage.repository import fingerprint
 from videoagents.tools.media import audio_duration, decode_check, probe, sha256
 from videoagents.tools.timeline import validate_timeline
 
-PROMPT = compose("shared-style", "review")
+PROMPT = load_prompt("review")
 
 
 def dependency_fingerprint(job: Job) -> str:

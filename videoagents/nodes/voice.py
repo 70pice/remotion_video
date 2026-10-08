@@ -28,7 +28,7 @@ from videoagents.nodes.common import (
     start_stage,
     state_context,
 )
-from videoagents.prompts import compose
+from videoagents.prompts import load_prompt
 from videoagents.providers.aligner import align
 from videoagents.providers.byte_voice import SubmissionUnknown, synthesize
 from videoagents.providers.llm import CapabilityMissing, JsonModel
@@ -41,7 +41,7 @@ from videoagents.tools.media import audio_duration
 from worker.process_manager import RenderCancelled, terminate_tree
 from worker.windows_job import WindowsJob
 
-PROMPT = compose("shared-style", "voice")
+PROMPT = load_prompt("voice")
 VOICE_SAMPLE_RATE = 24000
 
 
