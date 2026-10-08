@@ -101,3 +101,22 @@ def test_timeline_readability_reveal_threshold_scales_with_fps():
         timeline("steps", 89, fps=24, props=props)
     )[0]
     assert not timeline_readability_issues(timeline("steps", 90, fps=24, props=props))
+
+
+def test_all_hidden_steps_cannot_leave_the_visual_empty_for_several_seconds():
+    props = {"items": [{"title": "执行", "reveal_frame": 120}]}
+    issues = timeline_readability_issues(timeline("steps", 300, props=props))
+    assert len(issues) == 1
+    assert "主体大面积空白" in issues[0]
+    # Data labels are now visible from the opening, so delayed numbers remain valid.
+    assert not timeline_readability_issues(timeline("data", 300, props={
+        "items": [{"label": "用量", "value": "4倍", "reveal_frame": 120}],
+    }))
+
+
+def test_focus_region_needs_a_real_reading_window_after_camera_transition():
+    props = {"focus_cues": [{"frame": 0}, {"frame": 120}]}
+    assert not timeline_readability_issues(timeline("image_focus", 213, props=props))
+    issues = timeline_readability_issues(timeline("image_focus", 212, props=props))
+    assert len(issues) == 1
+    assert "focus_cues[1]" in issues[0]

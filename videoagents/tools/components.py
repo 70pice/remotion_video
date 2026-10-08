@@ -146,6 +146,36 @@ def component_source_guide() -> dict[str, Any]:
             })
         else:
             item["adapter_constraints"] = "真实素材必须来自当前任务 assets。"
+            if entry["component_id"] in {"evidence", "image_focus"}:
+                item["adapter_constraints"] += (
+                    "focus_cues 在同镜头内按实测字幕移动相机并聚焦压暗："
+                    "1-8项，第一项frame=0，随后严格递增；每项仅frame/region/label。"
+                    "region为实测归一化矩形，省略代表总览；label最多24字。"
+                    "固定18帧连续过渡，保持同一真实图片与原比例，不重启入场。"
+                    "不与旧highlight/crop/focal_x/focal_y混用，未知位置不生成坐标。"
+                )
+            elif entry["component_id"] == "data":
+                item["adapter_constraints"] += (
+                    "默认cards的比较对象label和必要单位从开头可读，reveal_frame只控制数值value。"
+                    "竖屏两项上下排列，避免整卡等待数值导致大面积空白。"
+                    "可选visualization=bars/donuts复用已有真实数据图形底层，"
+                    "items.numeric_value必须为来源明确的非负数字；图形、value与detail按reveal_frame用15帧揭示。"
+                    "label从开头可见，说明空间保留，避免detail中的补集或倍数提前透露结果。"
+                    "bars需unit、scale_max与本段source_ref，共用0起点和量程，可选reference_value。"
+                    "donuts需unit=%、本段source_ref，每项独立100分母，numeric_value为0-100，最多2项。"
+                    "倍数不做饼、不同群体比例不合并；保留来源、单位、时间、样本、最高/约等限定。"
+                )
+                source_paths = (
+                    "src/video-production/adapters/data.tsx",
+                    "src/video-production/adapters/dataCharts.tsx",
+                    "src/components/component-horizontal/remotion-ui/scenes/animated-bar-chart/index.tsx",
+                    "src/components/component-horizontal/rve/donut-chart.tsx",
+                )
+                item["implementation_sources"] = [
+                    {"path": source_path,
+                     "sha256": hashlib.sha256((PROJECT_ROOT / source_path).read_bytes()).hexdigest()}
+                    for source_path in source_paths
+                ]
         components.append(item)
     guide = {
         "schema_version": "1",
@@ -153,6 +183,11 @@ def component_source_guide() -> dict[str, Any]:
         "component_count": len(components),
         "adapter_count": len([item for item in components if item["kind"] == "adapter"]),
         "preset_count": len([item for item in components if item["kind"] == "preset"]),
+        "adapter_sources": [
+            {"path": path.relative_to(PROJECT_ROOT).as_posix(), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+            for path in sorted((PROJECT_ROOT / "src/video-production/adapters").glob("*"))
+            if path.suffix in {".ts", ".tsx"}
+        ],
         "components": components,
         "selection_rules": [
             "先用真实视频素材；只有视频不存在、时长不足或语义不匹配时才退回图片或解释组件。",

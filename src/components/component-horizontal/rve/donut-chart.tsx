@@ -29,66 +29,117 @@ export interface DonutChartProps {
   segments?: ChartSegment[];
   title?: string;
   centerTarget?: number;
+  centerValueText?: string;
   centerLabel?: string;
   layout?: "default" | "portrait";
+  viewport?: { width: number; height: number };
+  embedded?: boolean;
+  revealFrame?: number;
+  revealDurationFrames?: number;
 }
 
-export default function DonutChart({ segments = defaultSegments, title = "Completion Rate", centerTarget = 78, centerLabel = "Completion Rate", layout = "default" }: DonutChartProps = {}) {
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+const measureLegendUnits = (label: string) =>
+  [...label].reduce((sum, char) => sum + (/^[\x20-\x7E]$/.test(char) ? 0.58 : 1), 0);
+
+export default function DonutChart({
+  segments = defaultSegments,
+  title = "Completion Rate",
+  centerTarget = 78,
+  centerValueText,
+  centerLabel = "Completion Rate",
+  layout = "default",
+  viewport,
+  embedded = false,
+  revealFrame,
+  revealDurationFrames = 15,
+}: DonutChartProps = {}) {
   const frame = useCurrentFrame();
   const portrait = layout === "portrait";
-
-
+  const width = viewport?.width ?? (portrait ? 960 : 600);
+  const height = viewport?.height ?? (portrait ? 1420 : 520);
+  const titleHeight = embedded && title ? clamp(height * 0.14, 28, 96) : 0;
+  const legendHeight = embedded ? clamp(height * 0.28, 58, 110) : 0;
+  const drawingWidth = embedded ? width : portrait ? 960 : 600;
+  const drawingHeight = embedded ? Math.max(1, height - titleHeight - legendHeight) : portrait ? 920 : 460;
 
   const total = Math.max(1, segments.reduce((sum, s) => sum + s.value, 0));
-  const cx = portrait ? 480 : 300;
-  const cy = portrait ? 370 : 230;
-  const radius = portrait ? 270 : 120;
-  const strokeWidth = portrait ? 72 : 20;
+  const cx = embedded ? drawingWidth / 2 : portrait ? 480 : 300;
+  const cy = embedded ? drawingHeight / 2 : portrait ? 370 : 230;
+  const radius = embedded ? Math.max(1, Math.min(drawingWidth, drawingHeight) * 0.28) : portrait ? 270 : 120;
+  const strokeWidth = embedded ? Math.max(4, Math.min(drawingWidth, drawingHeight) * 0.08) : portrait ? 72 : 20;
   const circumference = 2 * Math.PI * radius;
+  const finalCenterText = centerValueText ?? `${centerTarget}%`;
+  const centerTextLength = Math.max(1, [...finalCenterText].length);
+  const centerLabelLength = Math.max(1, [...centerLabel].length);
+  const centerFontBase = embedded ? clamp(Math.min(drawingWidth, drawingHeight) * 0.18, 12, portrait ? 128 : 48) : portrait ? 128 : 48;
+  const centerLabelBase = embedded ? clamp(Math.min(drawingWidth, drawingHeight) * 0.07, 8, portrait ? 44 : 16) : portrait ? 44 : 16;
+  const centerFontSize = embedded ? Math.min(centerFontBase, (radius * 1.28) / (centerTextLength * 0.72)) : centerFontBase;
+  const centerLabelSize = embedded ? Math.min(centerLabelBase, (radius * 1.35) / (centerLabelLength * 0.58)) : centerLabelBase;
+  const legendRows = embedded ? Math.max(1, segments.length) : 1;
+  const legendRowGap = embedded ? clamp(legendHeight * 0.06, 2, 8) : 20;
+  const legendLongestUnits = Math.max(1, ...segments.map((segment) => measureLegendUnits(segment.label)));
+  const legendAvailableWidth = Math.max(1, width - 24);
+  const legendFontByHeight = ((legendHeight - legendRowGap * (legendRows - 1)) / legendRows) * 0.58;
+  const legendFontByWidth = legendAvailableWidth / (legendLongestUnits + 1.8);
+  const legendFontSize = embedded
+    ? clamp(Math.min(legendFontByHeight, legendFontByWidth), 8, portrait ? 42 : 13)
+    : portrait ? 42 : 13;
+  const legendDotSize = embedded ? clamp(legendFontSize * 0.55, 4, portrait ? 22 : 10) : portrait ? 22 : 10;
 
   let cumulativeOffset = 0;
 
   // Center stat animation
-  const centerValue = Math.round(
-    interpolate(frame, [10, 50], [0, centerTarget], {
+  const immediateEmbedded = embedded && revealFrame === undefined;
+  const revealStart = revealFrame ?? 10;
+  const revealEnd = revealFrame === undefined ? 50 : revealStart + revealDurationFrames;
+  const progress = immediateEmbedded ? 1 : interpolate(frame, [revealStart, revealEnd], [0, 1], {
+    extrapolateRight: "clamp",
+    extrapolateLeft: "clamp",
+  });
+  const centerValue = immediateEmbedded ? centerTarget : Math.round(
+    interpolate(frame, [revealStart, revealEnd], [0, centerTarget], {
       extrapolateRight: "clamp",
       extrapolateLeft: "clamp",
     })
   );
+  const centerText = revealFrame !== undefined && progress <= 0 ? "" : centerValueText ?? `${centerValue}%`;
 
   return (
     <div
+      data-donut-chart
+      data-embedded={embedded}
       style={{
         position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "100%",
-        height: "100%",
+        top: embedded ? 0 : "50%",
+        left: embedded ? 0 : "50%",
+        transform: embedded ? "none" : "translate(-50%, -50%)",
+        width: embedded ? width : "100%",
+        height: embedded ? height : "100%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         fontFamily: "Inter, system-ui, sans-serif",
-        background: "linear-gradient(to bottom right, #111827, #1f2937)",
+        background: embedded ? "transparent" : "linear-gradient(to bottom right, #111827, #1f2937)",
       }}
     >
       <div
         style={{
           position: "relative",
-          width: portrait ? "960px" : "600px",
-          height: portrait ? "1420px" : "520px",
-          backgroundColor: "rgba(0, 0, 0, 0.2)",
-          borderRadius: "16px",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
+          width,
+          height,
+          backgroundColor: embedded ? "transparent" : "rgba(0, 0, 0, 0.2)",
+          borderRadius: embedded ? 0 : "16px",
+          boxShadow: embedded ? "none" : "0 10px 30px rgba(0, 0, 0, 0.3)",
           overflow: "hidden",
-          padding: "20px",
+          padding: embedded ? 0 : "20px",
         }}
       >
         {/* Title */}
-        <div
+        {title ? <div
           style={{
             position: "absolute",
-            top: "20px",
+            top: embedded ? 0 : "20px",
             left: "50%",
             transform: "translateX(-50%)",
             fontSize: portrait ? "76px" : "28px",
@@ -99,9 +150,9 @@ export default function DonutChart({ segments = defaultSegments, title = "Comple
           }}
         >
           {title}
-        </div>
+        </div> : null}
 
-        <svg width={portrait ? 960 : 600} height={portrait ? 920 : 460} style={{ marginTop: portrait ? "120px" : "10px" }}>
+        <svg width={drawingWidth} height={drawingHeight} style={{ marginTop: embedded ? titleHeight : portrait ? "120px" : "10px" }}>
           {/* Background ring */}
           <circle
             cx={cx}
@@ -118,18 +169,25 @@ export default function DonutChart({ segments = defaultSegments, title = "Comple
             const currentOffset = cumulativeOffset;
             cumulativeOffset += segmentLength;
 
-            const segmentProgress = interpolate(
-              frame,
-              [i * 12, 20 + i * 12],
-              [0, 1],
-              { extrapolateRight: "clamp", extrapolateLeft: "clamp" }
-            );
+            const segmentProgress = immediateEmbedded
+              ? 1
+              : revealFrame === undefined
+              ? interpolate(
+                  frame,
+                  [i * 12, 20 + i * 12],
+                  [0, 1],
+                  { extrapolateRight: "clamp", extrapolateLeft: "clamp" }
+                )
+              : progress;
 
             const animatedLength = segmentLength * segmentProgress;
+            if ((revealFrame !== undefined || immediateEmbedded) && segmentProgress <= 0) return null;
 
             return (
               <circle
                 key={`seg-${i}`}
+                data-donut-segment={segment.label}
+                data-donut-ratio={Number((segment.value / total).toFixed(4))}
                 cx={cx}
                 cy={cy}
                 r={radius}
@@ -151,20 +209,20 @@ export default function DonutChart({ segments = defaultSegments, title = "Comple
             textAnchor="middle"
             dominantBaseline="middle"
             fill="white"
-            fontSize={portrait ? "128" : "48"}
+            fontSize={centerFontSize}
             fontWeight="bold"
           >
-            {centerValue}%
+            {centerText}
           </text>
 
           {/* Center label */}
           <text
             x={cx}
-            y={cy + 30}
+            y={cy + centerFontSize * 0.28}
             textAnchor="middle"
             dominantBaseline="middle"
             fill="rgba(255,255,255,0.6)"
-            fontSize={portrait ? "44" : "16"}
+            fontSize={centerLabelSize}
           >
             {centerLabel}
           </text>
@@ -172,21 +230,33 @@ export default function DonutChart({ segments = defaultSegments, title = "Comple
 
         {/* Legend */}
         <div
+          data-donut-legend={embedded ? "embedded" : "default"}
           style={{
             position: "absolute",
-            bottom: "25px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            display: "flex",
-            gap: "20px",
-            flexWrap: "wrap",
+            bottom: embedded ? 0 : "25px",
+            height: embedded ? legendHeight : undefined,
+            left: embedded ? 0 : "50%",
+            right: embedded ? 0 : undefined,
+            width: embedded ? "100%" : undefined,
+            transform: embedded ? "none" : "translateX(-50%)",
+            display: embedded ? "grid" : "flex",
+            gridTemplateRows: embedded ? `repeat(${legendRows}, minmax(0, 1fr))` : undefined,
+            rowGap: embedded ? legendRowGap : undefined,
+            gap: embedded ? undefined : "20px",
+            flexWrap: embedded ? undefined : "wrap",
             justifyContent: "center",
+            justifyItems: embedded ? "center" : undefined,
+            alignContent: "center",
+            alignItems: embedded ? "center" : undefined,
+            boxSizing: embedded ? "border-box" : undefined,
+            padding: embedded ? "0 12px" : undefined,
+            overflow: "hidden",
           }}
         >
           {segments.map((segment, i) => {
             const legendOpacity = interpolate(
               frame,
-              [5 + i * 12, 15 + i * 12],
+              revealFrame === undefined ? [5 + i * 12, 15 + i * 12] : [0, 1],
               [0, 1],
               { extrapolateRight: "clamp", extrapolateLeft: "clamp" }
             );
@@ -194,17 +264,21 @@ export default function DonutChart({ segments = defaultSegments, title = "Comple
             return (
               <div
                 key={`legend-${i}`}
+                data-donut-legend-item={segment.label}
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "6px",
+                  justifyContent: embedded ? "center" : undefined,
+                  maxWidth: embedded ? "100%" : undefined,
+                  minWidth: embedded ? 0 : undefined,
+                  gap: embedded ? Math.max(4, legendFontSize * 0.35) : "6px",
                   opacity: legendOpacity,
                 }}
               >
                 <div
                   style={{
-                    width: portrait ? "22px" : "10px",
-                    height: portrait ? "22px" : "10px",
+                    width: legendDotSize,
+                    height: legendDotSize,
                     borderRadius: "50%",
                     backgroundColor: segment.color,
                   }}
@@ -212,7 +286,11 @@ export default function DonutChart({ segments = defaultSegments, title = "Comple
                 <span
                   style={{
                     color: "rgba(255,255,255,0.8)",
-                    fontSize: portrait ? "42px" : "13px",
+                    fontSize: legendFontSize,
+                    lineHeight: embedded ? 1 : undefined,
+                    whiteSpace: embedded ? "nowrap" : undefined,
+                    overflow: embedded ? "visible" : undefined,
+                    textOverflow: embedded ? "clip" : undefined,
                   }}
                 >
                   {segment.label}

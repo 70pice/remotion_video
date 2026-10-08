@@ -1,11 +1,14 @@
 import {getImageDimensions} from '@remotion/media-utils';
 import {useEffect, useState} from 'react';
 import {cancelRender, continueRender, delayRender, Img, interpolate, OffthreadVideo, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
-import type {DataItem, Highlight, StepItem} from '../types';
+import type {Highlight, StepItem} from '../types';
 import {Body, Card, CuedMotion, FittedText, Motion, SceneHeader, clamp, contrastingInk, gentleZoom, muted, useLayout, white} from './layout';
 import type {AdapterProps} from './layout';
 import {resolveVideoCropGeometry} from './videoGeometry';
 import type {NormalizedCrop} from './videoGeometry';
+import {ImageFocusViewport} from './ImageFocusViewport';
+import type {ImageFocusCue} from './imageFocusGeometry';
+export {DataAdapter} from './data';
 
 export const TitleAdapter = ({shot}: AdapterProps) => {
   const {unit, contentWidth, contentHeight} = useLayout();
@@ -85,13 +88,16 @@ const useImageDimensions = (src: string | null, enabled: boolean): ImageDimensio
 const ImageCard = ({shot, focus, durationInFrames}: AdapterProps & {focus: boolean}) => {
   const frame = useCurrentFrame();
   const {unit, contentWidth, contentHeight, headerHeight, bodyHeight} = useLayout();
-  const mediaHeight = contentHeight - headerHeight - bodyHeight - 58 * unit;
+  const cues = shot.props.focus_cues as ImageFocusCue[] | undefined;
+  const cueLabel = cues?.filter((cue) => cue.frame <= frame).at(-1)?.label;
+  const labelHeight = cues?.some((cue) => cue.label) ? 58 * unit : 0;
+  const mediaHeight = contentHeight - headerHeight - bodyHeight - 58 * unit - labelHeight;
   const highlight = shot.props.highlight as Highlight | undefined;
   const focalX = (shot.props.focal_x as number | undefined) ?? 0.5;
   const focalY = (shot.props.focal_y as number | undefined) ?? 0.5;
   const crop = focus ? shot.props.crop as NormalizedCrop | undefined : undefined;
   const imageSrc = shot.asset_src ? staticFile(shot.asset_src) : null;
-  const dimensions = useImageDimensions(imageSrc, Boolean(crop));
+  const dimensions = useImageDimensions(imageSrc, Boolean(crop || cues));
   const cropGeometry = crop && dimensions ? resolveVideoCropGeometry({
     viewportWidth: contentWidth - 30 * unit,
     viewportHeight: mediaHeight,
@@ -103,9 +109,13 @@ const ImageCard = ({shot, focus, durationInFrames}: AdapterProps & {focus: boole
     <SceneHeader shot={shot} />
     <Motion delay={4}>
       <Card accent={shot.accent_color} style={{padding: 14 * unit, overflow: 'hidden'}}>
+        {labelHeight ? <div style={{height: labelHeight, display: 'flex', alignItems: 'center',
+          paddingLeft: 12 * unit, fontSize: 27 * unit, fontWeight: 700, color: white}}>{cueLabel}</div> : null}
         <div style={{position: 'relative', height: mediaHeight, overflow: 'hidden', borderRadius: 16 * unit,
           display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F1F3F7'}}>
-          {focus && cropGeometry ? <div style={{position: 'absolute', left: cropGeometry.window.left, top: cropGeometry.window.top,
+          {cues && dimensions ? <ImageFocusViewport src={imageSrc!} cues={cues} metadata={dimensions}
+            width={contentWidth - 30 * unit} height={mediaHeight} accent={shot.accent_color} unit={unit} />
+            : focus && cropGeometry ? <div style={{position: 'absolute', left: cropGeometry.window.left, top: cropGeometry.window.top,
             width: cropGeometry.window.width, height: cropGeometry.window.height, overflow: 'hidden'}}>
             <Img src={imageSrc!} style={{position: 'absolute', left: cropGeometry.media.left, top: cropGeometry.media.top,
               width: cropGeometry.media.width, height: cropGeometry.media.height, objectFit: 'fill', display: 'block'}} />
@@ -208,32 +218,6 @@ export const ComparisonAdapter = ({shot}: AdapterProps) => {
       </CuedMotion>)}
     </div>
     {shot.body ? <Motion delay={10} style={{marginTop: 24 * unit}}><Body text={shot.body} height={bodyHeight} /></Motion> : null}
-  </>;
-};
-
-export const DataAdapter = ({shot}: AdapterProps) => {
-  const {unit, contentWidth, contentHeight, headerHeight, bodyHeight} = useLayout();
-  const items = shot.props.items as DataItem[];
-  const columns = items.length === 1 ? 1 : 2;
-  const rows = Math.ceil(items.length / columns);
-  const cardWidth = (contentWidth - (columns - 1) * 24 * unit) / columns;
-  const availableHeight = contentHeight - headerHeight - (shot.body ? bodyHeight + 24 * unit : 0);
-  const cardHeight = (availableHeight - (rows - 1) * 24 * unit) / rows;
-  return <>
-    <SceneHeader shot={shot} />
-    <div style={{display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: 24 * unit}}>
-      {items.map((item, index) => <CuedMotion key={index} delay={index * 4} revealFrame={item.reveal_frame}>
-        <Card accent={shot.accent_color} style={{height: cardHeight, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
-          <FittedText text={item.label} width={cardWidth - 68 * unit} height={(cardHeight - 92 * unit) * 0.27}
-            fontSize={30 * unit} minFontSize={18 * unit} style={{color: muted}} />
-          <FittedText text={item.value} width={cardWidth - 68 * unit} height={(cardHeight - 92 * unit) * (item.detail ? 0.43 : 0.7)}
-            fontSize={96 * unit} minFontSize={24 * unit} lineHeight={1.12} style={{margin: `${12 * unit}px 0`, color: white}} />
-          {item.detail ? <FittedText text={item.detail} width={cardWidth - 68 * unit} height={(cardHeight - 92 * unit) * 0.3}
-            fontSize={28 * unit} minFontSize={18 * unit} style={{fontWeight: 500, color: muted}} /> : null}
-        </Card>
-      </CuedMotion>)}
-    </div>
-    <Motion delay={8} style={{marginTop: 24 * unit}}><Body text={shot.body} height={bodyHeight} /></Motion>
   </>;
 };
 

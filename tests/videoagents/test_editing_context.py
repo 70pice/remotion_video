@@ -3,7 +3,7 @@
 import pytest
 
 from videoagents.contracts import Asset, Brief, Script, ScriptSegment, Timeline
-from videoagents.nodes.editing import EditingNode, compact_timeline_for_editing, has_unapplied_human_feedback
+from videoagents.nodes.editing import EditingNode, compact_timeline_for_editing, compact_visual_feedback
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState, job_context
 from videoagents.storage import Repository
@@ -44,30 +44,29 @@ def test_compact_timeline_for_editing_keeps_shots_and_projects_caption_windows()
     assert timeline["captions"][0]["text"] == "第一句"
 
 
-def test_editing_only_receives_unapplied_human_feedback():
+@pytest.mark.parametrize("applied", [True, False])
+def test_editing_receives_visual_acceptance_notes_without_historical_snapshots(applied):
     reviewed_timeline = {"shots": [{"shot_id": "shot-old"}]}
-    applied = {
+    extras = {
         "human_feedback": {
             "render": {
                 "decision": "revise",
-                "applied": True,
+                "note": "已实测原图区域；数字出现前展示任务参照",
+                "applied": applied,
                 "timeline": reviewed_timeline,
-            }
-        }
+                "script": {"title": "old"},
+            },
+            "script": {"decision": "revise", "note": "上游意见不属于剪辑输入"},
+        },
+        "unrelated": {"timeline": reviewed_timeline},
     }
-    pending = {
-        "human_feedback": {
-            "render": {
-                "decision": "revise",
-                "applied": False,
-                "timeline": reviewed_timeline,
-            }
-        }
-    }
-
-    assert not has_unapplied_human_feedback(applied)
-    assert has_unapplied_human_feedback(pending)
-    assert not has_unapplied_human_feedback({"human_feedback": []})
+    projected = compact_visual_feedback(extras)
+    assert projected == {"human_feedback": {"render": {
+        "decision": "revise", "note": extras["human_feedback"]["render"]["note"], "applied": applied,
+    }}}
+    assert extras["human_feedback"]["render"]["timeline"] == reviewed_timeline
+    assert compact_visual_feedback({"human_feedback": []}) == {}
+    assert compact_visual_feedback({"human_feedback": {"director": {"decision": "revise", "note": " "}}}) == {}
 
 
 def test_editing_model_receives_renderable_visual_metadata_without_audio_alignment_or_mutating_inputs(tmp_path, monkeypatch):
@@ -128,7 +127,12 @@ def test_editing_model_receives_renderable_visual_metadata_without_audio_alignme
                               "message": "UNIT TEST：停在模型预检，不渲染"}]}
 
     monkeypatch.setattr(node.model, "call", call)
+    visual_note = "原图区域已按像素实测，保持普通聊天参照可见"
     state = VideoState(**job_context(job), run_id="unit-editing-context", action="produce",
+                       extras={"human_feedback": {"director": {
+                           "decision": "revise", "note": visual_note, "applied": True,
+                           "timeline": {"shots": [{"shot_id": "obsolete-plan"}]},
+                       }}},
                        asset_metadata={audio.asset_id: {"alignment": {"origin": "state copy should not leak"}},
                                        video.asset_id: {"duration_seconds": 99, "alignment": {"origin": "state leak"}}})
 
@@ -140,6 +144,10 @@ def test_editing_model_receives_renderable_visual_metadata_without_audio_alignme
     assert (job_id, revision, role, command_id) == (
         job.job_id, job.revision, "editing", "unit-editing-context")
     assert schema["title"] == "EditingAdvice"
+    assert context["extras"] == {"human_feedback": {"director": {
+        "decision": "revise", "note": visual_note, "applied": True,
+    }}}
+    assert state["extras"]["human_feedback"]["director"]["timeline"]["shots"][0]["shot_id"] == "obsolete-plan"
     assert audio.asset_id not in context["asset_metadata"]
     assert context["asset_metadata"][video.asset_id] == {
         "duration_seconds": 2.4,

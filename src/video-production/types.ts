@@ -14,5 +14,11 @@ export type VideoMetadata = {width: number; height: number; duration: number};
 export type TimelineVideoProps = {timeline: Timeline; videoMetadata?: Record<string, VideoMetadata>};
 
 export type Highlight = {x: number; y: number; width: number; height: number};
-export type DataItem = {label: string; value: string; detail?: string; reveal_frame?: number};
+export type DataItem = {
+  label: string;
+  value: string;
+  detail?: string;
+  reveal_frame?: number;
+  numeric_value?: number;
+};
 export type StepItem = {title: string; body?: string; reveal_frame?: number};

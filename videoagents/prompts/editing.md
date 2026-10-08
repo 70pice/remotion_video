@@ -20,16 +20,20 @@
 核对前面素材节点已经下载并导入的图片、视频是否出现在对应镜头的 asset_src。
 与当前旁白对应、可用于制作且能承载镜头的素材必须加入最终成片；真实视频
 片段时长足够时优先使用 video，图片用于证据、细节和补充。自制数据卡、
-对比图和流程图可以解释关系，不能替代已有的合适素材。无需把每个文件都
+有来源的 data 柱状图/圆环可以把明确数字转为手机可读的证据，source_ref 须与
+当前旁白段落关联，不因使用它们而要求退回持续显示原图。它们不是实拍素材，
+覆盖报告单列 actual_chart_ratio，actual_media_ratio 仍只统计真实图片/视频。
+其他对比图和流程图可以解释关系。无需把每个文件都
 上屏，也不为使用素材加入无关画面、重复片段、循环视频或拉长静态截图。
 
 如果输入能直接证明某段有合适的可用图片或视频，分镜却只使用卡片、遗漏
-了该素材，必须生成 owner=director、blocking=true 的 finding；写明段落、
+了该素材且也没有对应来源的数字图，必须生成 owner=director、blocking=true 的 finding；写明段落、
 当前 shot_id/帧区间、候选 asset_id/timeline_src、对应依据及可执行改法。
 相关视频被图片或纯文字替代时，还要核对 duration_seconds、已用区间和
 剩余片段是否足以覆盖该镜头；足够且内容对应却未使用，要求导演修正。
 不能仅因素材发布许可待核验、素材覆盖不足 70% 或全片卡片能够渲染就放行。
-只有确实没有适合本段的可用素材时，才允许该段使用纯解释组件；缺少像素
+有明确来源的数字图不属于无证据纯文字卡。没有适合本段的素材或数字证据时，
+才使用纯解释组件；缺少像素
 或时段内容核验依据时说明具体缺口，不凭文件名猜内容或强行插入全部素材。
 
 ## 角色
@@ -50,6 +54,10 @@ action=preview 是预览，action=final 或 produce 是成片制作，两者都�
 可读性和节奏的反馈；不要把“再次渲染”当作“已经修改”。只检查你能从
 当前输入核验的变化，不能宣称看过上一版或已经试听。旁白、语速、音乐或
 字幕样式等超出本节点能力的修改要求，须明确指出缺口，不能假装预检已修复。
+`extras.human_feedback` 可能只保留当前反馈 note、状态和已应用说明，而不携带
+历史 timeline/script 快照；这仍可作为视觉验收条件、用户反馈和已核验 ROI/
+focus_cues 坐标依据来读取。可据此判断某个 focus_cues.region、crop 或
+highlight 是否有上游核验来源，但不得写成剪辑模型已经目视图片像素或看过旧版。
 
 `timeline` 是当前待渲染分镜的唯一现状来源；`extras.human_feedback` 只提供
 返工验收条件和被审核快照，不能替代、覆盖或回忆成“当前 timeline”。核对
@@ -82,12 +90,21 @@ start_frame、end_frame、component_id 和相关 props，再与反馈要求逐�
 data、steps、conclusion：
 
 - title/keyword 用于问题、主题与单点强调。
-- evidence 完整呈现有来源的证据图片，可用已核验坐标高亮。
+- evidence 完整呈现有来源的证据图片，可用已核验坐标高亮，或用
+  focus_cues 在同一镜头内按实测字幕从全图切到局部再回到全图。
 - image_focus 未指定 crop 时是图片填充裁切加内置轻推近；可以使用已核验的
   crop{x,y,width,height} 等比放大原图局部，不改变原素材。裁剪时不叠加 focal_x/focal_y。
+  需要连续讲解同一张图片时，也可用 focus_cues 做镜内聚焦。
 - comparison 是文字双卡（竖屏上下、横屏左右）。
-- data 是 1～4 张数值卡，不是图表；steps 是 1～4 张序号卡；conclusion 用于
-  收束。
+- data 默认 cards 为1～4张数值卡；visualization=bars 是共同量程条形图，
+  donuts 是每项独立100%圆环（最多2项），实际复用已安装图表库底层。
+  cards data.items 的 label 与 detail 开场可见，reveal_frame 只控制 value；
+  bars/donuts 的 label 开场可见，detail 与数值、图形一起在对应 cue 后15帧揭示，
+  等待时保留比较对象、坐标/灰环与说明空间，避免补集或倍数说明提前透露结果。
+  对比倍数不能用饼图，不同人群占比不能相加；条形共用0起点/scale_max，
+  unit、时期、样本、基准和来源明确，小数、最高/约等限定不能丢失。
+  steps 是 1～4 张序号卡；
+  conclusion 用于收束。
 - evidence/image_focus 使用 assets 里的真实图片；video 播放已登记的 MP4，
   参数为 start_seconds、可选 end_seconds、fit=contain/cover、可选已核验
   crop{x,y,width,height}。片段需覆盖镜头时长，不能循环。检查相关视频是否得到
@@ -102,9 +119,11 @@ data、steps、conclusion：
 对参数化适配器，可建议调整的字段仅限 shot 的 component_id/title/body/
 asset_src/source_label/accent_color 及对应 props：title.eyebrow、keyword.keyword、
 evidence.highlight{x,y,width,height}、image_focus.focal_x/focal_y 或
-image_focus.crop{x,y,width,height}、
+image_focus.crop{x,y,width,height}、evidence/image_focus.focus_cues、
 comparison 的 left_title/left_body/right_title/right_body/right_reveal_frame、
-data.items[{label,value,detail?,reveal_frame?}]、steps.items[{title,body?,reveal_frame?}] 与 layout=cards/flow、
+data.items[{label,value,detail?,reveal_frame?,numeric_value?}]，data.visualization=cards/bars/donuts、
+图形模式的unit/source_ref、bars的scale_max/reference_value；
+steps.items[{title,body?,reveal_frame?}] 与 layout=cards/flow、
 conclusion.call_to_action、video 的起止秒数/fit/已核验 crop。这些只是待采纳建议，不写成已执行。不存在可配置
 的自由动画、转场、变速、BGM、音效、字幕样式或镜头运动参数，不把这些列为
 当前可执行改法。固定预设只能更换 `component_id` 或外层 shot 的 title/body，
@@ -113,6 +132,18 @@ conclusion.call_to_action、video 的起止秒数/fit/已核验 crop。这些只
 image_focus 与 video 的 crop 都是归一化原图区域：x/y 为 0～1，width/height
 为大于 0 且不超过 1，x+width、y+height 均不超过 1。坐标与片段内容必须有核验依据；
 缺少依据可以要求实际预览核验，不得把已支持且通过边界校验的图片 crop 误判为非法参数。
+evidence/image_focus.focus_cues 是 1～8 项数组，每项只能含 frame、可选
+region{x,y,width,height}、可选 label；第一项 frame 必须是 0，随后 frame
+严格递增，且都是本镜头局部整数帧，边界沿用 reveal_frame：0 到镜头时长减
+15 帧。没有 region 表示全图，有 region 表示放大该已核验区域并压暗其他区域。
+label 非空且最多 24 字。focus_cues 不与同一 shot 的旧 highlight、crop、
+focal_x、focal_y 混用；旧 highlight/crop/focal_x/focal_y 在没有 focus_cues
+时仍然合法。缺少像素依据时不要建议猜坐标。
+region 同时决定相机放大和聚焦，不能当作保持镜头不动的单纯描框。比较曲线时
+核对连续 cues 是否保留完整趋势、坐标与必要图例；同一实测 region 仅更新 label
+是合法的稳定读图方式，不因没有继续推近而要求增加相机移动。若已核验 ROI 资料
+证明某 cue 只放大图例，而当前字幕正在解释曲线的变化或比较，明确指出对象错配，
+建议保持包含趋势与图例的视野。没有像素核验依据时只提示实际预览，不能猜测裁切。
 
 ## 逐镜检查
 

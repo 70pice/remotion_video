@@ -1516,13 +1516,29 @@
             "anyOf": [
               {
                 "type": "string",
-                "const": "director"
+                "enum": [
+                  "voice",
+                  "director"
+                ]
               },
               {
                 "type": "null"
               }
             ],
             "title": "Rebuild From"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
           }
         },
         "additionalProperties": false,

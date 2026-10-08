@@ -193,8 +193,28 @@ def test_editing_prompt_allows_verified_image_crop():
     assert "image_focus.crop{x,y,width,height}" in editing.PROMPT
 
 
+def test_editing_prompt_describes_focus_cues_and_data_reveal_contract():
+    prompt = editing.PROMPT
+
+    assert "evidence/image_focus.focus_cues" in prompt
+    assert "1～8 项数组" in prompt
+    assert "第一项 frame 必须是 0" in prompt
+    assert "严格递增" in prompt
+    assert "没有 region 表示全图" in prompt
+    assert "放大该已核验区域并压暗其他区域" in prompt
+    assert "不与同一 shot 的旧 highlight、crop、" in prompt
+    assert "旧 highlight/crop/focal_x/focal_y 在没有 focus_cues" in prompt
+    assert "cards data.items 的 label 与 detail 开场可见" in prompt
+    assert "reveal_frame 只控制 value" in prompt
+    assert "bars/donuts 的 label 开场可见，detail 与数值、图形一起" in prompt
+
+
 def test_editing_prompt_treats_current_timeline_as_authoritative():
     assert "timeline` 是当前待渲染分镜的唯一现状来源" in editing.PROMPT
+    assert "可能只保留当前反馈 note、状态和已应用说明" in editing.PROMPT
+    assert "已核验 ROI/" in editing.PROMPT
+    assert "focus_cues 坐标依据" in editing.PROMPT
+    assert "不得写成剪辑模型已经目视图片像素或看过旧版" in editing.PROMPT
     assert "该数值必须与当前" in editing.PROMPT
     assert "旧值写成现状或据此阻断" in editing.PROMPT
 
@@ -221,6 +241,20 @@ RUNTIME_PROMPTS = [
     editing.PROMPT,
     reviewers.PROMPT,
 ]
+
+
+def test_chart_focus_keeps_trends_visible_during_series_comparisons():
+    assert "不得单独放大图例" in director.PROMPT
+    assert "后续 cues 沿用同一实测 region、仅更新 label" in director.PROMPT
+    assert "region 同时控制相机和聚焦范围" in director.PROMPT
+    assert "同一实测 region 仅更新 label" in editing.PROMPT
+    assert "当前字幕正在解释曲线的变化或比较" in editing.PROMPT
+    assert "没有像素核验依据时只提示实际预览" in editing.PROMPT
+
+
+def test_director_uses_current_audio_after_voice_revision():
+    assert "本轮已实测的音频" in director.PROMPT
+    assert "不能把旧音频、旧字幕或旧切点写回" in director.PROMPT
 
 
 @pytest.mark.parametrize("prompt", RUNTIME_PROMPTS, ids=[

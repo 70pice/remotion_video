@@ -93,6 +93,114 @@ test('semantic cues accept local frames and legacy props without rewriting facts
   }
 });
 
+test('data visualizations validate chart fields without rewriting facts', () => {
+  for (const props of [
+    {visualization: 'cards', items: [{label: '价格', value: '20'}]},
+    {visualization: 'bars', source_ref: 'https://example.com/report', unit: '倍', scale_max: 10, reference_value: 5,
+      items: [{label: '用量', value: '4 倍', numeric_value: 4, reveal_frame: 0}]},
+    {visualization: 'donuts', source_ref: 'https://example.com/report', unit: '%',
+      items: [{label: '缓存', value: '86%', numeric_value: 86}, {label: '人工', value: '29%', numeric_value: 29, reveal_frame: 45}]},
+  ]) {
+    const timeline = fixture();
+    Object.assign(timeline.shots[0], {component_id: 'data', props});
+    if (props.visualization !== 'cards') timeline.shots[0].source_label = '来源';
+    const before = structuredClone(timeline);
+    assert.equal(validateTimeline(timeline), timeline);
+    assert.deepEqual(timeline, before);
+  }
+});
+
+test('data visualizations reject unsafe chart field combinations', () => {
+  const invalidCases = [
+    [{items: [{label: '价格', value: '20', numeric_value: 20}]}, /unsupported/],
+    [{visualization: 'cards', source_ref: 'https://example.com/report', items: [{label: '价格', value: '20'}]}, /source_ref/],
+    [{visualization: 'cards', unit: '倍', items: [{label: '价格', value: '20'}]}, /unit/],
+    [{visualization: 'bars', source_ref: 'https://example.com/report', unit: '倍', scale_max: 10,
+      items: [{label: '用量', value: '4 倍'}]}, /numeric_value/],
+    [{visualization: 'bars', source_ref: 'https://example.com/report', unit: '倍', scale_max: 10,
+      items: [{label: '用量', value: '4 倍', numeric_value: '4'}]}, /numeric_value/],
+    [{visualization: 'bars', source_ref: 'https://example.com/report', unit: '倍', scale_max: 10,
+      items: [{label: '用量', value: '4 倍', numeric_value: true}]}, /numeric_value/],
+    [{visualization: 'bars', source_ref: 'https://example.com/report', unit: '倍', scale_max: 3,
+      items: [{label: '用量', value: '4 倍', numeric_value: 4}]}, /numeric_value/],
+    [{visualization: 'bars', source_ref: 'https://example.com/report', unit: 'x'.repeat(25), scale_max: 10,
+      items: [{label: '用量', value: '4 倍', numeric_value: 4}]}, /unit/],
+    [{visualization: 'bars', source_ref: 'https://example.com/report', unit: '倍', scale_max: 10, reference_value: 11,
+      items: [{label: '用量', value: '4 倍', numeric_value: 4}]}, /reference_value/],
+    [{visualization: 'donuts', source_ref: 'https://example.com/report', unit: '倍',
+      items: [{label: '缓存', value: '86%', numeric_value: 86}]}, /unit/],
+    [{visualization: 'donuts', source_ref: 'https://example.com/report', unit: '%', scale_max: 100,
+      items: [{label: '缓存', value: '86%', numeric_value: 86}]}, /scale_max/],
+    [{visualization: 'donuts', source_ref: 'https://example.com/report', unit: '%',
+      items: [{label: '缓存', value: '101%', numeric_value: 101}]}, /numeric_value/],
+    [{visualization: 'donuts', source_ref: 'https://example.com/report', unit: '%',
+      items: [{label: '一', value: '1%', numeric_value: 1}, {label: '二', value: '2%', numeric_value: 2}, {label: '三', value: '3%', numeric_value: 3}]}, /donuts/],
+    [{visualization: 'bars', source_ref: 'not-a-url', unit: '倍', scale_max: 10,
+      items: [{label: '用量', value: '4 倍', numeric_value: 4}]}, /HTTP\/HTTPS/],
+  ];
+  for (const [props, message] of invalidCases) {
+    const timeline = fixture();
+    Object.assign(timeline.shots[0], {component_id: 'data', source_label: '来源', props});
+    assert.throws(() => validateTimeline(timeline), message);
+  }
+  const missingLabel = fixture();
+  Object.assign(missingLabel.shots[0], {
+    component_id: 'data',
+    source_label: '',
+    props: {visualization: 'bars', source_ref: 'https://example.com/report', unit: '倍', scale_max: 10,
+      items: [{label: '用量', value: '4 倍', numeric_value: 4}]},
+  });
+  assert.throws(() => validateTimeline(missingLabel), /source label/);
+});
+
+test('image focus cues accept overview-focus-overview sequences without rewriting facts', () => {
+  for (const component of ['evidence', 'image_focus']) {
+    const timeline = fixture();
+    Object.assign(timeline.shots[0], {
+      component_id: component,
+      asset_src: 'videoagents/test-job/source.png',
+      source_label: '来源',
+      props: {focus_cues: [
+        {frame: 0, label: '总览'},
+        {frame: 20, region: {x: 0.1, y: 0.2, width: 0.45, height: 0.35}, label: '重点'},
+        {frame: 40},
+      ]},
+    });
+    const before = structuredClone(timeline);
+    assert.equal(validateTimeline(timeline), timeline);
+    assert.deepEqual(timeline, before);
+  }
+});
+
+test('image focus cues reject invalid shape, timing, conflicts and labels', () => {
+  const invalidCases = [
+    ['evidence', {focus_cues: [{frame: 46}]}, /integer/],
+    ['evidence', {focus_cues: [{frame: true}]}, /integer/],
+    ['evidence', {focus_cues: [{frame: Number.NaN}]}, /integer/],
+    ['image_focus', {focus_cues: [{frame: 0}, {frame: 0}]}, /strictly increasing/],
+    ['image_focus', {focus_cues: [{frame: 0}, {frame: 10}, {frame: 5}]}, /strictly increasing/],
+    ['evidence', {focus_cues: [{frame: 10}]}, /must be 0/],
+    ['evidence', {focus_cues: [{frame: 0, extra: 'bad'}]}, /unsupported/],
+    ['evidence', {focus_cues: [{frame: 0}], highlight: {x: 0, y: 0, width: 1, height: 1}}, /cannot be mixed/],
+    ['image_focus', {focus_cues: [{frame: 0}], crop: {x: 0, y: 0, width: 1, height: 1}}, /cannot be mixed/],
+    ['image_focus', {focus_cues: [{frame: 0}], focal_x: 0.5}, /cannot be mixed/],
+    ['evidence', {focus_cues: [{frame: 0, label: '字'.repeat(25)}]}, /at most 24/],
+    ['evidence', {focus_cues: {frame: 0}}, /1 to 8/],
+    ['evidence', {focus_cues: []}, /1 to 8/],
+    ['evidence', {focus_cues: [{frame: 0, region: {x: 0.8, y: 0, width: 0.3, height: 1}}]}, /inside the image/],
+  ];
+  for (const [component, props, message] of invalidCases) {
+    const timeline = fixture();
+    Object.assign(timeline.shots[0], {
+      component_id: component,
+      asset_src: 'videoagents/test-job/source.png',
+      source_label: '来源',
+      props,
+    });
+    assert.throws(() => validateTimeline(timeline), message);
+  }
+});
+
 test('semantic cues reject invalid frame types, late cues and unordered item reveals', () => {
   for (const cue of [-1, 46, 1.5, true, '10', null]) {
     for (const component of ['data', 'steps', 'comparison']) {

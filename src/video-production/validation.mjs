@@ -43,6 +43,23 @@ const fraction = (value, name) => {
     fail(`${name} must be a number between 0 and 1`);
   }
 };
+const finiteNumber = (value, name, minimum = -Infinity, maximum = Infinity) => {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < minimum || value > maximum) {
+    fail(`${name} must be a finite number from ${minimum} to ${maximum}`);
+  }
+};
+const httpUrl = (value, name) => {
+  if (typeof value !== 'string' || !value.trim()) fail(`${name} must be a nonempty HTTP/HTTPS URL`);
+  let parsed;
+  try {
+    parsed = new globalThis.URL(value);
+  } catch {
+    fail(`${name} must be a nonempty HTTP/HTTPS URL`);
+  }
+  if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || !parsed.hostname) {
+    fail(`${name} must be a nonempty HTTP/HTTPS URL`);
+  }
+};
 const normalizedRect = (value, name, subject) => {
   const rect = object(value, name);
   keys(rect, ['x', 'y', 'width', 'height'], name);
@@ -71,6 +88,20 @@ export const validateMediaSource = (source, jobId, name = 'media source') => {
 const validateProps = (shot, name) => {
   const props = object(shot.props, `${name}.props`);
   const validateCue = (cue, cueName) => integer(cue, cueName, 0, shot.end_frame - shot.start_frame - 15);
+  const validateFocusCues = (cues) => {
+    if (!Array.isArray(cues) || cues.length < 1 || cues.length > 8) fail(`${name}.props.focus_cues requires 1 to 8 focus cues`);
+    let previous = -1;
+    cues.forEach((raw, index) => {
+      const cue = object(raw, `${name}.props.focus_cues[${index}]`);
+      keys(cue, ['frame', 'region', 'label'], `${name}.props.focus_cues[${index}]`);
+      validateCue(cue.frame, `${name}.props.focus_cues[${index}].frame`);
+      if (index === 0 && cue.frame !== 0) fail(`${name}.props.focus_cues[0].frame must be 0`);
+      if (cue.frame <= previous) fail(`${name}.props.focus_cues frames must be strictly increasing`);
+      previous = cue.frame;
+      if (cue.region !== undefined) normalizedRect(cue.region, `${name}.props.focus_cues[${index}].region`, 'image');
+      optionalText(cue.label, `${name}.props.focus_cues[${index}].label`, 24);
+    });
+  };
   const validateItemCues = (items) => {
     let previous = 0;
     items.forEach((item, index) => {
@@ -95,16 +126,26 @@ const validateProps = (shot, name) => {
       optionalText(props.keyword, `${name}.props.keyword`, 40);
       break;
     case 'evidence': {
-      keys(props, ['highlight'], `${name}.props`);
+      keys(props, ['highlight', 'focus_cues'], `${name}.props`);
       if (!shot.asset_src || !shot.source_label.trim()) fail(`${name}: evidence requires an image and a source label`);
+      if (props.focus_cues !== undefined) {
+        if (props.highlight !== undefined) fail(`${name}.props.focus_cues cannot be mixed with highlight`);
+        validateFocusCues(props.focus_cues);
+      }
       if (props.highlight !== undefined) {
         normalizedRect(props.highlight, `${name}.props.highlight`, 'image');
       }
       break;
     }
     case 'image_focus':
-      keys(props, ['focal_x', 'focal_y', 'crop'], `${name}.props`);
+      keys(props, ['focal_x', 'focal_y', 'crop', 'focus_cues'], `${name}.props`);
       if (!shot.asset_src) fail(`${name}: image_focus requires an image`);
+      if (props.focus_cues !== undefined) {
+        if (props.focal_x !== undefined || props.focal_y !== undefined || props.crop !== undefined) {
+          fail(`${name}.props.focus_cues cannot be mixed with focal_x, focal_y or crop`);
+        }
+        validateFocusCues(props.focus_cues);
+      }
       for (const field of ['focal_x', 'focal_y']) if (props[field] !== undefined) fraction(props[field], `${name}.props.${field}`);
       if (props.crop !== undefined) {
         normalizedRect(props.crop, `${name}.props.crop`, 'image');
@@ -130,15 +171,46 @@ const validateProps = (shot, name) => {
       if (props.right_reveal_frame !== undefined) validateCue(props.right_reveal_frame, `${name}.props.right_reveal_frame`);
       break;
     case 'data':
-      keys(props, ['items'], `${name}.props`);
-      if (!Array.isArray(props.items) || props.items.length < 1 || props.items.length > 4) fail(`${name}.props.items requires 1 to 4 supplied data items`);
+      keys(props, ['items', 'visualization', 'scale_max', 'unit', 'reference_value', 'source_ref'], `${name}.props`);
+      if (props.visualization !== undefined && !['cards', 'bars', 'donuts'].includes(props.visualization)) {
+        fail(`${name}.props.visualization must be cards, bars or donuts`);
+      }
+      {
+        const visualization = props.visualization ?? 'cards';
+        const chart = ['bars', 'donuts'].includes(visualization);
+        if (chart && !shot.source_label.trim()) fail(`${name}: data charts require a source label`);
+        if (!chart && props.source_ref !== undefined) fail(`${name}.props.source_ref is only supported for bars or donuts`);
+        if (visualization === 'cards') {
+          for (const field of ['scale_max', 'unit', 'reference_value']) {
+            if (props[field] !== undefined) fail(`${name}.props.${field} is only supported for bars or donuts`);
+          }
+        }
+        if (!Array.isArray(props.items) || props.items.length < 1 || props.items.length > (visualization === 'donuts' ? 2 : 4)) {
+          fail(`${name}.props.items requires 1 to 4 supplied data items; donuts accepts at most 2`);
+        }
+        if (chart) httpUrl(props.source_ref, `${name}.props.source_ref`);
+        if (visualization === 'bars') {
+          finiteNumber(props.scale_max, `${name}.props.scale_max`, Number.MIN_VALUE);
+          text(props.unit, `${name}.props.unit`, 24, true);
+          if (props.reference_value !== undefined) finiteNumber(props.reference_value, `${name}.props.reference_value`, 0, props.scale_max);
+        }
+        if (visualization === 'donuts') {
+          if (props.unit !== '%') fail(`${name}.props.unit must be % for donuts`);
+          if (props.scale_max !== undefined || props.reference_value !== undefined) {
+            fail(`${name}.props.scale_max and reference_value are unsupported for donuts`);
+          }
+        }
       props.items.forEach((raw, index) => {
         const item = object(raw, `${name}.props.items[${index}]`);
-        keys(item, ['label', 'value', 'detail', 'reveal_frame'], `${name}.props.items[${index}]`);
+        keys(item, chart ? ['label', 'value', 'detail', 'reveal_frame', 'numeric_value'] : ['label', 'value', 'detail', 'reveal_frame'], `${name}.props.items[${index}]`);
         text(item.label, `${name}.props.items[${index}].label`, 48, true);
         text(item.value, `${name}.props.items[${index}].value`, 40, true);
         optionalText(item.detail, `${name}.props.items[${index}].detail`, 64);
+        if (chart) {
+          finiteNumber(item.numeric_value, `${name}.props.items[${index}].numeric_value`, 0, visualization === 'donuts' ? 100 : props.scale_max);
+        }
       });
+      }
       validateItemCues(props.items);
       break;
     case 'steps':

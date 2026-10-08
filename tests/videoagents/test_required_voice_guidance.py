@@ -155,6 +155,72 @@ def test_successful_new_tts_receives_completed_guidance_and_preserves_user_setti
     assert repo.get_job(job.job_id).script == job.script
 
 
+def test_voice_rebuild_feedback_reaches_guidance_and_is_marked_applied(voice_job, monkeypatch):
+    repo, service, job = voice_job
+    calls = []
+
+    def advice(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        calls.append(("guidance", command_id))
+        feedback = context["extras"]["human_feedback"]["voice"]
+        assert feedback["note"] == "UNIT：声音语速和音量不统一，重配音时保持稳定。"
+        return {
+            "delivery_notes": ["同一 speech_rate 下保持响度和气口稳定，用短停顿和关键词重读处理情绪。"],
+            "pronunciation_notes": [],
+            "findings": [],
+        }
+
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", advice)
+    output = io.BytesIO()
+    with wave.open(output, "wb") as media:
+        media.setnchannels(1)
+        media.setsampwidth(2)
+        media.setframerate(16000)
+        media.writeframes(b"\0\0" * 32000)
+    path = repo.root / "UNIT-rebuild-test.wav"
+    path.write_bytes(output.getvalue())
+
+    def provider(repository, job_id, revision, text, command_id, **options):
+        calls.append(("tts", command_id, options.get("operation_key")))
+        return {
+            "path": str(path),
+            "origin": "byte_ws",
+            "voice_fingerprint": voice_fingerprint(SettingsService(repository).internal()),
+            "sentences": [{"words": [{"word": text, "startTime": 0, "endTime": 1.8}]}],
+        }
+
+    monkeypatch.setattr("videoagents.nodes.voice.synthesize", provider)
+    state = {
+        "job_id": job.job_id,
+        "revision": job.revision,
+        "action": "produce",
+        "run_id": "UNIT-resume-command",
+        "thread_id": "UNIT-thread",
+        "extras": {
+            "voice_rebuild": True,
+            "voice_rebuild_id": "UNIT-voice-rebuild-command",
+            "human_feedback": {"voice": {
+                "decision": "revise",
+                "note": "UNIT：声音语速和音量不统一，重配音时保持稳定。",
+                "pending_token": "UNIT-voice-rebuild-command",
+                "applied": False,
+            }},
+        },
+    }
+
+    result = VoiceNode(repo, service)(state)
+    current = repo.get_job(job.job_id)
+
+    assert result["route"] == "audio_gate"
+    assert calls == [
+        ("guidance", "UNIT-voice-rebuild-command"),
+        ("tts", "UNIT-voice-rebuild-command", "voice-rebuild:UNIT-voice-rebuild-command:whole"),
+    ]
+    assert result["extras"]["voice_rebuild"] is None
+    assert result["extras"]["human_feedback"]["voice"]["applied"] is True
+    assert result["extras"]["human_feedback"]["voice"]["applied_target"] == "voice"
+    assert any(item.kind == "human_feedback_applied" for item in current.artifacts)
+
+
 @pytest.mark.parametrize("provider", ["byte_ws", "byte_http"])
 @pytest.mark.parametrize("status", ["SUBMITTING", "UNKNOWN"])
 def test_unsettled_tts_pauses_before_another_guidance_call(voice_job, monkeypatch, provider, status):

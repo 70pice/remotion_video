@@ -1,4 +1,5 @@
 import io
+import json
 import math
 import struct
 import wave
@@ -8,6 +9,7 @@ from fastapi.testclient import TestClient
 
 from server.main import create_app
 from videoagents.contracts import Review, Script, ScriptSegment
+from videoagents.storage.repository import dumps, fingerprint
 
 
 def tone(seconds=2):
@@ -60,6 +62,46 @@ def test_visual_rebuild_requires_completed_visuals_and_exclusive_video_target(cl
     assert client.post(url, json=payload).status_code == 409
     for changes in ({"action": "voice"}, {"continue_from": "voice"}, {"rebuild_from": "editing"}):
         assert client.post(url, json={**payload, **changes}).status_code == 422
+    with client.app.state.repository.connection() as db:
+        assert db.execute("SELECT COUNT(*) FROM commands").fetchone()[0] == 0
+
+
+def test_visual_rebuild_note_is_validated_and_passed_to_durable_command(client, monkeypatch):
+    job = create(client)
+    received = []
+
+    def enqueue(job_id, payload):
+        received.append((job_id, payload))
+        return client.app.state.repository.get_job(job_id)
+
+    monkeypatch.setattr(client.app.state.repository, "enqueue", enqueue)
+    url = f"/api/jobs/{job['job_id']}/runs"
+    payload = {"base_revision": job["revision"], "action": "produce", "rebuild_from": "director",
+               "idempotency_key": "UNIT-visual-feedback"}
+    note = "放大图表中的关键区域，数字出现前保留对应的说明。"
+    response = client.post(url, json={**payload, "note": f"  {note}  "})
+    assert response.status_code == 202
+    assert received == [(job["job_id"], {**payload, "note": note})]
+    for changes in ({"note": ""}, {"note": "  \n  "}, {"note": "字" * 3001},
+                    {"note": note, "rebuild_from": None},
+                    {"note": note, "rebuild_from": None, "continue_from": "voice"}):
+        assert client.post(url, json={**payload, **changes}).status_code == 422
+    assert len(received) == 1
+    assert client.post(url, json=payload).status_code == 202
+    assert received[-1] == (job["job_id"], payload)
+    voice_payload = {**payload, "rebuild_from": "voice", "note": note}
+    assert client.post(url, json=voice_payload).status_code == 202
+    assert received[-1] == (job["job_id"], voice_payload)
+    assert client.post(url, json={**voice_payload, "action": "voice"}).status_code == 202
+    assert client.post(url, json={**voice_payload, "continue_from": "voice"}).status_code == 422
+    assert client.post(url, json={**voice_payload, "action": "review"}).status_code == 422
+
+
+def test_voice_rebuild_requires_completed_production_inputs(client):
+    job = create(client)
+    payload = {"base_revision": job["revision"], "action": "produce", "rebuild_from": "voice",
+               "note": "UNIT：声音保持一致，20秒图表先全图后聚焦。", "idempotency_key": "UNIT-rebuild-voice"}
+    assert client.post(f"/api/jobs/{job['job_id']}/runs", json=payload).status_code == 409
     with client.app.state.repository.connection() as db:
         assert db.execute("SELECT COUNT(*) FROM commands").fetchone()[0] == 0
 
@@ -142,6 +184,126 @@ def test_durable_idempotency_and_revision_conflict(client):
     result = client.patch(f"/api/jobs/{job['job_id']}/draft", json={"base_revision": 1, "brief": job["brief"]})
     assert result.status_code == 200
     assert result.json()["revision"] == 2
+
+
+def input_pending(job, token="unit-pending-token-0001"):
+    return {
+        "kind": "input",
+        "stage": "voice",
+        "question": "继续配音？",
+        "thread_id": f"job:{job['job_id']}:run:failed-resume",
+        "revision": job["revision"],
+        "pending_token": token,
+    }
+
+
+def fail_resume_command(client, job, *, pending=None, decision="confirm", note=""):
+    repo = client.app.state.repository
+    pending = pending or input_pending(job)
+    status = "NEEDS_HUMAN" if pending.get("kind") != "input" else "NEEDS_INPUT"
+    repo.update_job(job["job_id"], job["revision"], status=status, pending_input=pending)
+    payload = {
+        "base_revision": job["revision"],
+        "decision": decision,
+        "note": note,
+        "pending_token": pending["pending_token"],
+        "idempotency_key": f"UNIT-initial-resume-{pending['pending_token']}",
+    }
+    response = client.post(f"/api/jobs/{job['job_id']}/resume", json=payload)
+    assert response.status_code == 202
+    with repo.connection() as db:
+        row = db.execute("SELECT command_id,payload FROM commands WHERE job_id=? ORDER BY created_at DESC LIMIT 1",
+                         (job["job_id"],)).fetchone()
+    repo.finish(row["command_id"], "FAILED")
+    repo.update_job(job["job_id"], job["revision"], status="FAILED", message="unit failed", pending_input=None)
+    return payload, pending, row["command_id"]
+
+
+def test_failed_input_resume_can_be_retried_with_same_answer(client):
+    job = create(client)
+    initial, pending, failed_command = fail_resume_command(client, job, note="继续")
+
+    retry = {**initial, "idempotency_key": "UNIT-retry-failed-resume"}
+    response = client.post(f"/api/jobs/{job['job_id']}/resume", json=retry)
+
+    assert response.status_code == 202
+    result = response.json()
+    assert result["status"] == "QUEUED"
+    assert result["pending_input"] is None
+    repo = client.app.state.repository
+    with repo.connection() as db:
+        rows = db.execute("SELECT command_id,status,payload FROM commands WHERE job_id=? ORDER BY created_at",
+                          (job["job_id"],)).fetchall()
+    assert [row["status"] for row in rows] == ["FAILED", "PENDING"]
+    assert rows[0]["command_id"] == failed_command
+    replay = json.loads(rows[1]["payload"])
+    assert replay["pending_input"] == pending
+    assert replay["pending_token"] == initial["pending_token"]
+    assert replay["decision"] == "confirm"
+    assert replay["note"] == "继续"
+
+
+@pytest.mark.parametrize("changes", [
+    {"pending_token": "unit-pending-token-wrong"},
+    {"decision": "revise"},
+    {"note": "不同意见"},
+])
+def test_failed_input_resume_retry_rejects_changed_answer(client, changes):
+    job = create(client)
+    initial, _, _ = fail_resume_command(client, job, note="继续")
+
+    retry = {**initial, **changes, "idempotency_key": f"UNIT-retry-changed-{next(iter(changes))}"}
+    response = client.post(f"/api/jobs/{job['job_id']}/resume", json=retry)
+
+    assert response.status_code == 409
+    assert "安全重试" in response.json()["detail"] or "绑定的中断已变化" in response.json()["detail"]
+
+
+def test_failed_input_resume_retry_rejects_old_revision(client):
+    job = create(client)
+    initial, _, _ = fail_resume_command(client, job)
+    repo = client.app.state.repository
+    repo.update_job(job["job_id"], job["revision"], revision=job["revision"] + 1)
+
+    retry = {**initial, "base_revision": job["revision"] + 1, "idempotency_key": "UNIT-retry-old-revision"}
+    response = client.post(f"/api/jobs/{job['job_id']}/resume", json=retry)
+
+    assert response.status_code == 409
+    assert "安全重试" in response.json()["detail"]
+
+
+def test_failed_input_resume_retry_rejects_when_latest_command_is_not_failed_resume(client):
+    job = create(client)
+    initial, _, _ = fail_resume_command(client, job)
+    repo = client.app.state.repository
+    newer = {"base_revision": job["revision"], "action": "produce", "idempotency_key": "newer-done"}
+    with repo.connection(immediate=True) as db:
+        db.execute("INSERT INTO commands(command_id,job_id,idempotency_key,payload,payload_hash,status,created_at) "
+                   "VALUES('newer-command',?,?,?,?,?,?)",
+                   (job["job_id"], newer["idempotency_key"], dumps(newer), fingerprint(newer), "DONE", "9999-01-01T00:00:00+00:00"))
+
+    retry = {**initial, "idempotency_key": "UNIT-retry-not-latest"}
+    response = client.post(f"/api/jobs/{job['job_id']}/resume", json=retry)
+
+    assert response.status_code == 409
+    assert "安全重试" in response.json()["detail"]
+
+
+def test_failed_resume_retry_rejects_non_input_pending(client):
+    job = create(client)
+    pending = {
+        **input_pending(job, "unit-pending-token-review"),
+        "kind": "stage_review",
+        "stage": "script",
+        "node_name": "human_review_script",
+    }
+    initial, _, _ = fail_resume_command(client, job, pending=pending)
+
+    retry = {**initial, "idempotency_key": "UNIT-retry-non-input"}
+    response = client.post(f"/api/jobs/{job['job_id']}/resume", json=retry)
+
+    assert response.status_code == 409
+    assert "安全重试" in response.json()["detail"]
 
 
 def test_removed_review_action_is_rejected_before_enqueue(client):

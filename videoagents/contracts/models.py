@@ -346,14 +346,25 @@ class RunRequest(Contract):
     action: Literal["produce", "voice", "storyboard", "preview", "final", "review"]
     idempotency_key: str = Field(min_length=8, max_length=200)
     continue_from: Literal["voice"] | None = None
-    rebuild_from: Literal["director"] | None = None
+    rebuild_from: Literal["voice", "director"] | None = None
+    note: str | None = Field(default=None, min_length=1, max_length=3000)
+
+    @field_validator("note")
+    @classmethod
+    def readable_note(cls, value: str | None) -> str | None:
+        if value is not None and not value.strip():
+            raise ValueError("制作返工意见不能为空")
+        return value.strip() if value is not None else None
 
     @model_validator(mode="after")
     def continuation_target(self):
         if self.continue_from is not None and self.rebuild_from is not None:
             raise ValueError("续跑与重做画面不能同时指定")
-        if (self.continue_from is not None or self.rebuild_from is not None) and self.action not in {"produce", "storyboard", "preview", "final"}:
+        voice_only_rebuild = self.rebuild_from == "voice" and self.action == "voice"
+        if (self.continue_from is not None or self.rebuild_from is not None) and self.action not in {"produce", "storyboard", "preview", "final"} and not voice_only_rebuild:
             raise ValueError("配音完成后的续跑需指定分镜或视频制作目标")
+        if self.note is not None and self.rebuild_from is None:
+            raise ValueError("制作意见仅适用于从配音或导演重做")
         return self
 
 

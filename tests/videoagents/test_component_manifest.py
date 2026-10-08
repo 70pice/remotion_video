@@ -1,7 +1,9 @@
 """The production manifest exposes every verified community component."""
 
+import hashlib
 import importlib.resources
 import json
+from pathlib import Path
 
 from videoagents.contracts import Shot
 from videoagents.tools.catalog import component_catalog
@@ -75,3 +77,21 @@ def test_component_study_payload_projects_vertical_usage_and_source_guides():
     assert "durationInFrames" in summary["meta_hint"]
     assert "CONFIG" in summary["config_hint"]
     assert "Props" in summary["props_hint"]
+
+
+def test_data_component_study_binds_the_reused_chart_implementations():
+    payload = component_study_payload("personal")
+    data = next(entry for entry in payload["components"] if entry["component_id"] == "data")
+    root = Path(__file__).resolve().parents[2]
+    sources = data["implementation_sources"]
+    assert {source["path"] for source in sources} == {
+        "src/video-production/adapters/data.tsx",
+        "src/video-production/adapters/dataCharts.tsx",
+        "src/components/component-horizontal/remotion-ui/scenes/animated-bar-chart/index.tsx",
+        "src/components/component-horizontal/rve/donut-chart.tsx",
+    }
+    for source in sources:
+        assert source["sha256"] == hashlib.sha256((root / source["path"]).read_bytes()).hexdigest()
+    assert "scale_max" in data["adapter_constraints"]
+    assert "source_ref" in data["adapter_constraints"]
+    assert "0-100" in data["adapter_constraints"]

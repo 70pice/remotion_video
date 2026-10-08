@@ -24,24 +24,28 @@ class DirectorInputError(ValueError):
     """A visual plan issue must return to its owning production node."""
 
 
-def has_unapplied_human_feedback(extras: dict[str, Any]) -> bool:
-    """Only expose revision feedback that still needs an agent response.
+def compact_visual_feedback(extras: dict[str, Any]) -> dict[str, Any]:
+    """Keep visual acceptance notes and ROI evidence, never historical plans.
 
-    Applied receipts retain the reviewed script/timeline snapshot for audit
-    purposes.  Passing those immutable snapshots back to the editor after the
-    director has already changed ``job.timeline`` lets the model mistake the
-    old reviewed Timeline for the current executable one.
+    Applied feedback still describes what the editor must check. Its old
+    timeline/script snapshots belong to the audit receipt and must not be
+    confused with the current executable timeline.
     """
-
     feedback = extras.get("human_feedback", {})
     if type(feedback) is not dict:
-        return False
-    return any(
-        type(item) is dict
-        and item.get("decision") == "revise"
-        and item.get("applied") is not True
-        for item in feedback.values()
-    )
+        return {}
+    selected = {}
+    for stage in ("director", "render"):
+        item = feedback.get(stage)
+        if type(item) is not dict or item.get("decision") != "revise":
+            continue
+        note = item.get("note")
+        if type(note) is not str or not note.strip():
+            continue
+        selected[stage] = {key: copy.deepcopy(item[key]) for key in
+                           ("stage", "decision", "note", "target", "applied", "source_revision")
+                           if key in item}
+    return {"human_feedback": selected} if selected else {}
 
 
 def compact_timeline_for_editing(timeline: dict[str, Any]) -> dict[str, Any]:
@@ -119,7 +123,9 @@ class EditingNode:
                        } for asset in job.assets
                            if asset.mime_type.startswith(("image/", "video/"))}}
             fields = ("brief", "script", "timeline", "assets", "asset_metadata", "action")
-            if has_unapplied_human_feedback(context.get("extras", {})):
+            visual_feedback = compact_visual_feedback(context.get("extras", {}))
+            if visual_feedback:
+                context = {**context, "extras": visual_feedback}
                 fields = (*fields, "extras")
             value = self.model.invoke(context, "editing", PROMPT,
                 fields=fields,

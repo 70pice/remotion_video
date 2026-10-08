@@ -3,6 +3,7 @@
 import math
 import re
 from pathlib import PurePosixPath
+from urllib.parse import urlparse
 
 from videoagents.contracts import Job, Timeline
 from videoagents.tools.components import (
@@ -11,13 +12,15 @@ from videoagents.tools.components import (
 )
 
 ALLOWED_PROPS = {
-    "title": {"eyebrow"}, "keyword": {"keyword"}, "evidence": {"highlight"},
-    "image_focus": {"focal_x", "focal_y", "crop"},
+    "title": {"eyebrow"}, "keyword": {"keyword"}, "evidence": {"highlight", "focus_cues"},
+    "image_focus": {"focal_x", "focal_y", "crop", "focus_cues"},
     "video": {"start_seconds", "end_seconds", "fit", "crop"},
     "comparison": {"left_title", "left_body", "right_title", "right_body", "right_reveal_frame"},
-    "data": {"items"}, "steps": {"items", "layout"}, "conclusion": {"call_to_action"},
+    "data": {"items", "visualization", "scale_max", "unit", "reference_value", "source_ref"},
+    "steps": {"items", "layout"}, "conclusion": {"call_to_action"},
 }
 MEDIA_COMPONENT_IDS = frozenset({"video", "evidence", "image_focus"})
+CHART_VISUALIZATIONS = frozenset({"bars", "donuts"})
 MEDIA_COVERAGE_TARGET = 0.7
 NON_RENDERABLE_LICENSE_MARKERS = (
     "仅作核验依据",
@@ -80,6 +83,83 @@ def _script_segment_ranges(timeline: Timeline, job: Job) -> list[tuple[str, int,
     ]
 
 
+def _is_finite_number(value: object) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+
+def _valid_http_url(value: object) -> bool:
+    if not isinstance(value, str) or not value.strip():
+        return False
+    parsed = urlparse(value)
+    return parsed.scheme in {"http", "https"} and bool(parsed.hostname) and not parsed.username
+
+
+def _allowed_source_refs(job: Job) -> set[str]:
+    refs = set(job.brief.source_urls)
+    if job.script:
+        refs.update(ref for segment in job.script.segments for ref in segment.source_refs)
+    return refs
+
+
+def _data_visualization(props: dict[str, object]) -> str:
+    visualization = props.get("visualization", "cards")
+    return visualization if isinstance(visualization, str) else ""
+
+
+def _is_data_chart(shot) -> bool:
+    return shot.component_id == "data" and _data_visualization(shot.props) in CHART_VISUALIZATIONS
+
+
+def _chart_source_ref(shot) -> str | None:
+    ref = shot.props.get("source_ref")
+    return ref if isinstance(ref, str) else None
+
+
+def _source_ref_segment_frames(
+    shot,
+    ranges: list[tuple[str, int, int]],
+    source_refs_by_segment: dict[str, set[str]],
+    *,
+    validate_relationships: bool,
+    message_subject: str,
+) -> int:
+    source_ref = _chart_source_ref(shot)
+    linked_frames = 0
+    unrelated_frames = 0
+    for segment_id, start, end in ranges:
+        overlap = max(0, min(shot.end_frame, end) - max(shot.start_frame, start))
+        if not overlap:
+            continue
+        if source_ref and source_ref in source_refs_by_segment.get(segment_id, set()):
+            linked_frames += overlap
+        else:
+            unrelated_frames += overlap
+    if validate_relationships and not linked_frames:
+        raise ValueError(f"{message_subject}必须与当前旁白段落的 source_refs 语义关联")
+    if validate_relationships and unrelated_frames >= 15:
+        raise ValueError(f"{message_subject}跨入了没有语义关联的旁白段落")
+    return linked_frames
+
+
+def _add_linked_visual_frames(
+    visual_frame_indexes: set[int],
+    shot,
+    ranges: list[tuple[str, int, int]],
+    is_linked,
+) -> int:
+    linked_frames = 0
+    for segment_id, start, end in ranges:
+        if not is_linked(segment_id):
+            continue
+        overlap_start = max(shot.start_frame, start)
+        overlap_end = min(shot.end_frame, end)
+        if overlap_end <= overlap_start:
+            continue
+        linked_frames += overlap_end - overlap_start
+        visual_frame_indexes.update(range(overlap_start, overlap_end))
+    return linked_frames
+
+
 def media_coverage_report(
     timeline: Timeline,
     job: Job,
@@ -100,10 +180,15 @@ def media_coverage_report(
             "eligible_capacity_ratio": 0.0,
             "actual_media_frames": 0,
             "actual_media_ratio": 0.0,
+            "actual_chart_frames": 0,
+            "actual_chart_ratio": 0.0,
+            "actual_visual_frames": 0,
+            "actual_visual_ratio": 0.0,
             "required": False,
             "segments": [],
         }
     assets_by_src = {asset.timeline_src: asset for asset in job.assets}
+    source_refs_by_segment = {segment.segment_id: set(segment.source_refs) for segment in job.script.segments}
     remaining_video_frames = {}
     for asset in job.assets:
         duration = (asset_metadata or {}).get(asset.asset_id, {}).get("duration_seconds")
@@ -153,9 +238,36 @@ def media_coverage_report(
             ],
             "eligible_capacity_frames": capacity,
         })
-    actual_frames = 0
+    actual_media_frames = 0
+    actual_chart_frames = 0
+    visual_frame_indexes: set[int] = set()
     used_video_ranges: dict[str, list[tuple[float, float]]] = {}
     for shot in timeline.shots:
+        if _is_data_chart(shot):
+            source_ref = _chart_source_ref(shot)
+            if (
+                not shot.source_label.strip()
+                or not _valid_http_url(source_ref)
+                or source_ref not in _allowed_source_refs(job)
+            ):
+                if validate_relationships:
+                    raise ValueError("数据图表必须有非空来源标注和已批准的 HTTP/HTTPS source_ref")
+                continue
+            _source_ref_segment_frames(
+                shot,
+                ranges,
+                source_refs_by_segment,
+                validate_relationships=validate_relationships,
+                message_subject="数据图表",
+            )
+            linked_frames = _add_linked_visual_frames(
+                visual_frame_indexes,
+                shot,
+                ranges,
+                lambda segment_id: bool(source_ref and source_ref in source_refs_by_segment[segment_id]),
+            )
+            actual_chart_frames += linked_frames
+            continue
         if shot.component_id not in MEDIA_COMPONENT_IDS or not shot.asset_src:
             continue
         asset = assets_by_src.get(shot.asset_src)
@@ -184,14 +296,25 @@ def media_coverage_report(
             raise ValueError("媒体镜头必须与当前旁白段落的 asset_ids 或来源链接语义关联")
         if validate_relationships and unrelated_frames >= 15:
             raise ValueError("媒体镜头跨入了没有语义关联的旁白段落")
-        actual_frames += linked_frames
+        actual_media_frames += linked_frames
+        _add_linked_visual_frames(
+            visual_frame_indexes,
+            shot,
+            ranges,
+            lambda segment_id: shot.asset_src in eligible[segment_id],
+        )
+    actual_visual_frames = len(visual_frame_indexes)
     return {
         "target_ratio": MEDIA_COVERAGE_TARGET,
         "target_frames": target_frames,
         "eligible_capacity_frames": capacity_frames,
         "eligible_capacity_ratio": round(capacity_frames / timeline.duration_in_frames, 4),
-        "actual_media_frames": actual_frames,
-        "actual_media_ratio": round(actual_frames / timeline.duration_in_frames, 4),
+        "actual_media_frames": actual_media_frames,
+        "actual_media_ratio": round(actual_media_frames / timeline.duration_in_frames, 4),
+        "actual_chart_frames": actual_chart_frames,
+        "actual_chart_ratio": round(actual_chart_frames / timeline.duration_in_frames, 4),
+        "actual_visual_frames": actual_visual_frames,
+        "actual_visual_ratio": round(actual_visual_frames / timeline.duration_in_frames, 4),
         "required": capacity_frames >= target_frames,
         "segments": segment_reports,
     }
@@ -203,10 +326,13 @@ def validate_media_coverage(
     asset_metadata: dict[str, dict[str, object]] | None = None,
 ) -> dict[str, object]:
     report = media_coverage_report(timeline, job, asset_metadata)
-    if report["required"] and report["actual_media_frames"] < report["target_frames"]:
-        actual = float(report["actual_media_ratio"]) * 100
+    if report["required"] and report["actual_visual_frames"] < report["target_frames"]:
+        media = float(report["actual_media_ratio"]) * 100
+        chart = float(report["actual_chart_ratio"]) * 100
+        visual = float(report["actual_visual_ratio"]) * 100
         raise ValueError(
-            f"语义关联素材足以覆盖全片超过 70%，实际图片/视频镜头仅覆盖 {actual:.1f}%"
+            f"语义关联素材足以覆盖全片超过 70%，实际图片/视频镜头仅覆盖 {media:.1f}%，"
+            f"来源数据图表覆盖 {chart:.1f}%，合计视觉证据覆盖 {visual:.1f}%"
         )
     return report
 
@@ -241,6 +367,103 @@ def reveal_frame(value: object, duration: int) -> None:
         raise ValueError("展示帧必须是镜头内 0 到镜头时长减 15 的整数")
 
 
+def focus_cues(value: object, duration: int) -> None:
+    if not isinstance(value, list) or not 1 <= len(value) <= 8:
+        raise ValueError("图片聚焦点需要 1 到 8 项")
+    previous_frame = -1
+    for index, cue in enumerate(value):
+        if not isinstance(cue, dict) or not {"frame"} <= set(cue) <= {"frame", "region", "label"}:
+            raise ValueError("图片聚焦点字段不完整或含未知字段")
+        reveal_frame(cue["frame"], duration)
+        if index == 0 and cue["frame"] != 0:
+            raise ValueError("图片聚焦点第一项必须从第 0 帧开始")
+        if cue["frame"] <= previous_frame:
+            raise ValueError("图片聚焦点帧必须严格递增")
+        previous_frame = cue["frame"]
+        if "region" in cue:
+            normalized_rect(cue["region"], "图片聚焦区域必须在图片内部且面积非零")
+        if "label" in cue and not prop_text(cue["label"], 24):
+            raise ValueError("图片聚焦标签为空、过长或含控制字符")
+
+
+def validate_data_props(
+    shot,
+    job: Job,
+    ranges: list[tuple[str, int, int]],
+    source_refs_by_segment: dict[str, set[str]],
+) -> None:
+    props = shot.props
+    visualization = _data_visualization(props)
+    if visualization not in {"cards", "bars", "donuts"}:
+        raise ValueError("数据组件 visualization 只能是 cards、bars 或 donuts")
+    chart = visualization in CHART_VISUALIZATIONS
+    if chart and not shot.source_label.strip():
+        raise ValueError("数据图表必须标注非空 source_label")
+    if not chart and "source_ref" in props:
+        raise ValueError("卡片数据不接受 source_ref")
+    items = props.get("items")
+    max_items = 2 if visualization == "donuts" else 4
+    if not isinstance(items, list) or not 1 <= len(items) <= max_items:
+        raise ValueError("数据组件需要 1 到 4 项；donuts 最多 2 项")
+    common_item_keys = {"label", "value", "detail", "reveal_frame"}
+    item_allowed = common_item_keys | ({"numeric_value"} if chart else set())
+    previous_cue = 0
+    scale_max = props.get("scale_max")
+    if visualization == "bars":
+        if not _is_finite_number(scale_max) or scale_max <= 0:
+            raise ValueError("bars 数据图表需要正数 scale_max")
+        if not prop_text(props.get("unit"), 24):
+            raise ValueError("bars 数据图表需要非空 unit，最多 24 字")
+        reference_value = props.get("reference_value")
+        if reference_value is not None and (
+            not _is_finite_number(reference_value) or reference_value < 0 or reference_value > scale_max
+        ):
+            raise ValueError("bars reference_value 必须在 0 到 scale_max 之间")
+    elif visualization == "donuts":
+        if props.get("unit") != "%":
+            raise ValueError("donuts 数据图表的 unit 必须是 %")
+        if "scale_max" in props or "reference_value" in props:
+            raise ValueError("donuts 数据图表不接受 scale_max 或 reference_value")
+    else:
+        chart_fields = {"scale_max", "unit", "reference_value"}
+        if chart_fields & set(props):
+            raise ValueError("卡片数据不接受数值图表参数")
+    if chart:
+        source_ref = props.get("source_ref")
+        if not _valid_http_url(source_ref):
+            raise ValueError("数据图表 source_ref 必须是 HTTP/HTTPS URL")
+        if source_ref not in _allowed_source_refs(job):
+            raise ValueError("数据图表 source_ref 必须来自 brief.source_urls 或已批准文案 source_refs")
+        if ranges:
+            _source_ref_segment_frames(
+                shot,
+                ranges,
+                source_refs_by_segment,
+                validate_relationships=True,
+                message_subject="数据图表",
+            )
+    for item in items:
+        limits = {"label": 48, "value": 40, "detail": 64}
+        if not isinstance(item, dict) or not {"label", "value"} <= set(item) <= item_allowed:
+            raise ValueError("数据字段不完整或含未知字段")
+        if any(not prop_text(value, limits[key]) for key, value in item.items() if key in limits):
+            raise ValueError("数据字段不完整或文字过长")
+        if chart:
+            numeric_value = item.get("numeric_value")
+            if not _is_finite_number(numeric_value) or numeric_value < 0:
+                raise ValueError("数据图表 numeric_value 必须是非负有限数字")
+            if visualization == "bars" and numeric_value > scale_max:
+                raise ValueError("bars numeric_value 不能超过 scale_max")
+            if visualization == "donuts" and numeric_value > 100:
+                raise ValueError("donuts numeric_value 必须在 0 到 100 之间")
+        cue = item.get("reveal_frame", 0)
+        if "reveal_frame" in item:
+            reveal_frame(cue, shot.end_frame - shot.start_frame)
+        if cue < previous_cue:
+            raise ValueError("内容项的展示帧必须按顺序非递减；未设置时按 0 计算")
+        previous_cue = cue
+
+
 def validate_timeline(timeline: Timeline, job: Job, asset_metadata: dict[str, dict[str, object]] | None = None) -> None:
     if timeline.job_id != job.job_id:
         raise ValueError("分镜任务身份不匹配")
@@ -254,6 +477,12 @@ def validate_timeline(timeline: Timeline, job: Job, asset_metadata: dict[str, di
             raise ValueError("分镜音频必须来自此任务已导入的音频")
         if not re.search(r"\.(wav|mp3|m4a|aac|ogg)$", timeline.audio_src, re.I):
             raise ValueError("分镜音频扩展名不支持")
+    ranges = _script_segment_ranges(timeline, job)
+    source_refs_by_segment = (
+        {segment.segment_id: set(segment.source_refs) for segment in job.script.segments}
+        if job.script
+        else {}
+    )
     for shot in timeline.shots:
         if not component_allowed(shot.component_id, job.brief.usage):
             raise ValueError(f"组件 {shot.component_id} 的许可不允许当前 {job.brief.usage} 使用场景")
@@ -316,10 +545,20 @@ def validate_timeline(timeline: Timeline, job: Job, asset_metadata: dict[str, di
             asset = known[shot.asset_src]
             if asset.role != "evidence" or not asset.source_url or not shot.source_label.strip():
                 raise ValueError("证据镜头必须选择有来源的证据图片并标注出处")
+            cues = shot.props.get("focus_cues")
+            if cues is not None:
+                if "highlight" in shot.props:
+                    raise ValueError("图片聚焦点不能与旧高亮参数混用")
+                focus_cues(cues, shot.end_frame - shot.start_frame)
             highlight = shot.props.get("highlight")
             if highlight is not None:
                 normalized_rect(highlight, "高亮框必须在图片内部且面积非零")
         if shot.component_id == "image_focus":
+            cues = shot.props.get("focus_cues")
+            if cues is not None:
+                if {"focal_x", "focal_y", "crop"} & set(shot.props):
+                    raise ValueError("图片聚焦点不能与旧裁切或焦点参数混用")
+                focus_cues(cues, shot.end_frame - shot.start_frame)
             for key in {"focal_x", "focal_y"} & set(shot.props):
                 value = shot.props[key]
                 if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(value) or not 0 <= value <= 1:
@@ -333,19 +572,20 @@ def validate_timeline(timeline: Timeline, job: Job, asset_metadata: dict[str, di
                 raise ValueError("对比画面需要非空四项：标题不超过 48 字、正文不超过 160 字")
             if "right_reveal_frame" in shot.props:
                 reveal_frame(shot.props["right_reveal_frame"], shot.end_frame - shot.start_frame)
-        if shot.component_id in {"data", "steps"}:
+        if shot.component_id == "data":
+            validate_data_props(shot, job, ranges, source_refs_by_segment)
+        if shot.component_id == "steps":
             items = shot.props.get("items")
             if not isinstance(items, list) or not 1 <= len(items) <= 4:
                 raise ValueError("数据/步骤组件需要 1 到 4 项")
-            required = {"label", "value"} if shot.component_id == "data" else {"title"}
-            allowed = required | ({"detail"} if shot.component_id == "data" else {"body"}) | {"reveal_frame"}
-            if shot.component_id == "steps":
-                layout = shot.props.get("layout", "cards")
-                if not isinstance(layout, str) or layout not in {"cards", "flow"}:
-                    raise ValueError("步骤布局只能是 cards 或 flow")
+            required = {"title"}
+            allowed = required | {"body", "reveal_frame"}
+            layout = shot.props.get("layout", "cards")
+            if not isinstance(layout, str) or layout not in {"cards", "flow"}:
+                raise ValueError("步骤布局只能是 cards 或 flow")
             previous_cue = 0
             for item in items:
-                limits = {"label": 48, "value": 40, "detail": 64} if shot.component_id == "data" else {"title": 48, "body": 96}
+                limits = {"title": 48, "body": 96}
                 if not isinstance(item, dict) or not required <= set(item) <= allowed or any(not prop_text(value, limits[key]) for key, value in item.items() if key != "reveal_frame"):
                     raise ValueError("数据/步骤字段不完整或文字过长")
                 cue = item.get("reveal_frame", 0)

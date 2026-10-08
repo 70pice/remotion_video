@@ -154,6 +154,22 @@ def test_visual_rebuild_uses_model_instead_of_reusing_completed_timeline(tmp_pat
     assert result.audio_src == old.audio_src and result.captions == old.captions
 
 
+@pytest.mark.parametrize("note,expected", [
+    ("不改配音或字幕，只放大图表", False),
+    ("不要重配音，保留现有声音", False),
+    ("无需再次调整音频", False),
+    ("不更改配音，只修改画面", False),
+    ("不要调整语速", False),
+    ("图表改大，调整配音的音量", True),
+    ("不要改配音，但是语速太快", True),
+    ("不能不改配音", True),
+    ("读音错误，需要重新合成", True),
+    ("保持当前声音，重新编排镜头", False),
+])
+def test_voice_revision_detection_respects_negated_visual_feedback(note, expected):
+    assert DirectorNode._needs_voice_revision(note) is expected
+
+
 def test_visual_rebuild_without_director_model_cannot_render_old_timeline(tmp_path, monkeypatch):
     from videoagents.providers.llm import CapabilityMissing
 
@@ -164,6 +180,112 @@ def test_visual_rebuild_without_director_model_cannot_render_old_timeline(tmp_pa
     state = VideoState(**job_context(job), extras={"timeline_rebuild": True})
     with pytest.raises(CapabilityMissing, match="重做画面需要启用导演模型"):
         node.plan(job, audio, alignment, 2.0, state=state)
+
+
+@pytest.mark.parametrize("applied,voice_token,director_token,target,expected", [
+    (True, "voice-run", "voice-run", "voice", True),
+    (False, "voice-run", "voice-run", "voice", False),
+    (True, "older-run", "voice-run", "voice", False),
+    (True, "voice-run", "new-director-run", "voice", False),
+    (True, "voice-run", "voice-run", "director", False),
+])
+def test_mixed_feedback_requires_the_same_completed_voice_revision(
+    applied, voice_token, director_token, target, expected,
+):
+    state = VideoState(extras={"voice_rebuild_id": "voice-run", "human_feedback": {
+        "voice": {"decision": "revise", "pending_token": voice_token,
+                  "applied": applied, "applied_target": target},
+    }})
+    assert DirectorNode._voice_feedback_was_applied(state, {"pending_token": director_token}) is expected
+
+
+@pytest.mark.parametrize("source_changed", [False, True])
+def test_visual_component_source_revision_can_reuse_the_correct_shot_plan(tmp_path, monkeypatch, source_changed):
+    node, job, audio, alignment = director_job(tmp_path)
+    monkeypatch.setattr(node.model, "available", lambda role: False)
+    old = node.plan(job, audio, alignment, 2.0)
+    job = node.repo.update_job(job.job_id, job.revision, timeline=old)
+    node.repo.update_asset_metadata(audio.asset_id, {"duration_seconds": 2.0,
+                                                   "alignment": alignment.model_dump(), "origin": "manual"})
+    prior_study = valid_study(job.brief.usage)
+    node.service.write_json(job, "component-study.json", prior_study, "component_study")
+    job = node.repo.get_job(job.job_id)
+    feedback = {"decision": "revise", "pending_token": "visual-only", "note": "保留当前声音，只修图表布局",
+                "timeline": old.model_dump(), "applied": False}
+    state = VideoState(**job_context(job), action="produce", run_id="visual-only", thread_id="visual-only",
+                       audio_asset_id=audio.asset_id, alignment=alignment.model_dump(), duration_seconds=2.0,
+                       extras={"timeline_rebuild": True, "component_study": prior_study,
+                               "human_feedback": {"director": feedback}})
+
+    def plan(*args, **kwargs):
+        state["extras"]["component_study"] = {**prior_study, "source_fingerprint": "b" * 64 if source_changed else prior_study["source_fingerprint"]}
+        return old
+
+    monkeypatch.setattr(node, "plan", plan)
+    result = node(state)
+    assert result["route"] == ("editing" if source_changed else "await_input")
+    if not source_changed:
+        assert "人工返工未产生分镜修改" in node.repo.get_job(job.job_id).message
+
+
+def test_voice_rebuild_plans_using_new_measured_captions_not_feedback_snapshot(tmp_path, monkeypatch):
+    node, job, audio, alignment = director_job(tmp_path)
+    monkeypatch.setattr(node.model, "available", lambda role: False)
+    old = node.plan(job, audio, alignment, 2.0)
+    new_audio = audio.model_copy(update={"asset_id": "new-audio", "sha256": "c" * 64,
+                                        "timeline_src": f"videoagents/{job.job_id}/assets/new.wav"})
+    new_alignment = alignment.model_copy(update={"audio_sha256": new_audio.sha256, "segments": [
+        alignment.segments[0].model_copy(update={"start_ms": 500.0, "end_ms": 3800.0}),
+    ]})
+    job = node.repo.update_job(job.job_id, job.revision, timeline=old, assets=[*job.assets, new_audio])
+    feedback = {"decision": "revise", "note": "重配音并稳定图表视野", "pending_token": "voice-run",
+                "timeline": old.model_dump(), "applied": False}
+    state = VideoState(**job_context(job), extras={
+        "component_study": valid_study(job.brief.usage), "timeline_rebuild": True,
+        "voice_rebuild_id": "voice-run", "human_feedback": {
+            "director": feedback,
+            "voice": {**feedback, "applied": True, "applied_target": "voice"},
+        },
+    })
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+
+    def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        assert context["timeline"]["duration_in_frames"] == 60
+        assert context["timeline"]["audio_src"] == new_audio.timeline_src
+        assert context["timeline"]["captions"][0]["start_ms"] == 500
+        assert context["timeline"]["captions"][0]["end_ms"] == 3800
+        assert context["extras"]["human_feedback"]["director"]["timeline"] == old.model_dump()
+        return {"shots": context["timeline"]["shots"]}
+
+    monkeypatch.setattr(node.model, "call", model)
+    result = node.plan(job, new_audio, new_alignment, 4.0, state=state)
+    assert result.duration_in_frames == 60
+    assert result.audio_src == new_audio.timeline_src
+    assert result.captions[0].end_ms == 3800
+
+
+def test_director_does_not_request_voice_again_after_the_same_mixed_note_was_applied(tmp_path, monkeypatch):
+    node, job, audio, alignment = director_job(tmp_path)
+    monkeypatch.setattr(node.model, "available", lambda role: False)
+    old = node.plan(job, audio, alignment, 2.0)
+    job = node.repo.update_job(job.job_id, job.revision, timeline=old)
+    node.repo.update_asset_metadata(audio.asset_id, {"duration_seconds": 2.0,
+                                                   "alignment": alignment.model_dump(), "origin": "manual"})
+    feedback = {"decision": "revise", "pending_token": "voice-run", "note": "重配音并调整图表",
+                "timeline": old.model_dump(), "applied": False}
+    state = VideoState(**job_context(job), action="produce", run_id="voice-run", thread_id="voice-run",
+                       audio_asset_id=audio.asset_id,
+                       alignment=alignment.model_dump(), duration_seconds=2.0, extras={
+                           "voice_rebuild_id": "voice-run", "timeline_rebuild": True,
+                           "human_feedback": {"director": feedback,
+                                              "voice": {**feedback, "applied": True, "applied_target": "voice"}},
+                       })
+    revised = old.model_copy(update={"shots": [old.shots[0].model_copy(update={"title": "稳定趋势视野"})]})
+    monkeypatch.setattr(node, "plan", lambda *args, **kwargs: revised)
+    result = node(state)
+    assert result["route"] == "editing"
+    assert result["extras"]["human_feedback"]["director"]["applied"] is True
+    assert node.repo.get_job(job.job_id).timeline.shots[0].title == "稳定趋势视野"
 
 
 def test_director_node_retains_new_component_study_in_job_and_handoff(tmp_path, monkeypatch):
@@ -243,8 +365,9 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
     assert [item["reveal_frame"] for item in props["data"]["items"]] == [0, 15]
     assert set(props["comparison"]) == {"left_title", "left_body", "right_title", "right_body", "right_reveal_frame"}
     assert props["comparison"]["right_reveal_frame"] == 15
-    assert set(props["image_focus"]) == {"focal_x", "focal_y", "crop"}
-    assert set(props["image_focus"]["crop"]) == {"x", "y", "width", "height"}
+    assert set(props["image_focus"]) == {"focus_cues"}
+    assert [item["frame"] for item in props["image_focus"]["focus_cues"]] == [0, 120, 300]
+    assert set(props["image_focus"]["focus_cues"][1]["region"]) == {"x", "y", "width", "height"}
     assert set(props["evidence"]["highlight"]) == {"x", "y", "width", "height"}
     assert set(props["video"]) == {"start_seconds", "end_seconds", "fit", "crop"}
     for requirement in [
@@ -253,7 +376,7 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
         "left_title/right_title（最多48字）及 left_body/right_body（最多160字）四项",
         "eyebrow（最多48字）", "keyword（最多40字）", "call_to_action（最多72字）",
         "video 仅可选 start_seconds、end_seconds、fit、crop",
-        "image_focus 仅可选 focal_x/focal_y/crop",
+        "image_focus 可选 focal_x/focal_y/crop，或 focus_cues",
         "x + width <= 1 且 y + height <= 1", "width/height 必须大于0", "所有文字字段必须非空",
         "title 最多100字、body 最多240字、source_label 最多160字",
         "eligible_capacity_ratio", "actual_media_ratio", "超过 70%",
@@ -267,6 +390,11 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
                 continue
             candidate = copy.deepcopy(context["timeline"])
             candidate["shots"][0].update(component_id=component, props=example)
+            if component == "image_focus":
+                # The continuous-reading example has three real camera holds,
+                # unlike this fixture's original two-second single image.
+                candidate["duration_in_frames"] = 450
+                candidate["shots"][0]["end_frame"] = 450
             if component in {"image_focus", "evidence"}:
                 candidate["shots"][0].update(asset_src=expected[0], source_label="example.test")
             validate_timeline(Timeline.model_validate(candidate), job)

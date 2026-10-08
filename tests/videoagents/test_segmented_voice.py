@@ -222,6 +222,86 @@ def test_expressive_plan_synthesizes_each_segment_and_offsets_real_timestamps(tm
     assert metadata["segment_stitch"][0]["retained_acoustic_tail_ms"] == 0
 
 
+def test_voice_rebuild_id_is_part_of_segment_operation_key_and_command(tmp_path, monkeypatch):
+    repo, service, job = two_segment_job(tmp_path)
+    settings = SettingsService(repo)
+    settings.patch(SettingsPatch(
+        voice_provider="byte_ws",
+        voice_api_key="UNIT-secret",
+        voice_id="UNIT-own-voice",
+        voice_resource_id="seed-icl-2.0",
+        voice_model="seed-tts-2.0-expressive",
+        voice_speech_rate=10,
+    ))
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.available", lambda *args: True)
+    guidance_commands = []
+
+    def guidance(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        guidance_commands.append(command_id)
+        assert context["extras"]["voice_rebuild_id"] == "UNIT-voice-rebuild-command"
+        return {
+            "delivery_notes": ["保持同一语速和响度，用停顿处理转折。"],
+            "segment_performances": [item.model_dump() for item in performances()],
+            "pronunciation_notes": [],
+            "findings": [],
+        }
+
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", guidance)
+    source = repo.root / "segment-source.wav"
+    source.write_bytes(tone_window(2, 0.2, 1.0))
+    calls = []
+
+    def provider(repository, job_id, revision, text, command_id, **options):
+        calls.append((text, command_id, options))
+        return {
+            "path": str(source),
+            "origin": "byte_ws",
+            "operation_id": f"operation-{len(calls)}",
+            "request_id": f"request-{len(calls)}",
+            "input_hash": f"input-{len(calls)}",
+            "voice_fingerprint": voice_fingerprint(settings.internal()),
+            "voice_model": "seed-tts-2.0-expressive",
+            "voice_speech_rate": 10,
+            "sentences": [{"words": [{
+                "word": text,
+                "startTime": 0.2,
+                "endTime": 1.0,
+                "confidence": 0.99,
+            }]}],
+        }
+
+    monkeypatch.setattr("videoagents.nodes.voice.synthesize", provider)
+    state = {
+        "job_id": job.job_id,
+        "revision": job.revision,
+        "action": "produce",
+        "run_id": "UNIT-resume-command",
+        "thread_id": "UNIT-thread",
+        "extras": {
+            "voice_rebuild": True,
+            "voice_rebuild_id": "UNIT-voice-rebuild-command",
+            "human_feedback": {"voice": {
+                "decision": "revise",
+                "note": "语速和音量不统一，重配音时保持稳定。",
+                "pending_token": "UNIT-voice-rebuild-command",
+                "applied": False,
+            }},
+        },
+    }
+
+    VoiceNode(repo, service).prepare_audio(job, "UNIT-resume-command", state=state)
+
+    assert guidance_commands == ["UNIT-voice-rebuild-command"]
+    assert [item[1] for item in calls] == [
+        "UNIT-voice-rebuild-command:segment:s1",
+        "UNIT-voice-rebuild-command:segment:s2",
+    ]
+    assert [item[2]["operation_key"] for item in calls] == [
+        "voice-rebuild:UNIT-voice-rebuild-command:script-segment:s1",
+        "voice-rebuild:UNIT-voice-rebuild-command:script-segment:s2",
+    ]
+
+
 def test_standard_model_with_segment_plan_pauses_instead_of_unguided_synthesis(tmp_path, monkeypatch):
     from videoagents.providers.llm import CapabilityMissing
 

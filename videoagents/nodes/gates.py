@@ -66,6 +66,21 @@ def timeline_readability_issues(timeline) -> list[str]:
                     f"至少需要 {reading_frames} 帧，请提前揭示、减少内容或延长镜头，"
                     "不能让最后一张卡片在切镜前闪现"
                 )
+        if shot.component_id == "steps" and shot.props.get("items"):
+            first = min(item.get("reveal_frame", 0) for item in shot.props["items"])
+            if first > timeline.fps:
+                issues.append(
+                    f"镜头 {shot.shot_id} 的全部步骤在开头隐藏了 {first} 帧，主体大面积空白；"
+                    "请保留当前讲解对象或调整切点，不能空等信息揭示"
+                )
+        cues = shot.props.get("focus_cues", [])
+        for index, cue in enumerate(cues):
+            next_frame = cues[index + 1]["frame"] if index + 1 < len(cues) else frames
+            if next_frame - cue["frame"] < 18 + reading_frames:
+                issues.append(
+                    f"镜头 {shot.shot_id} 的 focus_cues[{index}] 过渡后阅读时间不足；"
+                    f"每个区域至少需要 18 帧过渡及 {reading_frames} 帧阅读，请减少聚焦点或延长镜头"
+                )
     return issues
 
 

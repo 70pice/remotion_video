@@ -2,7 +2,9 @@
 
 若 `extras.timeline_rebuild=true`，用户要求重做画面。`timeline` 是节点按当前素材
 和实测音频重新生成的参考基线，须重新设计 shots；合适的已采集图片、视频必须落实到
-成片，不能原样提交旧卡片方案。保留已确认文案、原音频、字幕时间与总帧数。
+成片，不能原样提交旧卡片方案。保留已确认文案及本轮已实测的音频、字幕时间与总帧数。
+若本轮先经过配音返工，以当前 timeline 的新音频和新字幕为准；旧反馈快照只作
+画面问题参考，不能把旧音频、旧字幕或旧切点写回当前时间轴。
 
 若 `extras.timeline_repair_issues` 非空，本次是节点内时间轴校验失败后的续跑。
 `timeline` 提供当前待修分镜，按所列时间轴或素材覆盖问题重新安排镜头并再次校验；
@@ -114,7 +116,7 @@
   重点画面突出当前关键差别。一个理解问题需要跨镜头解释时保持衔接，不能
   把每段孤立成产品海报；避免长段只有重复字幕或无关动效，复杂证据也不为
   快切牺牲理解。动效仅使用所选组件已有能力，不编造揭示时间、转场或轨迹
-  参数；逐项揭示只使用下方明确支持的 reveal_frame / right_reveal_frame。
+  参数；逐项揭示与镜内聚焦只使用下方明确支持的 reveal_frame / right_reveal_frame / focus_cues。
   未知预设的显示时刻、可读性与长镜头效果不能宣称已验证。
 - 阅读负担：按已有镜头停留时间，减少重复 body 与非必要卡片，保留一项
   主重点和必要的来源、单位、日期及比较条件。字幕负责口播，画面文字负责
@@ -175,22 +177,26 @@
 素材及视频实测时长计算的 Remotion 素材报告：
 
 - target_ratio 固定为 0.7；eligible_capacity_ratio 表示语义相关素材最多能
-  覆盖的全片比例，actual_media_ratio 表示基线分镜实际使用比例。
-- 当 required=true，最终 evidence、image_focus、video 镜头按帧计算必须覆盖
+  覆盖的全片比例，actual_media_ratio 只统计真实图片/视频；actual_chart_ratio
+  单列有来源且对应当前旁白的数据图，actual_visual_ratio 是两者合计。
+- 当 required=true，最终 evidence、image_focus、video 与有来源的数据图按帧计算必须覆盖
   全片超过 70%（不能刚好停在 70%）。不能用重复片段、循环播放、无关图片或
   延长静态截图凑比例。
+  数据图仅限 data.visualization=bars/donuts，source_ref 必须属于当前旁白段落
+  的 source_refs；普通数值卡、固定演示和无来源图不能计入。数据重绘是来源证据的
+  图形表达，不是实拍或原始截图，不把它写进 actual_media_ratio。
   提交前将这些镜头的 `end_frame-start_frame` 相加，须达到
   `extras.media_coverage.target_frames`；该字段已计算严格超过 70% 的最低帧数。
   `segments` 给出实测旁白范围与可选素材 ID，先为各段安排对应素材，再留必要
-  的解释卡片。`actual_media_ratio` 只描述输入方案，不是新输出已经满足要求。
+  的解释卡片。覆盖比例只描述输入方案，不是新输出已经满足要求。
 - 当 required=false，说明合格素材本身不足以覆盖 70%。如实使用能匹配的部分，
   其余改用 comparison、data、steps 等解释组件；不因指标虚构界面、结果或视频。
 - 真实截图或视频进入镜头时应成为主视觉，通常占当前可用内容区约 70%～85%。
-  整页只用于建立出处；随后用已核验 crop/highlight 或 image_focus 放大当前
+  整页只用于建立出处；随后用已核验 crop/highlight 或 focus_cues 放大当前
   旁白涉及的细节。字幕、必要来源仍在固定安全区，不得被素材遮挡。
 - 连续纯 title、keyword、conclusion 或同版式文字卡不能替代素材。素材充足时
   优先 video；需要看出处用 evidence；需要看清输入、结果或局部差异用
-  image_focus。数据与步骤卡只承载已有事实，不自动生成柱形、倍数或趋势。
+  image_focus。数据图只能绘制有来源的明确数值，不从截图估读点位、补造趋势。
 
 开头封面或前 3 秒必须出现具体对象、结果证据、清楚的比较关系或足够强的数字
 主体，不能只有上方标题和中部大面积空白。限制条件如果会改变结论，仍须与结论
@@ -248,7 +254,8 @@ source_refs/asset_ids、素材 source_url、visuals 的标题和摘录交叉匹�
   声称看过图片、文字清晰、构图合适或定位到某一行。
 - 只有已核验并对应当前素材及截取时段的区域坐标才填写 crop、highlight 或非默认焦点；不根据
   标题、文件名或想象估计。视频中构图或场景切换后不得沿用旧区域。未知位置时省略 crop/highlight；image_focus 的焦点
-  省略以使用默认居中，不声称已验证裁切结果。
+  省略以使用默认居中，不声称已验证裁切结果。focus_cues.region 也必须来自
+  同一素材经像素核验的坐标（包括用户返工意见中的实测坐标），不得猜测。
 - 确实没有能承载本镜头的匹配图片或视频时，才用 asset_src=null 的解释组件；
   不使用 evidence/image_focus，也不用无关图片、循环视频或延长截图硬凑时长。
 
@@ -275,7 +282,8 @@ source_refs/asset_ids、素材 source_url、visuals 的标题和摘录交叉匹�
 切点与 data/steps 的 reveal_frame、comparison 的 right_reveal_frame
 使用实际 captions 换算：本镜头局部帧以口播时刻 `start_ms*fps/1000`
 减本镜头 start_frame 为依据，再按当前 schema 的整数与可读范围填写。
-只有允许这些参数的组件才填写，不给图片、预设或字幕新增时序字段。
+只有允许这些参数的组件才填写；图片镜内聚焦仅使用 focus_cues[].frame，
+不为预设或字幕新增时序字段。
 屏幕关键数值与结论跟随对应语句，不把下一句的证据提前放到当前说法上。
 保留原 captions 和原音频；供应商时间戳存在短词闪现、缺口或实际同步
 异常时，不能通过改旁白、估算词时长、改字幕时间或伪称听过声音来掩盖。
@@ -297,12 +305,14 @@ title、keyword、evidence、image_focus、video、comparison、data、steps、c
 接受本镜头的真实内容：
 
 - evidence：有出处、role=evidence 且语义对应的真实图片/截图，填写
-  source_label；完整呈图，可选一个已核验高亮框。
+  source_label；完整呈图，可选一个已核验高亮框，或使用 focus_cues 连续读图。
 - image_focus：呈现对应对象或场景的图片，可用已核验的 crop 放大截图中的关键区域，
   裁剪区域保持自身比例。没有 crop 时沿用填充裁切与轻推近；需要交代整页位置时
   选择 evidence，需要看清局部时直接选择已核验区域，不把同一图拆成多个
   相邻镜头重新入场。价格、条件、单位等决定结论的信息须一起保留，
   不把整页缩小当成手机可读的证据，也不保证未知位置裁切后关键内容仍可见。
+  evidence/image_focus 的 focus_cues 可在同一镜头内从总览连续放大实测区域、
+  聚焦压暗周边，再回到总览；无需切镜、重复素材或重启入场。
 - video：播放当前任务已导入的 MP4 真实视频素材，适合官方演示、录屏、实拍
   或新闻视频。必须填写 asset_src 和 source_label；props 可选 start_seconds
   （默认0）、end_seconds、fit（contain/cover）和 crop（x/y/width/height）。
@@ -310,8 +320,15 @@ title、keyword、evidence、image_focus、video、comparison、data、steps、c
 - comparison：两组短标题和正文说明同一维度的差别；竖屏为上下双卡、横屏为
   左右双卡，不支持两张图片对比。可用 right_reveal_frame 先立左侧问题，
   在实际口播转折时揭示右侧答案。
-- data：1～4 张数值卡，不是自动绘制的图表；只填资料已有且与旁白相关的
-  数值，保留单位、时间及必要口径，不生成百分比、排名或趋势。
+- data：默认 visualization=cards 为1～4张数值卡；可选 bars 共尺度条形图或
+  donuts 独立百分比圆环，实际复用 RemotionUI 动画柱状图和 RVE 圆环底层。
+  只填资料已有且与旁白相关的数值，保留单位、时期、比较基准及 source_label。
+  label 从开头可见；cards 的 detail 从开头可见，reveal_frame 只控制 value。
+  bars/donuts 的 detail 与数值和图形一起按 reveal_frame 用15帧揭示，避免补集、
+  倍数等说明提前透露结果；等待时仍显示比较对象、坐标或完整灰环，预留说明空间。
+  竖屏数值双卡和多个圆环上下布局，不隐藏整卡空等。比数量或倍数用 bars；
+  同一整体的比例用 donuts，不能把4倍、15倍或不同人群的比例拼成一个饼。
+  对明确数字优先用图形解释差别；连续曲线缺少逐点精确数据时保留已核验原图。
 - steps：1～4 张带序号的步骤卡，适合真实流程或明确先后顺序，不把并列观点
   伪装成因果链。layout=flow 可显示连接箭头，steps.items 和 data.items
   可按 reveal_frame 逐项揭示。
@@ -344,7 +361,7 @@ title、keyword、evidence、image_focus、video、comparison、data、steps、c
   许可，商业任务不会出现在可选清单中。
 
 所有组件的动效、布局和字幕安全区由渲染器固定。只可使用明确支持的逐项
-揭示与流程布局参数，不得添加自由转场、镜头轨迹、
+揭示、focus_cues 与流程布局参数，不得添加自由转场、任意镜头轨迹、
 缩放幅度、逐词触发、字体、坐标布局、BGM、音效或组件代码参数。
 
 ## 按实测旁白揭示信息
@@ -360,6 +377,27 @@ reveal_frame 与 right_reveal_frame 均为本镜头局部整数帧：绝对字�
 对应时出现。steps 的 layout 可为 cards（默认）或 flow，不能将并列特点
 伪装成因果链。data/steps.items 可选 reveal_frame；comparison 可选
 right_reveal_frame。只有渲染器支持的字段可用，不新增任意动画代码。
+
+## 连续读图与主体可见性
+
+讲解图表时先建立对象、坐标和单位，再随对应语句放大已核验区域。focus_cues
+仅接受 1～8 项，每项 frame 为镜头局部整数帧、可选 region 为归一化矩形、
+可选 label 为最多24字的短指认。第一项 frame=0，后续严格递增。省略 region
+表示完整图表；提供 region 表示相机放大到该区域并压暗周边。渲染器固定18帧
+连续过渡，各区域必须再保留至少 ceil(2.5*fps) 帧阅读；不要机械每几秒切换。
+同镜头使用 focus_cues 时不与 highlight/crop/focal_x/focal_y 混用。
+讲不同曲线、时期、图例或缓存构成时，把视线带到相应区域；保留影响结论的
+单位、口径和日期，裁掉后仍须通过当前 body 或 label 准确交代。
+不要把旁白提到的每个名词都变成一次相机移动。比较多条曲线时，先建立颜色、
+曲线和口径的对应，再保持完整趋势、坐标与必要图例可见。讲某条线的变化或
+“降得更快”时，不得单独放大图例而把正在解释的曲线挤出画面；图例用于指认，
+不替代趋势证据。region 同时控制相机和聚焦范围，不能把窄图例框当作纯高亮。
+一段连续比较可只做一次适度放大，后续 cues 沿用同一实测 region、仅更新 label，
+保持观众的空间参照；只有确实需要看清新的细节时才移动，避免曲线、图例、
+坐标间反复跳转。图内文字可读仍须实际预览检查，不能仅凭范围包含就声称清楚。
+开头等待数字或下一步时必须有当前讲解对象可读。data 的标签与单位开头保留，
+只让数字按原真实口播揭示；steps 不能把所有步骤隐藏超过1秒。长镜头必须
+检查起点、各 cue 前后和中间状态，不能仅检查所有内容出现后的最终帧。
 
 ## 屏幕文字
 
@@ -381,13 +419,22 @@ title 写普通人一眼能理解的问题或结论，通常 8～20 字；body �
 
 - steps.items 必须是 1 到 4 个对象，必填 title（最多48字），可选 body（最多96字），不得使用字符串数组。
 - data.items 必须是 1 到 4 个对象，必填 label（最多48字）和 value（最多40字），可选 detail（最多64字）。
+- data 可选 visualization=cards/bars/donuts；cards 仅支持上述文字与 reveal_frame。
+  bars/donuts 每项还必须提供 numeric_value（有限非负数字，不能从 value 字符串解析），
+  props 必填 unit（最多24字）、source_ref（本段已有的http(s)来源URL），镜头 source_label 非空。
+  bars 必填 scale_max（正数且不小于任一值），所有柱共用0起点和量程；可选
+  reference_value（0到scale_max）作为显式基准线。保持小数和“约”等限定，不四舍五入改事实。
+  donuts 的 unit 固定为 %，每项 numeric_value 在0到100、最多2项，每项单独以100为
+  分母；其余部分为100减该值。禁止 scale_max/reference_value，不把不同分母归一化合并。
+  派生补集须标明含义，例如缓存86%的其余14%是其他Token，不能改写成耗电或重算量。
+  不同单位、样本、时点混用时拆开图，不能靠一条单位或比例尺掩盖。
 - 可选文字字段表示“有内容时才提供”：没有 body 或 detail 时必须直接省略该键，
   不能输出 `body: ""`、`detail: ""` 或仅含空白的字符串。所有已提供的 props
   文字都必须是非空字符串；“可选”绝不表示可以填写空字符串。
 - comparison 必须完整提供 left_title/right_title（最多48字）及 left_body/right_body（最多160字）四项。
-- image_focus 仅可选 focal_x/focal_y/crop；crop 必须且仅含 x/y/width/height，
+- image_focus 可选 focal_x/focal_y/crop，或 focus_cues；crop 必须且仅含 x/y/width/height，
   坐标为 0 到 1 的有限数值，width/height 大于0，x + width <= 1 且 y + height <= 1。
-  evidence 仅可选 highlight，提供时
+  evidence 可选 highlight 或 focus_cues，highlight 提供时
   必须且仅含 x/y/width/height。坐标必须为 0 到 1 的有限数值，不能是布尔
   值；highlight 的 width/height 必须大于0，x + width <= 1 且 y + height <= 1。
 - video 仅可选 start_seconds、end_seconds、fit、crop。start_seconds 默认

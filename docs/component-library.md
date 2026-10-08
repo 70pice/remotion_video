@@ -55,6 +55,12 @@ shot 的 title/body 可用于补充本镜头信息，但不能把原卡的演示
 或先为目标 preset 建立有类型和测试的独立适配器。Talkcraft preset 只对
 personal/unspecified 任务开放，commercial 任务会在生成和校验阶段拒绝。
 
+`data` 现可用 `visualization=cards/bars/donuts`。柱图复用 RemotionUI
+AnimatedBarChart 底层，圆环复用 RVE DonutChart；生产输入通过数值契约传入，
+不是固定演示入口。`numeric_value` 与格式化 `value` 分开，保留单位、共同量程、
+必要基准、来源 URL 和实测揭示帧。默认卡片行为保留；参数化图形等待数字时
+仍显示比较对象与坐标/灰环。倍数用柱图，比例使用独立100%圆环，不从原图补造折线点。
+
 ### 在自定义 Composition 中手工导入
 
 飞书表中的相对路径从仓库根目录 `D:\remotion_video` 起算。竖屏短视频用 `component-vertical/<组件库>/entries/<slug>.tsx`，横版用 `component-horizontal/<组件库>/entries/<slug>.tsx`。每个入口文件导出 `Component`、`demo` 和 `meta`，沿用已验证的示例参数；入口是代码索引，竖版布局实际源码也已移动到竖版目录。

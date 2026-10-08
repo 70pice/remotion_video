@@ -2,6 +2,7 @@
 
 import json
 import math
+import re
 from typing import Any, Literal
 from urllib.parse import urlparse
 
@@ -41,8 +42,12 @@ COMPONENT_PROPS_EXAMPLES = {
     "title": {"eyebrow": "给定主题"}, "keyword": {"keyword": "给定关键词"},
     "evidence": {"highlight": {"x": 0.1, "y": 0.1, "width": 0.5, "height": 0.5}},
     # 裁剪仅演示参数形状；导演必须使用对应素材经像素核验的区域。
-    "image_focus": {"focal_x": 0.5, "focal_y": 0.5,
-                    "crop": {"x": 0.1, "y": 0.1, "width": 0.5, "height": 0.5}},
+    "image_focus": {"focus_cues": [
+        {"frame": 0, "label": "交代图表口径"},
+        {"frame": 120, "region": {"x": 0.1, "y": 0.1, "width": 0.5, "height": 0.5},
+         "label": "当前讲解的已核验区域"},
+        {"frame": 300, "label": "回到完整图表"},
+    ]},
     "video": {"start_seconds": 0, "end_seconds": 4.2, "fit": "contain",
               "crop": {"x": 0.2, "y": 0.0, "width": 0.6, "height": 1.0}},
     "comparison": {"left_title": "给定左标题", "left_body": "给定左正文",
@@ -173,7 +178,8 @@ class DirectorNode:
             feedback = stage_feedback(state, feedback_stage)
             if feedback and feedback.get("note") and self._needs_script_revision(feedback["note"]):
                 return state_context(self.repo, state, route="screenwriter", gate_issues=[])
-            if feedback and feedback.get("note") and self._needs_voice_revision(feedback["note"]):
+            if (feedback and feedback.get("note") and self._needs_voice_revision(feedback["note"])
+                    and not self._voice_feedback_was_applied(state, feedback)):
                 return request_input(self.repo, state, "voice",
                     ["成片返工意见涉及语速、发音或音频，导演无法只靠镜头修复；请先调整配音后重新制作。"],
                     ["voice", "timeline"])
@@ -187,9 +193,18 @@ class DirectorNode:
                 self.service.write_json(job, "timeline.json", job.timeline.model_dump(), "timeline")
                 mark_feedback_applied(self.repo, self.service, job, state, feedback_stage, "director")
                 return state_context(self.repo, state, route=self.next_route(state), gate_issues=[])
+            previous_source = None
+            for artifact in reversed(job.artifacts):
+                if artifact.kind == "component_study":
+                    path, _, _ = self.repo.artifact_path(artifact.artifact_id)
+                    previous_source = json.loads(path.read_text(encoding="utf-8")).get("source_fingerprint")
+                    break
             timeline = self.plan(job, audio, Alignment.model_validate(state["alignment"]), state["duration_seconds"],
                                  state.get("research", {}), state=state)
-            if feedback and type(feedback.get("timeline")) is dict and timeline.model_dump() == feedback["timeline"]:
+            current_source = (state.get("extras", {}).get("component_study") or {}).get("source_fingerprint")
+            components_changed = bool(previous_source and current_source and previous_source != current_source)
+            if (feedback and type(feedback.get("timeline")) is dict and timeline.model_dump() == feedback["timeline"]
+                    and not components_changed):
                 raise ValueError("人工返工未产生分镜修改，请补充更明确的修改意见")
             stale = {"preview", "final", "cover", "captions", "review", "package", "storyboard",
                      "timeline", "editing_guidance", "human_review"}
@@ -217,7 +232,32 @@ class DirectorNode:
     def _needs_voice_revision(note: str) -> bool:
         patterns = ("改配音", "重配音", "调整配音", "改音频", "重做音频", "调整音频",
                     "改语速", "语速太", "语速过", "调整语速", "改发音", "读音错误")
-        return any(pattern in note for pattern in patterns)
+        for pattern in patterns:
+            for match in re.finditer(re.escape(pattern), note):
+                prefix = note[max(0, match.start() - 12):match.start()].rstrip()
+                if re.search(r"(?:不能|不可|不得)不$", prefix):
+                    return True
+                if re.search(r"(?:不(?:要|用|必|需(?:要)?|再)?|无需|无须|别|禁止)(?:重新|再次|更|再)?\s*$", prefix):
+                    continue
+                return True
+        return False
+
+    @staticmethod
+    def _voice_feedback_was_applied(state: VideoState, feedback: dict[str, Any]) -> bool:
+        """Only the same completed voice revision may satisfy a mixed note."""
+        extras = state.get("extras", {})
+        command_id = extras.get("voice_rebuild_id")
+        human_feedback = extras.get("human_feedback")
+        voice_feedback = human_feedback.get("voice") if type(human_feedback) is dict else None
+        return bool(
+            isinstance(command_id, str) and command_id
+            and feedback.get("pending_token") == command_id
+            and type(voice_feedback) is dict
+            and voice_feedback.get("pending_token") == command_id
+            and voice_feedback.get("decision") == "revise"
+            and voice_feedback.get("applied") is True
+            and voice_feedback.get("applied_target") == "voice"
+        )
 
     @classmethod
     def _needs_voice_or_script(cls, note: str) -> bool:
@@ -331,6 +371,10 @@ class DirectorNode:
             ] + [None]
             # 实测基线只作为本次导演输入；模型输出校验通过前不写入共享 state。
             reviewed_timeline = feedback.get("timeline") if feedback and type(feedback.get("timeline")) is dict else None
+            if feedback and self._voice_feedback_was_applied(context, feedback):
+                # The feedback snapshot still references the old voice. All planning
+                # times must come from the newly measured audio baseline instead.
+                reviewed_timeline = None
             if repair_issues and not rebuilding:
                 reviewed_timeline = job.timeline.model_dump()
             planning_timeline = Timeline.model_validate(reviewed_timeline) if reviewed_timeline else timeline

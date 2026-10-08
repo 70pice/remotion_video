@@ -20,7 +20,14 @@ from videoagents.contracts import (
     VoiceAdvice,
     VoiceSegmentPerformance,
 )
-from videoagents.nodes.common import agent_state, request_input, start_stage, state_context
+from videoagents.nodes.common import (
+    agent_state,
+    mark_feedback_applied,
+    request_input,
+    stage_feedback,
+    start_stage,
+    state_context,
+)
 from videoagents.prompts import compose
 from videoagents.providers.aligner import align
 from videoagents.providers.byte_voice import SubmissionUnknown, synthesize
@@ -424,9 +431,13 @@ class VoiceNode:
                                     "origin": self.repo.asset_metadata(audio.asset_id).get("origin"), "alignment_origin": alignment.origin,
                                     "verified": alignment.verified, "verification_note": alignment.note,
                                     "timestamp_quality": self.repo.asset_metadata(audio.asset_id).get("timestamp_quality")}, "audio_report")
+            issues = validate_alignment(job, audio, alignment, duration)
+            if state.get("extras", {}).get("voice_rebuild") and stage_feedback(state, "voice") and not issues:
+                mark_feedback_applied(self.repo, self.service, self.repo.get_job(job.job_id), state, "voice", "voice")
             return state_context(self.repo, state, route="audio_gate",
                                  audio_asset_id=audio.asset_id, alignment=alignment.model_dump(),
-                                 duration_seconds=duration, gate_issues=[])
+                                 duration_seconds=duration, gate_issues=[],
+                                 extras={"voice_rebuild": None})
         except (CapabilityMissing, ValueError) as exc:
             return request_input(self.repo, state, "voice", [str(exc)], getattr(exc, "fields", ["audio", "alignment"]), exc)
 
@@ -441,7 +452,12 @@ class VoiceNode:
         # 先复用匹配音频或人工导入音频，不重配，也不把新建议标成已应用。
         settings = SettingsService(self.repo).internal()
         voice_hash = voice_fingerprint(settings)
-        if not (prefer_generation and SettingsService(self.repo).public()["voice_configured"]):
+        extras = state.get("extras", {}) if state else {}
+        rebuild_id = extras.get("voice_rebuild_id") if isinstance(extras.get("voice_rebuild_id"), str) else ""
+        voice_configured = SettingsService(self.repo).public()["voice_configured"]
+        force_generation = bool(extras.get("voice_rebuild")) or (prefer_generation and voice_configured)
+        voice_command_id = rebuild_id or command_id
+        if not force_generation:
             for candidate in candidates:
                 metadata = self.repo.asset_metadata(candidate.asset_id)
                 if metadata.get("origin") in {"byte_http", "byte_ws"} and (metadata.get("script_fingerprint") != script_hash or metadata.get("voice_fingerprint") != voice_hash):
@@ -474,8 +490,12 @@ class VoiceNode:
             )
         if not self.model.available("voice"):
             raise CapabilityMissing("新合成配音必须先完成配音 Agent 指导；请配置配音角色 CLI 模型。", ["role_models"])
-        value = self.model.invoke(agent_state(self.repo, job, state), "voice", PROMPT,
-            fields=("brief", "script", "settings"), command_id=command_id,
+        context = agent_state(self.repo, job, state)
+        fields = ("brief", "script", "settings")
+        if stage_feedback(context, "voice") or extras.get("voice_rebuild"):
+            fields = (*fields, "extras")
+        value = self.model.invoke(context, "voice", PROMPT,
+            fields=fields, command_id=voice_command_id,
             output_schema=VoiceAdvice.model_json_schema())
         advice = VoiceAdvice.model_validate(value)
         self.service.write_json(job, "voice_guidance.json", advice.model_dump(), "voice_guidance")
@@ -499,13 +519,16 @@ class VoiceNode:
             )
         if performances:
             return self.prepare_segmented_audio(
-                job, command_id, script_hash, voice_hash, performances, cancelled
+                job, voice_command_id, script_hash, voice_hash, performances, cancelled,
+                rebuild_id=rebuild_id,
             )
         text = "\n".join(segment.narration for segment in job.script.segments)
         options: dict[str, Any] = {"cancelled": cancelled}
         # 用户风格由供应商配置快照优先合并，新合成始终携带 Agent 的指导。
         options["delivery_style"] = delivery_style
-        value = synthesize(self.repo, job.job_id, job.revision, text, command_id, **options)
+        operation_key = f"voice-rebuild:{rebuild_id}:whole" if rebuild_id else ""
+        value = synthesize(self.repo, job.job_id, job.revision, text, voice_command_id,
+                           operation_key=operation_key, **options)
         path = Path(value["path"])
         duration = audio_duration(path)
         artifact = self.service.register_artifact(job, path, "voice", "audio/mpeg", "narration.mp3")
@@ -537,6 +560,8 @@ class VoiceNode:
         voice_hash: str,
         performances: list[VoiceSegmentPerformance],
         cancelled,
+        *,
+        rebuild_id: str = "",
     ) -> tuple[Asset, Alignment, float]:
         segments: list[SegmentAudio] = []
         operations: list[dict[str, Any]] = []
@@ -549,7 +574,10 @@ class VoiceNode:
                 command_id + f":segment:{script_segment.segment_id}",
                 cancelled=cancelled,
                 delivery_style=performance.delivery_style,
-                operation_key=f"script-segment:{script_segment.segment_id}",
+                operation_key=(
+                    f"voice-rebuild:{rebuild_id}:script-segment:{script_segment.segment_id}"
+                    if rebuild_id else f"script-segment:{script_segment.segment_id}"
+                ),
             )
             path = Path(value["path"])
             duration = audio_duration(path)

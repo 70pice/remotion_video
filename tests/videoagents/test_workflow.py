@@ -244,6 +244,21 @@ def test_voice_continuation_requires_completed_voice_command(manual_job):
                      "idempotency_key": "UNIT-no-completed-voice"})
 
 
+def test_voice_rebuild_queue_requires_completed_current_revision_checkpoint(manual_job):
+    from videoagents.storage import Conflict
+
+    repo, _, job, _ = manual_job
+    job = repo.update_job(job.job_id, job.revision, status="DRAFT", stage="voice", script=Script(
+        title="UNIT：仅用于验证没有完成记录的输入", revision=job.revision,
+        segments=[ScriptSegment(segment_id="s1", narration=job.brief.script_text)],
+    ))
+    with pytest.raises(Conflict, match="工作流记录"):
+        repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "voice", "rebuild_from": "voice",
+                     "idempotency_key": "UNIT-no-voice-rebuild-checkpoint"})
+    with repo.connection() as db:
+        assert db.execute("SELECT COUNT(*) FROM commands").fetchone()[0] == 0
+
+
 def completed_visual_job(manual_job, monkeypatch):
     repo, service, voice, audio, worker = stopped_voice_job(manual_job, monkeypatch)
     install_isolated_render_double(monkeypatch)
@@ -255,7 +270,8 @@ def completed_visual_job(manual_job, monkeypatch):
     return repo, service, completed, audio, worker
 
 
-def test_completed_video_rebuild_runs_only_director_and_editing_and_is_replay_safe(manual_job, monkeypatch):
+@pytest.mark.parametrize("note", [None, "UNIT：图表关键区域局部放大，数字揭示前保留说明卡片。"])
+def test_completed_video_rebuild_runs_only_director_and_editing_and_is_replay_safe(manual_job, monkeypatch, note):
     from videoagents.nodes.director import DirectorNode
     from videoagents.nodes.editing import EditingNode
     from videoagents.nodes.materials import MaterialsNode
@@ -284,11 +300,19 @@ def test_completed_video_rebuild_runs_only_director_and_editing_and_is_replay_sa
             return valid_study(before.brief.usage)
         assert role == "director" and context["extras"]["timeline_rebuild"] is True
         assert context["timeline"] == before.timeline.model_dump()
+        if note:
+            feedback = context["extras"]["human_feedback"]["director"]
+            assert feedback["note"] == note and feedback["decision"] == "revise"
+            assert feedback["pending_token"] == command_id.removesuffix(":timeline")
+            assert feedback["timeline"] == before.timeline.model_dump()
+            assert feedback["applied"] is False
         return {"shots": [{**shot, "title": "UNIT new visuals"} for shot in context["timeline"]["shots"]]}
 
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
     payload = {"base_revision": before.revision, "action": "produce", "rebuild_from": "director",
                "idempotency_key": "UNIT-rebuild-visuals"}
+    if note:
+        payload["note"] = note
     repo.enqueue(before.job_id, payload)
     assert worker.once()
     result = repo.get_job(before.job_id)
@@ -301,6 +325,15 @@ def test_completed_video_rebuild_runs_only_director_and_editing_and_is_replay_sa
         a.artifact_id for a in result.artifacts if a.kind == "stage_review"}
     assert {a.artifact_id for a in before.artifacts if a.kind == "final"}.isdisjoint({
         a.artifact_id for a in result.artifacts if a.kind == "final"})
+    if note:
+        receipts = [a for a in result.artifacts if a.kind == "human_feedback_applied"]
+        assert len(receipts) == 1
+        path, _, _ = repo.artifact_path(receipts[0].artifact_id)
+        assert json.loads(path.read_text(encoding="utf-8"))["note"] == note
+        from videoagents.storage import Conflict
+
+        with pytest.raises(Conflict, match="幂等键"):
+            repo.enqueue(before.job_id, {**payload, "note": "UNIT：另一条返工意见。"})
     repo.enqueue(before.job_id, payload)
     assert not worker.once()
     with repo.connection() as db:
@@ -311,9 +344,48 @@ def test_completed_video_rebuild_runs_only_director_and_editing_and_is_replay_sa
     assert seen == ["DirectorNode", "EditingNode"]
 
 
+def test_visual_rebuild_note_survives_director_pause_and_normal_resume(manual_job, monkeypatch):
+    from videoagents.nodes.voice import VoiceNode
+
+    repo, service, before, audio, worker = completed_visual_job(manual_job, monkeypatch)
+    monkeypatch.setattr(VoiceNode, "__call__", lambda *a: pytest.fail("visual feedback repeated TTS"))
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.available", lambda self, role: role == "director")
+    note = "UNIT：聚焦图表的关键区域，减少大面积空白。"
+    plans = []
+
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        if command_id.endswith(":component-study"):
+            from tests.videoagents.test_director_model_contract import valid_study
+
+            return valid_study(before.brief.usage)
+        feedback = context["extras"]["human_feedback"]["director"]
+        assert feedback["note"] == note and feedback["timeline"] == before.timeline.model_dump()
+        plans.append(feedback["pending_token"])
+        if len(plans) == 1:
+            raise ValueError("UNIT：模拟可恢复的导演校验问题")
+        return {"shots": [{**shot, "title": "UNIT revised visuals"} for shot in context["timeline"]["shots"]]}
+
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
+    repo.enqueue(before.job_id, {"base_revision": before.revision, "action": "produce",
+                 "rebuild_from": "director", "note": note, "idempotency_key": "UNIT-feedback-pause"})
+    assert worker.once()
+    paused = repo.get_job(before.job_id)
+    assert paused.status == "NEEDS_INPUT" and paused.pending_input["stage"] == "director"
+    repo.enqueue(before.job_id, {"base_revision": before.revision, "action": "resume", "decision": "confirm",
+                 "pending_token": paused.pending_input["pending_token"], "idempotency_key": "UNIT-feedback-resume"})
+    assert worker.once()
+    result = repo.get_job(before.job_id)
+    assert (result.status, result.stage) == ("DRAFT", "complete"), result.message
+    assert len(plans) == 2 and plans[0] == plans[1]
+    assert result.revision == before.revision and result.script == before.script and result.assets == before.assets
+    assert result.timeline.audio_src == audio.timeline_src and result.timeline.captions == before.timeline.captions
+
+
+@pytest.mark.parametrize("rebuild_from", ["director", "voice"])
 @pytest.mark.parametrize("change", ["script", "timeline", "alignment", "approval"])
-def test_visual_rebuild_rejects_changed_frozen_inputs_or_missing_confirmation(manual_job, monkeypatch, change):
+def test_visual_rebuild_rejects_changed_frozen_inputs_or_missing_confirmation(manual_job, monkeypatch, change, rebuild_from):
     repo, _, before, audio, worker = completed_visual_job(manual_job, monkeypatch)
+    monkeypatch.setattr("videoagents.nodes.voice.synthesize", lambda *a, **k: pytest.fail("unapproved rebuild reached TTS"))
     if change == "script":
         script = before.script.model_copy(deep=True)
         script.segments[0].narration = "UNIT changed narration"
@@ -328,11 +400,109 @@ def test_visual_rebuild_rejects_changed_frozen_inputs_or_missing_confirmation(ma
         repo.update_asset_metadata(audio.asset_id, metadata)
     else:
         repo.update_job(before.job_id, artifacts=[a for a in before.artifacts if a.kind != "stage_review"])
-    repo.enqueue(before.job_id, {"base_revision": before.revision, "action": "produce", "rebuild_from": "director",
+    repo.enqueue(before.job_id, {"base_revision": before.revision, "action": "produce", "rebuild_from": rebuild_from,
                  "idempotency_key": "UNIT-invalid-visual-rebuild"})
     assert worker.once()
     current = repo.get_job(before.job_id)
     assert current.status == "FAILED" and current.stage == "complete"
+
+
+@pytest.mark.parametrize("action", ["produce", "voice"])
+@pytest.mark.parametrize("pause", [False, True])
+def test_voice_rebuild_uses_new_audio_and_keeps_reviewed_script_through_normal_graph(manual_job, monkeypatch, pause, action):
+    from videoagents.nodes.materials import MaterialsNode
+    from videoagents.nodes.screenwriter import ScreenwriterNode
+    from videoagents.nodes.script_reviewer import ScriptReviewerNode
+    from videoagents.providers.llm import CapabilityMissing
+    from videoagents.services.settings import voice_fingerprint
+
+    repo, service, before, old_audio, worker = completed_visual_job(manual_job, monkeypatch)
+    SettingsService(repo).patch(SettingsPatch(
+        voice_provider="byte_ws", voice_api_key="UNIT-test-secret", voice_id="S_UNIT",
+        voice_resource_id="seed-icl-2.0", voice_model="seed-tts-2.0-expressive",
+        voice_style="UNIT：自然清楚。", voice_speech_rate=10,
+    ))
+    for node in (MaterialsNode, ScreenwriterNode, ScriptReviewerNode):
+        monkeypatch.setattr(node, "__call__", lambda *a: pytest.fail("voice rebuild repeated script review"))
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.available", lambda self, role: role in {"voice", "director"})
+    note = "UNIT：保持基础声音一致；20秒图表先全图再聚焦。"
+    voice_requests, director_requests, synthesis_calls = [], [], []
+
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        if command_id.endswith(":component-study"):
+            from tests.videoagents.test_director_model_contract import valid_study
+
+            return valid_study(before.brief.usage)
+        if role == "voice":
+            feedback = context["extras"]["human_feedback"]["voice"]
+            assert feedback["note"] == note and feedback["script"] == before.script.model_dump()
+            assert feedback["pending_token"] == context["extras"]["voice_rebuild_id"]
+            voice_requests.append(feedback["pending_token"])
+            if pause and len(voice_requests) == 1:
+                raise CapabilityMissing("UNIT：模拟配音指导暂不可用", ["voice_guidance"])
+            return {"delivery_notes": ["UNIT：声音与基础节奏保持一致。"], "pronunciation_notes": [], "findings": []}
+        assert role == "director"
+        feedback = context["extras"]["human_feedback"]
+        assert feedback["voice"]["applied"] is True
+        assert feedback["director"]["note"] == note and feedback["director"]["applied"] is False
+        assert feedback["voice"]["pending_token"] == feedback["director"]["pending_token"] == voice_requests[0]
+        assert context["timeline"]["audio_src"] != old_audio.timeline_src
+        assert context["timeline"]["duration_in_frames"] == 45
+        assert context["timeline"]["captions"][0]["end_ms"] == 2800
+        director_requests.append(context)
+        return {"shots": [{**shot, "title": "UNIT new audio and visuals"} for shot in context["timeline"]["shots"]]}
+
+    def provider(repository, job_id, revision, text, command_id="", **options):
+        assert text == before.script.segments[0].narration
+        assert "声音与基础节奏保持一致" in options["delivery_style"]
+        assert voice_requests[0] in options["operation_key"]
+        synthesis_calls.append(options)
+        path = repo.root / "UNIT-new-voice.wav"
+        path.write_bytes(_tone(3))
+        return {"path": str(path), "origin": "byte_ws",
+                "voice_fingerprint": voice_fingerprint(SettingsService(repo).internal()),
+                "voice_model": "seed-tts-2.0-expressive", "voice_speech_rate": 10,
+                "sentences": [{"words": [{"word": text, "startTime": 0, "endTime": 2.8}]}]}
+
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
+    monkeypatch.setattr("videoagents.nodes.voice.synthesize", provider)
+    payload = {"base_revision": before.revision, "action": action, "rebuild_from": "voice",
+               "note": note, "idempotency_key": "UNIT-force-voice-rebuild"}
+    repo.enqueue(before.job_id, payload)
+    assert worker.once()
+    if pause:
+        paused = repo.get_job(before.job_id)
+        assert paused.status == "NEEDS_INPUT" and paused.pending_input["stage"] == "voice"
+        repo.enqueue(before.job_id, {"base_revision": before.revision, "action": "resume", "decision": "confirm",
+                     "pending_token": paused.pending_input["pending_token"], "idempotency_key": "UNIT-rebuild-voice-resume"})
+        assert worker.once()
+    if action == "voice":
+        stopped = repo.get_job(before.job_id)
+        assert (stopped.status, stopped.stage, stopped.timeline) == ("DRAFT", "voice", None), stopped.message
+        assert len(synthesis_calls) == 1 and not director_requests
+        repo.enqueue(before.job_id, {"base_revision": before.revision, "action": "produce",
+                     "continue_from": "voice", "idempotency_key": "UNIT-continue-rebuilt-voice"})
+        assert worker.once()
+    result = repo.get_job(before.job_id)
+    assert (result.status, result.stage) == ("DRAFT", "complete"), result.message
+    assert result.revision == before.revision and result.script == before.script
+    assert len(synthesis_calls) == 1 and len(director_requests) == 1
+    assert repo.active_audio(before.job_id) != old_audio.asset_id
+    new_audio = next(a for a in result.assets if a.asset_id == repo.active_audio(before.job_id))
+    assert new_audio.sha256 != old_audio.sha256
+    assert result.timeline.audio_src == new_audio.timeline_src and result.timeline.captions != before.timeline.captions
+    assert {a.artifact_id for a in before.artifacts if a.kind == "stage_review"} <= {
+        a.artifact_id for a in result.artifacts if a.kind == "stage_review"}
+    assert len(set(voice_requests)) == 1
+    repo.enqueue(before.job_id, payload)
+    assert not worker.once() and len(synthesis_calls) == 1
+    with repo.connection() as db:
+        command = dict(db.execute("SELECT * FROM commands WHERE idempotency_key=?", (payload["idempotency_key"],)).fetchone())
+    command["payload"] = json.loads(command["payload"])
+    if action == "produce":
+        with VideoProductionGraph(repo, service.project_root) as graph:
+            graph.execute(command)
+    assert len(synthesis_calls) == 1 and len(director_requests) == 1
 
 
 def test_fact_source_gate_does_not_trigger_tts(monkeypatch, tmp_path):

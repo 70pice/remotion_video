@@ -217,7 +217,8 @@ export interface RunRequest {
   action: "produce" | "voice" | "storyboard" | "preview" | "final" | "review";
   idempotency_key: string;
   continue_from?: "voice" | null;
-  rebuild_from?: "director" | null;
+  rebuild_from?: "voice" | "director" | null;
+  note?: string | null;
 }
 
 export interface Script {

@@ -93,9 +93,9 @@
     },
     {
       "component_id": "data",
-      "name": "数据卡",
-      "description": "展示已核验数字",
-      "use_case": "有来源的 1 到 4 个指标",
+      "name": "数值与数据图",
+      "description": "已核验数值卡、共同量程柱状图或独立百分比圆环",
+      "use_case": "用明确来源的数字解释数量差别或整体占比",
       "library": "VideoAgents",
       "orientation": "both",
       "kind": "adapter",
