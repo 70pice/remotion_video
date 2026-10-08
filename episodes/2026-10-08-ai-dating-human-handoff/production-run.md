@@ -176,3 +176,15 @@
 - 后端全量 897 项通过；随后最后追加的恢复线程测试连同源码守卫回归共 43 项再次通过。Python Ruff、根项目与网页类型检查、网页构建通过，日志 `.runtime/videoagents/ai-dating-source-and-failure-recovery-backend-tests.txt`。
 - 在无运行任务时正常刷新服务，通过 `/runs produce` 恢复原失败节点，事件 3213；剪辑源码守卫在 3215–3216 真实暂停为 `input / director`，没有消耗新的剪辑调用或渲染。恢复回执 `.runtime/videoagents/ai-dating-failed-run-recovery-submission.json`。
 - 针对这条真实待办，以技术意见 `confirm` 续跑当前完整组件学习，事件 3217，回执 `.runtime/videoagents/ai-dating-final-source-study-resume-submission.json`。最终模板源码已冻结，仍保留 22 镜、原文案、已有音频与实测字幕。
+
+## 组件重做版的实际完成与交付
+
+- 本次任务仍为 `1a024549ad334d4dafe782f64c9e61f0`、版本 4，分支 `episode/2026-10-08-ai-dating-human-handoff`。正常 Graph 续跑完成组件学习、导演、剪辑及渲染，事件 3336 于 2026-10-09 00:57:41 Asia/Shanghai 达到 `DRAFT / complete`。
+- 最终组件学习登记产物 `eca365bd759d4e9d8be6e7df39dc2a72`，全部 152 个竖版预设覆盖完整；学习与当前源码指纹均为 `13bba139a241662e7006b5c45961d4865dc6f646a3ac3afa20e681ce3e4c1c2e`。不是将旧学习记录人为更新为通过。
+- 最终时间线登记产物 `072f1a0688f9474d8bfb9392d6f2feff`，保留此前剪辑通过的 22 镜。实际使用 Rve-StatCounter 两镜、Rve-PieChart 一镜、Rve-SplitScreen 两镜；其余为 evidence 14 镜、comparison 两镜、steps 一镜。接通六个生产接口不代表本期使用六个，也不代表其他 146 个演示预设已经接入实际内容。
+- 剪辑指导登记产物 `0e9db46ed6664c7ebf44fea696d743b7`，实际 `findings=[]`。真实素材占 72.59%，有来源的比例图占 2.78%，合计 75.36%。任务 API 回读确认已认可的正文、原音频及供应商字幕时间戳与首次成片完全一致。
+- 最终视频登记产物 `962e67e16b354fbcb3e9500cf3770f83`，19,135,740 字节，SHA-256 `d5f25c38d192c9707bb2284dfd1b2db3d1a6684e919124fdd5c3272dc98da07f`。实际 H.264 1080×1920、30 fps，视频流 171.566667 秒，AAC 音频流 171.584 秒；完整 ffmpeg 解码通过。
+- Graph 自动封面登记产物 `4671b1a63e6949ab808a6518e4f48d7a`，1,068,991 字节，SHA-256 `250c1e3d9c07afd673da3e95b927ae25a1fe4522f523e4ff21eeac019845ab09`。实际封面正确显示终值“4,700多个”，数字及单位同一行；比例图标题、圆环及中文图例不再重叠。抽查实际视频的计数、比例、人机分工、验证边界及结尾画面，记录位于私有证据目录 `final-frames/`；没有用模板预览替代实际成片抽查。
+- 临时调用额度已通过正常 Settings API 恢复为 `max_llm_calls=20`，回读一致；回执 `.runtime/videoagents/ai-dating-call-cap-restored.json`。新鲜验证包括后端全量 897 项、追加定向回归 43 项、渲染时间轴 53 项、网页 88 项，以及根项目和网页类型检查、ESLint、Python Ruff、网页构建、生产清单及组件路径检查。
+- 实际交付文件为 `.runtime/videoagents/ai-dating-visual-rebuild-delivery/AI交友局-组件视觉重做-竖屏.mp4` 及同目录封面。交付副本 SHA 与登记下载原件一致。通过 BotMux 发送一次成功，正文消息 `om_x100b6348810b2ca4b1a468be928a111`、媒体消息 `om_x100b63489ffb68a4b1cd6e6e1ae03c8` 均按精确 ID 回读；正文与发送稿完整一致，媒体文件名及封面键对应本次附件。发送及回读记录保存在该交付目录。
+- 飞书媒体回读的 `duration=0` 是本次 helper 的元数据值，不能替代实际文件时长；当前未独立下载平台媒体复核传输后 SHA。像素抽查和机器校验不能表述为完整人工听审、独立字幕同步验证或用户画面认可。本次制作完成，没有自动发布，也没有授予发布审核状态。
