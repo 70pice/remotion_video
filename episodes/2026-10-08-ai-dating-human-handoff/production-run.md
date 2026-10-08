@@ -63,7 +63,7 @@
 
 第一版附件通过实际飞书消息 ID 回读，下载的文案 TXT 和完整 ZIP 的 SHA-256 与原文件一致。返工版需重新发送，不能把已经送达的英文原件称为中文成片画面。
 
-## 当前交付：版本 4，等待人工审稿
+## 中文素材返工交付：版本 4，后续已要求修改开头
 
 - 当前状态：`NEEDS_HUMAN / script`，实际暂停节点为 `human_review_script`。没有确认文案、配音、导演时间线或成片。
 - 本轮素材节点实际冻结 4 条来源、9 个画面（8 张中文正文截图、1 张官方英文原图）。API 下载的当前版本 18 个登记产物全部通过 SHA-256 核对。
@@ -86,6 +86,29 @@
 | 21:35:47 | 最终改稿进入文案人工审稿 | 事件 2923 |
 
 私有证据保存在 `.runtime/videoagents/ai-dating-human-handoff-feedback-events.json` 与 `.runtime/videoagents/ai-dating-review-delivery-v4/`，包括产物、压缩包、发送及精确消息回读核对记录。后续必须使用当前版本的实际人工审稿待办，由用户决定确认或返工。
+
+## 当前交付：按报道标题重写开头，等待人工审稿
+
+用户引用上述中文素材交付，指出《约会 App 最炸套路：4700 个 AI 狂撩 25000 人》比原稿的假设式开场更有吸引力。本轮是同一期的文案返工，没有确认文案或授权进入配音。
+
+- 用户意见与提交给 Graph 的执行上下文保存在 [human-feedback-hook.json](human-feedback-hook.json)。通过正常 `POST /api/jobs/{job_id}/resume`，以实际待办提交 `decision=revise`，继续版本 4 的原 Graph 检查点。
+- 实际执行路径为 `human_review_script → screenwriter → script_reviewer → human_review_script`，中间保留工具记录清理。已有素材沿用，不重采、不改图片、没有直接调用配音或渲染。
+- 编剧节点将原来的“假设你聊了半个月”替换为具体规模、平台宣称与真人视频的冲突。首屏标题为“4700个AI在交友App撩人”；完整文案标题为“超4700个AI聊过至少2.5万人：真人哪来的？”。人数仍保留不同 AI 身份、至少互动人数和两周观察窗口的口径。
+- 本轮实际文案审查为 `APPROVE`，讨论状态为 `APPROVED`。当前为 `NEEDS_HUMAN / script`，暂停节点 `human_review_script`；没有人工确认，没有音频、时间线或成片。
+- 当前有效稿件：[完整待审口播稿](script-for-human-review-hook-rewrite.md)、[Graph 文案原件副本](graph-script-hook-rewrite.json)、[Graph 文案讨论原件副本](graph-script-discussion-hook-rewrite.json)。口播副本与登记产物、任务 API 回读一致，没有人工改写。
+- 经 API 下载本轮文案、讨论、已应用的人工反馈与上轮审核记录，共 4 个登记产物，SHA-256 全部匹配。
+- 已发送完整 12 段新稿正文及 TXT。正文消息 `om_x100b634e2d67d4a4b32b169be2922ca` 的精确回读与发送内容完整一致；附件消息 `om_x100b634e2d04cca4b32b263352c5c6c` 下载文件的 SHA-256 与本地原件一致。中文素材包沿用上一条交付，不重复发送。
+
+以下时间来自任务事件 API，均为 2026-10-08，Asia/Shanghai：
+
+| 时间 | 事件 | 证据 |
+| --- | --- | --- |
+| 22:08:21 | 人工返工命令持久化 | 事件 2924，`QUEUED` |
+| 22:08:22 | 人工节点应用返工意见并返回编剧 | 事件 2926，`RUNNING` |
+| 22:11:45 | 开头改稿交付并进入文案审查 | 事件 2928–2930，登记文案产物 |
+| 22:15:53 | 机器审查通过并重新等待人工审稿 | 事件 2931–2933，`APPROVED / APPROVE`、`NEEDS_HUMAN` |
+
+本轮私有证据保存在 `.runtime/videoagents/ai-dating-hook-feedback-submission.json` 与 `.runtime/videoagents/ai-dating-review-delivery-hook/`，包括任务人工待办、登记产物、Graph 事件、发送及精确回读记录。这里只记录本轮真实进度；用户确认前不继续配音。
 
 ## 本次验证
 
