@@ -108,6 +108,8 @@ type Props = {
   legend?: [string, string, string];
   /** 强调色（默认唯一强调色） */
   accent?: string;
+  /** Internal production rendering: keep the completed state readable. */
+  productionHold?: boolean;
 };
 
 const EXTRA_PORTRAIT_CSS = `.ugp-grid{left:100px!important;top:520px!important;grid-template-columns:repeat(10,70px)!important;gap:18px!important}.ugp-cell{width:70px!important;height:70px!important;border-radius:18px!important}.ugp-stat{left:100px!important;top:1320px!important}.ugp-big{font-size:170px!important;letter-spacing:-2px!important}.ugp-big small{font-size:70px!important}.ugp-lbl{font-size:46px!important}.ugp-lgd{left:100px!important;top:1660px!important;font-size:34px!important;gap:32px!important}.ugp-lgd i{width:28px!important;height:28px!important}`;
@@ -118,11 +120,12 @@ export default function UnitGridProportion({
   label = ["的观众", "在前 3 秒划走"],
   legend = ["划走 · 37 人", "留下 · 63 人", "每格 = 1 人（示意数据）"],
   accent = CONFIG.accent,
+  productionHold = false,
 }: Props) {
   const t = useCurrentFrame() / FPS;
   const n = Math.max(0, Math.min(CONFIG.total, Math.round(target)));
   const fillTotal = n * CONFIG.fillEach;
-  const exitK = 1 - tw(t, CONFIG.exitAt, CONFIG.end - CONFIG.exitAt, power2In);   // 全部同收
+  const exitK = productionHold ? 1 : 1 - tw(t, CONFIG.exitAt, CONFIG.end - CONFIG.exitAt, power2In);   // 全部同收
 
   // 网格：分环生长 + 按阅读顺序染色
   const c0 = (CONFIG.cols - 1) / 2, rows = CONFIG.total / CONFIG.cols, r0 = (rows - 1) / 2;

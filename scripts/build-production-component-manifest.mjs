@@ -42,6 +42,7 @@ const guidance = JSON.parse(
   await readFile(path.join(root, 'docs', 'component-use-guide.json'), 'utf8'),
 ).components;
 const guideById = new Map(guidance.map((entry) => [entry.compositionId, entry]));
+const bindings = JSON.parse(await readFile(path.join(root, 'videoagents', 'production-bindings.json'), 'utf8'));
 const community = [];
 for (const library of libraries) {
   const rows = JSON.parse(
@@ -52,6 +53,7 @@ for (const library of libraries) {
   );
   for (const row of rows) {
     const guide = guideById.get(row.compositionId);
+    const binding = bindings[row.compositionId];
     if (!guide?.description || !guide?.useCase) {
       throw new Error(`Missing production guidance: ${row.compositionId}`);
     }
@@ -63,7 +65,8 @@ for (const library of libraries) {
       library: library.name,
       orientation: 'both',
       kind: 'preset',
-      props_mode: 'empty',
+      props_mode: binding ? 'bound' : 'empty',
+      ...(binding ? {production_binding: binding} : {}),
       production_ready: true,
       min_frames: 15,
       allowed_usages: library.name === 'Talkcraft'

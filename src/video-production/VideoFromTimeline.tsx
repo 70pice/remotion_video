@@ -3,6 +3,7 @@ import {Audio} from '@remotion/media';
 import {AbsoluteFill, Freeze, Sequence, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {FittedText, muted, productionFont, useLayout, white} from './adapters/layout';
 import {buildCaptionPages} from './captionPages';
+import {hasProductionCommunityBinding, ProductionCommunityScene} from './communityBindings';
 import {isSemanticComponent, resolveCommunityPreset, semanticProductionRegistry} from './registry';
 import type {Timeline, TimelineShot, TimelineVideoProps} from './types';
 import {validateTimeline} from './validation.mjs';
@@ -38,6 +39,7 @@ const CommunityPresetScene = ({shot}: {shot: TimelineShot}) => {
 
 const Scene = ({shot, videoMetadata}: {shot: TimelineShot; videoMetadata?: TimelineVideoProps['videoMetadata']}) => {
   const {unit, vertical, margin} = useLayout();
+  if (hasProductionCommunityBinding(shot)) return <ProductionCommunityScene shot={shot} />;
   if (!isSemanticComponent(shot.component_id)) return <CommunityPresetScene shot={shot} />;
   const Adapter = semanticProductionRegistry[shot.component_id];
   return <AbsoluteFill style={{padding: `${(vertical ? 180 : 125) * unit}px ${margin}px ${(vertical ? 460 : 305) * unit}px`,

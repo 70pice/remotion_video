@@ -6,6 +6,7 @@ from pathlib import PurePosixPath
 from urllib.parse import urlparse
 
 from videoagents.contracts import Job, Timeline
+from videoagents.tools.component_bindings import BINDINGS, is_bound_chart, validate_component_binding
 from videoagents.tools.components import (
     COMMUNITY_COMPONENT_ID_SET,
     component_allowed,
@@ -107,7 +108,7 @@ def _data_visualization(props: dict[str, object]) -> str:
 
 
 def _is_data_chart(shot) -> bool:
-    return shot.component_id == "data" and _data_visualization(shot.props) in CHART_VISUALIZATIONS
+    return (shot.component_id == "data" and _data_visualization(shot.props) in CHART_VISUALIZATIONS) or is_bound_chart(shot)
 
 
 def _chart_source_ref(shot) -> str | None:
@@ -487,7 +488,18 @@ def validate_timeline(timeline: Timeline, job: Job, asset_metadata: dict[str, di
         if not component_allowed(shot.component_id, job.brief.usage):
             raise ValueError(f"组件 {shot.component_id} 的许可不允许当前 {job.brief.usage} 使用场景")
         if shot.component_id in COMMUNITY_COMPONENT_ID_SET:
-            if shot.props:
+            if shot.props and shot.component_id in BINDINGS:
+                validate_component_binding(shot)
+                source_ref = shot.props.get("source_ref")
+                if source_ref is not None:
+                    if source_ref not in _allowed_source_refs(job):
+                        raise ValueError("组件 source_ref 必须来自本任务的已批准来源")
+                    if ranges:
+                        _source_ref_segment_frames(
+                            shot, ranges, source_refs_by_segment,
+                            validate_relationships=True, message_subject="参数化社区组件",
+                        )
+            elif shot.props:
                 raise ValueError(f"预设组件 {shot.component_id} 当前不接受自定义 props")
             if shot.asset_src:
                 raise ValueError(f"预设组件 {shot.component_id} 使用已核验的内置素材，不接受 asset_src")

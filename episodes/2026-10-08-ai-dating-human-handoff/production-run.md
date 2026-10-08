@@ -118,12 +118,31 @@
 - 音频实测为 171.553958 秒，约 2 分 52 秒；没有为达到目标时长改变已确认文案或在剪辑阶段变速。实际长度以音频和成片测量为准。
 - 字幕对齐来源为字节供应商，报告明确区分正文覆盖、顺序和时长校验与独立识别、人工听审。当前时间戳报告有 264 个低于 0.8 的词，不能将 `verified=true` 表述为已经人工确认同步。
 - 导演节点交付了组件学习产物。通过项目实际校验函数核对全部 152 个竖版预设、161 个可选组件及当前清单与源码指纹，均匹配。
-- 当前 Graph 正在导演编排阶段，还没有成片。生产证据位于 `.runtime/videoagents/ai-dating-production-evidence/`，后续更新实际导演、渲染及交付结果。
+- 首次成片已于 22:38:56 由 Graph 完成并于 22:42 发送；用户随后反馈画面缺少冲击力，本期进入视觉返工。首次视频与生产证据保存在 `.runtime/videoagents/ai-dating-production-evidence/`，不能将该版记录成已获画面认可。
 
-## 本次验证
+## 首次成片及视觉返工
+
+- 首次导演输出 18 个镜头，仅使用 evidence、image_focus、comparison、conclusion、steps 五种基础组件。已完成全部 152 个竖版组件学习，但实际方案以同类报道卡片为主。
+- 实际流程：事件 2934 提交确认后的命令，2936 人工确认，2937 配音，2942 导演，2947 剪辑，2949 渲染，3060 完成。对应时间为 22:25:56、22:25:57、22:25:57、22:29:38、22:34:41、22:35:51、22:38:56，均为 2026-10-08 Asia/Shanghai。
+- 首次实际视频登记产物为 `4c2407755dd44c34b81467254ae921d6`，SHA-256 为 `4968601ecab35514025c58a522e28e9405f93572235bedf45218d81c5bf48a9d`；20,419,743 字节，H.264 1080×1920、30 fps、AAC 音频，视频流 171.566667 秒。完整解码及实际帧抽查通过，可读性检查不能替代用户对视觉表现的判断。
+- 首次飞书正文消息 `om_x100b634ef35778a0b1ffa63db594897`、视频消息 `om_x100b634ef32ba4a8b48a8bac04bce57` 均精确回读；未发布。附件回读确认平台文件键与文件名，尚未独立下载该媒体消息复核传输后的文件 SHA。
+- 用户两条真实反馈及执行方向见 [human-feedback-visual.json](human-feedback-visual.json)。文案、真实音频与供应商字幕时间戳继续沿用。
+- 排查发现社区组件生产入口只允许 `props={}`，渲染固定演示，不能输入本期数据。通过通用生产绑定接通已有六个组件的实际参数，固定演示及历史任务保持可读；导演通过正常 `rebuild_from=director` 入口重做画面，不能手写本期时间轴替代节点。
+
+## 初始交付验证
 
 - 任务 brief 的 Pydantic 契约与竖屏生产策略校验通过，API 回读与提交文件完全一致。
 - `npm run typecheck`、`npm run web:typecheck`、`npm run web:build` 通过。
 - 工作台首页 HTTP 200；人工审稿待办已持久化。
 - 本次仅新增本期输入、节点产出副本和流程记录，未修改生产代码。
 - 返工通过正常版本化任务入口执行；当前版本产物、飞书图片项、全文及实际下载附件已经验证。前后端代码没有新增变化，因此未重复运行此前已通过的类型检查和构建。
+
+## 视觉返工的通用修复及验证
+
+- 生产绑定契约位于 `videoagents/production-bindings.json`，生成到组件清单并注入导演及完整组件学习资料。接通 Rve-StatCounter、Rve-PieChart、Rve-SplitScreen、Talkcraft-unit-grid-proportion、Talkcraft-source-converge、Bits-ChatConversation；六个是已接通接口数量，实际成片使用另行统计。
+- 前后端依据同一契约校验必填字段、文字、数值、来源与比例口径；绑定直接调用既有底层组件。旧 `props={}` 仍显示原演示，其他 146 个固定预设继续拒绝未知参数。
+- 百格与关系汇聚的竖版实现支持内部 productionHold，默认关闭；生产保持动画完成后的可读画面。原始横版源文件未改变，108 个上游原件 SHA 校验匹配。安全区保留标题、字幕与来源；聊天示意固定显示中文标识。
+- 只有真实素材与合规来源比例图计入覆盖；单数字计数、解释面板和聊天示意不计入。source_ref 仍与本段已批准来源对应，未放宽覆盖要求。
+- 新鲜验证：全量 Python/API 881 项通过，渲染时间轴 51 项通过，网页 88 项通过；根项目与网页 TypeScript 检查、ESLint、Python Ruff、网页生产构建、组件路径及生产清单检查、Pydantic 生成契约检查均通过。
+- 全量回归中修正一条既有编剧 Prompt 测试的过时文字断言，使其匹配现有“不是现成口播稿”；编剧 Prompt 与已定稿正文没有改变。测试日志位于 `.runtime/videoagents/ai-dating-component-binding-backend-tests.txt`。
+- 本机服务在无运行任务时通过项目 stop/start 正常刷新代码，健康检查通过。于 23:13:03 通过任务 API 提交 `action=produce, rebuild_from=director, base_revision=4`，HTTP 202、事件 3061；Worker 于事件 3062 进入导演，沿用既有音频。私有回执为 `.runtime/videoagents/ai-dating-visual-rebuild-submission.json`。

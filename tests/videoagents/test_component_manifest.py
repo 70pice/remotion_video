@@ -95,3 +95,18 @@ def test_data_component_study_binds_the_reused_chart_implementations():
     assert "scale_max" in data["adapter_constraints"]
     assert "source_ref" in data["adapter_constraints"]
     assert "0-100" in data["adapter_constraints"]
+
+
+def test_bound_community_components_expose_contract_and_source_fingerprints():
+    payload = component_study_payload("personal")
+    bound = [item for item in payload["components"] if item["props_mode"] == "bound"]
+    assert {item["component_id"] for item in bound} == {
+        "Rve-StatCounter", "Rve-PieChart", "Rve-SplitScreen", "Talkcraft-unit-grid-proportion",
+        "Talkcraft-source-converge", "Bits-ChatConversation",
+    }
+    root = Path(__file__).resolve().parents[2]
+    for item in bound:
+        assert item["production_binding"]["schema"]["required"]
+        for source in item["implementation_sources"]:
+            assert source["sha256"] == hashlib.sha256((root / source["path"]).read_bytes()).hexdigest()
+    assert "videoagents/production-bindings.json" in {source["path"] for source in payload["production_binding_sources"]}

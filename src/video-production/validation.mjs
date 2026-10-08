@@ -1,6 +1,10 @@
 // Shared by the Remotion browser bundle and the Node renderer. This module has
 // no Node dependencies so validation is identical at both entry points.
 import componentManifest from '../../videoagents/component-manifest.json' with {type: 'json'};
+import {
+  hasBoundCommunityComponent,
+  validateCommunityBindingProps,
+} from './communityBindingValidation.mjs';
 
 export const productionComponentIds = Object.freeze(
   componentManifest.entries.map((entry) => entry.component_id),
@@ -112,6 +116,10 @@ const validateProps = (shot, name) => {
     });
   };
   if (communityComponentIdSet.has(shot.component_id)) {
+    if (hasBoundCommunityComponent(shot.component_id) && Object.keys(props).length > 0) {
+      validateCommunityBindingProps(shot, name);
+      return;
+    }
     keys(props, [], `${name}.props`);
     if (shot.asset_src) fail(`${name}: preset components do not accept asset_src`);
     return;

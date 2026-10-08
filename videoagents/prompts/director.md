@@ -58,10 +58,10 @@
 - **conclusion**：收束已讲清的判断与适用边界（可选 call_to_action）。
 - 只有 evidence / image_focus / video 设置 asset_src，其余组件 asset_src=null。
 
-### 6.3 社区预设（152 个）
+### 6.3 社区组件（152 个）
 - 只能从 `{{component_catalog}}` 中选 component_id，渲染器按 timeline 横竖自动用对应版本；id 不改写、不删前缀、不拼凑。
-- 必须 **props={}、asset_src=null**；不接受自定义 props、远程素材、CSS、函数或代码；镜头 title/body、统一字幕、来源条由生产层叠加。
-- 预设内置示例文案/图表/图片不是本期事实证据；凡数字、引用、界面、来源影响结论的镜头，优先用参数化适配器。
+- 目录标为**生产绑定**的组件按注入契约提供本期 props，asset_src=null；可直接使用数字计数、比例图、分工对照等既有动效表达本期证据。其余固定预设必须 props={}、asset_src=null。所有组件均不接受远程素材、CSS、函数或代码。
+- 固定预设内置示例文案/图表/图片不是本期事实证据。生产绑定必须替换必填内容并标注来源；饼图、百格图的合规 source_ref 与当前旁白关联时计入真实可视化覆盖，单数字计数、解释面板、示意聊天及固定演示不计入证据覆盖。
 - 终端/代码/光标走读类预设仅在主题确实相关、且普通观众不读代码也能理解时才选，重心放在“输入什么→跑起来→给出什么”；否则改用普通人熟悉的界面或生活化图解。
 
 ## 7. 素材规则
@@ -79,7 +79,7 @@
 ## 8. 素材覆盖指标（extras.media_coverage）
 - target_ratio=0.7。actual_media_ratio 只统计真实图/视；actual_chart_ratio 单列“有来源且对应当前旁白”的数据图；actual_visual_ratio 为两者合计。
 - **required=true**：evidence、image_focus、video、有来源数据图按帧计算必须**严格超过 70%**（不能刚好 70%），相关镜头时长之和达到 target_frames；不用重复片段、循环、无关图或延长静态截图凑。
- - 数据图仅限 data.visualization=bars/donuts，且 source_ref 属于当前段 source_refs；数值卡、固定演示、无来源图不计入；数据重绘是来源的图形表达，不计入 actual_media_ratio。
+ - 数据图包括 data.visualization=bars/donuts、生产绑定 Rve-PieChart 和 Talkcraft-unit-grid-proportion，且 source_ref 属于当前段 source_refs；单数字计数/数值卡、解释面板、示意聊天、固定演示、无来源图不计入；数据重绘是来源的图形表达，不计入 actual_media_ratio。
  - 先为各段安排对应素材，再留必要解释卡片。
 - **required=false**：合格素材不足 70%，如实使用能匹配的部分，其余用 comparison/data/steps，不虚构界面、结果或视频。
 - 真实截图/视频入主视觉，约占内容区 70%–85%；整页只建出处，随后用已核验 crop/highlight/focus_cues 放大细节；字幕与来源在安全区、不被遮挡。
@@ -138,7 +138,9 @@
  - title 可选 eyebrow（≤48）；keyword 可选 keyword（≤40）；conclusion 可选 call_to_action（≤72）。
  - 可选文字字段“有内容才提供”，没有就**省略该键**，不输出 `body:""` 或纯空白；已提供的文字必须非空（允许制表/换行）。
  - 镜头 title≤100 字、body≤240 字、source_label≤160 字；accent_color 为 #RRGGBB。
- - 社区预设必须 props={}、asset_src=null，不搬参数化适配器的 props。
+ - 社区组件 props_mode=bound 时按目录注入的生产绑定契约提供本期 props，asset_src=null；必须替换全部必填文本和数据。其余固定预设保持 props={}、asset_src=null，不搬参数化适配器的 props。
+ - 数字计数、饼图、百格图均须本段 source_ref 与非空 source_label；饼图仅同一整体百分比且合计100，百格是比例单位而非实际人数。增长率无来源则 StatCounter.change=""，数字与字幕揭示时刻对应。
+ - 聊天气泡是引用还是机制示意须填 semantics；示意显示固定标识，不编造本案人物对白或真实App录屏。绑定组件保留安全区，标题/正文短，不重复遮盖中心图形；不同结构服务不同解释任务。
 - `{{component_props}}` 只展示结构、不提供本视频事实，禁止照抄示例文案或示例坐标；`{{component_catalog}}` 是 component_id 的唯一来源。
 
 ## 13. 输出前自检

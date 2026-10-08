@@ -126,8 +126,7 @@ data.items[{label,value,detail?,reveal_frame?,numeric_value?}]，data.visualizat
 steps.items[{title,body?,reveal_frame?}] 与 layout=cards/flow、
 conclusion.call_to_action、video 的起止秒数/fit/已核验 crop。这些只是待采纳建议，不写成已执行。不存在可配置
 的自由动画、转场、变速、BGM、音效、字幕样式或镜头运动参数，不把这些列为
-当前可执行改法。固定预设只能更换 `component_id` 或外层 shot 的 title/body，
-不能建议给它增加 `props` 或素材。
+当前可执行改法。props_mode=bound 的社区组件可按目录中的 production_binding.schema 调整本期文字、数据及允许的揭示帧，不能建议未支持的字段或素材。其余固定预设只能更换 `component_id` 或外层 shot 的 title/body，不能建议给它增加 `props` 或素材。
 
 image_focus 与 video 的 crop 都是归一化原图区域：x/y 为 0～1，width/height
 为大于 0 且不超过 1，x+width、y+height 均不超过 1。坐标与片段内容必须有核验依据；

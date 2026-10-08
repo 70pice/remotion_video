@@ -18,7 +18,7 @@
     "generate:production-components": "node scripts/build-production-component-manifest.mjs",
     "check:production-components": "node scripts/build-production-component-manifest.mjs --check",
     "check:component-paths": "node scripts/check-component-paths.mjs",
-    "test:timeline": "node --test src/video-production/validation.test.mjs src/video-production/imageFocus.test.mjs src/video-production/adapters/data.test.mjs",
+    "test:timeline": "node --test src/video-production/validation.test.mjs src/video-production/imageFocus.test.mjs src/video-production/adapters/data.test.mjs src/video-production/communityBindingValidation.test.mjs",
     "web:dev": "npm run dev --workspace=web",
     "web:build": "npm run build --workspace=web",
     "web:typecheck": "npm run typecheck --workspace=web",

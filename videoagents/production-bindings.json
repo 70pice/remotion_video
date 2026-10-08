@@ -1,0 +1,83 @@
+{
+  "Rve-StatCounter": {
+    "description": "真实数字计数：value、label、period、suffix、change 必须全部提供，change 可为空；没有来源的增长率不能填写。source_ref 对应当前旁白来源；可用 reveal_frame 对齐实测字幕。",
+    "chart": false,
+    "sourced": true,
+    "implementation_sources": ["src/components/component-horizontal/rve/stat-counter.tsx"],
+    "schema": {"type":"object","additionalProperties":false,"required":["value","label","change","period","suffix","source_ref"],"properties":{
+      "value":{"type":"integer","minimum":0,"maximum":1000000000},
+      "label":{"type":"string","minLength":1,"maxLength":24},
+      "change":{"type":"string","maxLength":24},
+      "period":{"type":"string","minLength":1,"maxLength":40},
+      "suffix":{"type":"string","maxLength":8},
+      "source_ref":{"type":"string","minLength":1,"maxLength":2048},
+      "reveal_frame":{"type":"integer","minimum":0}
+    }}
+  },
+  "Rve-PieChart": {
+    "description": "同一整体的百分比构成：segments 2-4 项，value 总和必须为100；不能将不同群体数量当比例，必须提供本段 source_ref。",
+    "chart": true,
+    "implementation_sources": ["src/components/component-horizontal/rve/pie-chart.tsx"],
+    "schema": {"type":"object","additionalProperties":false,"required":["segments","title","source_ref"],"properties":{
+      "title":{"type":"string","minLength":1,"maxLength":36},
+      "source_ref":{"type":"string","minLength":1,"maxLength":2048},
+      "segments":{"type":"array","minItems":2,"maxItems":4,"items":{"type":"object","additionalProperties":false,"required":["label","value","color"],"properties":{
+        "label":{"type":"string","minLength":1,"maxLength":20},
+        "value":{"type":"number","minimum":0,"maximum":100},
+        "color":{"type":"string","pattern":"^#[0-9a-fA-F]{6}$"}
+      }}}
+    }}
+  },
+  "Rve-SplitScreen": {
+    "description": "用本期中文解释两个角色或状态：leftTitle/leftText/rightTitle/rightText 全部提供；是解释面板，不是真实产品界面。",
+    "chart": false,
+    "implementation_sources": ["src/components/component-horizontal/rve/split-screen.tsx"],
+    "schema": {"type":"object","additionalProperties":false,"required":["leftTitle","leftText","rightTitle","rightText"],"properties":{
+      "leftTitle":{"type":"string","minLength":1,"maxLength":20},
+      "leftText":{"type":"string","minLength":1,"maxLength":80},
+      "rightTitle":{"type":"string","minLength":1,"maxLength":20},
+      "rightText":{"type":"string","minLength":1,"maxLength":80}
+    }}
+  },
+  "Talkcraft-unit-grid-proportion": {
+    "description": "100格呈现百分比。每格是比例单位，不能说成真实受害者人数；target=0-100，unit固定%，label与三项legend必须替换。本期 source_ref 必填；动画完成后保持可读，不播放固定退出。",
+    "chart": true,
+    "hold_frame": 200,
+    "implementation_sources": ["src/components/component-vertical/video-talkcraft/unit-grid-proportion.tsx","src/components/component-horizontal/video-talkcraft/cards/unit-grid-proportion.tsx"],
+    "schema": {"type":"object","additionalProperties":false,"required":["target","unit","label","legend","source_ref"],"properties":{
+      "target":{"type":"integer","minimum":0,"maximum":100},
+      "unit":{"type":"string","enum":["%"]},
+      "label":{"type":"array","minItems":1,"maxItems":2,"items":{"type":"string","minLength":1,"maxLength":20}},
+      "legend":{"type":"array","minItems":3,"maxItems":3,"items":{"type":"string","maxLength":28}},
+      "source_ref":{"type":"string","minLength":1,"maxLength":2048}
+    }}
+  },
+  "Talkcraft-source-converge": {
+    "description": "2-4个输入汇入一个中心，title/sources/hub/caption 全部替换。只表达汇聚关系，不冒充任意交接方向；末尾保持结果，不播放固定退出。",
+    "chart": false,
+    "hold_frame": 200,
+    "implementation_sources": ["src/components/component-vertical/video-talkcraft/source-converge.tsx","src/components/component-horizontal/video-talkcraft/cards/source-converge.tsx"],
+    "schema": {"type":"object","additionalProperties":false,"required":["title","sources","hub","caption"],"properties":{
+      "title":{"type":"string","minLength":1,"maxLength":28},
+      "sources":{"type":"array","minItems":2,"maxItems":4,"items":{"type":"string","minLength":1,"maxLength":6}},
+      "hub":{"type":"string","minLength":1,"maxLength":8},
+      "caption":{"type":"string","minLength":1,"maxLength":24}
+    }}
+  },
+  "Bits-ChatConversation": {
+    "description": "中文气泡逐项进入。messages/variant/showAvatars/stagger/semantics 全部提供。illustration 固定显示机制示意标识，不伪造本案对白；quotation 必须有 source_ref 和真实来源。",
+    "chart": false,
+    "implementation_sources": ["src/components/component-horizontal/bits/examples/ChatConversation.tsx"],
+    "schema": {"type":"object","additionalProperties":false,"required":["messages","variant","showAvatars","stagger","semantics"],"properties":{
+      "messages":{"type":"array","minItems":2,"maxItems":6,"items":{"type":"object","additionalProperties":false,"required":["from","text"],"properties":{
+        "from":{"type":"string","enum":["me","them"]},
+        "text":{"type":"string","minLength":1,"maxLength":64}
+      }}},
+      "variant":{"type":"string","enum":["pop","slide","rise"]},
+      "showAvatars":{"type":"boolean"},
+      "stagger":{"type":"integer","minimum":6,"maximum":60},
+      "semantics":{"type":"string","enum":["illustration","quotation"]},
+      "source_ref":{"type":"string","minLength":1,"maxLength":2048}
+    }}
+  }
+}

@@ -110,6 +110,8 @@ type Props = {
   sources?: string[];
   hub?: string;
   caption?: string;
+  /** Internal production rendering: keep the completed state readable. */
+  productionHold?: boolean;
 };
 
 export default function SourceConverge({
@@ -117,6 +119,7 @@ export default function SourceConverge({
   sources = ["抖音", "小红书", "B 站", "公众号"],
   hub = "一张表",
   caption = "每天 8 点自动更新",
+  productionHold = false,
 }: Props) {
   const t = useCurrentFrame() / FPS;
   const ys = ysFor(sources.length);
@@ -142,7 +145,7 @@ export default function SourceConverge({
   const cx = lerp(CONFIG.hubX, 540, tw(t, CONFIG.centerAt, CONFIG.centerDur, power2InOut));
   const ttlIn = tw(t, CONFIG.titleIn, 0.4, power3Out);
   const capIn = tw(t, CONFIG.capIn, 0.4, power1Out);
-  const exitK = 1 - tw(t, CONFIG.exitAt, CONFIG.end - CONFIG.exitAt, power2In);
+  const exitK = productionHold ? 1 : 1 - tw(t, CONFIG.exitAt, CONFIG.end - CONFIG.exitAt, power2In);
 
   return (
     <AbsoluteFill style={{ background: "#ffffff", color: "#1d1d1f", overflow: "hidden", fontFamily: '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif' }}>

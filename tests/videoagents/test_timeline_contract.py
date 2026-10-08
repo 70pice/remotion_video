@@ -73,6 +73,104 @@ def chart_timeline(visualization="bars", **props):
     return data
 
 
+def bound_timeline(component="Rve-StatCounter", **overrides):
+    props = {"value": 4700, "label": "不同AI身份", "change": "", "period": "两周观察期",
+             "suffix": "+", "source_ref": "https://example.com/report", **overrides}
+    data = timeline(component, props)
+    data["shots"][0]["source_label"] = "报告中的两周观察"
+    return data
+
+
+def test_bound_counter_preserves_supplied_facts_and_requires_all_content():
+    raw = bound_timeline(reveal_frame=15)
+    candidate = Timeline.model_validate(raw)
+    validate_timeline(candidate, sourced_job())
+    assert candidate.model_dump(mode="json") == raw
+    assert node_validate(raw).returncode == 0
+    for missing in ["label", "change", "period", "suffix", "source_ref", "value"]:
+        invalid = bound_timeline()
+        del invalid["shots"][0]["props"][missing]
+        with pytest.raises(ValueError):
+            validate_timeline(Timeline.model_validate(invalid), sourced_job())
+        assert node_validate(invalid).returncode == 1
+
+
+@pytest.mark.parametrize("overrides", [
+    {"value": -1}, {"value": True}, {"value": 1.25}, {"label": " "}, {"label": "字" * 25},
+    {"change": "x\x01"}, {"source_ref": "file:///tmp/report"}, {"reveal_frame": 16},
+    {"reveal_frame": False}, {"unsupported": 1},
+])
+def test_bound_counter_python_and_node_reject_invalid_contract(overrides):
+    raw = bound_timeline(**overrides)
+    with pytest.raises(ValueError):
+        validate_timeline(Timeline.model_validate(raw), sourced_job())
+    assert node_validate(raw).returncode == 1
+
+
+def test_bound_components_preserve_legacy_demo_and_reject_injected_asset():
+    raw = timeline("Rve-StatCounter")
+    validate_timeline(Timeline.model_validate(raw), job())
+    assert node_validate(raw).returncode == 0
+    raw = bound_timeline()
+    raw["shots"][0]["asset_src"] = "videoagents/unit-test/assets/unit.png"
+    with pytest.raises(ValueError):
+        validate_timeline(Timeline.model_validate(raw), sourced_job())
+    assert node_validate(raw).returncode == 1
+
+
+@pytest.mark.parametrize("values", [(75, 25), (37, 63), (0, 100), (75, 24), (4700, 25000)])
+def test_bound_pie_is_one_percent_whole_not_unrelated_populations(values):
+    raw = timeline("Rve-PieChart", {"title": "供给构成", "source_ref": "https://example.com/report",
+        "segments": [{"label": label, "value": value, "color": color}
+                     for label, value, color in zip(["AI", "真人"], values, ["#CC4400", "#0077CC"], strict=True)]})
+    raw["shots"][0]["source_label"] = "report"
+    valid = sum(values) == 100 and all(0 <= value <= 100 for value in values)
+    if valid:
+        validate_timeline(Timeline.model_validate(raw), sourced_job())
+    else:
+        with pytest.raises(ValueError):
+            validate_timeline(Timeline.model_validate(raw), sourced_job())
+    assert node_validate(raw).returncode == (0 if valid else 1)
+
+
+def test_bound_chart_coverage_requires_source_of_current_narration():
+    from videoagents.tools.timeline import media_coverage_report
+
+    raw = timeline("Talkcraft-unit-grid-proportion", {"target": 75, "unit": "%", "label": ["供给构成"],
+        "legend": ["AI", "真人", "每格为1个百分点"], "source_ref": "https://example.com/report"})
+    raw["shots"][0]["source_label"] = "report"
+    raw["audio_src"] = "videoagents/unit-test/assets/audio.mp3"
+    raw["captions"] = [{"text": "测试旁白。", "start_ms": 0, "end_ms": 2000}]
+    candidate = Timeline.model_validate(raw)
+    report = media_coverage_report(candidate, sourced_job())
+    assert report["actual_chart_frames"] == 30
+    assert report["actual_media_frames"] == 0
+    unrelated = sourced_job().model_copy(update={"script": Script(title="test", revision=1, segments=[
+        ScriptSegment(segment_id="s1", narration="测试旁白。", source_refs=["https://example.com/other"]),
+    ])})
+    with pytest.raises(ValueError, match="当前旁白|对应|关联|无关"):
+        media_coverage_report(candidate, unrelated)
+    raw["shots"][0]["component_id"] = "Rve-StatCounter"
+    raw["shots"][0]["props"] = bound_timeline()["shots"][0]["props"]
+    assert media_coverage_report(Timeline.model_validate(raw), sourced_job())["actual_chart_frames"] == 0
+
+
+def test_bound_chat_distinguishes_illustration_and_sourced_quotation():
+    raw = timeline("Bits-ChatConversation", {"messages": [
+        {"from": "me", "text": "发起文字聊天"}, {"from": "them", "text": "AI负责回复"}],
+        "variant": "slide", "showAvatars": False, "stagger": 20, "semantics": "illustration"})
+    validate_timeline(Timeline.model_validate(raw), sourced_job())
+    assert node_validate(raw).returncode == 0
+    raw["shots"][0]["props"]["semantics"] = "quotation"
+    with pytest.raises(ValueError, match="引用聊天"):
+        validate_timeline(Timeline.model_validate(raw), sourced_job())
+    assert node_validate(raw).returncode == 1
+    raw["shots"][0]["source_label"] = "report"
+    raw["shots"][0]["props"]["source_ref"] = "https://example.com/report"
+    validate_timeline(Timeline.model_validate(raw), sourced_job())
+    assert node_validate(raw).returncode == 0
+
+
 @pytest.mark.parametrize(("component", "props"), [
     ("keyword", {"keyword": "字" * 41}), ("title", {"eyebrow": "字" * 49}),
     ("conclusion", {"call_to_action": "字" * 73}),

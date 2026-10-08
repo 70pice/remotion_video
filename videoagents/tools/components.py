@@ -99,7 +99,7 @@ def _source_summary(entry_text: str, source_text: str, component_id: str) -> dic
             r"export\s+interface\s+\w*Props\s*", r"interface\s+\w*Props\s*",
         ], 110),
         "config_hint": _first_block(source_text, [r"const\s+CONFIG\s*=", r"const\s+\w*CONFIG\s*="], 110),
-        "source_notes": _compact(" ".join(comments[:2]), 60),
+        "source_notes": _compact(" ".join(comments[:2]), 24),
     }
     return {key: value for key, value in summary.items() if value}
 
@@ -144,6 +144,18 @@ def component_source_guide() -> dict[str, Any]:
                 "vertical_source_sha256": hashlib.sha256(vertical_source.read_bytes()).hexdigest(),
                 "source_summary": _source_summary(entry_text, source_text, entry["component_id"]),
             })
+            if binding := entry.get("production_binding"):
+                item["production_binding"] = binding
+                # The bound schema replaces demo props/config excerpts. Keep
+                # the timing hint without teaching the old demo's fact values.
+                item["source_summary"] = {
+                    key: value for key, value in item["source_summary"].items() if key == "meta_hint"
+                }
+                item["implementation_sources"] = [
+                    {"path": source_path,
+                     "sha256": hashlib.sha256((PROJECT_ROOT / source_path).read_bytes()).hexdigest()}
+                    for source_path in binding["implementation_sources"]
+                ]
         else:
             item["adapter_constraints"] = "真实素材必须来自当前任务 assets。"
             if entry["component_id"] in {"evidence", "image_focus"}:
@@ -188,11 +200,20 @@ def component_source_guide() -> dict[str, Any]:
             for path in sorted((PROJECT_ROOT / "src/video-production/adapters").glob("*"))
             if path.suffix in {".ts", ".tsx"}
         ],
+        "production_binding_sources": [
+            {"path": source_path, "sha256": hashlib.sha256((PROJECT_ROOT / source_path).read_bytes()).hexdigest()}
+            for source_path in (
+                "videoagents/production-bindings.json",
+                "src/video-production/communityBindings.tsx",
+                "src/video-production/communityBindingValidation.mjs",
+            ) if (PROJECT_ROOT / source_path).is_file()
+        ],
         "components": components,
         "selection_rules": [
             "先用真实视频素材；只有视频不存在、时长不足或语义不匹配时才退回图片或解释组件。",
             "商业用途按 allowed_usages 过滤可选组件，但学习阶段仍要覆盖全部 152 个竖版预设。",
-            "社区预设不能承载事实证据；事实、数字、原文与产品画面优先使用参数化适配器。",
+            "props_mode=bound 的社区组件按 production_binding.schema 输入本期内容；比例图有本段来源才计入真实可视化覆盖，单数字卡不计入。",
+            "props_mode=empty 或 props={} 仍是固定演示，不能承载本期事实；原文与产品画面使用真实素材适配器。",
             "所有竖版预设来源于 docs/component-paths.json 的 verticalPath/verticalSourcePath，并以 SHA256 防漂移。",
         ],
         "inspection_limits": [
@@ -241,9 +262,11 @@ def prompt_component_catalog(usage: str) -> str:
     for entry in component_manifest():
         if usage not in entry["allowed_usages"]:
             continue
-        mode = "参数化" if entry["kind"] == "adapter" else "固定预设"
+        mode = "参数化" if entry["kind"] == "adapter" else ("生产绑定" if entry.get("production_binding") else "固定预设")
         lines.append(
             f"{entry['component_id']} | {entry['library']} | {mode} | "
             f"{entry['description']} | {entry['use_case']}"
         )
+        if binding := entry.get("production_binding"):
+            lines.append(f"  {binding['description']} props契约：{json.dumps(binding['schema'], ensure_ascii=False, separators=(',', ':'))}")
     return "\n".join(lines)
