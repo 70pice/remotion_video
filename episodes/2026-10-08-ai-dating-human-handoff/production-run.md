@@ -146,3 +146,12 @@
 - 新鲜验证：全量 Python/API 881 项通过，渲染时间轴 51 项通过，网页 88 项通过；根项目与网页 TypeScript 检查、ESLint、Python Ruff、网页生产构建、组件路径及生产清单检查、Pydantic 生成契约检查均通过。
 - 全量回归中修正一条既有编剧 Prompt 测试的过时文字断言，使其匹配现有“不是现成口播稿”；编剧 Prompt 与已定稿正文没有改变。测试日志位于 `.runtime/videoagents/ai-dating-component-binding-backend-tests.txt`。
 - 本机服务在无运行任务时通过项目 stop/start 正常刷新代码，健康检查通过。于 23:13:03 通过任务 API 提交 `action=produce, rebuild_from=director, base_revision=4`，HTTP 202、事件 3061；Worker 于事件 3062 进入导演，沿用既有音频。私有回执为 `.runtime/videoagents/ai-dating-visual-rebuild-submission.json`。
+
+## 剪辑阻断后的导演修正
+
+- 首次视觉返工由导演生成 19 镜头，实际用了 Rve-StatCounter、Rve-PieChart、Rve-SplitScreen、Talkcraft-source-converge 四种生产绑定组件；尚未生成这版实际视频。剪辑节点仍发现中文统计截图停留 26.23 秒、关键人机分工依赖整张英文图，事件 3071 如实暂停为 `NEEDS_INPUT / director`。待修记录与登记产物下载、SHA 回读位于 `.runtime/videoagents/ai-dating-visual-rebuild-evidence/`。
+- 修复导演在剪辑阻断后忽略 `pending_snapshot / gate_issues`、复用当前旧分镜的恢复路径；有待修问题时必须重新规划，没有模型则继续暂停，不能恢复即放行。
+- 剪辑模型只接收当前实际使用的 bound 组件 canonical 参数契约和后端计算的素材/图表覆盖报告，保留真实用户意见，不重新发送历史分镜或音频对齐。数字卡不计图表。
+- 修正导演附加指令与真实覆盖规则的冲突：真实素材和有来源、对应当前旁白的数据图表合计须严格超过 70%；不再错误要求图片/视频本身超过 70%。后台校验和阈值没有放宽。
+- 本次全量 Python/API 回归 885 项通过，导演、剪辑定向回归 85 项通过，Python Ruff、根项目及网页类型检查、ESLint、网页生产构建通过；全量日志为 `.runtime/videoagents/ai-dating-component-recovery-backend-tests.txt`。
+- 无运行任务时正常刷新本机服务，再通过实际 `input / director` 待办提交技术 `confirm` 续跑，事件 3072，HTTP 202。这不是文案、画面或发布的人工认可。真实任务版本仍为 4，正文、音频、字幕保持一致；私有回执 `.runtime/videoagents/ai-dating-director-editing-recovery-submission.json`。

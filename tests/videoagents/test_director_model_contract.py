@@ -142,6 +142,9 @@ def test_visual_rebuild_uses_model_instead_of_reusing_completed_timeline(tmp_pat
         assert context["extras"]["media_coverage"]["actual_media_ratio"] == 1
         assert context["extras"]["media_coverage"]["required"] is True
         assert "至少覆盖 22 帧（全片 30 帧）" in instruction
+        assert "真实图片/视频及有来源、对应当前旁白的数据图表合计" in instruction
+        assert "合规比例图无需 asset_src" in instruction
+        assert "asset_src=null 的纯解释镜头" not in instruction
         assert context["extras"]["timeline_repair_issues"] == ["素材覆盖不足"]
         shot = dict(context["timeline"]["shots"][0], title="重新选择素材的镜头",
                     component_id="image_focus", asset_src=job.assets[1].timeline_src)
@@ -179,6 +182,59 @@ def test_visual_rebuild_without_director_model_cannot_render_old_timeline(tmp_pa
     job = node.repo.update_job(job.job_id, job.revision, timeline=old)
     state = VideoState(**job_context(job), extras={"timeline_rebuild": True})
     with pytest.raises(CapabilityMissing, match="重做画面需要启用导演模型"):
+        node.plan(job, audio, alignment, 2.0, state=state)
+
+
+@pytest.mark.parametrize("with_feedback", [False, True])
+def test_editing_blocked_director_resume_replans_the_current_timeline(tmp_path, monkeypatch, with_feedback):
+    node, job, audio, alignment = director_job(tmp_path, production=True)
+    monkeypatch.setattr(node.model, "available", lambda role: False)
+    state = VideoState(**job_context(job), extras={"component_study": valid_study(job.brief.usage)})
+    old = node.plan(job, audio, alignment, 3.0, state=state)
+    current = old.model_copy(update={"shots": [old.shots[0].model_copy(update={"title": "已返工但仍缺中文分工"})]})
+    job = node.repo.update_job(job.job_id, job.revision, timeline=current)
+    node.repo.update_asset_metadata(audio.asset_id, {
+        "duration_seconds": 3.0, "alignment": alignment.model_dump(), "origin": "manual",
+    })
+    node.service.write_json(job, "component-study.json", valid_study(job.brief.usage), "component_study")
+    job = node.repo.get_job(job.job_id)
+    extras = {"component_study": valid_study(job.brief.usage)}
+    if with_feedback:
+        extras["human_feedback"] = {"director": {
+            "decision": "revise", "pending_token": "visual-only", "note": "用中文解释真人和AI的分工",
+            "timeline": old.model_dump(), "applied": False,
+        }}
+    issues = ["剪辑发现英文整图无法解释真人和AI的分工"]
+    state = VideoState(**job_context(job), action="produce", run_id="visual-only", thread_id="visual-only",
+        resume_command_id="repair-director", audio_asset_id=audio.asset_id, alignment=alignment.model_dump(),
+        duration_seconds=3.0, pending_snapshot={"stage": "director"}, gate_issues=issues, extras=extras)
+    calls = []
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+
+    def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        calls.append(role)
+        assert context["timeline"] == current.model_dump()
+        assert context["extras"]["timeline_repair_issues"] == issues
+        return {"shots": [dict(context["timeline"]["shots"][0], title="真人和AI各负责什么")]}
+
+    monkeypatch.setattr(node.model, "call", model)
+    result = node(state)
+    assert calls == ["director"]
+    assert result["route"] == "editing"
+    saved = node.repo.get_job(job.job_id).timeline
+    assert saved.shots[0].title == "真人和AI各负责什么"
+    assert saved.audio_src == old.audio_src and saved.captions == old.captions
+
+
+def test_editing_blocked_director_without_model_stays_paused(tmp_path, monkeypatch):
+    from videoagents.providers.llm import CapabilityMissing
+
+    node, job, audio, alignment = director_job(tmp_path)
+    monkeypatch.setattr(node.model, "available", lambda role: False)
+    old = node.plan(job, audio, alignment, 2.0)
+    job = node.repo.update_job(job.job_id, job.revision, timeline=old)
+    state = VideoState(**job_context(job), pending_snapshot={"stage": "director"}, gate_issues=["英文整图需返工"])
+    with pytest.raises(CapabilityMissing, match="导演镜头仍有待修问题"):
         node.plan(job, audio, alignment, 2.0, state=state)
 
 

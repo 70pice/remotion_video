@@ -3,7 +3,12 @@
 import pytest
 
 from videoagents.contracts import Asset, Brief, Script, ScriptSegment, Timeline
-from videoagents.nodes.editing import EditingNode, compact_timeline_for_editing, compact_visual_feedback
+from videoagents.nodes.editing import (
+    EditingNode,
+    bound_component_contracts_for_editing,
+    compact_timeline_for_editing,
+    compact_visual_feedback,
+)
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState, job_context
 from videoagents.storage import Repository
@@ -69,6 +74,29 @@ def test_editing_receives_visual_acceptance_notes_without_historical_snapshots(a
     assert compact_visual_feedback({"human_feedback": {"director": {"decision": "revise", "note": " "}}}) == {}
 
 
+def test_bound_component_contracts_for_editing_only_include_current_bound_props():
+    timeline = {
+        "shots": [
+            {"shot_id": "fixed", "component_id": "Rve-StatCounter", "props": {}},
+            {"shot_id": "counter", "component_id": "Rve-StatCounter", "props": {
+                "value": 4700, "label": "AI身份", "change": "", "period": "两周",
+                "suffix": "+", "source_ref": "https://example.test/muse",
+            }},
+            {"shot_id": "title", "component_id": "title", "props": {"eyebrow": "测试"}},
+        ],
+    }
+
+    contracts = bound_component_contracts_for_editing(timeline)
+
+    assert set(contracts) == {"Rve-StatCounter"}
+    assert contracts["Rve-StatCounter"]["schema"]["required"] == [
+        "value", "label", "change", "period", "suffix", "source_ref",
+    ]
+    assert contracts["Rve-StatCounter"]["chart"] is False
+    assert contracts["Rve-StatCounter"]["sourced"] is True
+    assert contracts["Rve-StatCounter"]["used_shot_ids"] == ["counter"]
+
+
 def test_editing_model_receives_renderable_visual_metadata_without_audio_alignment_or_mutating_inputs(tmp_path, monkeypatch):
     repo = Repository(tmp_path / "runtime")
     service = JobService(repo, tmp_path / "project")
@@ -91,13 +119,19 @@ def test_editing_model_receives_renderable_visual_metadata_without_audio_alignme
                     segments=[ScriptSegment(segment_id="s1", narration="观点：这是测试文案。",
                                             source_refs=["https://example.test/muse"], asset_ids=[video.asset_id])])
     timeline = Timeline(job_id=job.job_id, revision=job.revision, width=job.brief.width,
-                        height=job.brief.height, fps=job.brief.fps, duration_in_frames=30,
+                        height=job.brief.height, fps=job.brief.fps, duration_in_frames=60,
                         audio_src=audio.timeline_src,
                         shots=[{"shot_id": "shot-1", "start_frame": 0, "end_frame": 30,
+                                "component_id": "Rve-StatCounter", "title": "AI身份数量",
+                                "asset_src": None, "source_label": "example.test",
+                                "props": {"value": 4700, "label": "AI身份", "change": "",
+                                          "period": "两周", "suffix": "+",
+                                          "source_ref": "https://example.test/muse"}},
+                               {"shot_id": "shot-2", "start_frame": 30, "end_frame": 60,
                                 "component_id": "video", "title": "真实视频",
                                 "asset_src": video.timeline_src, "source_label": "example.test",
                                 "props": {"start_seconds": 0, "fit": "contain"}}],
-                        captions=[{"text": "观点：这是测试文案。", "start_ms": 0.0, "end_ms": 1800.0}])
+                        captions=[{"text": "观点：这是测试文案。", "start_ms": 0.0, "end_ms": 3600.0}])
     job = repo.update_job(job.job_id, job.revision, assets=[audio, video, blocked],
                           script=script, timeline=timeline)
     repo.update_asset_metadata(audio.asset_id, {
@@ -144,9 +178,23 @@ def test_editing_model_receives_renderable_visual_metadata_without_audio_alignme
     assert (job_id, revision, role, command_id) == (
         job.job_id, job.revision, "editing", "unit-editing-context")
     assert schema["title"] == "EditingAdvice"
-    assert context["extras"] == {"human_feedback": {"director": {
+    assert set(context["extras"]) == {"human_feedback", "production_bindings", "media_coverage_report"}
+    assert context["extras"]["human_feedback"] == {"director": {
         "decision": "revise", "note": visual_note, "applied": True,
-    }}}
+    }}
+    counter_contract = context["extras"]["production_bindings"]["Rve-StatCounter"]
+    assert counter_contract["chart"] is False
+    assert counter_contract["sourced"] is True
+    assert counter_contract["used_shot_ids"] == ["shot-1"]
+    assert counter_contract["schema"]["required"] == [
+        "value", "label", "change", "period", "suffix", "source_ref",
+    ]
+    coverage = context["extras"]["media_coverage_report"]
+    assert coverage["actual_media_frames"] == 30
+    assert coverage["actual_chart_frames"] == 0
+    assert coverage["actual_visual_frames"] == 30
+    assert coverage["actual_media_ratio"] == 0.5
+    assert coverage["actual_chart_ratio"] == 0.0
     assert state["extras"]["human_feedback"]["director"]["timeline"]["shots"][0]["shot_id"] == "obsolete-plan"
     assert audio.asset_id not in context["asset_metadata"]
     assert context["asset_metadata"][video.asset_id] == {
@@ -164,5 +212,7 @@ def test_editing_model_receives_renderable_visual_metadata_without_audio_alignme
     }
     assert all("alignment" not in metadata for metadata in context["asset_metadata"].values())
     assert "captions" not in context["timeline"]
+    assert "audio_report" not in context["extras"]
+    assert "timeline" not in context["extras"]["human_feedback"]["director"]
     assert repo.get_job(job.job_id).script.model_dump() == original_script
     assert repo.get_job(job.job_id).timeline.model_dump() == original_timeline

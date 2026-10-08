@@ -185,7 +185,9 @@ class DirectorNode:
             audio = next(item for item in job.assets if item.asset_id == state["audio_asset_id"])
             feedback_stage = "render" if stage_feedback(state, "render") else "director"
             feedback = stage_feedback(state, feedback_stage)
-            if (not state.get("extras", {}).get("timeline_rebuild") and feedback and job.timeline
+            pending = state.get("pending_snapshot") or {}
+            repair_issues = state.get("gate_issues", []) if pending.get("stage") == "director" else []
+            if (not repair_issues and not state.get("extras", {}).get("timeline_rebuild") and feedback and job.timeline
                     and type(feedback.get("timeline")) is dict and job.timeline.model_dump() != feedback["timeline"]):
                 # SQL may commit before either artifact write; restore both outputs before continuing.
                 self.service.write_json(job, "storyboard.json", job.timeline.model_dump(), "storyboard")
@@ -289,12 +291,14 @@ class DirectorNode:
         rebuilding = bool(context.get("extras", {}).get("timeline_rebuild"))
         pending = context.get("pending_snapshot") or {}
         repair_issues = list(context.get("gate_issues", [])) if pending.get("stage") == "director" else []
-        if not rebuilding and feedback and job.timeline and type(feedback.get("timeline")) is dict and job.timeline.model_dump() != feedback["timeline"]:
+        if not repair_issues and not rebuilding and feedback and job.timeline and type(feedback.get("timeline")) is dict and job.timeline.model_dump() != feedback["timeline"]:
             return job.timeline
         if rebuilding and not model_available:
             raise CapabilityMissing("重做画面需要启用导演模型重新选择素材和编排镜头，不能直接复用旧分镜", ["role_models", "timeline"])
         if feedback and not model_available:
             raise CapabilityMissing("人工返工需要导演模型读取审核意见并重新规划镜头；请启用导演模型或提供新的人工分镜", ["role_models", "timeline"])
+        if repair_issues and not model_available:
+            raise CapabilityMissing("导演镜头仍有待修问题，需要启用导演模型读取剪辑反馈后重新编排", ["role_models", "timeline"])
         if job.timeline and not feedback and not rebuilding:
             if model_available:
                 self.ensure_component_study(job, context, state)
@@ -305,7 +309,8 @@ class DirectorNode:
             actual = [(item.text, item.start_ms, item.end_ms) for item in job.timeline.captions]
             if expected != actual or job.timeline.audio_src != audio.timeline_src:
                 raise ValueError("人工分镜必须保留当前实测音频及字幕时间轴")
-            repair_issues = timeline_readability_issues(job.timeline) if production_portrait(job) else repair_issues
+            if production_portrait(job):
+                repair_issues = list(dict.fromkeys([*repair_issues, *timeline_readability_issues(job.timeline)]))
             if not repair_issues:
                 return job.timeline
             if not model_available:
@@ -397,9 +402,11 @@ class DirectorNode:
                                       "media_coverage": coverage, "timeline_repair_issues": repair_issues}}
             instruction = director_prompt(job.brief.usage)
             if coverage["required"]:
-                instruction += ("\n\n本次提交的硬约束：图片/视频镜头至少覆盖 "
+                instruction += ("\n\n本次提交的硬约束：真实图片/视频及有来源、对应当前旁白的数据图表合计至少覆盖 "
                                 f"{coverage['target_frames']} 帧（全片 {total} 帧），"
-                                f"asset_src=null 的纯解释镜头合计最多 {total - coverage['target_frames']} 帧。"
+                                f"不计入视觉证据覆盖的解释镜头合计最多 {total - coverage['target_frames']} 帧。"
+                                "按 extras.media_coverage 的实际分类计算；合规比例图无需 asset_src，"
+                                "数字卡、分屏、来源关系图和固定演示不计入数据图表覆盖。"
                                 "先安排与本段旁白对应的真实素材，再保留必要解释镜头；"
                                 "提交前按 end_frame-start_frame 求和核对。")
             value = self.model.invoke(model_state, "director", instruction,

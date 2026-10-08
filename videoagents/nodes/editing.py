@@ -14,7 +14,8 @@ from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.state import VideoState
 from videoagents.storage import Repository
-from videoagents.tools.timeline import asset_renderable, validate_timeline
+from videoagents.tools.components import COMPONENT_BY_ID
+from videoagents.tools.timeline import asset_renderable, media_coverage_report, validate_timeline
 from worker.process_manager import render
 
 PROMPT = load_prompt("editing")
@@ -84,6 +85,37 @@ def compact_timeline_for_editing(timeline: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def bound_component_contracts_for_editing(timeline: dict[str, Any]) -> dict[str, Any]:
+    """Return only production-binding contracts used by the current timeline."""
+
+    contracts: dict[str, Any] = {}
+    for shot in timeline.get("shots", []):
+        if type(shot) is not dict or not shot.get("props"):
+            continue
+        component_id = shot.get("component_id")
+        entry = COMPONENT_BY_ID.get(component_id)
+        binding = entry.get("production_binding") if entry else None
+        if not binding:
+            continue
+        item = contracts.setdefault(component_id, copy.deepcopy(binding))
+        item.setdefault("used_shot_ids", []).append(shot.get("shot_id"))
+    return contracts
+
+
+def editing_extras(job: Job, metadata: dict[str, dict[str, Any]], source_extras: dict[str, Any]) -> dict[str, Any]:
+    """Build the small current-state extras payload for the editing model."""
+
+    extras = compact_visual_feedback(source_extras)
+    timeline = job.timeline
+    if not timeline:
+        return extras
+    contracts = bound_component_contracts_for_editing(timeline.model_dump())
+    if contracts:
+        extras["production_bindings"] = contracts
+    extras["media_coverage_report"] = media_coverage_report(timeline, job, metadata)
+    return extras
+
+
 class EditingNode:
     def __init__(self, repository: Repository, service: JobService):
         self.repo, self.service = repository, service
@@ -123,9 +155,9 @@ class EditingNode:
                        } for asset in job.assets
                            if asset.mime_type.startswith(("image/", "video/"))}}
             fields = ("brief", "script", "timeline", "assets", "asset_metadata", "action")
-            visual_feedback = compact_visual_feedback(context.get("extras", {}))
-            if visual_feedback:
-                context = {**context, "extras": visual_feedback}
+            extras = editing_extras(job, metadata, context.get("extras", {}))
+            if extras:
+                context = {**context, "extras": extras}
                 fields = (*fields, "extras")
             value = self.model.invoke(context, "editing", PROMPT,
                 fields=fields,

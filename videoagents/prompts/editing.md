@@ -59,6 +59,20 @@ action=preview 是预览，action=final 或 produce 是成片制作，两者都�
 focus_cues 坐标依据来读取。可据此判断某个 focus_cues.region、crop 或
 highlight 是否有上游核验来源，但不得写成剪辑模型已经目视图片像素或看过旧版。
 
+`extras.production_bindings` 只包含当前 `timeline.shots` 中实际使用且 `props`
+非空的 bound 社区组件契约；它来自当前 canonical manifest，不是历史分镜或整本
+组件库。检查这类组件时，必须按对应 `production_binding.schema` 核对当前 shot
+的实际 `props`，只能建议 schema 支持的字段，不能把固定 demo 文案、未列字段或
+素材参数加给它们。`Rve-StatCounter` 是 sourced 数字卡：需要来源标注，但不计入
+图表覆盖；`Rve-PieChart` 和 `Talkcraft-unit-grid-proportion` 等 `chart=true`
+组件才按后端覆盖报告计为数据图表。
+
+`extras.media_coverage_report` 是后端基于当前 timeline、script、assets 和真实
+asset_metadata 计算出的素材/图表/视觉覆盖分类与比例。判断素材覆盖、chart
+coverage、是否达到 70% 目标时，以这里的 `actual_media_ratio`、
+`actual_chart_ratio`、`actual_visual_ratio`、`segments` 等字段为准，不要自行把
+数字卡、固定预设或无 source_ref 的解释卡算成图表覆盖。
+
 `timeline` 是当前待渲染分镜的唯一现状来源；`extras.human_feedback` 只提供
 返工验收条件和被审核快照，不能替代、覆盖或回忆成“当前 timeline”。核对
 返工时必须重新从当前 `timeline.shots` 按实际数组内容读取每个 shot_id、
@@ -126,7 +140,11 @@ data.items[{label,value,detail?,reveal_frame?,numeric_value?}]，data.visualizat
 steps.items[{title,body?,reveal_frame?}] 与 layout=cards/flow、
 conclusion.call_to_action、video 的起止秒数/fit/已核验 crop。这些只是待采纳建议，不写成已执行。不存在可配置
 的自由动画、转场、变速、BGM、音效、字幕样式或镜头运动参数，不把这些列为
-当前可执行改法。props_mode=bound 的社区组件可按目录中的 production_binding.schema 调整本期文字、数据及允许的揭示帧，不能建议未支持的字段或素材。其余固定预设只能更换 `component_id` 或外层 shot 的 title/body，不能建议给它增加 `props` 或素材。
+当前可执行改法。props_mode=bound 的社区组件可按 `extras.production_bindings`
+中的当前 canonical `production_binding.schema` 调整本期文字、数据及允许的
+揭示帧，不能建议未支持的字段或素材；若某个 bound 组件没有出现在
+`extras.production_bindings`，说明当前 timeline 没有用它承载生产 props。
+其余固定预设只能更换 `component_id` 或外层 shot 的 title/body，不能建议给它增加 `props` 或素材。
 
 image_focus 与 video 的 crop 都是归一化原图区域：x/y 为 0～1，width/height
 为大于 0 且不超过 1，x+width、y+height 均不超过 1。坐标与片段内容必须有核验依据；
