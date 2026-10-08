@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from server.main import create_app
-from videoagents.contracts import Review, Script, ScriptSegment
+from videoagents.contracts import Review, Script, ScriptSegment, Shot, Timeline
 from videoagents.storage.repository import dumps, fingerprint
 
 
@@ -304,6 +304,131 @@ def test_failed_resume_retry_rejects_non_input_pending(client):
 
     assert response.status_code == 409
     assert "安全重试" in response.json()["detail"]
+
+
+def fail_run_command(client, job, *, action="produce", payload_changes=None):
+    repo = client.app.state.repository
+    payload = {"base_revision": job["revision"], "action": action,
+               "idempotency_key": f"UNIT-initial-failed-run-{action}"}
+    payload.update(payload_changes or {})
+    response = client.post(f"/api/jobs/{job['job_id']}/runs", json=payload)
+    assert response.status_code == 202
+    with repo.connection() as db:
+        row = db.execute("SELECT command_id,payload FROM commands WHERE job_id=? ORDER BY created_at DESC LIMIT 1",
+                         (job["job_id"],)).fetchone()
+    repo.finish(row["command_id"], "FAILED")
+    repo.update_job(job["job_id"], job["revision"], status="FAILED", message="unit failed", pending_input=None)
+    return payload, row["command_id"]
+
+
+def test_failed_production_run_can_be_recovered_with_same_action_new_idempotency_key(client):
+    job = create(client)
+    _, failed_command = fail_run_command(client, job, action="produce")
+
+    response = client.post(f"/api/jobs/{job['job_id']}/runs", json={
+        "base_revision": job["revision"],
+        "action": "produce",
+        "idempotency_key": "UNIT-recover-failed-produce",
+    })
+
+    assert response.status_code == 202
+    assert response.json()["status"] == "QUEUED"
+    repo = client.app.state.repository
+    with repo.connection() as db:
+        rows = db.execute("SELECT command_id,status,payload FROM commands WHERE job_id=? ORDER BY created_at",
+                          (job["job_id"],)).fetchall()
+    assert [row["status"] for row in rows] == ["FAILED", "PENDING"]
+    recovered = json.loads(rows[1]["payload"])
+    assert recovered["failed_run_thread_id"] == f"job:{job['job_id']}:run:{failed_command}"
+    assert recovered["action"] == "produce"
+    assert "pending_input" not in recovered
+    assert "continuation_thread_id" not in recovered
+    assert "rebuild_from" not in recovered
+
+
+def test_failed_production_run_recovery_chains_from_previous_recovery_thread(client):
+    job = create(client)
+    _, failed_command = fail_run_command(client, job, action="produce")
+    first = {
+        "base_revision": job["revision"],
+        "action": "produce",
+        "idempotency_key": "UNIT-recover-failed-produce-first",
+    }
+    assert client.post(f"/api/jobs/{job['job_id']}/runs", json=first).status_code == 202
+    repo = client.app.state.repository
+    with repo.connection() as db:
+        row = db.execute("SELECT command_id FROM commands WHERE job_id=? ORDER BY created_at DESC LIMIT 1",
+                         (job["job_id"],)).fetchone()
+    repo.finish(row["command_id"], "FAILED")
+    repo.update_job(job["job_id"], job["revision"], status="FAILED", message="unit failed again", pending_input=None)
+
+    response = client.post(f"/api/jobs/{job['job_id']}/runs", json={
+        "base_revision": job["revision"],
+        "action": "produce",
+        "idempotency_key": "UNIT-recover-failed-produce-second",
+    })
+
+    assert response.status_code == 202
+    with repo.connection() as db:
+        payload = json.loads(db.execute("SELECT payload FROM commands WHERE job_id=? AND status='PENDING'",
+                                        (job["job_id"],)).fetchone()["payload"])
+    assert payload["failed_run_thread_id"] == f"job:{job['job_id']}:run:{failed_command}"
+
+
+def test_failed_production_run_recovery_rejects_different_action_and_pending(client):
+    job = create(client)
+    fail_run_command(client, job, action="produce")
+
+    wrong_action = client.post(f"/api/jobs/{job['job_id']}/runs", json={
+        "base_revision": job["revision"], "action": "final", "idempotency_key": "UNIT-recover-wrong-action",
+    })
+    assert wrong_action.status_code == 409
+    assert "安全恢复" in wrong_action.json()["detail"]
+
+    repo = client.app.state.repository
+    pending = input_pending(job, "unit-failed-run-pending")
+    repo.update_job(job["job_id"], job["revision"], status="FAILED", pending_input=pending)
+    pending_response = client.post(f"/api/jobs/{job['job_id']}/runs", json={
+        "base_revision": job["revision"], "action": "produce", "idempotency_key": "UNIT-recover-with-pending",
+    })
+    assert pending_response.status_code == 409
+
+
+def test_visual_rebuild_after_failed_run_recovery_reuses_original_thread(client):
+    job = create(client)
+    repo = client.app.state.repository
+    script = Script(title="UNIT", origin="user", revision=job["revision"],
+                    segments=[ScriptSegment(segment_id="s1", narration="UNIT 已确认文案。")])
+    timeline = Timeline(job_id=job["job_id"], revision=job["revision"], width=1080, height=1920, fps=30,
+                        duration_in_frames=30, audio_src="unit.wav",
+                        shots=[Shot(shot_id="s1", start_frame=0, end_frame=30,
+                                    component_id="keyword", title="UNIT shot")])
+    repo.update_job(job["job_id"], job["revision"], status="DRAFT", stage="complete",
+                    script=script, timeline=timeline)
+    previous = {
+        "base_revision": job["revision"],
+        "action": "produce",
+        "idempotency_key": "UNIT-done-recovery",
+        "failed_run_thread_id": "UNIT-original-failed-thread",
+    }
+    with repo.connection(immediate=True) as db:
+        db.execute("INSERT INTO commands(command_id,job_id,idempotency_key,payload,payload_hash,status,created_at) "
+                   "VALUES('UNIT-done-recovery-command',?,?,?,?,?,?)",
+                   (job["job_id"], previous["idempotency_key"], dumps(previous), fingerprint(previous),
+                    "DONE", "9999-01-01T00:00:00+00:00"))
+
+    response = client.post(f"/api/jobs/{job['job_id']}/runs", json={
+        "base_revision": job["revision"],
+        "action": "produce",
+        "rebuild_from": "director",
+        "idempotency_key": "UNIT-rebuild-after-recovery",
+    })
+
+    assert response.status_code == 202
+    with repo.connection() as db:
+        payload = json.loads(db.execute("SELECT payload FROM commands WHERE job_id=? AND status='PENDING'",
+                                        (job["job_id"],)).fetchone()["payload"])
+    assert payload["continuation_thread_id"] == "UNIT-original-failed-thread"
 
 
 def test_removed_review_action_is_rejected_before_enqueue(client):

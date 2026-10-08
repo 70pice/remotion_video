@@ -142,6 +142,8 @@ class VideoProductionGraph(AbstractContextManager):
             raise Conflict("排队命令的版本已失效")
         if payload.get("continue_from") == "voice" or payload.get("rebuild_from") in {"voice", "director"}:
             return self.continue_after_voice(command, job)
+        if payload.get("failed_run_thread_id"):
+            return self.recover_failed_run(command, job)
         if payload["action"] == "review":
             return self.stop_removed_review(VideoState(job_id=job.job_id, revision=job.revision))
         if payload["action"] == "resume":
@@ -198,6 +200,27 @@ class VideoProductionGraph(AbstractContextManager):
                               action=payload["action"], run_id=command["command_id"], thread_id=thread_id,
                               gate_issues=[], extras={}))
         result = self.graph.invoke(state, config)
+        self.sync_pending(config, job)
+        return state_context(self.repo, result)
+
+    def recover_failed_run(self, command: dict[str, Any], job: Job) -> Any:
+        """Resume a failed production command from its saved LangGraph node."""
+        payload = command["payload"]
+        config = {"configurable": {"thread_id": payload["failed_run_thread_id"]}, "recursion_limit": 60}
+        saved = self.graph.get_state(config)
+        state = saved.values
+        if (
+            not state
+            or state.get("job_id") != job.job_id
+            or state.get("revision") != job.revision
+            or state.get("action") != payload["action"]
+        ):
+            raise Conflict("失败制作流程状态缺失或版本已变化")
+        if self.is_removed_review_checkpoint(saved):
+            return self.stop_removed_review(state)
+        if saved.interrupts or not saved.next:
+            raise Conflict("失败制作流程没有可安全恢复的检查点")
+        result = self.graph.invoke(None, config)
         self.sync_pending(config, job)
         return state_context(self.repo, result)
 

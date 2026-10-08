@@ -4,6 +4,7 @@ import pytest
 
 from videoagents.contracts import Asset, Brief, Script, ScriptSegment, Timeline
 from videoagents.nodes.editing import (
+    DirectorInputError,
     EditingNode,
     bound_component_contracts_for_editing,
     compact_timeline_for_editing,
@@ -12,8 +13,47 @@ from videoagents.nodes.editing import (
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState, job_context
 from videoagents.storage import Repository
+from videoagents.tools.components import component_study_payload
 
 PENDING_REVIEW_LICENSE = "真实来源视频；尚未确认再利用许可，请在发布审核时核验"
+
+
+@pytest.mark.parametrize("source_changed", [False, True])
+def test_editing_checks_saved_component_source_before_model_calls_and_render(tmp_path, monkeypatch, source_changed):
+    repo = Repository(tmp_path / "runtime")
+    service = JobService(repo, tmp_path / "project")
+    job = repo.create_job(Brief(topic="来源漂移", target_seconds=1))
+    timeline = Timeline(job_id=job.job_id, revision=job.revision, width=1080, height=1920,
+                        fps=30, duration_in_frames=30,
+                        audio_src=f"videoagents/{job.job_id}/assets/audio.wav",
+                        shots=[{"shot_id": "one", "start_frame": 0, "end_frame": 30,
+                                "component_id": "title", "title": "真实内容"}], captions=[])
+    job = repo.update_job(job.job_id, job.revision, timeline=timeline)
+    payload = component_study_payload(job.brief.usage)
+    study = {
+        "manifest_fingerprint": payload["manifest_fingerprint"],
+        "source_fingerprint": "0" * 64 if source_changed else payload["source_fingerprint"],
+        "usage": job.brief.usage, "reviewed_preset_ids": payload["all_preset_ids"],
+        "allowed_component_ids": payload["allowed_component_ids"], "video_first": True,
+        "selection_principles": ["真实素材", "来源对应", "完整学习", "清楚表达"],
+        "component_groups": [{"group": str(index), "use": "本组资料已学习"} for index in range(6)],
+        "limits": ["未逐像素看完全部预设"],
+    }
+    service.write_json(job, "component-study.json", study, "component_study")
+    node = EditingNode(repo, service)
+    monkeypatch.setattr(node.model, "invoke", lambda *args, **kwargs: pytest.fail("drift reached model call"))
+    monkeypatch.setattr("videoagents.nodes.editing.render", lambda *args, **kwargs: pytest.fail("drift reached renderer"))
+
+    def reached_timeline(*args, **kwargs):
+        raise ValueError("CURRENT_SOURCE_REACHED_TIMELINE_VALIDATION")
+
+    monkeypatch.setattr("videoagents.nodes.editing.validate_timeline", reached_timeline)
+    if source_changed:
+        with pytest.raises(DirectorInputError, match="组件源码已变化"):
+            node.render_video(job, "final")
+    else:
+        with pytest.raises(ValueError, match="CURRENT_SOURCE_REACHED_TIMELINE_VALIDATION"):
+            node.render_video(job, "final")
 
 
 def test_compact_timeline_for_editing_keeps_shots_and_projects_caption_windows():

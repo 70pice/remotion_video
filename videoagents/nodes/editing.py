@@ -14,7 +14,7 @@ from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.state import VideoState
 from videoagents.storage import Repository
-from videoagents.tools.components import COMPONENT_BY_ID
+from videoagents.tools.components import COMPONENT_BY_ID, component_study_payload
 from videoagents.tools.timeline import asset_renderable, media_coverage_report, validate_timeline
 from worker.process_manager import render
 
@@ -139,13 +139,24 @@ class EditingNode:
     def render_video(self, job: Job, mode: str, state: VideoState | None = None) -> None:
         if not job.timeline:
             raise ValueError("没有可执行分镜")
+        context = agent_state(self.repo, job, state)
+        study = context.get("extras", {}).get("component_study")
+        if study and (job.brief.width, job.brief.height, job.brief.fps) == (1080, 1920, 30):
+            # Templates can change while a long director model call is running.
+            # Recheck before spending another call or rendering different source.
+            from videoagents.nodes.director import ComponentStudy, validate_component_study
+
+            try:
+                validate_component_study(ComponentStudy.model_validate(study),
+                                         component_study_payload(job.brief.usage))
+            except ValueError as exc:
+                raise DirectorInputError("剪辑前组件源码已变化，需导演重新学习当前完整组件资料：" + str(exc)) from exc
         metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
         validate_timeline(job.timeline, job, metadata)
         issues = timeline_readability_issues(job.timeline) if (job.brief.width, job.brief.height, job.brief.fps) == (1080, 1920, 30) else []
         if issues:
             raise DirectorInputError("；".join(issues))
         if self.model.available("editing"):
-            context = agent_state(self.repo, job, state)
             if state is None:
                 context = {**context, "action": mode}
             context = {**context, "timeline": compact_timeline_for_editing(context["timeline"]),

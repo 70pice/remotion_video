@@ -170,3 +170,9 @@
 - 正常生产渲染入口生成计数组件封面时，按真实 reveal_frame 和短镜头映射选择终值帧；普通镜头及旧空参数预设仍使用原来的 0.8 秒取帧。没有手工替换封面或直接调用渲染 provider。
 - 新鲜回归：时间轴及生产绑定 53 项通过，网页 88 项通过，组件学习/导演/剪辑/API 定向 Python 回归 99 项通过；根项目和网页类型检查、ESLint、网页生产构建、生产清单及组件路径检查通过。此前通用后端修复的全量 885 项已通过，随后只修改渲染模板和封面取帧。
 - 2026-10-09 00:21 通过正常任务 API 提交 `produce / rebuild_from=director / base_revision=4`，事件 3204，导演事件 3205。技术意见要求保留已通过剪辑的现有分镜，刷新完整组件学习后重新渲染，继续冻结正文、音频、字幕；回执 `.runtime/videoagents/ai-dating-counter-cover-repair-submission.json`。这不是人工审稿或发布认可。
+- 这轮导演保留原有 22 镜；事件 3212 在进入剪辑模型之前因默认 `max_llm_calls=20` 达到上限而真实失败，没有再次生成成片。通过正常 Settings API 临时补到 24 次，仅用于这轮收尾；完成后须恢复 20，记录 `.runtime/videoagents/ai-dating-temporary-call-cap.json`。
+- 饼图修复发生在该轮组件学习请求已经发出后，返回学习记录的源码指纹因此已过时；不能把它当作已学习最终源码。新增剪辑前的源码指纹复查，过时记录须真实退回导演，再经完整学习、剪辑和渲染，不直接更改记录。当前/过时指纹只读核对文件为 `.runtime/videoagents/ai-dating-visual-rebuild-evidence/latest-source-study-check.json`。
+- 补齐通用失败制作恢复：同版本、同制作动作的新 `/runs` 请求由队列解析到原失败线程；Graph 只恢复该线程实际 `next`，拒绝不匹配、已完成或仍中断的检查点。失败恢复完成后的后续返工也保留原线程。没有改数据库审核标记或从素材节点重启已批准文案。
+- 后端全量 897 项通过；随后最后追加的恢复线程测试连同源码守卫回归共 43 项再次通过。Python Ruff、根项目与网页类型检查、网页构建通过，日志 `.runtime/videoagents/ai-dating-source-and-failure-recovery-backend-tests.txt`。
+- 在无运行任务时正常刷新服务，通过 `/runs produce` 恢复原失败节点，事件 3213；剪辑源码守卫在 3215–3216 真实暂停为 `input / director`，没有消耗新的剪辑调用或渲染。恢复回执 `.runtime/videoagents/ai-dating-failed-run-recovery-submission.json`。
+- 针对这条真实待办，以技术意见 `confirm` 续跑当前完整组件学习，事件 3217，回执 `.runtime/videoagents/ai-dating-final-source-study-resume-submission.json`。最终模板源码已冻结，仍保留 22 镜、原文案、已有音频与实测字幕。

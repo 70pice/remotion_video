@@ -200,9 +200,13 @@ class Repository:
                         if previous.get("action") == "resume":
                             thread_id = previous.get("pending_input", {}).get("thread_id")
                         elif previous.get("action") in targets:
-                            thread_id = previous.get("continuation_thread_id") or "job:" + job_id + ":run:" + row["command_id"]
+                            thread_id = (previous.get("failed_run_thread_id")
+                                         or previous.get("continuation_thread_id")
+                                         or "job:" + job_id + ":run:" + row["command_id"])
                     elif previous.get("action") == "voice":
-                        thread_id = previous.get("continuation_thread_id") or "job:" + job_id + ":run:" + row["command_id"]
+                        thread_id = (previous.get("failed_run_thread_id")
+                                     or previous.get("continuation_thread_id")
+                                     or "job:" + job_id + ":run:" + row["command_id"])
                     elif previous.get("action") == "resume" and previous.get("stop_after") == "voice":
                         thread_id = previous.get("pending_input", {}).get("thread_id")
                     if thread_id:
@@ -245,6 +249,35 @@ class Repository:
                 else:
                     raise Conflict("当前任务没有可恢复的中断")
             else:
+                if (
+                    job.status == "FAILED"
+                    and job.pending_input is not None
+                    and payload.get("continue_from") is None
+                    and payload.get("rebuild_from") is None
+                    and payload.get("note") is None
+                ):
+                    raise Conflict("当前任务没有可安全恢复的失败制作流程")
+                if (
+                    job.status == "FAILED"
+                    and job.pending_input is None
+                    and payload.get("continue_from") is None
+                    and payload.get("rebuild_from") is None
+                    and payload.get("note") is None
+                ):
+                    latest = db.execute("SELECT command_id,status,payload FROM commands WHERE job_id=? ORDER BY created_at DESC LIMIT 1",
+                                        (job_id,)).fetchone()
+                    previous = json.loads(latest["payload"]) if latest else {}
+                    if (
+                        not latest
+                        or latest["status"] != "FAILED"
+                        or previous.get("action") != payload.get("action")
+                        or previous.get("base_revision") != job.revision
+                    ):
+                        raise Conflict("当前任务没有可安全恢复的失败制作流程")
+                    thread_id = previous.get("failed_run_thread_id")
+                    if not thread_id:
+                        thread_id = previous.get("continuation_thread_id") or "job:" + job_id + ":run:" + latest["command_id"]
+                    payload = dict(payload, failed_run_thread_id=thread_id)
                 job.review, job.pending_input = None, None
             command_id = uuid.uuid4().hex
             db.execute("INSERT INTO commands(command_id,job_id,idempotency_key,payload,payload_hash,status,created_at) "
