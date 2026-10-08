@@ -197,6 +197,10 @@ def test_editing_blocked_director_resume_replans_the_current_timeline(tmp_path, 
         "duration_seconds": 3.0, "alignment": alignment.model_dump(), "origin": "manual",
     })
     node.service.write_json(job, "component-study.json", valid_study(job.brief.usage), "component_study")
+    editing_advice = {"pacing_notes": [], "layout_notes": [], "findings": [{
+        "severity": "error", "owner": "director", "blocking": True, "message": "英文整图应改为中文分工图",
+    }]}
+    node.service.write_json(job, "editing-guidance.json", editing_advice, "editing_guidance")
     job = node.repo.get_job(job.job_id)
     extras = {"component_study": valid_study(job.brief.usage)}
     if with_feedback:
@@ -207,7 +211,8 @@ def test_editing_blocked_director_resume_replans_the_current_timeline(tmp_path, 
     issues = ["剪辑发现英文整图无法解释真人和AI的分工"]
     state = VideoState(**job_context(job), action="produce", run_id="visual-only", thread_id="visual-only",
         resume_command_id="repair-director", audio_asset_id=audio.asset_id, alignment=alignment.model_dump(),
-        duration_seconds=3.0, pending_snapshot={"stage": "director"}, gate_issues=issues, extras=extras)
+        duration_seconds=3.0, pending_snapshot={"stage": "director"}, gate_issues=issues, extras=extras,
+        human_decision={"kind": "input", "stage": "director", "decision": "confirm", "note": "参数问题与中文画面问题都要修正"})
     calls = []
     monkeypatch.setattr(node.model, "available", lambda role: True)
 
@@ -215,6 +220,9 @@ def test_editing_blocked_director_resume_replans_the_current_timeline(tmp_path, 
         calls.append(role)
         assert context["timeline"] == current.model_dump()
         assert context["extras"]["timeline_repair_issues"] == issues
+        assert context["extras"]["timeline_repair_note"] == "参数问题与中文画面问题都要修正"
+        assert context["editing_guidance"] == editing_advice
+        assert "不接受 source_ref" in instruction
         return {"shots": [dict(context["timeline"]["shots"][0], title="真人和AI各负责什么")]}
 
     monkeypatch.setattr(node.model, "call", model)

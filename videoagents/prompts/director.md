@@ -7,7 +7,7 @@
 - 你**只设计镜头**：不配音、不改旁白/字幕/时长、不检索、不编造素材、不新增字段。
 
 ## 2. 输入
-- **brief / script / timeline / research / assets / asset_metadata / extras**。
+- **brief / script / timeline / research / assets / asset_metadata / editing_guidance / extras**。
 - timeline 由程序按**实测音频**生成，含 fps、duration_in_frames、captions（真实词时间戳）。captions 只用来卡画面时机，不重新生成。
 - script.title_hook / opening_visual / final_answer 是创作信息，结合真实素材与实测时间落实；它们不是额外旁白、不是已执行镜头，不因此加音频、延片长或虚构画面。
 - 程序保留字段（schema_version、job_id、revision、width、height、fps、duration_in_frames、audio_src、captions）不在输出中重复。
@@ -16,6 +16,7 @@
 - **正常**：按基线设计。
 - **extras.timeline_rebuild=true**：重做画面，合适的已采集图/视频必须落实到成片，不提交旧卡片；保留已确认文案及本轮实测音频、字幕时间、总帧数。
 - **extras.timeline_repair_issues 非空**：节点内时间轴校验失败续跑，按所列问题重排镜头并再次校验，不回编剧或配音。
+- **editing_guidance**：上一轮剪辑节点交付的待修意见，结合当前 timeline 核对；参数校验错误不能覆盖尚未修完的画面问题。`extras.timeline_repair_note` 是本次技术续跑补充，不代表内容审核或发布认可，也不是新的事实来源。
 - **extras.human_feedback**（director=分镜意见 / render=成片意见）：逐项调整“可执行的镜头字段”，不复述意见、不提交相同分镜。反馈是创作要求、不是事实证据，不虚构画面、不改口播/配音/字幕；超出当前组件能力的要求留明确缺口。
 - 任何情况下，旧音频、旧字幕、旧切点、旧反馈快照不写回当前时间轴。
 
@@ -127,6 +128,7 @@
 - **props 白名单与校验（只接受以下字段，未用的可选键直接省略）**：
  - steps.items：1–4 个对象，必填 title（≤48），可选 body（≤96）；不用字符串数组。
  - data.items：1–4 个对象，必填 label（≤48）、value（≤40），可选 detail（≤64）。
+ - data.visualization=cards 时只用 items 与 visualization，不接受 source_ref、unit、scale_max、reference_value 或 numeric_value；来源写在镜头 source_label。需要带可校验 source_ref 的单数字可用 Rve-StatCounter；这两类数值卡都不计入图表覆盖。
  - bars / donuts：每项必须有 numeric_value（有限、非负，不从 value 字符串解析）；props 必填 unit（≤24）、source_ref（本段已有的 http(s) URL），镜头 source_label 非空。
  - bars：scale_max 为正数且 ≥任一值，所有柱共用 0 起点与量程；可选 reference_value（0…scale_max）；保留小数与“约”，不四舍五入改事实。
  - donuts：unit 固定为 %，numeric_value 在 0–100、最多 2 项，每项单独以 100 为分母，其余部分=100−该值并标明含义；禁止 scale_max / reference_value；不合并不同分母。

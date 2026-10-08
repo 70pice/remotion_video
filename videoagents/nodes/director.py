@@ -388,6 +388,9 @@ class DirectorNode:
                 asset_metadata,
                 validate_relationships=False,
             )
+            recovery = context.get("human_decision") or {}
+            repair_note = (recovery.get("note", "") if repair_issues and recovery.get("kind") == "input"
+                           and recovery.get("stage") == "director" and recovery.get("decision") == "confirm" else "")
             model_state = {**context, "timeline": planning_timeline.model_dump(),
                            # 音频对齐已在 timeline.captions 提供，避免在素材元信息中重复发送。
                            "asset_metadata": {asset.asset_id: {
@@ -399,7 +402,8 @@ class DirectorNode:
                                   if asset.mime_type.startswith(("image/", "video/")) else {}),
                            } for asset in job.assets},
                            "extras": {**context.get("extras", {}), "component_study": study.model_dump(),
-                                      "media_coverage": coverage, "timeline_repair_issues": repair_issues}}
+                                      "media_coverage": coverage, "timeline_repair_issues": repair_issues,
+                                      **({"timeline_repair_note": repair_note} if repair_note.strip() else {})}}
             instruction = director_prompt(job.brief.usage)
             if coverage["required"]:
                 instruction += ("\n\n本次提交的硬约束：真实图片/视频及有来源、对应当前旁白的数据图表合计至少覆盖 "
@@ -410,7 +414,8 @@ class DirectorNode:
                                 "先安排与本段旁白对应的真实素材，再保留必要解释镜头；"
                                 "提交前按 end_frame-start_frame 求和核对。")
             value = self.model.invoke(model_state, "director", instruction,
-                fields=("brief", "script", "timeline", "research", "assets", "asset_metadata", "extras"),
+                fields=("brief", "script", "timeline", "research", "assets", "asset_metadata", "extras")
+                       + (("editing_guidance",) if repair_issues and context.get("editing_guidance") else ()),
                 command_id=(context.get("resume_command_id") or context.get("run_id", "")) + ":timeline",
                 output_schema=schema)
             plan = DirectorPlan.model_validate(value)

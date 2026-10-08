@@ -155,3 +155,7 @@
 - 修正导演附加指令与真实覆盖规则的冲突：真实素材和有来源、对应当前旁白的数据图表合计须严格超过 70%；不再错误要求图片/视频本身超过 70%。后台校验和阈值没有放宽。
 - 本次全量 Python/API 回归 885 项通过，导演、剪辑定向回归 85 项通过，Python Ruff、根项目及网页类型检查、ESLint、网页生产构建通过；全量日志为 `.runtime/videoagents/ai-dating-component-recovery-backend-tests.txt`。
 - 无运行任务时正常刷新本机服务，再通过实际 `input / director` 待办提交技术 `confirm` 续跑，事件 3072，HTTP 202。这不是文案、画面或发布的人工认可。真实任务版本仍为 4，正文、音频、字幕保持一致；私有回执 `.runtime/videoagents/ai-dating-director-editing-recovery-submission.json`。
+- 这次导演生成了 21 镜头候选，但给 `data.visualization=cards` 添加了不支持的 `source_ref`，事件 3074–3075 再次真实暂停，候选未登记为当前时间线，也未渲染。只读模型回执副本位于私有证据目录，不能把候选当成已经生成的视频。
+- 补齐导演自己的参数说明，保留 cards 原契约与覆盖分类；仅在待修续跑时把真实 `editing_guidance` 交给导演，并投影本次技术补充为 `extras.timeline_repair_note`。技术意见不成为事实来源或人工认可，上一轮画面问题不能被新的参数错误覆盖。
+- 导演/剪辑/Prompt 定向回归 195 项通过，正常服务刷新后，以当前真实 director 待办再次提交技术续跑，事件 3076、HTTP 202；回执 `.runtime/videoagents/ai-dating-director-card-contract-recovery-submission.json`。未导入手写分镜、未放宽校验、未改数据库审核标记。
+- 最后这次交接修复后，全量 Python/API 885 项再次通过；根项目及网页类型检查、网页生产构建通过。全量新鲜日志 `.runtime/videoagents/ai-dating-final-recovery-backend-tests.txt`，不将测试通过表述为新版已经渲染。
