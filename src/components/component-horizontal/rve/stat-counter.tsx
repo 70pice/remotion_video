@@ -47,6 +47,14 @@ export default function StatCounter({
       extrapolateLeft: "clamp",
     })
   );
+  const formattedCount = count.toLocaleString("en-US");
+  const formattedValue = value.toLocaleString("en-US");
+  const suffixLength = [...suffix].length;
+  const portraitNumberFont = Math.min(
+    188,
+    Math.max(56, 660 / (formattedValue.length * 0.56 + suffixLength * 0.55 || 1))
+  );
+  const portraitSuffixFont = Math.max(36, Math.min(92, portraitNumberFont * 0.52));
 
   const subStatsOpacity = interpolate(frame, [40, 55], [0, 1], {
     extrapolateRight: "clamp",
@@ -75,23 +83,38 @@ export default function StatCounter({
           backgroundColor: "rgba(0, 0, 0, 0.2)",
           borderRadius: "16px",
           boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
-          padding: portrait ? "140px 100px" : "60px 80px",
+          width: portrait ? "860px" : undefined,
+          maxWidth: portrait ? "860px" : undefined,
+          padding: portrait ? "120px 70px" : "60px 80px",
           textAlign: "center",
           transform: `scale(${scaleSpring})`,
+          boxSizing: "border-box",
         }}
       >
         {/* Main number */}
         <div
           style={{
-            fontSize: portrait ? "220px" : "96px",
+            fontSize: portrait ? `${portraitNumberFont}px` : "96px",
             fontWeight: "bold",
             color: "white",
             textShadow: "0 4px 8px rgba(0,0,0,0.3)",
             letterSpacing: "-2px",
             lineHeight: "1",
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "center",
+            gap: portrait ? "12px" : "0",
+            whiteSpace: "nowrap",
+            fontVariantNumeric: "tabular-nums",
           }}
         >
-          {count.toLocaleString("en-US")}{suffix}
+          <span>{formattedCount}</span>
+          {suffix ? <span style={{
+            fontSize: portrait ? `${portraitSuffixFont}px` : "1em",
+            letterSpacing: portrait ? "0" : "-2px",
+            lineHeight: 1,
+            whiteSpace: "nowrap",
+          }}>{suffix}</span> : null}
         </div>
 
         {/* Label */}
@@ -99,9 +122,11 @@ export default function StatCounter({
           style={{
             fontSize: portrait ? "64px" : "24px",
             color: "rgba(255,255,255,0.7)",
-            marginTop: "12px",
+            marginTop: portrait ? "26px" : "12px",
             fontWeight: "500",
             letterSpacing: "1px",
+            lineHeight: portrait ? "1.18" : undefined,
+            wordBreak: portrait ? "keep-all" : undefined,
           }}
         >
           {label}
@@ -112,9 +137,10 @@ export default function StatCounter({
           style={{
             display: "flex",
             justifyContent: "center",
-              gap: portrait ? "42px" : "30px",
-            marginTop: "30px",
+            gap: portrait ? "34px" : "30px",
+            marginTop: portrait ? "36px" : "30px",
             opacity: subStatsOpacity,
+            flexWrap: portrait ? "wrap" : undefined,
           }}
         >
           <div

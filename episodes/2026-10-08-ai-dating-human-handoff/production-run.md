@@ -159,3 +159,14 @@
 - 补齐导演自己的参数说明，保留 cards 原契约与覆盖分类；仅在待修续跑时把真实 `editing_guidance` 交给导演，并投影本次技术补充为 `extras.timeline_repair_note`。技术意见不成为事实来源或人工认可，上一轮画面问题不能被新的参数错误覆盖。
 - 导演/剪辑/Prompt 定向回归 195 项通过，正常服务刷新后，以当前真实 director 待办再次提交技术续跑，事件 3076、HTTP 202；回执 `.runtime/videoagents/ai-dating-director-card-contract-recovery-submission.json`。未导入手写分镜、未放宽校验、未改数据库审核标记。
 - 最后这次交接修复后，全量 Python/API 885 项再次通过；根项目及网页类型检查、网页生产构建通过。全量新鲜日志 `.runtime/videoagents/ai-dating-final-recovery-backend-tests.txt`，不将测试通过表述为新版已经渲染。
+- 下一轮导演登记 22 镜头，用 Rve-StatCounter 两镜、Rve-PieChart 一镜、Rve-SplitScreen 三镜承载本期实际参数，统计截图拆开，人机分工改为中文分屏。后端视觉覆盖为 71.48%。剪辑仍在事件 3083–3084 发现结尾没有落实已采真实素材，继续暂停，并未渲染。
+- 仅针对这条最新收尾意见，通过当前真实 director 待办继续原 Graph，事件 3085、HTTP 202；保持前述已经完成的画面修正及冻结正文、音频、字幕。私有回执 `.runtime/videoagents/ai-dating-director-closing-evidence-recovery-submission.json`。没有更改代码或将机器待修意见人为标记通过。
+- 此后导演登记 22 镜，实际使用计数两镜、饼图一镜、中文分屏两镜；剪辑 `findings=[]`。真实素材 72.59%、来源图表 2.78%，合计 75.36%。事件 3203 于 2026-10-09 00:09 完成实际渲染；登记视频 `95103ca197b445348d84fe6a9c76c96c` 的下载 SHA 为 `1cc904a254e42fdb173fa8de46a504a8cfaad1ea7d027e3bc8013f0ad4bda7c6`。这版因抽查缺陷未发送。
+
+## 实际像素抽查后的模板修正
+
+- 实际 Graph 封面截在数字动画中途，显示 `1,034多`，中文单位“个”另起一行；饼图标题也压到了圆环上。机器剪辑通过不能代替实际像素抽查。抽帧副本位于 `.runtime/videoagents/ai-dating-visual-rebuild-evidence/sample-before-cover-fix/`。
+- 通用计数组件竖版将数字与单位保持一行，并以最终值计算固定字号，数字增长不再改变字号。通用饼图竖版划分标题、图形、图例区域，支持中文图例换行；横版继续使用原布局参数。
+- 正常生产渲染入口生成计数组件封面时，按真实 reveal_frame 和短镜头映射选择终值帧；普通镜头及旧空参数预设仍使用原来的 0.8 秒取帧。没有手工替换封面或直接调用渲染 provider。
+- 新鲜回归：时间轴及生产绑定 53 项通过，网页 88 项通过，组件学习/导演/剪辑/API 定向 Python 回归 99 项通过；根项目和网页类型检查、ESLint、网页生产构建、生产清单及组件路径检查通过。此前通用后端修复的全量 885 项已通过，随后只修改渲染模板和封面取帧。
+- 2026-10-09 00:21 通过正常任务 API 提交 `produce / rebuild_from=director / base_revision=4`，事件 3204，导演事件 3205。技术意见要求保留已通过剪辑的现有分镜，刷新完整组件学习后重新渲染，继续冻结正文、音频、字幕；回执 `.runtime/videoagents/ai-dating-counter-cover-repair-submission.json`。这不是人工审稿或发布认可。

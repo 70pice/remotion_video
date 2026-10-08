@@ -14,7 +14,7 @@ import ts from 'typescript';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {spring} from 'remotion';
-import {main, outputScale, parseArgs, snapshotBuiltInAssets, validateLocalInputs} from '../../scripts/render-timeline.mjs';
+import {coverFrameForTimeline, main, outputScale, parseArgs, snapshotBuiltInAssets, validateLocalInputs} from '../../scripts/render-timeline.mjs';
 import {communityComponentIds, productionComponentIds, validateTimeline} from './validation.mjs';
 
 const {structuredClone} = globalThis;
@@ -519,6 +519,29 @@ test('preview scaling cannot turn valid even H.264 dimensions into odd pixels', 
     assert.equal(dimensions.width * scale % 2, 0);
     assert.equal(dimensions.height * scale % 2, 0);
     assert.equal(outputScale(dimensions, 'final'), 1);
+  }
+});
+
+test('production counter covers show the sourced terminal value instead of an intermediate count', () => {
+  for (const [start, end, cue] of [[0, 111, 3], [0, 111, 90], [30, 141, 3]]) {
+    const timeline = {fps: 30, shots: [{start_frame: start, end_frame: end,
+      component_id: 'Rve-StatCounter', props: {value: 4700, reveal_frame: cue}}]};
+    const frame = coverFrameForTimeline(timeline);
+    const remaining = Math.max(1, end - start - cue - 1);
+    const componentFrame = (frame - start - cue) * Math.max(1, 75 / remaining);
+    // StatCounter's actual count animation runs from frame 10 to frame 60.
+    const displayed = Math.round(Math.max(0, Math.min(1, (componentFrame - 10) / 50)) * 4700);
+    assert.equal(displayed, 4700);
+    assert.ok(frame >= start && frame < end);
+  }
+});
+
+test('cover selection preserves ordinary and legacy preset timing and stays inside short shots', () => {
+  for (const component_id of ['evidence', 'Rve-StatCounter']) {
+    const timeline = {fps: 30, shots: [{start_frame: 0, end_frame: 111, component_id, props: {}}]};
+    assert.equal(coverFrameForTimeline(timeline), 24);
+    timeline.shots[0].end_frame = 12;
+    assert.equal(coverFrameForTimeline(timeline), 11);
   }
 });
 

@@ -176,6 +176,20 @@ export const outputScale = (timeline, mode) => {
   return mode === 'preview' && timeline.width % 4 === 0 && timeline.height % 4 === 0 ? 0.5 : 1;
 };
 
+export const coverFrameForTimeline = (timeline) => {
+  const firstShot = timeline.shots[0];
+  let localFrame = Math.round(timeline.fps * 0.8);
+  if (firstShot.component_id === 'Rve-StatCounter' && Object.keys(firstShot.props ?? {}).length) {
+    // The production counter reaches its sourced value at component frame 60.
+    // Short shots use the same 75-frame remap as ProductionCommunityScene.
+    const revealFrame = firstShot.props.reveal_frame ?? 0;
+    const remaining = Math.max(1, firstShot.end_frame - firstShot.start_frame - revealFrame - 1);
+    const acceleration = Math.max(1, 75 / remaining);
+    localFrame = Math.max(localFrame, revealFrame + Math.ceil(60 / acceleration));
+  }
+  return Math.min(firstShot.end_frame - 1, firstShot.start_frame + localFrame);
+};
+
 export const main = async (argv = process.argv.slice(2)) => {
   const options = parseArgs(argv);
   const inputStat = await fs.stat(options.timeline);
@@ -233,10 +247,8 @@ export const main = async (argv = process.argv.slice(2)) => {
       onProgress: (event) => progress(0.15 + event.progress * 0.75)});
     assertRunning();
     if (options.cover) {
-      const firstShot = timeline.shots[0];
-      const coverFrame = Math.min(firstShot.end_frame - 1, Math.max(firstShot.start_frame, Math.round(timeline.fps * 0.8)));
       await renderStill({serveUrl, composition, inputProps, output: path.join(tempDir, 'cover.png'),
-        imageFormat: 'png', frame: coverFrame, scale, puppeteerInstance: browser, cancelSignal, logLevel: 'error',
+        imageFormat: 'png', frame: coverFrameForTimeline(timeline), scale, puppeteerInstance: browser, cancelSignal, logLevel: 'error',
         ...offthreadVideoOptions});
     }
     assertRunning();
