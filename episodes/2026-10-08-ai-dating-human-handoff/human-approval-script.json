@@ -1,0 +1,9 @@
+{
+  "job_id": "1a024549ad334d4dafe782f64c9e61f0",
+  "revision": 4,
+  "user_feedback": "这版本文案不错",
+  "decision": "confirm",
+  "approved_script": "graph-script-hook-rewrite.json",
+  "graph_confirmation_note": "用户对已交付的开头改稿回复“这版本文案不错”。据此确认当前文案，按原任务继续运行配音、导演及剪辑 Graph 节点。保留真实音频时长、中文可读画面和个人用途，不自动发布。",
+  "submitted_at": "2026-10-08T22:25:56.3180105+08:00"
+}

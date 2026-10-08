@@ -87,7 +87,7 @@
 
 私有证据保存在 `.runtime/videoagents/ai-dating-human-handoff-feedback-events.json` 与 `.runtime/videoagents/ai-dating-review-delivery-v4/`，包括产物、压缩包、发送及精确消息回读核对记录。后续必须使用当前版本的实际人工审稿待办，由用户决定确认或返工。
 
-## 当前交付：按报道标题重写开头，等待人工审稿
+## 开头返工交付：后续已获用户确认
 
 用户引用上述中文素材交付，指出《约会 App 最炸套路：4700 个 AI 狂撩 25000 人》比原稿的假设式开场更有吸引力。本轮是同一期的文案返工，没有确认文案或授权进入配音。
 
@@ -109,6 +109,16 @@
 | 22:15:53 | 机器审查通过并重新等待人工审稿 | 事件 2931–2933，`APPROVED / APPROVE`、`NEEDS_HUMAN` |
 
 本轮私有证据保存在 `.runtime/videoagents/ai-dating-hook-feedback-submission.json` 与 `.runtime/videoagents/ai-dating-review-delivery-hook/`，包括任务人工待办、登记产物、Graph 事件、发送及精确回读记录。这里只记录本轮真实进度；用户确认前不继续配音。
+
+## 用户确认文案后的继续制作
+
+用户回复“这版本文案不错”。操作者先核对当前人工待办与已交付的开头改稿完全一致，再通过正常 `POST /api/jobs/{job_id}/resume` 提交 `decision=confirm`，继续版本 4 的原 Graph。用户原话与确认说明保存在 [human-approval-script.json](human-approval-script.json)，完整私有提交回执位于 `.runtime/videoagents/ai-dating-script-confirmation-submission.json`。本次确认仅针对文案，没有授予发布状态。
+
+- 配音节点已经生成 `voice_guidance.json`、`narration.mp3`、`alignment.json` 与 `audio_report.json`，音频门校验后进入导演节点。
+- 音频实测为 171.553958 秒，约 2 分 52 秒；没有为达到目标时长改变已确认文案或在剪辑阶段变速。实际长度以音频和成片测量为准。
+- 字幕对齐来源为字节供应商，报告明确区分正文覆盖、顺序和时长校验与独立识别、人工听审。当前时间戳报告有 264 个低于 0.8 的词，不能将 `verified=true` 表述为已经人工确认同步。
+- 导演节点交付了组件学习产物。通过项目实际校验函数核对全部 152 个竖版预设、161 个可选组件及当前清单与源码指纹，均匹配。
+- 当前 Graph 正在导演编排阶段，还没有成片。生产证据位于 `.runtime/videoagents/ai-dating-production-evidence/`，后续更新实际导演、渲染及交付结果。
 
 ## 本次验证
 
