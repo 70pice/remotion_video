@@ -67,6 +67,7 @@ export interface ComponentEntry {
   use_case: string;
   library: string;
   kind: "adapter" | "preset";
+  props_mode: "typed" | "material_slots";
   orientation: string;
   production_ready: boolean;
   min_frames: number;

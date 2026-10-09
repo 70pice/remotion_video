@@ -10,8 +10,10 @@ import ProgressSteps from '../../component-horizontal/rve/progress-steps';
 import ComparisonChart from '../../component-horizontal/rve/comparison-chart';
 import SplitScreen from '../../component-horizontal/rve/split-screen';
 import ImageComparisonSlider from '../../component-horizontal/rve/image-comparison-slider';
+import {makeCuratedDemos} from '../../component-horizontal/curated/CuratedScene';
+import {rveAdditions} from '../../component-horizontal/rve/additions';
 
-type Demo = {id: string; name: string; slug: string; component: FC; width: 1080; height: 1920; durationInFrames: number; fps: 30};
+type Demo = {id: string; name: string; slug: string; component: FC; width: number; height: number; durationInFrames: number; fps: 30};
 
 const data = [
   {x: 0, y: 54, label: '脚本'},
@@ -60,6 +62,7 @@ export const nativeDemos: Demo[] = [
   {id: 'Rve-ComparisonChart', name: 'Comparison Chart', slug: 'comparison-chart', component: ComparisonPortrait, width: 1080, height: 1920, durationInFrames: 180, fps: 30},
   {id: 'Rve-SplitScreen', name: 'Split Screen', slug: 'split-screen', component: SplitScreenPortrait, width: 1080, height: 1920, durationInFrames: 180, fps: 30},
   {id: 'Rve-ImageComparisonSlider', name: 'Image Comparison Slider', slug: 'image-comparison-slider', component: ImageComparePortrait, width: 1080, height: 1920, durationInFrames: 180, fps: 30},
+  ...makeCuratedDemos(rveAdditions, 'portrait', {width: 1080, height: 1920}),
 ];
 
 export const nativeLayoutNotes: Record<string, string> = {
@@ -74,4 +77,5 @@ export const nativeLayoutNotes: Record<string, string> = {
   'Rve-ComparisonChart': 'Original before/after value interpolation with portrait stacked comparison.',
   'Rve-SplitScreen': 'Original panel spring entrance with portrait top-bottom split.',
   'Rve-ImageComparisonSlider': 'Original slider interpolation with taller portrait media frame.',
+  ...Object.fromEntries(rveAdditions.map((item) => [item.id, 'Curated RVE portrait version with safe material-slot overlay support.'])),
 };

@@ -2,10 +2,12 @@ import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import path from 'node:path';
 
 const root = process.cwd();
+const expectedPresetCount = 187;
 const libraries = [
   {key:'snapcn', name:'Snapcn'}, {key:'rve', name:'RVE'},
   {key:'remocn', name:'Remocn'}, {key:'remotion-ui', name:'RemotionUI'},
-  {key:'bits', name:'Bits'}, {key:'video-talkcraft', name:'Talkcraft'},
+  {key:'bits', name:'Bits'}, {key:'rendercomp', name:'RenderComp'},
+  {key:'video-talkcraft', name:'Talkcraft'},
 ];
 const componentPaths = [];
 for (const library of libraries) {
@@ -47,10 +49,10 @@ export default Component;
   }
   await writeFile(path.join(root, 'src/components/component-vertical', library.key, 'index.ts'), verticalExports.join('\n') + '\n');
 }
-if (componentPaths.length !== 152 || new Set(componentPaths.map((component) => component.compositionId)).size !== 152) throw new Error('Expected 152 unique component pairs');
+if (componentPaths.length !== expectedPresetCount || new Set(componentPaths.map((component) => component.compositionId)).size !== expectedPresetCount) throw new Error(`Expected ${expectedPresetCount} unique component pairs`);
 for (const orientation of ['horizontal','vertical']) {
   await writeFile(path.join(root, 'src/components', `component-${orientation}`, 'index.ts'), libraries.map((library) =>
     `export * as ${library.name === 'Talkcraft' ? 'VideoTalkcraft' : library.name} from './${library.key}';`).join('\n') + '\n');
 }
 await writeFile(path.join(root, 'docs/component-paths.json'), JSON.stringify({components:componentPaths}, null, 2));
-console.log(JSON.stringify({horizontal:152, vertical:152, pathPairs:componentPaths.length}));
+console.log(JSON.stringify({horizontal:expectedPresetCount, vertical:expectedPresetCount, pathPairs:componentPaths.length}));

@@ -119,5 +119,170 @@
     "localPath": "src/components/component-horizontal/rve/image-comparison-slider.tsx",
     "compositionId": "Rve-ImageComparisonSlider",
     "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。原 README 和许可段已归档。"
+  },
+  {
+    "slug": "area-chart",
+    "name": "Area Chart",
+    "effect": "面积趋势随时间绘制",
+    "useCase": "展示增长、热度、转化率等连续趋势",
+    "sourcePath": "templates/area-chart.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/area-chart",
+    "localPath": "src/components/component-horizontal/rve/additions.tsx",
+    "compositionId": "Rve-AreaChart",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "circular-progress",
+    "name": "Circular Progress",
+    "effect": "环形进度按比例点亮",
+    "useCase": "展示完成度、覆盖率或达成率",
+    "sourcePath": "templates/circular-progress.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/circular-progress",
+    "localPath": "src/components/component-horizontal/rve/additions.tsx",
+    "compositionId": "Rve-CircularProgress",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "animated-list",
+    "name": "Animated List",
+    "effect": "列表项逐条滑入",
+    "useCase": "展示步骤、清单和结论列表",
+    "sourcePath": "templates/animated-list.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/animated-list",
+    "localPath": "src/components/component-horizontal/rve/additions.tsx",
+    "compositionId": "Rve-AnimatedList",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "notification-pop",
+    "name": "Notification Pop",
+    "effect": "通知卡片连续弹出",
+    "useCase": "表达状态变化、提醒和系统反馈",
+    "sourcePath": "templates/notification-pop.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/notification-pop",
+    "localPath": "src/components/component-horizontal/rve/additions.tsx",
+    "compositionId": "Rve-NotificationPop",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "sound-wave",
+    "name": "Sound Wave",
+    "effect": "音频波形随节奏跳动",
+    "useCase": "表达旁白、播客和音频片段",
+    "sourcePath": "templates/sound-wave.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/sound-wave",
+    "localPath": "src/components/component-horizontal/rve/additions.tsx",
+    "compositionId": "Rve-SoundWave",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "text-highlight",
+    "name": "Text Highlight",
+    "effect": "字符逐个出现并强调关键词",
+    "useCase": "突出一句话中的核心词",
+    "sourcePath": "templates/text-highlight.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/text-highlight",
+    "localPath": "src/components/component-horizontal/rve/additions.tsx",
+    "compositionId": "Rve-TextHighlight",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "gallery-grid",
+    "name": "Gallery Grid",
+    "effect": "多素材方块依次显现",
+    "useCase": "展示多张图片、截图或证据集合",
+    "sourcePath": "templates/gallery-grid.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/gallery-grid",
+    "localPath": "src/components/component-horizontal/rve/additions.tsx",
+    "compositionId": "Rve-GalleryGrid",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "image-carousel",
+    "name": "Image Carousel",
+    "effect": "图片组按节奏轮播",
+    "useCase": "展示连续素材或多阶段画面",
+    "sourcePath": "templates/image-carousel.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/image-carousel",
+    "localPath": "src/components/component-horizontal/rve/additions.tsx",
+    "compositionId": "Rve-ImageCarousel",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "image-zoom-reveal",
+    "name": "Image Zoom Reveal",
+    "effect": "图片缓慢推近揭示细节",
+    "useCase": "突出一张图中的局部重点",
+    "sourcePath": "templates/image-zoom-reveal.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/image-zoom-reveal",
+    "localPath": "src/components/component-horizontal/rve/additions.tsx",
+    "compositionId": "Rve-ImageZoomReveal",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "masonry-gallery",
+    "name": "Masonry Gallery",
+    "effect": "瀑布流卡片逐格出现",
+    "useCase": "展示不同尺寸素材墙",
+    "sourcePath": "templates/masonry-gallery.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/masonry-gallery",
+    "localPath": "src/components/component-horizontal/rve/additions.tsx",
+    "compositionId": "Rve-MasonryGallery",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "photo-stack",
+    "name": "Photo Stack",
+    "effect": "照片堆叠并展开",
+    "useCase": "表达故事片段或素材积累",
+    "sourcePath": "templates/photo-stack.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/photo-stack",
+    "localPath": "src/components/component-horizontal/rve/additions.tsx",
+    "compositionId": "Rve-PhotoStack",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "picture-in-picture",
+    "name": "Picture In Picture",
+    "effect": "主画面叠加讲解小窗",
+    "useCase": "保留主体画面同时放解释者或补充画面",
+    "sourcePath": "templates/picture-in-picture.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/picture-in-picture",
+    "localPath": "src/components/component-horizontal/rve/additions.tsx",
+    "compositionId": "Rve-PictureInPicture",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "polaroid-frame",
+    "name": "Polaroid Frame",
+    "effect": "素材以拍立得卡片弹出",
+    "useCase": "营造轻量回忆或案例卡片感",
+    "sourcePath": "templates/polaroid-frame.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/polaroid-frame",
+    "localPath": "src/components/component-horizontal/rve/additions.tsx",
+    "compositionId": "Rve-PolaroidFrame",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "clock-wipe",
+    "name": "Clock Wipe",
+    "effect": "时钟形遮罩转场",
+    "useCase": "章节或时间节点切换",
+    "sourcePath": "templates/clock-wipe.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/clock-wipe",
+    "localPath": "src/components/component-horizontal/rve/additions.tsx",
+    "compositionId": "Rve-ClockWipe",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "iris-transition",
+    "name": "Iris Transition",
+    "effect": "圆形光圈开合转场",
+    "useCase": "聚焦到下一个画面或重点",
+    "sourcePath": "templates/iris-transition.tsx",
+    "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/iris-transition",
+    "localPath": "src/components/component-horizontal/rve/additions.tsx",
+    "compositionId": "Rve-IrisTransition",
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
   }
 ]

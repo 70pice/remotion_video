@@ -1,23 +1,27 @@
 # 现成 Remotion 组件库
 
-导演学习入口见 [镜头知识库](knowledge/remotion-shot-library.md)，包含用户指定飞书表的全部 4 个工作表及 152 条组件目录。该快照与现有组件路径、表达内容和适用场景逐项对应；生产调用继续使用完整组件资料和源码指纹。
+导演学习入口见 [镜头知识库](knowledge/remotion-shot-library.md)，其历史快照来自用户指定飞书表。当前生产调用以仓库内 `docs/component-paths.json`、`docs/component-use-guide.json` 和 `videoagents/component-manifest.json` 为准，覆盖 187 条社区预设。
 
 实际源码分成两套：竖版在 `src/components/component-vertical`，横版在 `src/components/component-horizontal`。每个来源库下的 `entries/<slug>.tsx` 提供单独的演示入口。`src/components/community` 保留注册、目录元数据和共享工具，与每一期视频的模板分开。
 
 运行时统一固定 Remotion 4.0.532。此前 4.0.531 的发布包含空 JavaScript 文件，会令 Studio 报 `getRenderQueue is not a function`；本次使用[官方修复版本](https://github.com/remotion-dev/remotion/releases/tag/v4.0.532)，组件的上游 commit 保持原记录。
 
-当前共 **152 个组件**：原先筛选的 44 个，加上 video-talkcraft 的全部 108 张 `template/cards` 卡片。目录数据见 `community-components.json`，原作者、固定 commit 与适配记录见 `licenses/community`。
+当前共 **187 个社区组件**：原先 152 个，加上 RemotionUI 10 个、RVE 15 个、RenderComp 10 个精选补充。目录数据见 `community-components.json`，原作者、固定 commit 与适配记录见 `licenses/community`。
 
 | 组件库 | 已导入数量 | 接入方式 |
 | --- | ---: | --- |
 | Snapcn | 21 | 原组件及依赖闭包，字体和示例素材适配 |
-| RVE | 11 | 原模板，增加数据 props 与边界处理 |
+| RVE | 26 | 原模板与精选补充，增加数据 props 与边界处理 |
 | Remocn | 5 | 原组件及依赖闭包，字体和演示参数适配 |
-| RemotionUI | 3 | 原场景及依赖闭包，字体和演示参数适配 |
+| RemotionUI | 13 | 原场景与精选补充，字体和演示参数适配 |
+| RenderComp | 10 | 精选补充组件，统一横竖版入口与演示参数 |
 | Bits | 4 | 原示例及依赖闭包，素材、props 和 Hook 修正 |
 | video-talkcraft | 108 | 原 TSX 字节保留，预览素材和样式隔离由接入层提供 |
 
-原先 44 个是选定的接入范围，不代表五个网站的全部组件；Talkcraft 的 108 个对应本次固定提交下全部卡片。
+原先 152 个由 44 个精选接入组件和 Talkcraft 108 张卡组成；本次再补充
+RemotionUI 10 个、RVE 15 个、RenderComp 10 个，形成当前 187 个社区组件。
+Talkcraft 的 108 个对应本次固定提交下全部卡片，其他来源仍是精选接入范围，
+不代表上游网站的全部组件。
 
 ## 看效果
 
@@ -28,10 +32,10 @@ npm ci
 npm run components
 ```
 
-打开 `http://127.0.0.1:3102`。左侧分为两组，共 304 个 Composition：
+打开 `http://127.0.0.1:3102`。左侧分为两组，共 374 个 Composition：
 
-- `component-horizontal → 组件库 → Composition`：152 个横版演示，Talkcraft 沿用来源画布；Bits 聊天演示改用 1280×720。
-- `component-vertical → 组件库 → Vertical-Composition`：同一批 152 个组件的原生竖屏布局，统一 1080×1920 / 30fps。
+- `component-horizontal → 组件库 → Composition`：187 个横版演示，Talkcraft 沿用来源画布；Bits 聊天演示改用 1280×720。
+- `component-vertical → 组件库 → Vertical-Composition`：同一批 187 个组件的原生竖屏布局，统一 1080×1920 / 30fps。
 
 例如原版 `Talkcraft-highlighter-sweep` 与竖屏版 `Vertical-Talkcraft-highlighter-sweep`。原视频仍在 `npm run dev` 的 `AiScience`；主入口也注册这些演示。
 
@@ -43,16 +47,19 @@ npm run components
 
 ### 通过 VideoAgents Timeline 直接选择
 
-全部 152 个逻辑组件已经作为固定视觉 preset 开放给生产 Timeline，并与 9 个
-参数化 adapter 组成 161 个稳定 `component_id`。导演 Prompt、`/api/catalog`、
+全部 187 个逻辑组件已经作为固定视觉 preset 开放给生产 Timeline，并与 9 个
+参数化 adapter 组成 196 个稳定 `component_id`。导演 Prompt、`/api/catalog`、
 React 分镜选择器、Python/Node 校验和 Remotion registry 共用
 `videoagents/component-manifest.json`；同一 ID 会根据 timeline 方向自动使用横版
 或原生竖版实现。
 
-preset 当前保留已验证的示例参数，必须使用 `props={}`、`asset_src=null`；外层
-shot 的 title/body 可用于补充本镜头信息，但不能把原卡的演示文字、人物或数字
-当作事实证据。需要传入真实数据、图片、视频、对比或步骤时，使用 9 个参数化 adapter，
-或先为目标 preset 建立有类型和测试的独立适配器。Talkcraft preset 只对
+preset 当前保留已验证的示例参数作为视觉骨架，同时可接收统一安全素材槽位：
+shot 的 title/body/source_label/accent_color、当前任务图片或 MP4，以及
+content_mode、asset_fit、asset_crop、start_seconds/end_seconds、短列表和单个
+指标。不能把原卡的演示文字、人物或数字当作事实证据，也不能给 preset 注入
+任意私有 props、CSS、URL、函数或源码路径。需要精确证据框、复杂数据、对比
+或步骤同步时，仍使用 9 个参数化 adapter，或先为目标 preset 建立有类型和测试
+的独立适配器。Talkcraft preset 只对
 personal/unspecified 任务开放，commercial 任务会在生成和校验阶段拒绝。
 
 ### 在自定义 Composition 中手工导入
@@ -128,10 +135,10 @@ npm run check:production-components
 
 - `typecheck`：严格 TypeScript 检查覆盖项目及 108 张原始 Talkcraft 卡。
 - `lint`：检查本项目和接入层；为保留原始字节，`video-talkcraft/cards/**` 排除 ESLint 风格与规则检查，这不代表这些原卡获得了 lint 通过结论。
-- `check:components`：核对 108 个原卡 SHA-256、152 个原版及 152 个竖屏注册项；原版抽起始 / 中间 / 结束三帧，原生竖屏也抽起始 / 中间 / 结束三帧，均使用 `scale: 1`。检查浏览器错误、素材加载与抽样画面变化。
+- `check:components`：核对 108 个原卡 SHA-256、187 个原版及 187 个竖屏注册项；原版抽起始 / 中间 / 结束三帧，原生竖屏也抽起始 / 中间 / 结束三帧，均使用 `scale: 1`。检查浏览器错误、素材加载与抽样画面变化。
 - `catalog:components`：根据验证报告生成目录，不能替代前面的源码和渲染检查。
-- `check:component-paths`：检查152对入口与实现、304条入口路径、表格行数据和108个原卡哈希。
-- `check:production-components`：重新推导 9 个 adapter + 152 个 preset 的统一生产清单，检查 ID、用途许可和组件目录是否漂移。
+- `check:component-paths`：检查187对入口与实现、374条入口路径、表格行数据和108个原卡哈希。
+- `check:production-components`：重新推导 9 个 adapter + 187 个 preset 的统一生产清单，检查 ID、用途许可和组件目录是否漂移。
 
 更新已有飞书表格时运行 `python scripts/update-component-path-sheet.py --execute`，随后 `python scripts/verify-component-path-sheet.py` 回读全部1399个单元格。省略 `--execute` 仅预览请求。
 
@@ -168,4 +175,4 @@ npx remotion render src/community.ts Snapcn-TextBuild out/text-build-demo.mp4
 
 当前 `Snapcn-PromptZoom` 已恢复固定提交下官方预览的英文文案、参数、90 帧时长，以及真实 Inter / Source Serif 4 的 sans / serif 区别。镜头硬切、几何布局、打字与光标公式仍保持上游代码。其他组件的具体改动见各自 `licenses/community/*/provenance.md` 或 `PROVENANCE.md`；“能运行”与“成片视觉已完成”需要分别判断。
 
-飞书表格：[Remotion 组件库与 video-talkcraft 调研](https://icnpfyu4nynj.feishu.cn/sheets/UPpgsQJnLhgA0WtzlU2crIXqnOe)。总目录152行，五列为组件名称、竖版相对文件路径、横版相对文件路径、适合表达的内容、适用场景。仓库说明另存来源与许可。
+飞书表格：[Remotion 组件库与 video-talkcraft 调研](https://icnpfyu4nynj.feishu.cn/sheets/UPpgsQJnLhgA0WtzlU2crIXqnOe)。当前本地总目录187行，五列为组件名称、竖版相对文件路径、横版相对文件路径、适合表达的内容、适用场景。仓库说明另存来源与许可。

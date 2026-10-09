@@ -16,6 +16,15 @@ const communityComponentIds = new Set(
 export const isCommunityComponent = (componentId: string) =>
   communityComponentIds.has(componentId);
 
+export function isVisualAssetCompatible(componentId: string, mimeType: string) {
+  if (componentId === "video") return mimeType === "video/mp4";
+  if (isCommunityComponent(componentId))
+    return mimeType === "video/mp4" || /^image\/(?:png|jpe?g|webp)$/i.test(mimeType);
+  if (["evidence", "image_focus"].includes(componentId))
+    return /^image\/(?:png|jpe?g|webp)$/i.test(mimeType);
+  return false;
+}
+
 export function defaultProps(component: string): Record<string, unknown> {
   if (component === "video") return { start_seconds: 0, fit: "contain" };
   if (component === "comparison")
@@ -41,7 +50,10 @@ export function splitShot(timeline: Timeline, index: number): Timeline {
     shot_id: crypto.randomUUID(),
     start_frame: middle,
   };
-  if (shot.component_id === "video") {
+  if (
+    shot.component_id === "video" ||
+    (isCommunityComponent(shot.component_id) && /\.mp4$/i.test(shot.asset_src ?? ""))
+  ) {
     const props = shot.props;
     const startSeconds = numberProp(props.start_seconds, 0);
     const endSeconds =
@@ -109,8 +121,12 @@ export function validateTimeline(timeline: Timeline): string[] {
       errors.push(`${label}主题色格式不正确。`);
     if (!(shot.component_id in componentNames))
       errors.push(`${label}未选择生产可用组件。`);
-    if (shot.asset_src && shot.component_id !== "video" && !/\.(png|jpe?g|webp)$/i.test(shot.asset_src))
-      errors.push(`${label}图片素材必须是 PNG、JPEG 或 WebP。`);
+    if (shot.asset_src) {
+      const acceptsVideo = shot.component_id === "video" || isCommunityComponent(shot.component_id);
+      const acceptsImage = shot.component_id !== "video";
+      const valid = (acceptsVideo && /\.mp4$/i.test(shot.asset_src)) || (acceptsImage && /\.(png|jpe?g|webp)$/i.test(shot.asset_src));
+      if (!valid) errors.push(`${label}素材必须是 PNG、JPEG、WebP 图片或 MP4 视频。`);
+    }
     if (
       ["evidence", "image_focus"].includes(shot.component_id) &&
       !shot.asset_src
@@ -127,17 +143,40 @@ export function validateTimeline(timeline: Timeline): string[] {
 
 function validateProps(shot: Shot, label: string, errors: string[], fps: number) {
   const props = shot.props;
-  if (isCommunityComponent(shot.component_id)) {
-    if (Object.keys(props).length)
-      errors.push(`${label}的社区预设不接受自定义参数。`);
-    if (shot.asset_src)
-      errors.push(`${label}的社区预设不接受额外图片素材。`);
-    return;
-  }
   const text = (value: unknown, max: number, required = false) =>
     typeof value === "string" &&
     Array.from(value).length <= max &&
     (!required || value.trim().length > 0);
+  if (isCommunityComponent(shot.component_id)) {
+    const allowed = new Set(["content_mode", "asset_fit", "asset_crop", "start_seconds", "end_seconds", "items", "metric"]);
+    for (const key of Object.keys(props))
+      if (!allowed.has(key)) errors.push(`${label}的社区预设不接受参数 ${key}。`);
+    if (props.content_mode !== undefined && !["auto", "media", "list", "metric"].includes(String(props.content_mode)))
+      errors.push(`${label}的预设内容模式只能是 auto、media、list 或 metric。`);
+    if (props.asset_fit !== undefined && props.asset_fit !== "contain" && props.asset_fit !== "cover")
+      errors.push(`${label}的素材填充方式只能是 contain 或 cover。`);
+    if (props.asset_crop !== undefined && !validRect(props.asset_crop))
+      errors.push(`${label}的素材裁剪框必须在画面内部且面积非零。`);
+    const startSeconds = numberProp(props.start_seconds, 0);
+    const endSeconds = props.end_seconds === undefined ? undefined : numberProp(props.end_seconds);
+    if (startSeconds === null || startSeconds < 0)
+      errors.push(`${label}的视频起始秒数必须是非负有限数字。`);
+    if (endSeconds === null || (endSeconds !== undefined && startSeconds !== null && endSeconds <= startSeconds))
+      errors.push(`${label}的视频结束秒数必须晚于起始秒数。`);
+    const items = props.items;
+    if (items !== undefined && (!Array.isArray(items) || items.length < 1 || items.length > 4 ||
+      items.some((item) => !text(item, 64, true))))
+      errors.push(`${label}的短列表需要 1–4 条非空短文本。`);
+    const metric = props.metric;
+    if (metric !== undefined) {
+      const value = metric as Record<string, unknown>;
+      if (!metric || typeof metric !== "object" || Array.isArray(metric) ||
+          !text(value.label, 48, true) || !text(value.value, 40, true) ||
+          (value.detail !== undefined && !text(value.detail, 64)))
+        errors.push(`${label}的指标需包含 label/value 和可选 detail。`);
+    }
+    return;
+  }
   const cue = (value: unknown) => {
     if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0 || value > shot.end_frame - shot.start_frame - 15)
       errors.push(`${label}的出现帧必须是 0 到镜头时长减 15 的整数。`);

@@ -6,6 +6,7 @@ spot-check the wording the model contracts depend on; they do not attempt to
 judge creative quality.
 """
 
+import ast
 import importlib.resources
 
 import pytest
@@ -23,6 +24,52 @@ from videoagents.nodes import (
 from videoagents.prompts import PROMPTS_DIR, compose, load_prompt, render
 from videoagents.tools.components import COMMUNITY_COMPONENT_IDS
 
+REPO_ROOT = PROMPTS_DIR.parents[1]
+AGENT_NODE_FILES = [
+    REPO_ROOT / "videoagents/nodes/materials.py",
+    REPO_ROOT / "videoagents/nodes/screenwriter.py",
+    REPO_ROOT / "videoagents/nodes/script_reviewer.py",
+    REPO_ROOT / "videoagents/nodes/voice.py",
+    REPO_ROOT / "videoagents/nodes/director.py",
+    REPO_ROOT / "videoagents/nodes/editing.py",
+    REPO_ROOT / "videoagents/nodes/reviewers.py",
+]
+
+
+def _field_tuple(expr: ast.expr, env: dict[str, tuple[str, ...]]) -> tuple[str, ...] | None:
+    if isinstance(expr, ast.Name):
+        return env.get(expr.id)
+    if not isinstance(expr, ast.Tuple):
+        return None
+
+    fields: list[str] = []
+    for item in expr.elts:
+        if isinstance(item, ast.Starred) and isinstance(item.value, ast.Name):
+            previous = env.get(item.value.id)
+            if previous is None:
+                return None
+            fields.extend(previous)
+        elif isinstance(item, ast.Constant) and isinstance(item.value, str):
+            fields.append(item.value)
+        else:
+            return None
+    return tuple(fields)
+
+
+def _field_env(function: ast.FunctionDef | ast.AsyncFunctionDef) -> dict[str, tuple[str, ...]]:
+    env: dict[str, tuple[str, ...]] = {}
+    for node in ast.walk(function):
+        if not isinstance(node, ast.Assign):
+            continue
+        value = _field_tuple(node.value, env)
+        if value is None:
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name):
+                env[target.id] = value
+    return env
+
+
 PROMPT_FILES = [
     "shared-style",
     "materials",
@@ -32,7 +79,6 @@ PROMPT_FILES = [
     "script-reviewer",
     "voice",
     "director",
-    "component-study",
     "editing",
     "review",
 ]
@@ -56,8 +102,105 @@ def test_legacy_programmer_focused_root_prompt_does_not_return():
 
 
 def test_new_jobs_default_to_ai_interested_audience_and_preserve_explicit_audience():
-    assert Brief(topic="AI 新闻").audience == "对 AI 感兴趣、愿意了解前沿进展并尝试工具的人"
-    assert Brief(topic="AI 新闻", audience="没有技术背景的普通大众").audience == "没有技术背景的普通大众"
+    assert (
+        Brief(topic="AI 新闻").audience
+        == "对 AI 感兴趣、愿意了解前沿进展并尝试工具的人"
+    )
+    assert (
+        Brief(topic="AI 新闻", audience="没有技术背景的普通大众").audience
+        == "没有技术背景的普通大众"
+    )
+
+
+def test_repository_rules_pin_ai_interested_audience_and_video_isolation():
+    agents = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    implementation_contract = (
+        REPO_ROOT / "docs/videoagents-implementation-contract.md"
+    ).read_text(encoding="utf-8")
+    metrics = (REPO_ROOT / "docs/videoagents-short-video-metrics.md").read_text(
+        encoding="utf-8"
+    )
+    storytelling = (
+        REPO_ROOT / "docs/videoagents-storytelling-standard.md"
+    ).read_text(encoding="utf-8")
+
+    assert "面向对 AI 感兴趣、愿意了解前沿进展并尝试工具的人" in readme
+    assert "普通大众的 AI 科普" not in readme
+    assert "audience \"对 AI 感兴趣、愿意了解前沿进展并尝试工具的人\"" in (
+        implementation_contract
+    )
+    assert "面向对 AI 感兴趣、愿意了解前沿进展并尝试工具的人" in metrics
+    assert "面向对 AI 感兴趣、愿意了解前沿进展并尝试工具的人" in storytelling
+    assert "每个视频一条独立分支" in agents
+    assert "video/<job_id>" in agents
+    assert "视频与视频之间不得复用未显式导入的 state、素材、产物或运行目录" in agents
+
+
+def test_docs_list_agent_final_field_handoff_contract():
+    nodes_doc = (REPO_ROOT / "docs/videoagents-nodes.md").read_text(encoding="utf-8")
+    context_doc = (REPO_ROOT / "docs/videoagents-context.md").read_text(encoding="utf-8")
+    prompt_design = (REPO_ROOT / "docs/videoagents-prompt-design.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "模型输入字段总表" in nodes_doc
+    for role, fields in [
+        ("materials", "`brief`, `assets`, `settings`"),
+        ("screenwriter", "`brief`, `research`, `assets`"),
+        ("script_reviewer", "`brief`, `script`, `script_discussion`, `research`, `assets`"),
+        ("voice", "`brief`, `script`, `settings`"),
+        (
+            "director",
+            "`brief`, `script`, `timeline`, `research`, `assets`, `asset_metadata`, `extras`",
+        ),
+        ("editing", "`brief`, `script`, `timeline`, `assets`, `asset_metadata`, `action`"),
+        ("review", "`brief`, `script`, `timeline`, `assets`, `research`, `alignment`"),
+    ]:
+        assert f"`{role}`" in nodes_doc
+        assert fields in nodes_doc
+    assert "`fields` 只能选择最终业务字段" in context_doc
+    assert "不会携带中间过程、工具日志、搜索过程或历史聊天消息" in context_doc
+    assert "assets、research、alignment" in prompt_design
+    assert "成片复核 | brief、script、timeline、research、assets、reviews" not in prompt_design
+
+
+def test_every_agent_model_call_uses_explicit_final_fields_and_brief():
+    runtime_fields = {"messages", "chat_history", "tool_calls", "tool_results",
+                      "intermediate_steps", "search_results", "operations"}
+
+    for path in AGENT_NODE_FILES:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        functions = [
+            node for node in ast.walk(tree)
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        ]
+        seen_invokes: set[int] = set()
+        for function in functions:
+            env = _field_env(function)
+            for node in ast.walk(function):
+                if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+                    continue
+                if node.func.attr != "invoke":
+                    continue
+                fields_keyword = next(
+                    (keyword for keyword in node.keywords if keyword.arg == "fields"),
+                    None,
+                )
+                assert fields_keyword is not None, f"{path}:{node.lineno} must pass explicit fields"
+                fields = _field_tuple(fields_keyword.value, env)
+                assert fields is not None, f"{path}:{node.lineno} fields must resolve statically"
+                assert "brief" in fields, f"{path}:{node.lineno} must include the current brief"
+                leaked = sorted(set(fields) & runtime_fields)
+                assert not leaked, (
+                    f"{path}:{node.lineno} leaks runtime history into agent input: {leaked}"
+                )
+                seen_invokes.add(id(node))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+                continue
+            if node.func.attr == "invoke":
+                assert id(node) in seen_invokes, f"{path}:{node.lineno} invoke outside a function"
 
 
 def test_markdown_ships_as_package_data():
@@ -72,7 +215,9 @@ def test_markdown_ships_as_package_data():
 
 
 def test_compose_joins_with_single_blank_line():
-    assert compose("shared-style", "materials") == load_prompt("shared-style") + "\n\n" + load_prompt("materials")
+    assert compose("shared-style", "materials") == (
+        load_prompt("shared-style") + "\n\n" + load_prompt("materials")
+    )
 
 
 def test_render_substitutes_every_placeholder():
@@ -133,6 +278,15 @@ def test_director_prompt_injects_props_examples():
     )
     assert expected in director.PROMPT
     assert all(component_id in director.PROMPT for component_id in COMMUNITY_COMPONENT_IDS)
+
+
+def test_component_study_prompt_has_been_folded_into_director_prompt():
+    assert not (PROMPTS_DIR / "component-study.md").exists()
+    assert "component-study" not in director.PROMPT
+    assert "extras.component_study" not in director.PROMPT
+    assert "先读组件知识库" in director.PROMPT
+    assert "docs/knowledge/remotion-shot-library.md" in director.PROMPT
+    assert "再设计 shots" in director.PROMPT
 
 
 def test_director_prompt_contains_visual_palette_contract():
@@ -285,15 +439,15 @@ def test_shared_style_carries_softened_number_rule():
 
 
 def test_director_chain_keeps_developer_preset_boundary():
-    # 开发者/代码界面预设的选择边界必须保留在导演链路（学习结论与分镜规则）。
+    # 开发者/代码界面预设的选择边界必须保留在导演主 Prompt。
     for phrase in [
         "终端、代码、光标走读类开发者预设",
         "本期主题确实相关",
         "普通观众不用读代码也能理解",
         "能当本期事实证据",
+        "开发者界面边界",
     ]:
         assert phrase in director.PROMPT
-    assert "开发者界面边界" in load_prompt("component-study")
 
 
 @pytest.mark.parametrize(

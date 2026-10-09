@@ -2,6 +2,7 @@ import type {FC} from 'react';
 import {DataFlowPipes} from './scenes/data-flow-pipes';
 import {CodeReveal} from './scenes/code-reveal';
 import {AnimatedBarChart} from './scenes/animated-bar-chart';
+import {remotionUiCuratedDemos} from './additions';
 
 export const DataFlowPipesDemo: FC = () => <DataFlowPipes stages={[
   {label: '提问', detail: '输入问题'},
@@ -25,4 +26,5 @@ export const componentDemos: Demo[] = [
   {id: 'RemotionUI-DataFlowPipes', name: 'Data Flow Pipes', slug: 'remotion-ui-data-flow-pipes', component: DataFlowPipesDemo, width: 1280, height: 720, durationInFrames: 240, fps: 30},
   {id: 'RemotionUI-CodeReveal', name: 'Code Reveal', slug: 'remotion-ui-code-reveal', component: CodeRevealDemo, width: 1280, height: 720, durationInFrames: 210, fps: 30},
   {id: 'RemotionUI-AnimatedBarChart', name: 'Animated Bar Chart', slug: 'remotion-ui-animated-bar-chart', component: AnimatedBarChartDemo, width: 1280, height: 720, durationInFrames: 210, fps: 30},
+  ...remotionUiCuratedDemos,
 ];

@@ -45,12 +45,12 @@
 | 节点 | 本次模型读取的业务输入 | 最终产出 | Prompt 文件 |
 | --- | --- | --- | --- |
 | 素材 | brief、assets、settings 中的检索配置 | MaterialResearch；实际正文、图片和截图经校验后进入研究与资产清单 | [materials.md](../videoagents/prompts/materials.md) |
-| 编剧 | brief、research、assets；讨论改稿再读取 script、script_discussion | Script；改稿为 ScriptRewrite，包括完整 script 和 response | [screenwriter.md](../videoagents/prompts/screenwriter.md)、[screenwriter-draft.md](../videoagents/prompts/screenwriter-draft.md)、[screenwriter-rewrite.md](../videoagents/prompts/screenwriter-rewrite.md) |
-| 文案审查 | brief、script、script_discussion、research、assets | ScriptCritique：APPROVE 或带具体意见的 REVISE | [script-reviewer.md](../videoagents/prompts/script-reviewer.md) |
+| 编剧 | brief、research、assets；讨论改稿再读取 script、script_discussion，必要时读取 extras 中的人工返工结论 | Script；改稿为 ScriptRewrite，包括完整 script 和 response | [screenwriter.md](../videoagents/prompts/screenwriter.md)、[screenwriter-draft.md](../videoagents/prompts/screenwriter-draft.md)、[screenwriter-rewrite.md](../videoagents/prompts/screenwriter-rewrite.md) |
+| 文案审查 | brief、script、script_discussion、research、assets，必要时读取 extras 中的人工返工结论 | ScriptCritique：APPROVE 或带具体意见的 REVISE | [script-reviewer.md](../videoagents/prompts/script-reviewer.md) |
 | 配音指导 | brief、script、settings 中的声音配置 | VoiceAdvice；其后实际调用语音服务并进行时间对齐 | [voice.md](../videoagents/prompts/voice.md) |
-| 导演 | brief、script、实测 timeline、research、assets、asset_metadata | 完整 Timeline | [director.md](../videoagents/prompts/director.md) |
-| 剪辑指导 | brief、script、timeline、assets、action | EditingAdvice；通过预检后 Remotion 按既有 Timeline 渲染 | [editing.md](../videoagents/prompts/editing.md) |
-| 成片复核 | brief、script、timeline、research、assets、reviews | ContentReviewAdvice | [review.md](../videoagents/prompts/review.md) |
+| 导演 | brief、script、实测 timeline、research、assets、asset_metadata、extras | 完整 Timeline | [director.md](../videoagents/prompts/director.md) |
+| 剪辑指导 | brief、script、timeline、assets、asset_metadata、action，必要时读取 extras 中的人工返工结论 | EditingAdvice；通过预检后 Remotion 按既有 Timeline 渲染 | [editing.md](../videoagents/prompts/editing.md) |
+| 成片复核 | brief、script、timeline、assets、research、alignment | ContentReviewAdvice | [review.md](../videoagents/prompts/review.md) |
 
 ### 加载方式
 
@@ -76,7 +76,7 @@
 
 ### 开发者界面预设边界
 
-152 个固定预设中含终端、代码、光标走读类画面（如 TerminalSimulator、CursorTrack、CodeMorph、CodeReveal、claude-code、glass-code-walk、terminal-typing-log）。源码受许可证与哈希约束不能改，因此规则写在 [shared-style.md](../videoagents/prompts/shared-style.md) 第 6 节、[component-study.md](../videoagents/prompts/component-study.md) 和 [director.md](../videoagents/prompts/director.md)：
+187 个社区预设中含终端、代码、光标走读类画面（如 TerminalSimulator、CursorTrack、CodeMorph、CodeReveal、claude-code、glass-code-walk、terminal-typing-log）。源码受许可证与哈希约束不能改，因此规则写在 [shared-style.md](../videoagents/prompts/shared-style.md) 第 6 节、[director.md](../videoagents/prompts/director.md) 和 [Remotion 组件知识库](knowledge/remotion-shot-library.md)：
 
 1. 只有本期主题确实相关（讲的就是编程类 AI/开发者工具，或画面直接支撑口播那一步）才可选；不当通用“AI 氛围”素材或填空转场。
 2. 普通观众不用读代码也能理解：重心在动作和结果（输入什么、跑起来、给出什么），关键步骤由旁白、标题或放大指认讲清。
@@ -142,11 +142,11 @@ Markdown 位于包目录内，wheel 会原样带上 `videoagents/prompts/*.md`�
 | 看懂关键数值 | data | 清楚保留单位、日期与条件；当前是数值卡，不是任意图表 |
 | 看懂过程 | steps | 当前支持1～4个步骤对象，分清操作流程与推断的机制 |
 | 回答开头 | conclusion | 收束一项可复述的判断，不机械加关注话术 |
-| 补充节奏、界面或转场视觉 | 152 个社区 preset | 从动态目录按表达用途选择；固定 `props={}` 且不接收素材，内置演示内容不作为事实证据 |
+| 补充节奏、界面或转场视觉 | 187 个社区 preset | 从组件知识库按表达用途选择；只使用统一安全素材槽位和受限 props，内置演示内容不作为事实证据 |
 
 每镜头一个主要信息，正文作辅助，字幕承担逐句阅读。重点截图要服务当前说法，不能只是装饰；未知图像焦点或尺寸不能凭空编出精确裁切位置。
 
-导演只能使用已导入图片或视频的 `timeline_src`、当前任务动态白名单中的组件与已经支持的 props。生产清单包含 9 个可参数化适配器和 152 个固定视觉预设；同一预设会按 timeline 方向选择横版或原生竖版实现。Talkcraft 预设不进入商业任务清单。固定预设不能接收 `asset_src` 或自定义 props，因此需要真实事实、素材或数据时优先选择参数化适配器。保留实测音频、字幕和镜头帧区间，也保留视频尺寸与帧率。不能虚构新素材、任意动画参数，或根据预计1.3倍语速重新估计镜头时长。
+导演只能使用已导入图片或视频的 `timeline_src`、当前任务动态白名单中的组件与已经支持的 props。生产清单包含 9 个可参数化适配器和 187 个社区预设；同一预设会按 timeline 方向选择横版或原生竖版实现。Talkcraft 预设不进入商业任务清单。社区预设只能接收统一安全素材槽位和受限 props；需要精确证据框、复杂数据或步骤同步时优先选择参数化适配器。保留实测音频、字幕和镜头帧区间，也保留视频尺寸与帧率。不能虚构新素材、任意动画参数，或根据预计1.3倍语速重新估计镜头时长。
 
 ## 配音与剪辑：表演有收放，检查可定位
 
@@ -171,7 +171,7 @@ Markdown 位于包目录内，wheel 会原样带上 `videoagents/prompts/*.md`�
 3. 分镜是否展示证据、解释关系，还是只有旁白文字换了背景。
 4. 实际音频的重音、停顿、转折是否有效，实际成片的画面是否来得及理解。
 
-原始 Prompt 设计时，正式外部视觉资产仅支持图片/截图。2026-10-05 更新：现已支持真实视频片段及 `video_clip` 适配器；导演先学习全部 152 个原生竖屏组件和 9 个生产适配器，再基于实际音频编写分镜。文案、分镜、成片分别经过人工审核，意见驱动的返工路径见[人工审核说明](videoagents-human-review.md)。现有约束仍保留：不改变实测音频及既定帧区间；固定预设不接收自定义素材；剪辑建议不自动变更 Timeline，成片画面返工先回导演改镜头，再重渲染并复审。
+原始 Prompt 设计时，正式外部视觉资产仅支持图片/截图。2026-10-09 更新：现已支持真实视频片段及 video 适配器；导演不再单独跑组件学习 Prompt，而是在导演 Prompt 中先读组件知识库摘要，再基于实际音频编写分镜。文案、分镜、成片分别经过人工审核，意见驱动的返工路径见[人工审核说明](videoagents-human-review.md)。现有约束仍保留：不改变实测音频及既定帧区间；社区预设不接收任意自定义代码或任意 props；剪辑建议不自动变更 Timeline，成片画面返工先回导演改镜头，再重渲染并复审。
 
 契约测试能够证明输入、输出、来源检查、讨论路由和时间轴约束未被破坏，不能证明新文案一定吸引人或新声音已经像真人。表达质量仍需后续实际稿件、音频和视频 Review。
 

@@ -2,8 +2,10 @@ import type {FC} from 'react';
 import {DataFlowPipes} from '../../component-horizontal/remotion-ui/scenes/data-flow-pipes';
 import {CodeReveal} from '../../component-horizontal/remotion-ui/scenes/code-reveal';
 import {AnimatedBarChart} from '../../component-horizontal/remotion-ui/scenes/animated-bar-chart';
+import {makeCuratedDemos} from '../../component-horizontal/curated/CuratedScene';
+import {remotionUiAdditions} from '../../component-horizontal/remotion-ui/additions';
 
-type Demo = {id: string; name: string; slug: string; component: FC; width: 1080; height: 1920; durationInFrames: number; fps: 30};
+type Demo = {id: string; name: string; slug: string; component: FC; width: number; height: number; durationInFrames: number; fps: 30};
 
 export const DataFlowPipesPortrait: FC = () => <DataFlowPipes stages={[
   {label: '提问', detail: '输入问题'},
@@ -26,10 +28,12 @@ export const nativeDemos: Demo[] = [
   {id: 'RemotionUI-DataFlowPipes', name: 'Data Flow Pipes', slug: 'remotion-ui-data-flow-pipes', component: DataFlowPipesPortrait, width: 1080, height: 1920, durationInFrames: 240, fps: 30},
   {id: 'RemotionUI-CodeReveal', name: 'Code Reveal', slug: 'remotion-ui-code-reveal', component: CodeRevealPortrait, width: 1080, height: 1920, durationInFrames: 210, fps: 30},
   {id: 'RemotionUI-AnimatedBarChart', name: 'Animated Bar Chart', slug: 'remotion-ui-animated-bar-chart', component: AnimatedBarChartPortrait, width: 1080, height: 1920, durationInFrames: 210, fps: 30},
+  ...makeCuratedDemos(remotionUiAdditions, 'portrait', {width: 1080, height: 1920}),
 ];
 
 export const nativeLayoutNotes: Record<string, string> = {
   'RemotionUI-DataFlowPipes': 'Original DataFlowPipes portrait branch from video config.',
   'RemotionUI-CodeReveal': 'Original CodeReveal write plan, tokenizer, caret, scroll, and highlight engine with portrait scale basis.',
   'RemotionUI-AnimatedBarChart': 'Original AnimatedBarChart portrait branch from video config.',
+  ...Object.fromEntries(remotionUiAdditions.map((item) => [item.id, 'Curated RemotionUI portrait version with safe material-slot overlay support.'])),
 };

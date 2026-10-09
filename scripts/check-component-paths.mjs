@@ -4,17 +4,19 @@ import {readFile, readdir, writeFile} from 'node:fs/promises';
 import path from 'node:path';
 
 const root = process.cwd();
+const expectedPresetCount = 187;
+const expectedRegisteredCount = expectedPresetCount * 2;
 const readJson = async (file) => JSON.parse(await readFile(path.join(root,file), 'utf8'));
 const {components} = await readJson('docs/component-paths.json');
 const {components:usage} = await readJson('docs/component-use-guide.json');
 const payload = await readJson('.runtime/component-path-workbook.json');
 const usageById = new Map(usage.map((component) => [component.compositionId,component]));
-assert.equal(components.length,152);
-assert.equal(new Set(components.map((component) => component.compositionId)).size,152);
-assert.equal(usage.length,152);
-assert.equal(usageById.size,152);
+assert.equal(components.length,expectedPresetCount);
+assert.equal(new Set(components.map((component) => component.compositionId)).size,expectedPresetCount);
+assert.equal(usage.length,expectedPresetCount);
+assert.equal(usageById.size,expectedPresetCount);
 for (const orientation of ['vertical','horizontal']) {
-  assert.equal(new Set(components.map((component) => component[`${orientation}Path`])).size,152);
+  assert.equal(new Set(components.map((component) => component[`${orientation}Path`])).size,expectedPresetCount);
   for (const component of components) {
     for (const key of [`${orientation}Path`, `${orientation}SourcePath`]) {
       const relative = component[key];
@@ -41,13 +43,13 @@ for (const file of manifest.files) {
 }
 const remaining = await readdir(path.join(root,'src/components/community'),{withFileTypes:true});
 assert.equal(remaining.filter((entry) => entry.isDirectory()).length,0,'Stale implementation folders in community');
-const report = {status:'passed',componentPairs:152,uniqueEntries:304,preservedSourceCount:108};
+const report = {status:'passed',componentPairs:expectedPresetCount,uniqueEntries:expectedRegisteredCount,preservedSourceCount:108};
 if (process.argv.includes('--compare-render-baseline')) {
   const before = await readJson('.runtime/component-organization-before.json');
   const after = await readJson('out/components/verification.json');
   const previous = new Map([...before.results,...before.portraitResults].map((item) => [item.id,item]));
   const current = [...after.results,...after.portraitResults];
-  assert.equal(current.length,304);
+  assert.equal(current.length,expectedRegisteredCount);
   let unchanged = 0;
   for (const item of current) {
     assert.equal(item.status,'passed',item.id);

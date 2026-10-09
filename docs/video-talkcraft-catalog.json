@@ -121,9 +121,9 @@
           "Talkcraft-focus-dim-spotlight-274.png"
         ],
         "frameHashes": [
-          "5f35af8e3537156e26e989fc5b590bb2da0b213087f9f30cc7b8483944d3d4d2",
-          "faef784a11c87e303606224662b14aba706dff79bf3ee509a8bbe3d19b2771d1",
-          "37b49b7cbf4d08f0d48f93544d39bffa51c10bf297472d75de7cdc995783e91a"
+          "4f2aa713ac0233fbadef03c76fa0926dcaa135544e7acf8912058b74f2434a2c",
+          "385bc2875083b1b65428cc82b7fe4073bdd5658e8b6ca0a9be5c950612ae524a",
+          "1fbf67070a83d74cfb59559c4853ca49c4b5fc300459a0ef78bd8870955fd880"
         ],
         "status": "passed"
       },
@@ -176,9 +176,9 @@
           "Talkcraft-hand-drawn-ellipse-101.png"
         ],
         "frameHashes": [
-          "00c8f36d70ba02459974def5574b9743b47efa81b1c0aed3acd4864b75b64ec5",
-          "cfa54918b183b5ef2c8e77ae1ba9c893bf9f0eb3d907cdec2f19f69845099a7b",
-          "a5611e46dfd1af839ab1af5a74c8183e70f9fdfbe2fdba48e44009d5ec688170"
+          "955b5cc5d5b922ee49182974cb4e87930b0a4f5f06a0f6dff43d28b15a9ff631",
+          "8cb303852c969a285285dd4240f0736c073ffb4895052af04ed8cf5ed5a6409d",
+          "bacebd9aff7546d0130f3d4f51ea631ba589bf712df79e1bbe6e2c79dfca4452"
         ],
         "status": "passed"
       },
@@ -231,9 +231,9 @@
           "Talkcraft-highlighter-sweep-59.png"
         ],
         "frameHashes": [
-          "3e3608658557cdb571f295db3c595f992f820f94ecf308b0d26867bbd5b9ed97",
-          "c3e0530b131b46e76290008e8caf58bc129a7be0d5bf8d201d1c2196d07aa8c0",
-          "bfdbb86438b610f4ba1a4ea456e60073284dfacf5a7a1681a15af66743e1fa2a"
+          "7b0afbc3b007acbb9c638f70580d493bf388ab6285e53e8b83d3d9242cdccaee",
+          "460f8acd42025d9b67a554bddc8a8ccd6a057cd2decd1cb3f72b6056dbe84336",
+          "2717d6b0c28e4eb2d20702f43a2c59ca5db2877bd01eb96fd8e695b2c8790678"
         ],
         "status": "passed"
       },
@@ -286,9 +286,9 @@
           "Talkcraft-scribble-annotation-103.png"
         ],
         "frameHashes": [
-          "edab34f8f69c13044345a417edd66468d5f6ca4e1702fbdd143692c4298ce621",
-          "53ced69ae73edb4faad2744ae27652756edb6f254e3ef1d5c5780f91b797dbe4",
-          "5b8f2de09b8a50e35368701e2639924808a8d47c47680a9d2f50a5b03a51c475"
+          "3beddd63f61a6672241b9ab931d1543e434b91e417bb23b765d11b2b0008ea1a",
+          "5053d6e8f2ae17304bb5bde54d043ffc483a43c1d24c900a5b1b87480352f2db",
+          "3a78fb81490535163bbedd535412198c29794257db89a41feffebf8beac36354"
         ],
         "status": "passed"
       },
@@ -342,7 +342,7 @@
         ],
         "frameHashes": [
           "482e203cba9796c17bed1548e297700717ac7f26b5ebdb9e7878bb1e83a40eb2",
-          "2fe8f72be66d33962ca486a3b522003fa4bed7ad31232f376e523f2a0dd01738",
+          "eaebe3ea34876c3d32cfae975b0ad413969c717ea18112cc499f8e3dbedbcdee",
           "482e203cba9796c17bed1548e297700717ac7f26b5ebdb9e7878bb1e83a40eb2"
         ],
         "status": "passed"
@@ -396,9 +396,9 @@
           "Talkcraft-converging-arrows-88.png"
         ],
         "frameHashes": [
-          "f1a61d982c345e346f87763cf82f34ce0af97a2be03bc983dbd06009118b3da3",
-          "5cf39f31eef2fffbb637ffd4e84cd9fa059b7b17ef270f3e0c131221be2a0393",
-          "1a601fa45c41f810065cdf827ec2b84056ed70a3f3bda27a021e2793a06d9fa5"
+          "7b89cbd010c51cdceb327a59863bd37c8b87a1918846c5062481fa489511357b",
+          "d0f95b6d86bbf46ec2509d193ae3f14bf45a39b547a1845a91dfa4a8b506393d",
+          "1811c1f72964b16951bee79da67bf242699f6b8eb839ce615095e74cabd98e32"
         ],
         "status": "passed"
       },
@@ -452,8 +452,8 @@
         ],
         "frameHashes": [
           "627c698e6c6fcf5fc34af05a7acdc6e8ae9c4317e4f86fd358b6eef040d36595",
-          "e08477df50ba7d436cf2dd958259615ba0331c92d0ea812f9227bc082e31d26f",
-          "7aaede329a8bb1c69d1f1c3472ffdbba8eebba4c0d61c12d8d7828c04391945a"
+          "42782563c12ab01551dd59dff442e01a5cfb8087bb2eb8f423aea258160f867e",
+          "f97814b0ea828a35c94647eb47b4bd53fd16d3143c95d34f8e923c822bba9dbd"
         ],
         "status": "passed"
       },
@@ -506,8 +506,8 @@
           "Talkcraft-crash-zoom-punch-143.png"
         ],
         "frameHashes": [
-          "dfbc72d3b060553380d7b549973800f8fa90cd0290635c184dee34d3b9078e24",
-          "7b2ba2ae7f9bcf40c165851820cf696eb1b0c9a159a3926d71da1438f2dee187",
+          "6436de66b371ba3d3ed237932680c37c525170b273a89238fae5a4a9d477b940",
+          "958c30938d9714c999205c5e96396ce588599f3e184967a85b55a6e021539182",
           "29b845213224707abc6b55419446afd022b61a85e7be7475d015610b48752663"
         ],
         "status": "passed"
@@ -561,9 +561,9 @@
           "Talkcraft-ink-underline-108.png"
         ],
         "frameHashes": [
-          "e2dacf1069bbd9041cd89c8da0361a42b995eff4a085fa5ae61ded7a5e67eb40",
-          "0f1d07721dbda51f5693b079b7681a20f76433cd89b35942499207cf229798ec",
-          "c35c3ba9caef609168a9f3e600926a1dfb58a9469c574b5d36a4ce041764a934"
+          "1ec922c4f69c40ffd79378e86ce12e2bd7c4d50a1d8d7274d65bff0d70f4abbd",
+          "c8a0d5b9e3791c88a5f5df339a0408685dd67eb267ec2e92b6bce10a403e0939",
+          "53631a6024cca19831a7bb78ed8eba3d55e5bd085f4ebdc05389d92f1cd6353f"
         ],
         "status": "passed"
       },
@@ -616,9 +616,9 @@
           "Talkcraft-magnifier-detail-100.png"
         ],
         "frameHashes": [
-          "f1564750b1dd60f2caaf2ea5680df911726b9de811fcb3fe35b616d6afabc251",
-          "f36904139870add7e8584d27b9bb65091fbaa7c646fa56c17629a1661f598a92",
-          "9d08967a61cb75236c486304065f6d649c7d1a9fec52a19e07958f60b9c153ce"
+          "05d2f759f70d7cfb6dd86adbe04a41c5a2356680d3131532ff9ff8840750bfb0",
+          "933654913f078e3ee7ef6790fa38dd2e9ff861983381ce63a514377029c5b1e7",
+          "0375d1047e5577e1cdca4bc4254ef329fb27828ea4ce21223df0b84264e77acd"
         ],
         "status": "passed"
       },
@@ -672,8 +672,8 @@
         ],
         "frameHashes": [
           "b26dd07a5560e6be7ab23e51fdbd9f3434deef83a7fe5586f51d208d00833b98",
-          "862a54832d7dd8c15eb98223f7da11991f136c7d9051976c135db3a78cc0c07b",
-          "ccee00fcae7f9c8887a93e71a94f24900af894e32e8dac6172dbcc2654bb17eb"
+          "91d08b7d71d2ad0a69c1c80f8791116e823e096a225e646eac6cfc882195be02",
+          "12ad263b294cd7338310a5903a80b247b4fb8b0082d572e35b4cb3085b70bbbf"
         ],
         "status": "passed"
       },
@@ -726,8 +726,8 @@
           "Talkcraft-scanline-annotate-179.png"
         ],
         "frameHashes": [
-          "6f801d78af3186579461124454f9019585fdb3dd87c55a1de64b64dadbd021eb",
-          "8a55984d19494280acfc3bfe28ffcfa7caac6eaa48e1b257ce797e265f1a8f6d",
+          "8ec7a117864019c04034db3fdc1ed55431c253a6b4c922f9ef99838adfcbf004",
+          "9e3411f8a4a6416774e2a92fcb2d6b4fa6c405003763e1bc2d3f8bdb9f855035",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -781,9 +781,9 @@
           "Talkcraft-strike-and-replace-97.png"
         ],
         "frameHashes": [
-          "35bb51c4a3fb4fa6f5c6ee1ec9d4e404efead0f1d04b53e2a975e635a24f7a43",
-          "21fb49f92e3951e570781ce3806b8317c8a0f74f66f6ab77fb82817a1d9e6bb1",
-          "06a3184a0746ffd913f40da50d1f56c5b5186f68113f61edd62eada7664498c6"
+          "ce5bb832bfd0f04ecfa56392ec86f9ab40401eb86ecdb74de067702b36fadcb4",
+          "634fac6a21f753f3c31b0bf432a17ef1b5fb91da662bc363d26186885772d2b3",
+          "421b392eb207d6abdc7cb9d5eb078c0bb1dfdb31c0498ca165266b888f71b7de"
         ],
         "status": "passed"
       },
@@ -836,8 +836,8 @@
           "Talkcraft-reticle-lock-on-191.png"
         ],
         "frameHashes": [
-          "2bd1f99dd939cfaa51fa934ec97f72141e353e2038c9cbd19ebd738cf45e2a03",
-          "eba9a72076c95ad98d2d0f1a287f82ec0eadae27c35652e353bc868dd85156d3",
+          "4b3d41266b3c46ca38e0f3049e8fa27a8fa6bb601096a3ad53b25e2f3e678aa7",
+          "a5e22ed3323fa7b5a60f003ea0a7abd01cbd5d9a6f5ab73ab0001239807fdc02",
           "29b845213224707abc6b55419446afd022b61a85e7be7475d015610b48752663"
         ],
         "status": "passed"
@@ -892,7 +892,7 @@
         ],
         "frameHashes": [
           "d640097c26935ffd0b2c93ac9e5b91cdaea99bdfef9c4c24366145ccf76bb74f",
-          "400f9d66f0368c8b9b79d7e9e5992050c8a47fcdb1372c1638f00148562f10b2",
+          "fba4ba622f76529572cdc53cb525937cd3362d9db2d972edb5b0db4b6dd761de",
           "fa93eda989e616d7c88092a26517b7228859c11c5a4ca00a188cf462f65614f4"
         ],
         "status": "passed"
@@ -947,7 +947,7 @@
         ],
         "frameHashes": [
           "b0a3a55681faa8a9a150ae1ee6f7cd27ce7dcb394f3fdad69ba9c4f40ae6cb0c",
-          "fb025792b8fedca523b4308a519e5f95f34992e6ae61b85ad879671bf66012ad",
+          "9dc765fb2d97e640584e1d69563c6b2983b8b4b8ecc641efd2dac54bd48966b4",
           "588d75ea9a3f6b7ee55f8f657019164db9ff8db15d85e52c569d81eec0c9bf5b"
         ],
         "status": "passed"
@@ -1002,8 +1002,8 @@
         ],
         "frameHashes": [
           "239feea2ab6a46af10364be54616bc59fddde2f1733bb068e01d63f24f1f144c",
-          "fa7938c83691b300bf98cffc428225e935ef1bc807c2c4e2389fb232176199bb",
-          "9e54e6e0deff5f14107e0b03f30c77505c14c4772de2ef400115c7e0cf3d1827"
+          "538f8c23c0e05d2b1461cc5bbd1dfbf5490608bae137aa4be3410e16a964d410",
+          "0d159964d13e31fe2a6ee6f09181fa50998b7992e43cd88dd0a2d223da3dad56"
         ],
         "status": "passed"
       },
@@ -1057,7 +1057,7 @@
         ],
         "frameHashes": [
           "d640097c26935ffd0b2c93ac9e5b91cdaea99bdfef9c4c24366145ccf76bb74f",
-          "52026ec5eccd60ef001ec1b56bd2a7ae3c6e3bcc86a03721880f4bbedc32b754",
+          "daa1e5564e79581d6043de5c6c5e5dd0f0d244d588e787e0d500ce68037cae5f",
           "4ba9d5575a6883ebf771ab980042c03185c1b999c06a0a6664c4c113619f701b"
         ],
         "status": "passed"
@@ -1112,7 +1112,7 @@
         ],
         "frameHashes": [
           "d640097c26935ffd0b2c93ac9e5b91cdaea99bdfef9c4c24366145ccf76bb74f",
-          "2bd17f0f7e53ee1711082332ac8d4696db9c0b7a6348e7711d26481b4614bbd4",
+          "4ee708d87412ae39024c316be6f30aa89ea18a310bdda4b770b1d9b90d1afb8a",
           "9e8aa31f8551c5b475fb60a3e6df74b4fd0b595fa2cbc19163b622e269c5c4b4"
         ],
         "status": "passed"
@@ -1167,8 +1167,8 @@
         ],
         "frameHashes": [
           "5c57199bc751027a97e0f9a3b64927c57112eb4d0f9f16bb3b336adc8f2576e4",
-          "7575d91a77d09e6bb036bf372ff028fafb5433470e2a8c4e58ae38aea1b244d0",
-          "db2654cf85f19e909cfbcb7ee626849edca9ffad5ac569ad00d2f0ceba8aaa2d"
+          "3af71d2470871ff6bd433123b9ffb45c030301b8109b566afaed0b2cfe9d6f54",
+          "70c5e73f68d63090ee0028965237348eb5cbfc9245dc0c4abfeb8f9bf4c889b1"
         ],
         "status": "passed"
       },
@@ -1222,7 +1222,7 @@
         ],
         "frameHashes": [
           "143a40e9fa262b1c55099a4bd1aa1b2563beacda3470f6466b60b3e1fa24906d",
-          "506faf3cd3d2d36b1138f29bef95ed8eceda1921dfc44d07614d2c86f8f8cbcf",
+          "bcc50bc1e09bebb1f3f379badbb751d7b770cd85ed6bfb701991bd9cb2c3f6de",
           "143a40e9fa262b1c55099a4bd1aa1b2563beacda3470f6466b60b3e1fa24906d"
         ],
         "status": "passed"
@@ -1277,8 +1277,8 @@
         ],
         "frameHashes": [
           "77da678b842ef09240a4760af89aaa1ccb0039793d627980af2a6ad4aade4829",
-          "89d228c1fca605373a3937d071dcd1eb63b80b68c80ea7dfab174b0df8ab2635",
-          "9604e8bc4cb190e8c73013f9f9b32686fa110b36a1929f6470202e5d0dce7549"
+          "e0fb4c99f1aa768f10879fe1b71d3e40a1fb3ea8376ac2d7549c1c6389de10e4",
+          "231f4eeaba8c801adf5aba88728de7c6f3f4260c89d5cfe957341f30ce71342a"
         ],
         "status": "passed"
       },
@@ -1332,7 +1332,7 @@
         ],
         "frameHashes": [
           "d640097c26935ffd0b2c93ac9e5b91cdaea99bdfef9c4c24366145ccf76bb74f",
-          "8ce50dff1e4285b9b67566d91e3573b038d5c1764798e6a8e80c2dbe82b9f977",
+          "5b3a57019072f46829c38de2baf762488b74909808981fdfb4e3ef161d0479eb",
           "70043abfc376d438285d71c848c1d03427fed3e3caab79deeec50bf0e7fd2add"
         ],
         "status": "passed"
@@ -1387,8 +1387,8 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "dae61c96149658695b63e90062af2e07fa8bb63cf6f535f8b68537f7f5c6058e",
-          "ee5d63f0f5fbd2726db100558ec614800bd36a1d22ea336f40aaa5040f541513"
+          "290e28a2990fb642ab6dc6067c3506c68c69c8b7cea1a8b9fe74ce5448beaf33",
+          "1627c378d8eb647b2c9d1f32d4d97abb5aa938911fb2370ab11d4cfaff796214"
         ],
         "status": "passed"
       },
@@ -1441,9 +1441,9 @@
           "Talkcraft-bar-chart-growth-109.png"
         ],
         "frameHashes": [
-          "96508e25d23747d7f1540e116d1c479a53d135ddddb6510feb42d2105382c827",
-          "b27f83169f171103a0a37ce04ea74eb5cbef7a88371be1ade9d82f806c0be5df",
-          "08840d685b9d71d20cfd8d0d05310287b872993da790e48157390f125cf4da9d"
+          "223d0279054189150dea1707cf2320fb884fb6c18682669046f21a33e5faaa76",
+          "45875d596ef822e0037c00c21a73cf7ecdea55e1407ef1e90ec73c7f2a0c9bcf",
+          "90d89a7252aca9645c8aed11a13de54b4c2572bc5b0a8b4903e96821c6752b1f"
         ],
         "status": "passed"
       },
@@ -1496,9 +1496,9 @@
           "Talkcraft-chart-grow-67.png"
         ],
         "frameHashes": [
-          "5aa70c99543f949ba1d3946393aacf8c262865350765ee1ab6f0d6afc415dd91",
-          "3bed3552adb5162bdd380396a21e58d4a5e063bdb7392eb9674f5a68264ef9a8",
-          "08ac77e0e90cacf6ad03e8acced75cfdb9ecc673eaf4b587ab7590f16348570b"
+          "dab8903d09f2b5bdf852b42383c98fa6ffff2c3026bea82e486be10e6fadb682",
+          "3d2bd7ca5d404b814b6100b0b479ca0a63bca31d2be9c078b0bd522bb26aaf03",
+          "b27d30eda6d8abd57d722bc07bdb00307bb6ff74e25c6bd0786265f0149c55ae"
         ],
         "status": "passed"
       },
@@ -1551,9 +1551,9 @@
           "Talkcraft-line-chart-story-draw-155.png"
         ],
         "frameHashes": [
-          "adb8805c2d4d49cbb524d7304903bd28be9da8766342b03661947b9d539b8592",
-          "63bc3c8bf24a197b9caeecb703aa261901d670c9301bb543a8a70057cf60650d",
-          "c286705bfeebef58a481ace4dbf3af1f54d1325ab86859b3ac7bc277dda5e317"
+          "ea8ba01dc988da0cc5e05e62232b8e87df07716cce64c59c77e1d55b43d9b2a0",
+          "dcc9b0c7946249bca1d465232cee84d775786069e80a81986d7b4448c4a05cb5",
+          "b048d37f8c023ddfef23cb5ea713c41ad00aa95c1dc86ea1b2df5c664e116d5b"
         ],
         "status": "passed"
       },
@@ -1606,9 +1606,9 @@
           "Talkcraft-metric-with-sparkline-113.png"
         ],
         "frameHashes": [
-          "0f35158033b5b153a2795cdc97a07d653d1b7950ff562cc19a0176d94dcccf69",
-          "98f167dba604321375a38314faf03cd4f46327e6d3453318f49e69b66f9b0890",
-          "28238d96fe85510c8dea172f80522ccb7e86a8c242b36052d9bb12317c3c5052"
+          "9f950b70dbeb0897d1c9b211abc18fbabdaaa88acae58a21e66e0e5b8f7e1233",
+          "767d67bcb599c95b261306505f2f922ca8b057c616c6ebf38b8ec002ac2d41d7",
+          "8e39196a2fb0e841959447412a9315a1606922afc1e6b232c2b1297f5f000be3"
         ],
         "status": "passed"
       },
@@ -1661,9 +1661,9 @@
           "Talkcraft-number-counter-85.png"
         ],
         "frameHashes": [
-          "4a39ab66a53d689301333afb7bbecca4ddca5d92ffbb7bc08f3d62813a0ce972",
-          "b7bc18e0d7cfed35a698e6d481ebaac11b06a40a57401fc9c539436ba56ede09",
-          "1c76d1af9d2ad2df29378a370ef348b5120ee737070c80f43184c188b7268408"
+          "546aa633eb28bf1a4256bf561de73d05740a916629e867746eb3a814d6fe4b80",
+          "70101961007e1197ff530547b1897976c4a990d24ef52b314ab874a72fbcfe66",
+          "738d590e6ee55876fb698c6c047c985beb527eeea26d85b47db271306a74bbaf"
         ],
         "status": "passed"
       },
@@ -1717,8 +1717,8 @@
         ],
         "frameHashes": [
           "748304e7b306425279a17efdaf764eed60c702f2a3ea0cf73c0dcda2682a6e1f",
-          "f0891164b0fec971f26f4e1e1e174fa48421c14c0a5302294d30b763dd0c6bc5",
-          "abd3bbbe591e0fd29a655b3f540c83abfd0e2e2d3314e9f041ad1cc40f402d50"
+          "c0cee88e59d50feb6c5e334a23c92646109efd889a157b0edaf3fba547beb4fd",
+          "13bc15cd5114dba11038d2bdb83ca01deb4f8e26c8b18eac484c8d6f0e0bbffb"
         ],
         "status": "passed"
       },
@@ -1772,7 +1772,7 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "c16e7c64613230e893060a4d5c2ec6175c7f373e7e2341c45fb20444af873d6a",
+          "a231d75bdaceef049cdad897ca85c795316e8b3762be6432dca3b2e51d5c3f02",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -1827,7 +1827,7 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "18427468543dbda8d151387f33f98da36401d0a634241622fc4a957d510d6797",
+          "69bbf14c7109f0a8a9191e2f356410e1bdceec9f57e3135c8f359c4ce578ca68",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -1882,7 +1882,7 @@
         ],
         "frameHashes": [
           "d640097c26935ffd0b2c93ac9e5b91cdaea99bdfef9c4c24366145ccf76bb74f",
-          "86fea49211062e95d5bf405e83d33a665db0384a110f63e2d8a71e603b60292f",
+          "838fe720f4c66fcca1e53177836147e71f0c6f13f53e69024256044d59d2ade8",
           "c8cc3014c57b467350214f501612fff35bd1e6b40aff7e4ba3793239a2923c67"
         ],
         "status": "passed"
@@ -1937,8 +1937,8 @@
         ],
         "frameHashes": [
           "8aebb2136e4581759c42fcc730b63036d5fddbfc917adb68993aa0aef231f8b0",
-          "345e44891801005c398cc2fefc1f30eae6c0cf35595c37aca02fb1591e328cf1",
-          "b2a6f2f481833c4fecdb9e2b27e406b3284a0ded3cacfbd91e798d6d2a298f3a"
+          "9341a9adb749443d909c8d80de92be8fa6b9280a4800d7341262e212e5dd52f5",
+          "bb9cfe093bffa6bbdec4e509cdd21328d7699faafc891d93f0816c7537315510"
         ],
         "status": "passed"
       },
@@ -1992,8 +1992,8 @@
         ],
         "frameHashes": [
           "16c2fd22887fda30df7be6f15a804f29cd275ef674c4dd0ce09f3d4749ea511f",
-          "da18a73fcb5d626258bbb8ea8c5303ff1574ec434e277d3655c570b601c0a580",
-          "5f4e1ab678ca144bceba290a8312927b37b1cefa50b1a72e4704cb81e2a2dee7"
+          "d9ef3c993ddbd75d83a94e3992bed9597cfdf0ef6642c01aadcc28878fd97c66",
+          "744a8f9e8186fe3f01b82047e97da4a892027ef0a0368cad3536e6398ee7420f"
         ],
         "status": "passed"
       },
@@ -2047,8 +2047,8 @@
         ],
         "frameHashes": [
           "d00e27da2726736c6c142159cffcd030b6387d336fb20b1cbd3afb26cbfff36f",
-          "8926d0aabfec2b833369076f83dc6634d50321c484a34c87cfc5af5574bb2ebb",
-          "aebb186e46bd057a63347e18710dad00d574e4460b41d01a92894aaf30ea995a"
+          "2d08d0d233136d8e47b1ddd71c0f514241e71ebdee55318f4ee93d254edc2b20",
+          "cb6502dece8d6b051ce7bd88573190316163b213982d2e5f2aa84a937bfb6274"
         ],
         "status": "passed"
       },
@@ -2101,9 +2101,9 @@
           "Talkcraft-ui-prop-theater-178.png"
         ],
         "frameHashes": [
-          "0fb4fcc16c16429d348c7523a56f5bce42d4860523e39bde7f329b5bbc3c1b90",
-          "4dac30ab7626f6ed4275d1a74592068806337774a30b5f3e02e459907c7e7ac4",
-          "1aeecd834fb78232f8db2d50f343e4502e532625c3441fa3b5b022ecb02f730e"
+          "9af35c4adf315c50160ba1468dd84886e71edf1028d683290c18e0a65ffb981d",
+          "ec90cbb91e88a1c8f816d9b35cf33f243ba5d952bc0acecfad88d81e1e0eb02c",
+          "ae4ee35e4c54864aa24e9ac322fc38ebbf2a34997453431aa22b83ac797b63db"
         ],
         "status": "passed"
       },
@@ -2157,7 +2157,7 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "33678a9562a11c9e4d9df673377e617d21991f2ddeca330e022713bbd71dcbd2",
+          "afb17d7064bb63a457489b5fa8c3f7f803a9df445abbe83e832bae3e80661ce9",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -2212,7 +2212,7 @@
         ],
         "frameHashes": [
           "883e7807c2e0beeba490139ed55964b81cdb2c8560b38e3624cb1af193d282b7",
-          "e94918f20cb56069791c1c6e6645c3702e6bc6aed7457292bc87ff00f88c7f46",
+          "42b873e1c4b51baf7572888adad76b6a58a9b5ff63160f5923ad56d1fd0d8009",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -2266,9 +2266,9 @@
           "Talkcraft-chat-message-flow-276.png"
         ],
         "frameHashes": [
-          "ef7fa0a917c5a2f2ef85255aed62503102dc5723c4f42b4ce56e7634b4f1a24b",
-          "219b8ceca2608c3060118569e3c741094483e587c228f7ca4b3ad3f64cc64a74",
-          "61ad946721061cebf7af35300d3c8976430f84a6d1ec451009e429265f9fee9a"
+          "b77f15ec5cbbdb52b8518c7829683de06f47260db5ff3016c558acae49c30c5b",
+          "34b4fdaac983ad67a6602311276ace48781fabd27b130d4770b54c2b94693ec0",
+          "e6efcda3bb48b7910c7d90662c7f79b11a4e84cdd88ffcbff71b0493134e4d49"
         ],
         "status": "passed"
       },
@@ -2321,9 +2321,9 @@
           "Talkcraft-cursor-actor-demo-134.png"
         ],
         "frameHashes": [
-          "f0516c313b26b105bdfdfdd7a58448a469aed1e52bfaf7d7a2063cda3df960b5",
-          "3dfb4ef6b00f2a2ca752e151b6ac8059aff5e88ab955a35e601aa3218ca7c68f",
-          "8a8ea654d3f6495b20233fdfcd9cd2e16cf4cc2b30273a0284bf50a86b0543da"
+          "23fb596ecf650cb45549908a373ca68fc422f1111be687fa8d9b9f6fdb267af2",
+          "62fdb71aaa93d4593715862bb0e44d2f7e50d91f0a7b05b6e8988f82c08a6c13",
+          "8ae12c74d14df0acdf6a15ecad6b2ea1a9d4228a42df935cd773e9776dd6de9d"
         ],
         "status": "passed"
       },
@@ -2376,9 +2376,9 @@
           "Talkcraft-evidence-scroll-tour-319.png"
         ],
         "frameHashes": [
-          "d733e89eb0dc1a340ce8a7c015e0fec80c097d508545363a08795079a128780e",
-          "4e6db33de687557587eb0da703e218b31929532b9ace750ed62c21207eb5c91a",
-          "2e38185204a94bc392e9101c526c7d1c5329474a79bd2b7b08879295773fdaad"
+          "b38b50b732069582ad9b77f03888f8f2cc944eeb3252255119fdb87d269bbb88",
+          "5f1f4b81f7af4e39687ba22bf1d0ff0ab8c3f6dcb6c42e46bff57b8653200a56",
+          "b5d884f34db6f3ad54ce1fb9f708d120b22adb17bffc02ecb5588f4bb1151254"
         ],
         "status": "passed"
       },
@@ -2487,8 +2487,8 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "b0a1c825333ab56bac3bef374527cbe62c827f0cfbf909b14ee2947d0f9d2d33",
-          "771a9b20598a3f32d667a8f0b85cf0d302e069060bcac889c2e0e2baaeb06460"
+          "7589b4647a1d8a6cf2711bdfd17d26b5a4c5ac845c9e27f7283986905cdd6726",
+          "45b0c974b4221c48080d86be40859f064dcabaf077a74f26372055f3d3c23c6b"
         ],
         "status": "passed"
       },
@@ -2541,8 +2541,8 @@
           "Talkcraft-split-compare-slider-295.png"
         ],
         "frameHashes": [
-          "753202a9dd8b2791989f6bc36b82b4740986d60da961118ad192406014a7207f",
-          "9c869c91ae82ef8b618ca7d0eb06896126723c770c4b64bd9ab26dcd76bb875f",
+          "6ba88ee76c0d50323ca01bf882f5ec78cfda3036cb37322396a048369aadac74",
+          "93ad5dd69b50bd4cadef3ef7afdfa929599ba6a267f70ec53ca8127c96dab234",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -2597,7 +2597,7 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "600c72ae44c6dc511cb29fcab52aa1b7b0c3dc36f20700ebe6283bd02f6b5143",
+          "5df042e4945bb34502688a8a977529dd212bba217bd25255250231391de69c56",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -2652,8 +2652,8 @@
         ],
         "frameHashes": [
           "5539016aead93290346cf7e809ab54410a15c664b2a31126750b304348842485",
-          "e63440057c866fb7c361cdd929889a47bfcb70d9c56e603307278c5ecacb3755",
-          "3477a9ed5f3a817293521dd0cc871cdf78ba64498a82efc7d910046f6da1d94d"
+          "e379f3ef171038122488d87f4d26e2bd0389b5a4a9d475a23bacd5ddafca1193",
+          "3432db9576e083983edb9e5fdf44e8076d2da96dcc585978fc95ba0f0f00c07d"
         ],
         "status": "passed"
       },
@@ -2707,8 +2707,8 @@
         ],
         "frameHashes": [
           "0c449925b25022974c40b8605deebe37295f1f7abdf817becf9a90e30bc43e5b",
-          "d64f31db52f9d35cbe5099f8777baff6b72ae30fffcbe4227dda00b7ff7a7854",
-          "6ebfcdeba737ba9b8996d4bccbe13e587f2cafd540796f2df2cd9a66d30a49ac"
+          "4d1b8f18b4fcabbed50c6bd2a7e1f4fa75cbe4910cafb21dab48b59c0bf4b1a5",
+          "3daa5c0b6f48d41c0c1c6277cb9320fefb8fd0276d7cc704aea83d1a09194903"
         ],
         "status": "passed"
       },
@@ -2762,8 +2762,8 @@
         ],
         "frameHashes": [
           "b2b8416bd10791427c6a285362670de2c54d50c54178e9002beb289c50b0674b",
-          "9b6c4edfdd77fb7171d608b734a6e70c139b2cdc32ee2cc6f438d8c1c053d9f8",
-          "876adbdb287e25b93f1d2f44c24c692adb65f5ffb0545c31601745f9e00a844b"
+          "56a823e4e45a05356f4c3951d5c1c4092745ff14f9c778b2540ce92881f227b2",
+          "116560fdfa44d1aa554e1c1345345c1709ecb4ea7819c9b61d51d9c2ec72f2f8"
         ],
         "status": "passed"
       },
@@ -2816,8 +2816,8 @@
           "Talkcraft-doc-park-left-pill-deal-221.png"
         ],
         "frameHashes": [
-          "31e67e9d8a8398e74800d1ae17f426228189b94f3949f6314244bfcf615b96a4",
-          "2e8011db14ec57dab28f89f4e7b95def632179a19ade0accc5fcdc9da9b93627",
+          "25d2d593af0c3fb178884c60abe1dbd44500b61c6ab62c5f2a1635cd08a058b3",
+          "a74599e888a9842f78bba5ca779afbce96462919b5c195ca3c46e2e4eb0ae04b",
           "29b845213224707abc6b55419446afd022b61a85e7be7475d015610b48752663"
         ],
         "status": "passed"
@@ -2871,8 +2871,8 @@
           "Talkcraft-filmstrip-conveyor-249.png"
         ],
         "frameHashes": [
-          "d7a17f10d069047b7366760729b8a8b39e04f6e10d84258f26b9e82c61e577a3",
-          "42130c931d79fba2902955155752ff485c9ba6038070a89098b0b67e07fff8d6",
+          "8d1381621ff84b2a7cbd5fd98ca54c6e30b8a6442b86bd068f781c3f7b1d3624",
+          "8282d0cd18329dfe2bc0de937fb97825f3e9c1e31cac26d64eebf6f03f580680",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -2926,8 +2926,8 @@
           "Talkcraft-gallery-wall-dolly-257.png"
         ],
         "frameHashes": [
-          "ab207ea83fc2b8941813eefea7a15e00405ec4fc9d356339a568337e2921d5e6",
-          "c4c8f333fcd517bd48a51cadc519eece229c38fdbe84f4faa5ea7f2379e88b5a",
+          "93e2cb187443b78f08cf8e757821dcde528beb650431e79265cfd5136a76b8e4",
+          "031a368f64684a2a9b45349604c869f1e8d9fde37acfc59e38e6d91e3e24540c",
           "370396b67eae8654d5498c17b669ef0f664e405ab854ed722f53cabe08de1626"
         ],
         "status": "passed"
@@ -2982,8 +2982,8 @@
         ],
         "frameHashes": [
           "85a3cd44b63f2bd0d5af7faf8aa5c5cf35d5b16b94b7821c1d165efbe2b5730a",
-          "3e025c2c3c72ff1db8fdda0ca187c3a8d5229ab496f0984de5f98f5f90d914c9",
-          "dea9e9d7f19b6b261bd76023f391b5dd3c629eca6628490d114afa4bc0951ab7"
+          "e88f4a7114773a4bade0950f6043702878f9e35983f52472011d5917bf8b7e08",
+          "9119e39c0c32550428a520d5593d6a63f9e60d276463d99b4cd98a53af433b90"
         ],
         "status": "passed"
       },
@@ -3092,7 +3092,7 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "34fdfb0cc590fcba078ba1579001541d9d516a52074dd122afb660958e1db398",
+          "f476f9a8798a7df7c824a60c7e0b5170648af4a37f514666f257422de49fb527",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -3147,7 +3147,7 @@
         ],
         "frameHashes": [
           "4359653791714d6a18cad64a47da7eef641e8e0a08593d6978f891cc75c74c45",
-          "73bfd8a37b6f35416f1287bf20a3213068fe974866c332d73a7a923d3668f8ea",
+          "e7a882938f969e06e3d7a5aca3b5aef08df6ce52feeb965b1237fd59e77c8a5c",
           "29b845213224707abc6b55419446afd022b61a85e7be7475d015610b48752663"
         ],
         "status": "passed"
@@ -3202,8 +3202,8 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "118a687f54461d8528443f156b4b29827776970c4f438bc552361bc40a30006d",
-          "118a687f54461d8528443f156b4b29827776970c4f438bc552361bc40a30006d"
+          "10519dc13782a42a5f394be7d27d596326531e9bcddab5af7ba6a080a4ae0111",
+          "10519dc13782a42a5f394be7d27d596326531e9bcddab5af7ba6a080a4ae0111"
         ],
         "status": "passed"
       },
@@ -3313,7 +3313,7 @@
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
           "44ffd796c0faae34bcfb4b0965ba9e34adab20355587950c8772221d86631c63",
-          "1ffb76e50d132d060067c81e9a2484979165d3373a4400ddcc66eb092fd84435"
+          "dd309fa5ea898d2d63c6ba35eeac12818e6c27a47fd5f0fa5433aed3e36114d4"
         ],
         "status": "passed"
       },
@@ -3367,7 +3367,7 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "c95b40c0f60f907a3eba29d2d7c0c845a7f256de2010231d139426ddd2649bac",
+          "b90955996babb67a9d445b749117aa5b692817423481f76919082a3c44c48210",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -3422,7 +3422,7 @@
         ],
         "frameHashes": [
           "1f360e696b72d9125b49e65b1081d58858f818c874639d082e0b949ea4e5e2c9",
-          "bc99c434030afdd8c299406544af20b0bcd1179c6e388a50a1351fd2f0d8f880",
+          "b23ab03016e461be7fdcc407c78c6b443756af41669096dae1a14c166e8dcf5a",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -3477,7 +3477,7 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "8e06a969588546bca37f80213e8b0bdaaba4b61b1fd2211f8420c03ffc626730",
+          "a74b85da924ea4af9092a9539d941207cf6dbbac87755924b3f25cc437cea766",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -3531,9 +3531,9 @@
           "Talkcraft-terminal-typing-log-257.png"
         ],
         "frameHashes": [
-          "4a25691cca8969f57d735ca790165cd9dbfcf044f7e3bd0e3fff8392238640de",
-          "22a836f21e7782dde22e5665edaa40b4660ebbf7d6afa15255a8253374647f82",
-          "35fbdae06a3f1333a215c15337b1db4a7bc5b48fdca6abf904069cbc6985c050"
+          "584af17091073373aacaaa4d3927a21bf6211a94ec6fd4b357b486c045a06ddf",
+          "c24d4c14151b62576575f797235f645b2db2548659cd0b657d39d8e71aea67d0",
+          "0078f594ed7b1162334f93b8fbc6737d5ded0ddca9e3025cfd8b62068f1f520a"
         ],
         "status": "passed"
       },
@@ -3586,8 +3586,8 @@
           "Talkcraft-timeline-photo-strip-308.png"
         ],
         "frameHashes": [
-          "5bdab4e522139033811c447d036811e68712c64dc517e3e229a94abd72cc63e4",
-          "4d69131f64722967d27fdecf39740c0708f3a3555ba5f3d56d8917a15aea0038",
+          "9b79522c2441acb0b3ac646751a1a33ca5771ce56d8a79a9a14be2933dc3039d",
+          "4c7ebb77cb9f9ae523d0645a93ba693d9979aa86686c320b816c1550d9f6fe8f",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -3641,8 +3641,8 @@
           "Talkcraft-word-relay-filmstrip-203.png"
         ],
         "frameHashes": [
-          "0ae08781cebb5f5e3bbf74ac5fa0604e691f42ed6fa69e67173dbdae1d8b1a71",
-          "bf9083324585854079d1a4e33dbe45e0d003e3c72df21b5d21f3c320b5732f2c",
+          "a1e83201f0208990e56cf20317dca56dfbf1b04a99eab46c88620859529ad4cc",
+          "4fc742aa55f92c42f249f43159f8ea21e2c40f9a2ba5f443d2ab03233e5b1322",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -3696,9 +3696,9 @@
           "Talkcraft-slow-pull-reveal-188.png"
         ],
         "frameHashes": [
-          "c7a5185a5c4821d260b326f96efe6e8fd1be16d25bb853f29ecb1c46bf5ada8e",
-          "c074ab00ea952b53c8f5854a15dbf7f973e7fb89d05ef492af8961bee5f136e5",
-          "af50d19c1e8c55aa6527bc89127f6db524cc9efd613ecf1ba2d8e6c030046854"
+          "3e890668300d07cbb571fe6eb0f9c0c0eee0d4e781d2b5ab47f9b12c4f387736",
+          "4e24e5e07fed0041af51c14e77aef958a699dbf5018605468dc7e777a399c624",
+          "cc618a0037557eccb2d74a8f9a03580283323894580f95def3c4dfb486f5a686"
         ],
         "status": "passed"
       },
@@ -3751,9 +3751,9 @@
           "Talkcraft-slow-push-in-185.png"
         ],
         "frameHashes": [
-          "e650d5167c260bb4cada8619bdb2e62921cd6692a560066a6d2cab706923ca21",
-          "d389ca8fbe43b8dd43f609bba25f5e5f81e9cc92a1413af6ed86e676d6ae0efd",
-          "bdf726cb7e11e5c4e943aa709c3c762d26849c93989abe18345a97aebcadb28c"
+          "daf78e27ab34ad8584220079ac79b73f17986c2df24c2e54384875dbbc46855d",
+          "404d00c23e84d938799decc5177d9bad61cac1135af0515e479552f72a16cad7",
+          "0c64972e657cbac990fee1e8b3cc5712eee558f898899c114f6419858a2e8f3e"
         ],
         "status": "passed"
       },
@@ -3806,9 +3806,9 @@
           "Talkcraft-cursor-locked-zoom-191.png"
         ],
         "frameHashes": [
-          "ecfd2996468189ba0d6d7995c2ab4c7d70015f3011bc7e91c3f902978bd495e9",
-          "0b1ac395c945b28239e33c645af0643ac048cba983db6e2fd14c4c432bcec163",
-          "a4f62833bc8c55a97f83c34d043089c3fb8068a2b519cfdba53ad62f74820114"
+          "f5eb42098fab2e9f7e39b81946f3bc4828dd4f796b029dbdc12698fe699d8e27",
+          "3d53f37806fa7f91b6cccf0823af10b39bddb40a2cb8e18650617d29897d7eb9",
+          "2123952542b0f185e9eed9ee7479db2856ae5e2cb9c21ce2b569ade9b752fbc5"
         ],
         "status": "passed"
       },
@@ -3861,9 +3861,9 @@
           "Talkcraft-orbit-drift-179.png"
         ],
         "frameHashes": [
-          "c9bf0b44d98110bd705a78144f34d62673bcb764ae8f9716ca41ff27970aa4aa",
-          "40d6b00bbf1c43e7147d5e566d9cb6a16972ab04ec7a43d17a283043758570c2",
-          "c9bf0b44d98110bd705a78144f34d62673bcb764ae8f9716ca41ff27970aa4aa"
+          "42f9268c5a1701b24cc2e2aa97606e10580644e023a89072e42d164de76d3393",
+          "32b37ff6f100fcbbd7c90e619a26e4a158b85a29f1503949a41f9831a6e24514",
+          "42f9268c5a1701b24cc2e2aa97606e10580644e023a89072e42d164de76d3393"
         ],
         "status": "passed"
       },
@@ -3972,8 +3972,8 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "19415235e2ca9ad8364d5a9f969eb8688fbc9eddad069808c1e5ec2eb6a4d6a3",
-          "16ae48cd08d1ef59b39094f39573a7e5a5eb19a10883f35fa3ee1dc931bab168"
+          "f9cf5bbba007ff78a0d4a425142d2bb5d39ac438146aa3a2ea292dafa4aa2ede",
+          "e9f578eb3e365eb77235ce89b6df0082ba5caf1035a4aed734b10858e77883ed"
         ],
         "status": "passed"
       },
@@ -4026,9 +4026,9 @@
           "Talkcraft-sway-parallax-197.png"
         ],
         "frameHashes": [
-          "cb6650276e9cceaee20691a3330eb2d91ffe932f1fb4361e87b2dc0855504336",
-          "bace40397a7eb4458a42e5b7a515e9acb9a10028cdbdb995d496a42dc758912e",
-          "435565e3bfeea2e44d3602313bfc566132c6accfa675da0eb32d496c22ccf9c6"
+          "79f19250eb9a5d607d7d797c4b829fc7c1599ecf5ad8ca18a955416b2e170784",
+          "e8e48b6224fc7a197d9318d1c870948ab35f3326a264c87f26a2aca815f414d9",
+          "b7ea06f5b8a4ed2eb6fc122e6b36723623c9325ef85a6c4843261d3dfdfe24a5"
         ],
         "status": "passed"
       },
@@ -4081,9 +4081,9 @@
           "Talkcraft-tilt-3d-page-161.png"
         ],
         "frameHashes": [
-          "99a0ae24827f67e2c81553a35208df340730921d35639c02d2aa49b4a63985d8",
-          "30007bc1ea7f21c076712db54d53fccd696dc46545b642ae1cff77f984709d72",
-          "5878dae118db69c1a92a6b19471564dd9da700d28c2d42c1e60040af4dc1f6c8"
+          "54f8a177b7c687a72153a0b8a0a283acfea5ca35226f850b854e2dfb68963799",
+          "61e9104947ec8b2e8d4f756551104f5f56b538cb76a4e0fc9004e4305e005b99",
+          "3b9ef2e31835f173b64993bd943301cc85dd92ed02a3208724968a3eeea86d78"
         ],
         "status": "passed"
       },
@@ -4136,9 +4136,9 @@
           "Talkcraft-black-slam-transition-81.png"
         ],
         "frameHashes": [
-          "17da36a2c8e146aed724be756565b07696b94d2ecc53e9d8b0daffe1421ea57a",
-          "e0949a59dfbe4d60337bea397e4fd4210bda6aa9ecfaa683f08cf297f48879f3",
-          "98c967213d4da34ed3427287faa80b7e1c43714b3fe7d3d3bc81cb79a7550a75"
+          "44fa7b5b0c8bb54957d490d4e57cc4524ec11b23ecf252372e8958b933e665f1",
+          "e98f1e7cfadddee18d62ca0b4f31aacce66faa7232d4da0973b9617ee86cf5ab",
+          "eb48ddcd85c31c1f589fb71d55c5ed005bf039dca30a12a545705ac9f1ab16ed"
         ],
         "status": "passed"
       },
@@ -4301,9 +4301,9 @@
           "Talkcraft-overexpose-flip-transition-92.png"
         ],
         "frameHashes": [
-          "6aa231f58dd331b352c127a8a6b27571fe91f6aa45eb35f622d0c9b9e3a36532",
-          "411a57d63a0f1ea848cab6e188dcb38e09acf11ed2555893ec6b2abf5703bc4f",
-          "94f70d81ee40be13d4a1051bceed682a1403274cbf338f1fb367c217a7734858"
+          "4cc88a20b4f55ab5ea963bd01396f051306f3fcb8427471f8ba5c2c9b0d04984",
+          "100c30695db8e8106aa56b8d6231b08d239ed377f1d1758afbfadfc927551ff0",
+          "604b2823f102f6364db20a6f0b40570d281801f4917a8bb1296760126102dcd1"
         ],
         "status": "passed"
       },
@@ -4356,9 +4356,9 @@
           "Talkcraft-particle-weld-transition-97.png"
         ],
         "frameHashes": [
-          "83b15d754d4b5390c371a258db94625b43c0a710b2447fbeda05aec17364777a",
-          "eaa8c0c4642a891bfda8ca4447c7c47210f6a98fc2d4221600536df29a7ee502",
-          "920276d9245fb7ec560a64f6fcf63a0d45607fe9ecfd5a50e6e7a3d44795bcca"
+          "3de8f76df315f41e7926c0d671cce362cc14eacf5b0e42939e385821d772989f",
+          "4c9e6479e857f95bb4ddddf9cfed2b7da00f53b27f1860b20b512ee4c147abce",
+          "7d885f926b93f5da1d8fd254717cc46fd11cc10fd1c3c7d4b437a31fdb1f099a"
         ],
         "status": "passed"
       },
@@ -4411,9 +4411,9 @@
           "Talkcraft-pullback-cool-transition-103.png"
         ],
         "frameHashes": [
-          "9d946dd79b12d40c86b3735f66ef413f1641811212851a231d43ad5f462bee2d",
-          "53942a946baeb59ae19473ffdd14d3e9f23c82fb931f068fcaa50039c46da3ab",
-          "bfd08740fdea769da6f8156b1a87aefacb78e62bebebfa8e26a76eea692fba5e"
+          "e7b544549a7f3d46979929e8d3cb7fb87f9c1727d517bf05be15cdb140753770",
+          "e0828b803bb246b89c804a36989b9e0980f85074689c046cf4cfac439345de44",
+          "851abc14f05968807a6fd4a01790bd715f017b1f4cafff5152fa3651c9fb8b61"
         ],
         "status": "passed"
       },
@@ -4466,9 +4466,9 @@
           "Talkcraft-push-through-transition-94.png"
         ],
         "frameHashes": [
-          "6da7aae47edb18559d983132c9abe1ac7d3ab2ac05fc0c1d690076b753f1d81d",
-          "32715b8607c58c3a145decf03597d7724be8745bfe0df06ac6a79893aa514f22",
-          "6c4f5b7ecd3e56a144a38de74c1061a1105bad0c2389811dfff1f5a56abf2c0d"
+          "4b7818bbd24cc2f645b2a8c88572b8affa9530755d920f2a57ef300f23925932",
+          "182fec1c7b2e1d323a4b31f7298974405791d01e5a980428fcecb9976f4a0558",
+          "88202f5f0369340e2ec96ae87d9573a77940a0998b19860e50de03b6b9f382cf"
         ],
         "status": "passed"
       },
@@ -4521,9 +4521,9 @@
           "Talkcraft-shape-wipe-transition-73.png"
         ],
         "frameHashes": [
-          "9d2c92f4d83f332ecbd13e75ef7555d6f963982e6024ed7a2b41ddf8374366d8",
+          "7925c46f8b4823c14b50254db9941d016e58dde9c10c518586f17fd8e4c35ebb",
           "b0b1c243a809c7c649f0bf68e815ed9417f78259ed511063550ad9a98db6d479",
-          "9b1c3438d9fae94afa86fe61b07e4ab0b2a3ff77ea2d6e29c344d2e2a2628e71"
+          "4e989a0f8e940be6408b7638cab8f705e47ce5a846189673c71658bf6271d048"
         ],
         "status": "passed"
       },
@@ -4576,9 +4576,9 @@
           "Talkcraft-whip-pan-transition-83.png"
         ],
         "frameHashes": [
-          "f081246b4fc3a8d078953d153c60f99a0490b29ccc918bebe9a726c5b620e6f0",
-          "e440ca896d224a8ac8f407c5475ef9c7de069f0968cd5fae355c7f9614fa964a",
-          "1555dfc6c140b3a8560bdbe6ddd069a0a6a8a4cd3eeac202ccb989e409f20be9"
+          "a67f3fcd5fb02c20123f1ae09a15e18685c66bb8012eaa90683e539ca642c596",
+          "4ce636e4ae4c79c169944361fb280a4cc41048ff467a2836ca4d1d0f4fc7a681",
+          "2a3627192d4137ffcc84d2d8d4251b27b205d91e3e8a5eaa448b3afd79cbf4d7"
         ],
         "status": "passed"
       },
@@ -4631,9 +4631,9 @@
           "Talkcraft-caret-wipe-transition-102.png"
         ],
         "frameHashes": [
-          "ef2baeb9a2e56984a7a55d1034554b0a65be2173e22b5715e95c3b9151139664",
-          "8b3e90d18ec3373df023765c0b802df736012d3fdd91eb0b3a370f575cd9daa7",
-          "73fff0f557473b937dfc0ec49419c1bee1da699bfe52e8bf3d46bf7197bcfe10"
+          "661bedff64d3fc13429ba025aa784b8c3f6a30aa5f62f1641495ca8b9b38a00c",
+          "b9c1bfa2ec72e23b350b396532fa009e4edb87c5ffc6033845dfff1021945084",
+          "f24209a6c8521a97d3b57a25e499cd279c13a0c8b9196f47f326180475943aa6"
         ],
         "status": "passed"
       },
@@ -4687,8 +4687,8 @@
         ],
         "frameHashes": [
           "4fe63a55e48834f2a308250e74209e030371ec5417d09793de6c88209f29a42b",
-          "bd2a95f178206e2e9b91cfa1a9cc1f093fd0da251f9eab39640335539098d7af",
-          "6a76338257fb7c6f29437cba89b7eac43bb22bfe75cc254c1b0344d157ae679d"
+          "1bb927cbb59e7f2cbf502ad94f3efcce7e44ee539a1e50d116e1a75dc58d4576",
+          "ea63f8a3747570168e94f04183aad55be912fbeb7ec5a62ca630d1cfa4d08136"
         ],
         "status": "passed"
       },
@@ -4742,7 +4742,7 @@
         ],
         "frameHashes": [
           "af4ba8feafdc88dfefeb325b04912b4ef3526a639c53b0bf6931155a3ac02dc3",
-          "a3d55b42338ad6b92db5c3724d31f53fa7fefa8b21858057fe687aef3546438c",
+          "44782c935f1e0b6621e48d0496ed2db591afd3d97a46418209bd7619720122cb",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -4796,9 +4796,9 @@
           "Talkcraft-long-take-world-212.png"
         ],
         "frameHashes": [
-          "e83b78fda8987d67bc240867ecd8ddcba532f9371fe14f7e4965dbca3190e971",
-          "5406961075d536cfa6756b7837ee9ba294f03ad476435d71306134b4dc3c4f78",
-          "8aefefa7e95c7158ea5522942b641adc9c4d1c9e31d1f63dcc3b6076282eb696"
+          "3d2b736ee24a0d195d6ebd5362b19dec643b5179e81ccd46300d3c01b3ffdc0f",
+          "9f8611dc261ad8276cb9dc6c80af892ef8e1f03f0d478e8949be807446951255",
+          "60e0dd1d10c0378b6f079a37ae686e4c8f0eddcf8c689d48b0cbbcffb54727cf"
         ],
         "status": "passed"
       },
@@ -4852,8 +4852,8 @@
         ],
         "frameHashes": [
           "748304e7b306425279a17efdaf764eed60c702f2a3ea0cf73c0dcda2682a6e1f",
-          "69d6dccb6597baf5b591c82d56d8f330ca0477ec9bfa074dc7a95553fdd7e4e1",
-          "d81d1b391141322ad8914a7f4d77edc6855d5d1eb80dc7231e02c5354197c484"
+          "ae6297aa3682b3e8b880f024fdd2af5d579a0fcef6dd85fa9fab81d614cf644f",
+          "2de06868120bfccc14f4421a4c2d2235a00fb5de55eb13c7b0cc36fdbee89576"
         ],
         "status": "passed"
       },
@@ -4906,9 +4906,9 @@
           "Talkcraft-keyword-pop-highlight-41.png"
         ],
         "frameHashes": [
-          "ae42d0867623c084466ac1bf24d43809c2639d3bde3e814df620397cea0ed502",
-          "e34184103cb6cea953498ea9a50951b62f948757b31e01df5b064e3be2e9567f",
-          "648ceaa759a259069535ba6bf46e6bc7ed7cf98b004b0df863c56be3114ee59d"
+          "35560219ff74923351a8d45f723d1997c58139cd1c5510fd3b4d611e734d9a6b",
+          "d796e717e5a715fc86e00502ad66bc9ab9cc9d0d6f434166262de580b47e7d18",
+          "8e5fb5565a1b7892d3ef355a0e1c56fd95c46d7e995c35acf40739a56b7d769d"
         ],
         "status": "passed"
       },
@@ -4962,8 +4962,8 @@
         ],
         "frameHashes": [
           "748304e7b306425279a17efdaf764eed60c702f2a3ea0cf73c0dcda2682a6e1f",
-          "130255d7d782d3012e9476ab6887656cd2c8bfe5a43d4bfda8bb686ec98ddddb",
-          "93448afc0753f7a00cb5fbf48af3c976da3cd9968233eb3848a9cad086eb237b"
+          "ef86ce68b5537f97ee002a5d4db3cd4db551610850b68f6381dabdb8aec1036f",
+          "59c9c71e7d277f92fb5e0fa507c2bc86687184b127b1f5aeeda5dbac7f012281"
         ],
         "status": "passed"
       },
@@ -5017,7 +5017,7 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "8172bcf6f20dd05cbb343cf0954f83fc516c46286df1e661a410f8bee4d5b394",
+          "af8a56b1b2f6bc3b9af409617e168a058d7616072ebd28e293f26a08fd97c612",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -5072,8 +5072,8 @@
         ],
         "frameHashes": [
           "e792b5633e0ff544ce3e59558f859680f6d27e522e4b1145a2df39377f87a4f7",
-          "c1165f8ab511d45e27f95073b0cf4331ab791e16cac5aad79ff138159a62ed12",
-          "2f8b8b65eb663c26f680b321555b39ce47fe5d0d022f2cc387af7ccf2eed2737"
+          "46b1fbef05c5e1bb52a45c507aa71b2819aff9144d292b6214b59ef562909aef",
+          "b9c54b3e0f55d4d065d15da96f51f4930897936da7c95874a03b8a7301fe0fb0"
         ],
         "status": "passed"
       },
@@ -5127,7 +5127,7 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "cd48176782053c002cd9babc5286b662d18c869a66456a235c759e9cab7862e4",
+          "98a3f867306c1547b156c533451470d10df197f124c570948dc1e9d68912cdd8",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -5182,8 +5182,8 @@
         ],
         "frameHashes": [
           "748304e7b306425279a17efdaf764eed60c702f2a3ea0cf73c0dcda2682a6e1f",
-          "58a7eecce42cfa3d57b64c94b0cf7a3628c2c9aaf801b67960cbd57f69185d0a",
-          "770897e25325794f148c88d7f1877a664f50c3b043002edabcbcdc3ce81693da"
+          "6116aba33ec437a777c104e55c23d7cde6a92d185d8e1e142b3598891db6c5ed",
+          "1ef95e702842a3cade6706216dc7bfba27444b30cde2c21b82b55eae5b11c169"
         ],
         "status": "passed"
       },
@@ -5237,8 +5237,8 @@
         ],
         "frameHashes": [
           "748304e7b306425279a17efdaf764eed60c702f2a3ea0cf73c0dcda2682a6e1f",
-          "f265d865dd48b332895596e1844af3b144230e7e2b4f8e29a6d27f62abedc9ba",
-          "bc7f545f2131197859615158103088180cbf81275af8ae1050c4261f8efbf954"
+          "0f8d17d1ba8fa60d2c086dfbefef21f2d1083577e807c5c64f4b7a2b26e9a8a0",
+          "f8f6daa62adf2bcac03d99f81c892e87bf0652e41c153788a8627f9f9344d915"
         ],
         "status": "passed"
       },
@@ -5292,7 +5292,7 @@
         ],
         "frameHashes": [
           "b7b746f95bfe03ae9d89b2680f64f85a89dd4233704ce5cd58ba335ee077af67",
-          "cb3605a91d1962278711869e16b89f1f03b41f40083d567a655e0137e873b23d",
+          "887b1b4c730ffaf322c3d87f1ac3f3b7aa2b688cecd460ad6d164ac3e58739c5",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -5347,7 +5347,7 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "abb805c1876f8412345878636a05aec356e696a52dbc16be067825fdf5a7c3a3",
+          "026572e111364310e9b7acce05dc5a67134b0ba1742293b0ab33db5ee2fa178f",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -5402,7 +5402,7 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "fd11f600d20c2a4d53fe20216aa042ad1d193e9189551d6d05c051bd5b8bc113",
+          "4d4f76bce98b69a5373c19b64e734f3c87cce90180bdd66bcee511bff4834c6e",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -5456,9 +5456,9 @@
           "Talkcraft-outline-box-title-102.png"
         ],
         "frameHashes": [
-          "067ce6adfa76bd7546f5932d436777e0548a8d5a95ef3b93e4c3e84f5fe9ab69",
-          "f65b313297ead3d0fa864c79f35ea29baee80192fc26917c1181d1056848178c",
-          "6263006cf843a837c806b70b656a7a0a4d2a2934ade34ec737c788f3f660b9dd"
+          "a72da3782581d8115a5c59492b159e6301ef95433d2dc54643322f2cebcdadb9",
+          "f839ef224858711e20e0a88bec1106f6cfc2aab31c7e508c595687a681e9a8ea",
+          "ca528091926311f8bb5893b73099ce86bbec0eebf58e3cb0bc3285c85d0188bd"
         ],
         "status": "passed"
       },
@@ -5512,8 +5512,8 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "ff642b001a0b0afb774f923afebcebcf0b6687c7fdca0be4fe61596c0778f947",
-          "ff642b001a0b0afb774f923afebcebcf0b6687c7fdca0be4fe61596c0778f947"
+          "e70fb91a540da751ab407bf5250841dcdde363782166be7ec9ba67c868b83414",
+          "e70fb91a540da751ab407bf5250841dcdde363782166be7ec9ba67c868b83414"
         ],
         "status": "passed"
       },
@@ -5567,8 +5567,8 @@
         ],
         "frameHashes": [
           "8a7c5f63b0aa9ad42b7d1e9ded8aec6edc3e42b4e304db189f813c9c7e30e2b4",
-          "71b14922d3dce16439e943c719b47469cd7de1719627a688395ed1909e03a66b",
-          "6120898bca9ac970dbcd631c20b72aad45df15479eb5fb90e456df80e45c4bea"
+          "9eb5a8c9e666c2b40f8a7e8bf7ee2de40fddff20214757e2045a6a553262ca15",
+          "2834ed5c9a236e419b7aa1375333ee414487c085c9958a8969322a99a8aca0aa"
         ],
         "status": "passed"
       },
@@ -5622,7 +5622,7 @@
         ],
         "frameHashes": [
           "d640097c26935ffd0b2c93ac9e5b91cdaea99bdfef9c4c24366145ccf76bb74f",
-          "5c33636a73dcedc7a60baaf9a3d5d00ebf7e84be2eb692ca6e71c53266511083",
+          "f21aa7feb4574a7949a85ce79cc10b2dee4825c231326cfa2cd1b20c09be1dc0",
           "4af8088bd8366622b3b91b70ec360b5d7411898f2076d23c5ae331546dcd11af"
         ],
         "status": "passed"
@@ -5677,8 +5677,8 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "38d593c23b77c31016ff4e8bba266ca0fb14c74b5c089f330f8035f4e72c52dc",
-          "38d593c23b77c31016ff4e8bba266ca0fb14c74b5c089f330f8035f4e72c52dc"
+          "8cf5722204b0d51a891d7f84c7fb25e88b2ffce36556d34dd7c0e1f18e0f6deb",
+          "8cf5722204b0d51a891d7f84c7fb25e88b2ffce36556d34dd7c0e1f18e0f6deb"
         ],
         "status": "passed"
       },
@@ -5732,8 +5732,8 @@
         ],
         "frameHashes": [
           "748304e7b306425279a17efdaf764eed60c702f2a3ea0cf73c0dcda2682a6e1f",
-          "12a004f6b89556d2339fc622a3d8e9bdd087099b994f0bf5c524af8f7ef955b6",
-          "9004cf42c0cdef50f2bd33265550bc689f93c8a1d9c92bcb34559650ef57ce36"
+          "bc59b013b0d328c444d4b2d7b944afda0ba2307b51e36c181910779b733acde8",
+          "7730e7d2fd4f495206334e4e5d2234b15fd670c63fbd5ccc5afd63eb72daeebc"
         ],
         "status": "passed"
       },
@@ -5787,8 +5787,8 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "c2e0f86b3e1725da6a0bb73d5effce2847625aa7277b126bd684dbd58071547f",
-          "c2e0f86b3e1725da6a0bb73d5effce2847625aa7277b126bd684dbd58071547f"
+          "03970673fc98a19b7eeee93dd5f9fd723f807d236fa7a1e4d215357e4bb1aa63",
+          "03970673fc98a19b7eeee93dd5f9fd723f807d236fa7a1e4d215357e4bb1aa63"
         ],
         "status": "passed"
       },
@@ -5842,8 +5842,8 @@
         ],
         "frameHashes": [
           "c4d3f591beca2013dc99ba6d767d291520e3d1654125e5648058dfe48d663cbd",
-          "6c2f96b51ee7202f755ab9fa8e756ac10916550ea360a5f25a43cde7cda72892",
-          "18339a59371f82be020cba86ebf9882641597ad2dfd6656f7e65837dee47bcf6"
+          "68822311f21f7c36ed8b56d42fd2d4f7bbbbfdfad32672a6a3e26c1e4e6e3382",
+          "67c58f83a96c5bc35b680798a6c91c1d7a54c0a6e4813c26948d55af8b8741fd"
         ],
         "status": "passed"
       },
@@ -5896,8 +5896,8 @@
           "Talkcraft-countdown-arc-scatter-161.png"
         ],
         "frameHashes": [
-          "a835d3bf858d27e355dfa0a68b3997243bd8ebffcf0ad5dcfa020ac8c01193e4",
-          "cd02eeb0fb7345961cc42e1d8f529de9d9b41672bfd6f33da227466e70371e3c",
+          "7d747c94e9aa0dcad334ef3d22c33cfb031fef9b835774506877356e6fa49eae",
+          "394dc77ff77147f92e0e08ad09072ffda8ea4dcdc4fa19f79779f66d9324308f",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"
@@ -5952,7 +5952,7 @@
         ],
         "frameHashes": [
           "2d17b7d5c0a17921c199130753c219397f9c0afce88a4119a1cce3b7f0934e30",
-          "abe58bc5455a5db28578482330fd41137ec636e81282cdd16b84d5405dea56d3",
+          "c2b1489db20c84ddb9920c1dd3fb45c1244ae5deb0296d6c7547adbd49cc0cbb",
           "2d17b7d5c0a17921c199130753c219397f9c0afce88a4119a1cce3b7f0934e30"
         ],
         "status": "passed"
@@ -6007,7 +6007,7 @@
         ],
         "frameHashes": [
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775",
-          "bd4f5fef786cfe589f071d21bdd9c093ce59e263874cb257154827b144f6343a",
+          "73cf121b9ab676b082a5adaf63c515b6e9cf9e0fe058fb470d3be012fa942d7a",
           "b0b1d55160aff9a5a31de17032fb634d643b49a35608eeeca7713b8dc4a1e775"
         ],
         "status": "passed"

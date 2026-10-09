@@ -7,649 +7,649 @@
       "slug": "focus-dim-spotlight",
       "sourcePath": "template/cards/focus-dim-spotlight.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/focus-dim-spotlight.tsx",
-      "sha256": "285397ced097fbddad78cf61ad7e432932d4db8a75077d36f2111252880acc1f"
+      "sha256": "d1d5e488a783639ccbd9078119b4ccba8a809603cdb1f8c63a331da527fd0d09"
     },
     {
       "slug": "hand-drawn-ellipse",
       "sourcePath": "template/cards/hand-drawn-ellipse.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/hand-drawn-ellipse.tsx",
-      "sha256": "8dfef1a4a4a8f76bbe3e1cd61397a8b239b6e6b5c0da8fe0a7307acb63c5d545"
+      "sha256": "31b3c51a9a2201795e0192ce7d8b5219cf59dbcf3d9134b006106c636721c961"
     },
     {
       "slug": "highlighter-sweep",
       "sourcePath": "template/cards/highlighter-sweep.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/highlighter-sweep.tsx",
-      "sha256": "fc943253400a057145ec648c91963b7003a2b235f92de0c60e5e22f172cd1a91"
+      "sha256": "f04a519c5c0167b1da4b54b5a7082893e89f10ccf526ea080732cadc769893b6"
     },
     {
       "slug": "scribble-annotation",
       "sourcePath": "template/cards/scribble-annotation.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/scribble-annotation.tsx",
-      "sha256": "8fc086f9ea73dffff1bf8fbc3886d775e513a77cc50b1614c5543a7132cdbf16"
+      "sha256": "373f659948a7c7997590afa935a26a635fdbf195195633ed628992f536305786"
     },
     {
       "slug": "callout-line-label",
       "sourcePath": "template/cards/callout-line-label.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/callout-line-label.tsx",
-      "sha256": "3c3ab006f67cadc4b7a485d79c4b30d33df0a587ee3b89bc3bb4ba605383224e"
+      "sha256": "58d29fcd73a8f41ae13e9cad9a281b50d817c57b2fe0b82d788e8f0e6175a314"
     },
     {
       "slug": "converging-arrows",
       "sourcePath": "template/cards/converging-arrows.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/converging-arrows.tsx",
-      "sha256": "61f25ea5bf390bd6d88fb76f2c3b7fa468552ec27ff4b11fb12555e995f8d5c4"
+      "sha256": "429f963d636c31e9ce9a9aa2ae9cfe2ea11f8cc4999c358a2ef8bd57097aa4ce"
     },
     {
       "slug": "corner-bracket-frame",
       "sourcePath": "template/cards/corner-bracket-frame.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/corner-bracket-frame.tsx",
-      "sha256": "52ebdbdce58aa2beb8d3147835a3d56ba4e9f651ec667942d8761ce69a865868"
+      "sha256": "4c39c67354ce057edb7050891367d0300ab9b4e407e2c107ef67701bb3c6deb0"
     },
     {
       "slug": "crash-zoom-punch",
       "sourcePath": "template/cards/crash-zoom-punch.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/crash-zoom-punch.tsx",
-      "sha256": "7ab6ac29e87afa752fa5eac675af2fbc19f284ace88a72465ba15e87aa5cf8c0"
+      "sha256": "3e4bc7d7ad3eb4fcfe52de07a9e2976d90b69dc01de460eab82dae389ff05a69"
     },
     {
       "slug": "ink-underline",
       "sourcePath": "template/cards/ink-underline.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/ink-underline.tsx",
-      "sha256": "6b6978590e515407dc0f52ac4e8bf960af84d45b2ad2be39e792e2d8e44b531b"
+      "sha256": "e1d692b1fb5560ed64d97f31559650bc10c3f6daacca0e313fdb0769276e19a0"
     },
     {
       "slug": "magnifier-detail",
       "sourcePath": "template/cards/magnifier-detail.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/magnifier-detail.tsx",
-      "sha256": "c0b634820118548e483d164304299da5da58f08cebe89deebd2bf79cdadff187"
+      "sha256": "59ca146586bf0f56826dd80e33edfb29c10a7da8cb31aa23a72bc28e49f1544b"
     },
     {
       "slug": "quote-hold-arrow",
       "sourcePath": "template/cards/quote-hold-arrow.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/quote-hold-arrow.tsx",
-      "sha256": "0a4edbe9c2377f8d013b5bfa5d4561ada4ca596487efa26ceb740a977b0c4277"
+      "sha256": "9b3cbd6a29ec4580ac0d53b54d8ef82bfa5d7c00100562e370dee2f57b30daef"
     },
     {
       "slug": "scanline-annotate",
       "sourcePath": "template/cards/scanline-annotate.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/scanline-annotate.tsx",
-      "sha256": "e9d726db2edd8706c2234030d8c4e66fc006e16645901399363daf4d8b3d88bd"
+      "sha256": "d51fb08a3cb1ef8648e57cbcbac31a4e94a3518fa72736088c840915cbe6de94"
     },
     {
       "slug": "strike-and-replace",
       "sourcePath": "template/cards/strike-and-replace.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/strike-and-replace.tsx",
-      "sha256": "68915319627a9636c8b7818963842398f88050e340cbb3a0262288c20ef00a58"
+      "sha256": "75e994e167cd94f6d118f4cd1ff2b1e794be443b4e705fbf01031a605013269d"
     },
     {
       "slug": "reticle-lock-on",
       "sourcePath": "template/cards/reticle-lock-on.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/reticle-lock-on.tsx",
-      "sha256": "e78daae39e70e3e23719068e4cde4803b09df305dede715c73f84eb52a102d77"
+      "sha256": "267372d5e16401608fa30557ace5b078121e5a4ba347ac7f1d9a4ecfcc7209e6"
     },
     {
       "slug": "lower-third-nameplate",
       "sourcePath": "template/cards/lower-third-nameplate.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/lower-third-nameplate.tsx",
-      "sha256": "48810b4bd7f557f2c9298345aab41399fe368a2ea441c5b37c783c65b163ff64"
+      "sha256": "a22273f51010dd153b089341e80deba9097965f3b702e04e4956bbb33af7d91c"
     },
     {
       "slug": "parallel-items-with-host",
       "sourcePath": "template/cards/parallel-items-with-host.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/parallel-items-with-host.tsx",
-      "sha256": "327fa8dee1b389b18a4415c04e3cc4b36702ab0ab820ac0d01496b40de4bbd99"
+      "sha256": "162290efbb146397a49d39efa13cd529236d7baf4a8088c3af9b05d725fcb27e"
     },
     {
       "slug": "behind-text-title",
       "sourcePath": "template/cards/behind-text-title.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/behind-text-title.tsx",
-      "sha256": "fee798e82c87f9b6434955e15149a97f25008760d98f1ab63b10bfbdd830e625"
+      "sha256": "dedbcae9399eda679507e3f5451bb32df702bad44a92aa2b3ded66dc84e44d87"
     },
     {
       "slug": "chevron-lower-third",
       "sourcePath": "template/cards/chevron-lower-third.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/chevron-lower-third.tsx",
-      "sha256": "5d85cb68dcacfd8b33d332d7322174531dc07dd068d1b267b763a7dd0cab80fa"
+      "sha256": "6eb05135628410f79495d9134f50a5a6e5600ba5b6ebd6a8b6d9c9dece8a9535"
     },
     {
       "slug": "danmu-bubble-praise",
       "sourcePath": "template/cards/danmu-bubble-praise.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/danmu-bubble-praise.tsx",
-      "sha256": "ee624adbf1e0836bb5e6f643cb75e8084d0c249a4225314c21a2fbbd021c344a"
+      "sha256": "b87a28ce6b1d16b8b4a8591ad7448aff565d7028c52f9af287f1cff0174cd37a"
     },
     {
       "slug": "douyin-follow-card",
       "sourcePath": "template/cards/douyin-follow-card.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/douyin-follow-card.tsx",
-      "sha256": "1a9c41b436f810fa8b669ec1878d270a36917a7e2580f4d72ad947b05c236592"
+      "sha256": "f94ef9efca1ab2db43d49ac56c016c5db5a93a3a14fcf48b034283aa038461cb"
     },
     {
       "slug": "host-card-glass-board",
       "sourcePath": "template/cards/host-card-glass-board.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/host-card-glass-board.tsx",
-      "sha256": "acf5c499cfa2137070fac77719d7cd6f4a2ac8cfd909aa794a076a1c2a957da2"
+      "sha256": "23389c67e5daa18ace4caac08fcaf5645f2ef44fc70a0873bea055655491a22e"
     },
     {
       "slug": "host-shrink-to-chip",
       "sourcePath": "template/cards/host-shrink-to-chip.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/host-shrink-to-chip.tsx",
-      "sha256": "6f28d5d722df87fbe050d848f960780aa4b125e39b991fdc62f6b90bf207bbc9"
+      "sha256": "84ca07795d6f7a228a478e7e2345f2d5fecf153fdfa666889cd02b05532a8a49"
     },
     {
       "slug": "subscribe-cta",
       "sourcePath": "template/cards/subscribe-cta.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/subscribe-cta.tsx",
-      "sha256": "91a525e6bc4293f724aceaa3d69ff0a37f90e76186afd6cd9e7479861af353d5"
+      "sha256": "87c3b952819317432f25e1ec40b9b6561c00cdaf8819c404a146d092cc0dda32"
     },
     {
       "slug": "x-follow-card",
       "sourcePath": "template/cards/x-follow-card.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/x-follow-card.tsx",
-      "sha256": "1c993930d3af454313b0b55bb92c45681386f4e5a8d16aa5e4a671c2509549b3"
+      "sha256": "a555ec01a8330af0e13447173673f9a5f3d09f491ca52d9cee5e79f92ca9d2ac"
     },
     {
       "slug": "bar-chart-growth",
       "sourcePath": "template/cards/bar-chart-growth.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/bar-chart-growth.tsx",
-      "sha256": "03e7310f5e0872a1821a99144687622ae8b44f327bad28c7daca6d5a982d6131"
+      "sha256": "3c9ca039d3f7eea3327028e633c5c80c4d2c919b1f062c584707a073b132df4f"
     },
     {
       "slug": "chart-grow",
       "sourcePath": "template/cards/chart-grow.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/chart-grow.tsx",
-      "sha256": "7fe5776721693dd90602244fb5ee9f3c91425bf7b553810dad885a1c335086da"
+      "sha256": "3026616f4d18dfd4dfe35e972fb357f49f1d04f7ed4121591fb7e276c6c9c7f8"
     },
     {
       "slug": "line-chart-story-draw",
       "sourcePath": "template/cards/line-chart-story-draw.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/line-chart-story-draw.tsx",
-      "sha256": "82a47ae4b8f8263181735efc2f12d8907926f8c372d2d3abc666bafbc159f5f6"
+      "sha256": "937320d2bf1ed2e3f09b5c7abf8085eb42b086b386d0dd58fb1fb05807edebb3"
     },
     {
       "slug": "metric-with-sparkline",
       "sourcePath": "template/cards/metric-with-sparkline.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/metric-with-sparkline.tsx",
-      "sha256": "0485486817197624fcfe45e57aec72549a8fd63459c74b4964aa20b56b1bccf8"
+      "sha256": "8568f46f620ccec15e4f1fe7258d2f0be8c500f01f05ccfa4dd2cb1c607d69e8"
     },
     {
       "slug": "number-counter",
       "sourcePath": "template/cards/number-counter.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/number-counter.tsx",
-      "sha256": "9949f6fc207ca1925ac77b8c3ab3f573f48bca3d4e37d800cca8a5e78d9aec30"
+      "sha256": "34a00653402a52d6925c5ef06da3988cf82f200f6ea9bb9f2d1ea5e5a93609a3"
     },
     {
       "slug": "number-slab-pop",
       "sourcePath": "template/cards/number-slab-pop.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/number-slab-pop.tsx",
-      "sha256": "66596a8342c6460e9f9d8b72db32e94e8364706bb65b16cc31805baaccc9c1d7"
+      "sha256": "26facbd762315fb5f5d196d7b1d439470c29f0e2ad7265d34185dbe4fb6df806"
     },
     {
       "slug": "unit-grid-proportion",
       "sourcePath": "template/cards/unit-grid-proportion.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/unit-grid-proportion.tsx",
-      "sha256": "af712f6dc9e857f0f364ff9d26674c84a1ed91a2be7f3824201773ee9ed9717c"
+      "sha256": "b06dc875caf9745ad1f48ae72b3b760cfca9c586badde5b212a05796eb12d465"
     },
     {
       "slug": "chip-grid-single-select",
       "sourcePath": "template/cards/chip-grid-single-select.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/chip-grid-single-select.tsx",
-      "sha256": "8c902dca222138ffada7216fcc5b772dc963c8f9ca93f9837f97b13024c2638e"
+      "sha256": "432460135c0ac2d1007a7824f0f24f675aac7f6c3e17aeac557cc3aa6e403586"
     },
     {
       "slug": "info-term-card",
       "sourcePath": "template/cards/info-term-card.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/info-term-card.tsx",
-      "sha256": "8f2cc842cde3aa2e7e35700f7bf693fa2bcddcafd817d3679adf6f9427defc0b"
+      "sha256": "40bb632b621afca9b27ee2ee653bc1f92cd0006c10a7f9e2452f743e94b391b6"
     },
     {
       "slug": "map-route-pin",
       "sourcePath": "template/cards/map-route-pin.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/map-route-pin.tsx",
-      "sha256": "98e9015497172cab76a21915cfe9b22c9b86fdb16cfaf200d8a52d65b0513703"
+      "sha256": "fec5d18b99286f1306eb9378db59b756085a4083700c147a971926b397858ef3"
     },
     {
       "slug": "numbered-step-stack",
       "sourcePath": "template/cards/numbered-step-stack.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/numbered-step-stack.tsx",
-      "sha256": "a0a55b700e8371c1dacb8986c3faa9189fc26450340e03ce78acc7f5b4ba2b81"
+      "sha256": "cb16806443f00085f3b2b3334c4fa97f1fe87494ce6c7906c1be1caea5ca2dfe"
     },
     {
       "slug": "step-timeline-vertical",
       "sourcePath": "template/cards/step-timeline-vertical.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/step-timeline-vertical.tsx",
-      "sha256": "e396d3080be6b8785e827316074c603acde77fb0afa6f7f6759296456610b4b6"
+      "sha256": "023f0cba47caaede7b1de3e194010d7d8294ce2a7319b8b737b09e6efaa2eebf"
     },
     {
       "slug": "ui-prop-theater",
       "sourcePath": "template/cards/ui-prop-theater.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/ui-prop-theater.tsx",
-      "sha256": "88b1eef3a47dac9b7980c3772c808c975377aa7789d28de1ff386b85e9b9ce71"
+      "sha256": "f85f9c49ecbc1cf170ce977bed5536eacdf7aacddfc9f3051c4f7d7c627bd08b"
     },
     {
       "slug": "source-converge",
       "sourcePath": "template/cards/source-converge.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/source-converge.tsx",
-      "sha256": "b331a3e1abfe5ff7fabee028fb887ae57bc8c893581d6c2eb494c9d0268c4cc2"
+      "sha256": "a00163db942ec12861a243ad46e6b980804e8dd245cdcf5359b9bf06c5260673"
     },
     {
       "slug": "bed-echo-blur",
       "sourcePath": "template/cards/bed-echo-blur.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/bed-echo-blur.tsx",
-      "sha256": "b093cca2fdaa59eb3065d400483c1e65bc237d047dc2e2cbb602075176392cf1"
+      "sha256": "bdae9cbb330d3870ce39cb34db429eac7db85d7e3abdb0731df99260a137aa5a"
     },
     {
       "slug": "chat-message-flow",
       "sourcePath": "template/cards/chat-message-flow.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/chat-message-flow.tsx",
-      "sha256": "9cca809d077c4c2f8067216d009066abf85b8fb97c791cac26efcea7cba97d09"
+      "sha256": "c841669eefc46253286cc37a3545db7e5eed45dbfb22f9e82c411fda18c6a0df"
     },
     {
       "slug": "cursor-actor-demo",
       "sourcePath": "template/cards/cursor-actor-demo.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/cursor-actor-demo.tsx",
-      "sha256": "b2faa08dffd16dfa14ac4c446a272968b58a87629bbaa5a051be79fabf029f7a"
+      "sha256": "411baf57cd319fe5b72a089fe876501f4b5bef3592ce273a23aaa18587340f2d"
     },
     {
       "slug": "evidence-scroll-tour",
       "sourcePath": "template/cards/evidence-scroll-tour.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/evidence-scroll-tour.tsx",
-      "sha256": "6775aff2611f10fe2010f114e266a8df9f28735e130df1868fce9b39349fd446"
+      "sha256": "b29eac867833599bad85f43798f52cc98f9d1682f167ca8b7c2636d52fda34b2"
     },
     {
       "slug": "media-pop-in",
       "sourcePath": "template/cards/media-pop-in.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/media-pop-in.tsx",
-      "sha256": "fbd9199ac648b81e6b8ce65d6b1b7f960c40c1129d9de44333141bb4b1d81ac5"
+      "sha256": "7156764244dd7ac4840e19b12c15ccbe72f4c38e4d5d9b168882a9f577494552"
     },
     {
       "slug": "news-card-desk",
       "sourcePath": "template/cards/news-card-desk.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/news-card-desk.tsx",
-      "sha256": "ec7f3f488fcd6f5a3ba82efd01d0beef84128a3197ddee0588e10ad7e315cf5e"
+      "sha256": "76adedbbeb839241fee88d56f1eac188527fef918aa04837ede799644586a2b3"
     },
     {
       "slug": "split-compare-slider",
       "sourcePath": "template/cards/split-compare-slider.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/split-compare-slider.tsx",
-      "sha256": "c3ac33fb20484d1a21692534d3ab688a2ab48c178dff38db56ffa10e5ae2fed3"
+      "sha256": "0fe6c944cc9b8144229a35576ff49c7482bc39a1de2e67001b82019e8992f475"
     },
     {
       "slug": "still-layout-relay",
       "sourcePath": "template/cards/still-layout-relay.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/still-layout-relay.tsx",
-      "sha256": "26e58045fda4fdfec1d95a82b262fbadd79434bc911eaf672b12bbe5998159bb"
+      "sha256": "acf431e96eefbe478be5b82ae8cfeb11cccc734580367667a8f3fd3210c602dc"
     },
     {
       "slug": "ui-flow-theater",
       "sourcePath": "template/cards/ui-flow-theater.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/ui-flow-theater.tsx",
-      "sha256": "7ca3a39a1b952c8aaca0d85595de5d4b1715da6937d98654ed0bf9ab591d3eb8"
+      "sha256": "05d1aa1e495221f067ab5b8c9bb186275fe4450c59b2fb84f12276ab30c135de"
     },
     {
       "slug": "chat-gpt",
       "sourcePath": "template/cards/chat-gpt.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/chat-gpt.tsx",
-      "sha256": "6b16ddb4eb3c816dd4f081888e6014d1af44b63c9a3f4638bfe196ee120f2d77"
+      "sha256": "019843122d6b61447c72e635d90e8fa0138eab17c7596341d45caab4917ee862"
     },
     {
       "slug": "claude-code",
       "sourcePath": "template/cards/claude-code.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/claude-code.tsx",
-      "sha256": "f48534ac298786fe96fe7fc2da32bd521484bb4bc31bf06f37eb8db6550878b8"
+      "sha256": "b2cfc9ddb2c110164839e3f99ab5843fac0dcece628838c9c77ce0070fd16707"
     },
     {
       "slug": "doc-park-left-pill-deal",
       "sourcePath": "template/cards/doc-park-left-pill-deal.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/doc-park-left-pill-deal.tsx",
-      "sha256": "cf85382afba3f9d03cb06dd3938bf65d9dc57dea58029aec290cebc6448f9683"
+      "sha256": "874d90c93efd1a9334970629d0a29f67fdb2f8900135174b2c6a882ec0d7a74b"
     },
     {
       "slug": "filmstrip-conveyor",
       "sourcePath": "template/cards/filmstrip-conveyor.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/filmstrip-conveyor.tsx",
-      "sha256": "6986bc667ec48ce32c6a90e1d5555968bab27415ee5f10eb06f3fd6ad58a9aab"
+      "sha256": "ffc4ff9ae7fe18120f081b32b69268528e245b0b2386a2aa2aa38f9cac2e479d"
     },
     {
       "slug": "gallery-wall-dolly",
       "sourcePath": "template/cards/gallery-wall-dolly.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/gallery-wall-dolly.tsx",
-      "sha256": "bff7702f8a8e06d1a965ce0d7c2b86d3e6f3e3a434ad3f071b1815f05148fc67"
+      "sha256": "2b4d214d058d26c10655763e826336e376edd200e03a70b2e427d94f99a7410f"
     },
     {
       "slug": "glass-code-walk",
       "sourcePath": "template/cards/glass-code-walk.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/glass-code-walk.tsx",
-      "sha256": "e44b8c1c531bcd14def170cf18548dd65b04f36143cec911624038ec80fb8bb5"
+      "sha256": "af01ece4a25974caf914475ac5e6b513ea805a9a53f8a91cb929ae827ec5c232"
     },
     {
       "slug": "gooey-morph",
       "sourcePath": "template/cards/gooey-morph.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/gooey-morph.tsx",
-      "sha256": "62bc90ad055baabc86ca4d28f14683eb3160c1ee05215bc4f8d0ad550de592a0"
+      "sha256": "3a573f5da6643f46629a18e2615d64be570cb42360db788a8818f82d42684889"
     },
     {
       "slug": "grid-to-hero",
       "sourcePath": "template/cards/grid-to-hero.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/grid-to-hero.tsx",
-      "sha256": "483e3aa589efdfb6cc3fc8b62ce78e2ff392a75b673657dd67b41d5330b63aaf"
+      "sha256": "e9e550223301f791e46e0afc60c5d1ab171fc777c81ca130b56ef2951cf389f4"
     },
     {
       "slug": "info-card-assemble",
       "sourcePath": "template/cards/info-card-assemble.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/info-card-assemble.tsx",
-      "sha256": "fe57411b559552133f7b1a199904e9c37cffb08b8466181b991d207d32d82e42"
+      "sha256": "c6fe0ace4d61c6ed9c53a66334230aa0a1ef8ef19d45904f9f03d5f28befeb65"
     },
     {
       "slug": "logo-enter",
       "sourcePath": "template/cards/logo-enter.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/logo-enter.tsx",
-      "sha256": "911828e701f257f449bf7b6ef671d58b4f00ae6186f9f9a2f5f6484c2661880c"
+      "sha256": "4489e6dda20b6e1eb444e6f3efe53a275e594c1a64039ece515d5697db8628da"
     },
     {
       "slug": "motion-blur-slam-in",
       "sourcePath": "template/cards/motion-blur-slam-in.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/motion-blur-slam-in.tsx",
-      "sha256": "b2f578a0973948ba967fb66aeea801e5e52f3b811e8792968e758c820f85827b"
+      "sha256": "52b833847f1da7e7cd47b3cbf03cc6de27e868c14510ae772c0ff9ce85f3812b"
     },
     {
       "slug": "pencil-sketch-draw",
       "sourcePath": "template/cards/pencil-sketch-draw.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/pencil-sketch-draw.tsx",
-      "sha256": "5eaa94419334c56204f2bc7cbf0b58a037a8d9c06c3e9de7ca2d4d854d04262d"
+      "sha256": "4e648e11ec75364b8111cdff92dbdd3fa8998cadc4b93b18e5e2766a849b41e3"
     },
     {
       "slug": "rack-focus-pair",
       "sourcePath": "template/cards/rack-focus-pair.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/rack-focus-pair.tsx",
-      "sha256": "a5088a4dddb98abcea16947ccd01f7e3e3043215bdd73c04cfcd353709b7cf92"
+      "sha256": "79e8f4009f111c7cb698f0e59543e02a73e8afb1ffa747b81a31c8093351f123"
     },
     {
       "slug": "split-60-40-story",
       "sourcePath": "template/cards/split-60-40-story.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/split-60-40-story.tsx",
-      "sha256": "5ab5f8b5aee4819e3867d55d8feedf97c3cdfa9a00466279c878a3d8cd75b157"
+      "sha256": "1ce1395ea3fb54df8a83e98252d45e85866c1cbf7dcfd7ed4379ebf765edb1dc"
     },
     {
       "slug": "stack-fan-out",
       "sourcePath": "template/cards/stack-fan-out.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/stack-fan-out.tsx",
-      "sha256": "0b2c8addeb2e2ea454e9b1ce6f2505434a00b4134cd3094230c1d84089038c0a"
+      "sha256": "f4eafd9935f0ad3c14713d3036967927a389c3820a8a4467063b0048d1370146"
     },
     {
       "slug": "terminal-typing-log",
       "sourcePath": "template/cards/terminal-typing-log.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/terminal-typing-log.tsx",
-      "sha256": "2695c55b87859f19669e1b1ef28e7d297ce449775bbc8f75628e71a3b401e64c"
+      "sha256": "337090493417804c462f5905ddea89d30dbf90d9badc243b4e808113953ecfaa"
     },
     {
       "slug": "timeline-photo-strip",
       "sourcePath": "template/cards/timeline-photo-strip.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/timeline-photo-strip.tsx",
-      "sha256": "a6c7f23a218514aeded6c506e0486e1b709b98ecec04179d73f3360025c6b60a"
+      "sha256": "ddcaa579f3210fd751cc350776f6561d0f4a7156cb3cb8a5896ab7b76c484f05"
     },
     {
       "slug": "word-relay-filmstrip",
       "sourcePath": "template/cards/word-relay-filmstrip.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/word-relay-filmstrip.tsx",
-      "sha256": "304a3abe724b418e1464ef41cea3f26c139afb13f868e30bbea1c97b61cfe3c4"
+      "sha256": "07ce275988732be32ddddc9e9d6f38221201b2a369b469553bf112874f462635"
     },
     {
       "slug": "slow-pull-reveal",
       "sourcePath": "template/cards/slow-pull-reveal.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/slow-pull-reveal.tsx",
-      "sha256": "8449b4278b7f0bdfb714514a8039eb85fe1a7562d22e71fa0006c9823f44959a"
+      "sha256": "79438baa13340fb21800720cedd387ea4ec228620d0c87e4da2388c30c8fe263"
     },
     {
       "slug": "slow-push-in",
       "sourcePath": "template/cards/slow-push-in.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/slow-push-in.tsx",
-      "sha256": "289602d9b70c9ba1bbde6a5c739de0d82275101c3280f01c4be07f9f4d7a4afb"
+      "sha256": "ec3a24f96e52320e3036c8584d591d63c927e64b067e8843a80f0ba49579534e"
     },
     {
       "slug": "cursor-locked-zoom",
       "sourcePath": "template/cards/cursor-locked-zoom.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/cursor-locked-zoom.tsx",
-      "sha256": "1e2a3cb4ddaa020fa195d859eeadd5907aa8ea6e27e0730f058016b5149f093a"
+      "sha256": "0e4a042428cd14457c3de5475b82da27208e24a46cbf4eef4fe73fd74cf7a57d"
     },
     {
       "slug": "orbit-drift",
       "sourcePath": "template/cards/orbit-drift.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/orbit-drift.tsx",
-      "sha256": "400e6e8f764e7bb3d9745217b06f1de440683cdf29df28be8e2001f027a9a6d2"
+      "sha256": "1039d20ad1d033d195be51cac7ae8e1c7dc07870d938da22e5ea7bedf2d89c7d"
     },
     {
       "slug": "pip-zoom-box",
       "sourcePath": "template/cards/pip-zoom-box.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/pip-zoom-box.tsx",
-      "sha256": "ff1382bdb6f722695636ef8c25bb39c9ae7fee0a772fb6606b58097cfb7e7833"
+      "sha256": "3162d14b5c15e60fbf7cb2f13cd38151c089c1569c4adf59f433aa23c5ca1df2"
     },
     {
       "slug": "stage-keyframe-tour",
       "sourcePath": "template/cards/stage-keyframe-tour.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/stage-keyframe-tour.tsx",
-      "sha256": "2faec43f9ffcc05ce1888202f8f960901b68133a80ec92622ef17ae27fda994b"
+      "sha256": "155ac1ffc5a442d85307a128495f878fe4a33f5cb6a1ed3a753e1b28967be9d7"
     },
     {
       "slug": "sway-parallax",
       "sourcePath": "template/cards/sway-parallax.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/sway-parallax.tsx",
-      "sha256": "4c97edfc301402f5c841f5a14626cbf9fe14b0a31b22d9d8f85acc2e0db04371"
+      "sha256": "4fa9cca75dd02ab13b7163b8a33bd7e0a7e5cb1ab2f703f501de2631d0c07231"
     },
     {
       "slug": "tilt-3d-page",
       "sourcePath": "template/cards/tilt-3d-page.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/tilt-3d-page.tsx",
-      "sha256": "d3dc54d8671bb53fe519ca438b9076d97ca474bc4a2e9eb7db8093b10a91d52b"
+      "sha256": "6abd2141e995365190923694201154d01adf0610482c20b1b868ef57f8343a6c"
     },
     {
       "slug": "black-slam-transition",
       "sourcePath": "template/cards/black-slam-transition.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/black-slam-transition.tsx",
-      "sha256": "82cf1b87d60981504d7b1e5ed5816493dd35ffc73683ba3b9f7828ddae2c35ee"
+      "sha256": "35e06a31af863fe9edbfa4f002660dca2289cbd13419758f04a4f2549e90d6b3"
     },
     {
       "slug": "chapter-title-card",
       "sourcePath": "template/cards/chapter-title-card.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/chapter-title-card.tsx",
-      "sha256": "6b10c356b7f4da9f6d988bcf26b51d37abb19aa27b95d7aa3ddbeea84d79637b"
+      "sha256": "f30ac52ebb7095b61aa9515de4eac911edd658e5244a0e6209f45c9246662c50"
     },
     {
       "slug": "color-slam-beat-card",
       "sourcePath": "template/cards/color-slam-beat-card.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/color-slam-beat-card.tsx",
-      "sha256": "6964b5609f14774dc4d0a9f6e63b998756cade2caa389d6077e2f1814ab0e2e5"
+      "sha256": "9e61532bb89bcf3ad1e0f02833d805d7da75ccc1de9057fd4af07e9e76971323"
     },
     {
       "slug": "overexpose-flip-transition",
       "sourcePath": "template/cards/overexpose-flip-transition.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/overexpose-flip-transition.tsx",
-      "sha256": "23db309530891209c30d1c6a25b6c7b461be810bbc548787871dc0c57bf633f4"
+      "sha256": "b032936e3e9615460ef3329abc5b15b0de0a05750f70329e472edca7658af575"
     },
     {
       "slug": "particle-weld-transition",
       "sourcePath": "template/cards/particle-weld-transition.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/particle-weld-transition.tsx",
-      "sha256": "09f89e1a5d8ff0b19d2b53e091d681390009b8376345c6dab25118601c3a06d4"
+      "sha256": "99190675adbd6bf30f120c69d2b1e494a897f2de597d298a9d77a0ba24043739"
     },
     {
       "slug": "pullback-cool-transition",
       "sourcePath": "template/cards/pullback-cool-transition.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/pullback-cool-transition.tsx",
-      "sha256": "624632a08774c91244fbac3200161d586412f43e672c0084d2f1111e5f58190f"
+      "sha256": "766065471f36cd8a6087bf5c07f1df642f29a22f71b49bcc291eb9b9ca76d232"
     },
     {
       "slug": "push-through-transition",
       "sourcePath": "template/cards/push-through-transition.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/push-through-transition.tsx",
-      "sha256": "c7fff3260ae01e4d0e905a74a9538992f20b6c218de4e3c52ad3b5644ca6184e"
+      "sha256": "1edc6f745d4c8ed6f674735f5d9bac1ce8883e66a588fd7e172f618bd110411f"
     },
     {
       "slug": "shape-wipe-transition",
       "sourcePath": "template/cards/shape-wipe-transition.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/shape-wipe-transition.tsx",
-      "sha256": "4bc3729c4765ab8de66d309a2083dcefaf7967b96556559c0cc0af4621a07225"
+      "sha256": "7df7c971a89d47e9054e17483b2367f78538c66060a45bf0217a5883faa033ea"
     },
     {
       "slug": "whip-pan-transition",
       "sourcePath": "template/cards/whip-pan-transition.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/whip-pan-transition.tsx",
-      "sha256": "3d3694b36cd43e05012a2c092237472494bd82ebb42ee443203f6efe359f270f"
+      "sha256": "735e00f3e7173b0a63a0bde557ffdf9bbdd10f542eff8e908d1783dbc2a46551"
     },
     {
       "slug": "caret-wipe-transition",
       "sourcePath": "template/cards/caret-wipe-transition.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/caret-wipe-transition.tsx",
-      "sha256": "783a43d01903b9df94c33b02d488e4b028e102dab5195c8de15385b6358065ef"
+      "sha256": "40be04725ff8381fed5b952345a45873ae617ff274c0adfdc589fc5ea69dad3f"
     },
     {
       "slug": "chapter-progress-list",
       "sourcePath": "template/cards/chapter-progress-list.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/chapter-progress-list.tsx",
-      "sha256": "c999f69457dd9aa4929b4dd667e49bbf8588d1742654e0d4e6b42af0334a714b"
+      "sha256": "16c5457e98671023f0a0dfc361caff0f8a9619118665fb30aef93b3b974a4560"
     },
     {
       "slug": "line-carry-transition",
       "sourcePath": "template/cards/line-carry-transition.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/line-carry-transition.tsx",
-      "sha256": "7658bdf3d1c0b40c8f575c09e09cfdcfd6b5882fd324f6cfea678d7b623a6df8"
+      "sha256": "9e380f85c1f72d220c1b02bf8a88d9c6795921e3c4115c2b6c52fbb806523b22"
     },
     {
       "slug": "long-take-world",
       "sourcePath": "template/cards/long-take-world.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/long-take-world.tsx",
-      "sha256": "6eebe0a260f6707a76511df2bcb0056f66f2082f6166f851d0528863dc0fef73"
+      "sha256": "70e059a6ec67097d2d097d0ea52acb61ed6066f7e8f44f97ca7e23afc8ea1a32"
     },
     {
       "slug": "impact-open-title",
       "sourcePath": "template/cards/impact-open-title.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/impact-open-title.tsx",
-      "sha256": "5766bd9e7dec55e742b7597bf235f7eca0efa5f1e063bec88d1e76c427904de7"
+      "sha256": "127581f5a1cdccfbe9e332d271beb2ccb8168c29196c7a8533b0b968929e0084"
     },
     {
       "slug": "keyword-pop-highlight",
       "sourcePath": "template/cards/keyword-pop-highlight.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/keyword-pop-highlight.tsx",
-      "sha256": "adf2451f0d992ecf6534662634765cd96bc250ed200b8904f5d4bcee591f02b3"
+      "sha256": "0ff812e4fef3dc1e9b91575063737ac61848eb47e818c4f969a611e3758b9306"
     },
     {
       "slug": "slab-punch-title",
       "sourcePath": "template/cards/slab-punch-title.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/slab-punch-title.tsx",
-      "sha256": "6142bf9f135cb9effd269646e0401b3a96f89b3d666c7766f50b3cd3772ae3e2"
+      "sha256": "4c527c14b83de154076bc3a7d8a0fe84679754f572fe6b039df132456c9fee4d"
     },
     {
       "slug": "title-demote-to-label",
       "sourcePath": "template/cards/title-demote-to-label.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/title-demote-to-label.tsx",
-      "sha256": "cdb2337438699ddeae64eb304e395d6a5bcf603dc3cb4e66a6ed807b436703a6"
+      "sha256": "9bdb8c8f826a274cb76bf6959302ee9eddf1bb7a9b466cefc7dbbb1a3f865d91"
     },
     {
       "slug": "type-contrast-emphasis",
       "sourcePath": "template/cards/type-contrast-emphasis.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/type-contrast-emphasis.tsx",
-      "sha256": "544de354cfaf63a83d0bee54f953f009bd60f79f282e6e249e56df5103caa8de"
+      "sha256": "a32939c7f34212449ede31eab9e49a7e096b3f48231723b80043f65cc3bdcad6"
     },
     {
       "slug": "word-slot-cycle",
       "sourcePath": "template/cards/word-slot-cycle.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/word-slot-cycle.tsx",
-      "sha256": "8821808d8fcf3226ebce45a954b3fad3f99472ab976c5e2f72f768aa734a7a79"
+      "sha256": "71be5941fff1635cdbe14ab62bdd318b46fa8203dc21e60daa0f0b923ad389a7"
     },
     {
       "slug": "alt-block-lines",
       "sourcePath": "template/cards/alt-block-lines.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/alt-block-lines.tsx",
-      "sha256": "b0c1ce748e685d543e169c24f5d18ae9bcb4c99f036e14126b5fe3ed2464bec5"
+      "sha256": "9676728d2d7176abf7b3e214adec83a30ddb31ec78e962ee665355d291933265"
     },
     {
       "slug": "count-badge-title",
       "sourcePath": "template/cards/count-badge-title.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/count-badge-title.tsx",
-      "sha256": "5c80cc81e19aa949e3cdee965414eee1bbe2474b7446beac5538a012c0b05bcd"
+      "sha256": "ba43d69ea8f2378cccd3aaa9587311928f9faf75a5a4a192294a6b82ccbf0836"
     },
     {
       "slug": "error-retype",
       "sourcePath": "template/cards/error-retype.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/error-retype.tsx",
-      "sha256": "5b05b59c5ba133e61d1d655a47e7e8fd5086cae5c8723ddff72137dd86640eb6"
+      "sha256": "a1d8f1898808bb37c1978c834b186d0be231370318be99b22ac1b7c6d074bcfc"
     },
     {
       "slug": "lead-word-zoom-assemble",
       "sourcePath": "template/cards/lead-word-zoom-assemble.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/lead-word-zoom-assemble.tsx",
-      "sha256": "1e512f979d9f77174da81d5671d7658281f0f514dcdf3038cd96a9551da07185"
+      "sha256": "fc3c59b8a4834f436da9143b7677d1223e5ee85cd1d3dfa752594170b120f84e"
     },
     {
       "slug": "line-by-line-slide",
       "sourcePath": "template/cards/line-by-line-slide.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/line-by-line-slide.tsx",
-      "sha256": "3e97ac8a963f1d38da67596f75924f71057804c74902f0aa9003ca2016dc1c2e"
+      "sha256": "41cf138ce7ba628dc5d83f00b891898dfb2726041e127b6f679d0ffec65c2aa3"
     },
     {
       "slug": "outline-box-title",
       "sourcePath": "template/cards/outline-box-title.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/outline-box-title.tsx",
-      "sha256": "b0b26442589d91d53886520fa0d28a575bb22b41316da07bada1662fc8477255"
+      "sha256": "4984e614edd2e10c58140f91f0771f2ab9cd08437e5f3db502ae9c35115a003c"
     },
     {
       "slug": "per-character-rise",
       "sourcePath": "template/cards/per-character-rise.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/per-character-rise.tsx",
-      "sha256": "3437015e2d05a34de708047023d6f16e42f7f1a4a22f76e225e1f5d2b150d18e"
+      "sha256": "ddcdfd303810b22051f754295ff11034980a08219db88620279877a2ec19a027"
     },
     {
       "slug": "quote-bracket-pull",
       "sourcePath": "template/cards/quote-bracket-pull.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/quote-bracket-pull.tsx",
-      "sha256": "5c396d70bb6f8fb8f51708a5d56b56091b6d5a67ad69ff08e6f2444e5f4a2ee1"
+      "sha256": "5235dfe8b864fdb197fc6624ed5731084329c80b753b9e22170e96f672649e9c"
     },
     {
       "slug": "quote-card",
       "sourcePath": "template/cards/quote-card.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/quote-card.tsx",
-      "sha256": "43c0a57a72f02063cc73189f07b0914679f653ad66f7c54cc82ecdbff9641e0a"
+      "sha256": "3e8f1233c31453f4492eb4076fed680fc029be0056dd8c6eeb6914bdbcc0e18e"
     },
     {
       "slug": "soft-blur-in",
       "sourcePath": "template/cards/soft-blur-in.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/soft-blur-in.tsx",
-      "sha256": "5eb3f85f7f38f1211c5a33ac4bce0ff8966ef58761e272a4c3cab4097a6d104b"
+      "sha256": "72cfd018a6d1ce18226ae9b77a7fe5c0b08887d740bfdad4a9239332784ed307"
     },
     {
       "slug": "speed-slab-title",
       "sourcePath": "template/cards/speed-slab-title.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/speed-slab-title.tsx",
-      "sha256": "a89de0cf045bdf64f614122f4546f89e5f93d41f467b410bae20300597a77cbd"
+      "sha256": "58c74373a2662539447665192ed45e695da4b85cac29639f43d8e4191f839290"
     },
     {
       "slug": "tracking-in",
       "sourcePath": "template/cards/tracking-in.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/tracking-in.tsx",
-      "sha256": "a56e9b4421ffd96f9471f3392c7ebe1fb836c8067baa0a127524f28b889f908b"
+      "sha256": "b45ee0b45164a5286c31d9b75b1673a798cbc1f9fe75397eb2873094f073b21a"
     },
     {
       "slug": "typewriter-reveal",
       "sourcePath": "template/cards/typewriter-reveal.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/typewriter-reveal.tsx",
-      "sha256": "2be4554374d9f24397f236c60fb2fdbb78be0a77b6b4399b0f4fbd0ca59d0d64"
+      "sha256": "778a4cbc833c2d52e852a3afffd535d9f94bd49f049b3fe7042fc56ce12c9dba"
     },
     {
       "slug": "countdown-arc-scatter",
       "sourcePath": "template/cards/countdown-arc-scatter.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/countdown-arc-scatter.tsx",
-      "sha256": "264b5e143f580de88a6fa3e9a4f84ad4ef35fd67f47cbb3cc85e31a9ed5d8b40"
+      "sha256": "33650e5dcf308e0badf6832a2c02a5c3a738e86908ef240e9baf20c74eb85fac"
     },
     {
       "slug": "flying-words",
       "sourcePath": "template/cards/flying-words.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/flying-words.tsx",
-      "sha256": "7b28de9580ce2a80ef6c8df8a7969bebbe9d5b5fe67e526cd05e21f16cd22bd4"
+      "sha256": "9b4c7e727b18b78931cc053757132fd4be734a9f5206cc853288182c0de31166"
     },
     {
       "slug": "split-text-stagger",
       "sourcePath": "template/cards/split-text-stagger.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/split-text-stagger.tsx",
-      "sha256": "29d66047fdde9981a18332f89a0641474d9177a2cb34d187e129258a107630e7"
+      "sha256": "9c9c4d9aaa1c001a0d69bd013cedd864431f9be175cbb70242e072f6b329072e"
     }
   ]
 }

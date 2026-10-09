@@ -4,6 +4,7 @@ import importlib.resources
 import json
 
 from videoagents.contracts import Shot
+from videoagents.default_config import PROJECT_ROOT
 from videoagents.tools.catalog import component_catalog
 from videoagents.tools.components import (
     COMMUNITY_COMPONENT_IDS,
@@ -14,13 +15,25 @@ from videoagents.tools.components import (
     component_study_payload,
 )
 
+EXPECTED_COMMUNITY_PRESETS = 187
+EXPECTED_TOTAL_COMPONENTS = 196
+NEW_CURATED_COMPONENT_IDS = {
+    "RemotionUI-SocialClip",
+    "RemotionUI-KanbanMove",
+    "Rve-GalleryGrid",
+    "Rve-PictureInPicture",
+    "RenderComp-PixelCandlestickOhlc",
+    "RenderComp-SocialReel",
+}
+
 
 def test_manifest_contains_all_adapters_and_component_pairs():
     entries = component_manifest()
-    assert len(entries) == 161
+    assert len(entries) == EXPECTED_TOTAL_COMPONENTS
     assert len(SEMANTIC_COMPONENT_IDS) == 9
-    assert len(COMMUNITY_COMPONENT_IDS) == 152
+    assert len(COMMUNITY_COMPONENT_IDS) == EXPECTED_COMMUNITY_PRESETS
     assert len(PRODUCTION_COMPONENT_IDS) == len(set(PRODUCTION_COMPONENT_IDS))
+    assert NEW_CURATED_COMPONENT_IDS <= set(COMMUNITY_COMPONENT_IDS)
     assert set(SEMANTIC_COMPONENT_IDS) == {
         "title", "keyword", "evidence", "image_focus",
         "video", "comparison", "data", "steps", "conclusion",
@@ -38,32 +51,33 @@ def test_every_manifest_id_is_accepted_by_the_shot_contract():
 
 def test_catalog_marks_all_entries_production_ready_with_license_context():
     catalog = component_catalog()
-    assert len(catalog) == 161
+    assert len(catalog) == EXPECTED_TOTAL_COMPONENTS
     assert all(entry.production_ready for entry in catalog)
     assert {entry.component_id for entry in catalog} == set(PRODUCTION_COMPONENT_IDS)
     talkcraft = [entry for entry in catalog if entry.library == "Talkcraft"]
     assert len(talkcraft) == 108
     assert all(entry.kind == "preset" and entry.allowed_usages == ["personal", "unspecified"] for entry in talkcraft)
+    assert all(entry.props_mode == "material_slots" for entry in catalog if entry.kind == "preset")
 
 
 def test_commercial_schema_excludes_only_noncommercial_talkcraft_presets():
     unspecified = set(available_component_ids("unspecified"))
     commercial = set(available_component_ids("commercial"))
     assert unspecified == set(PRODUCTION_COMPONENT_IDS)
-    assert len(commercial) == 53
+    assert len(commercial) == 88
     assert all(not component_id.startswith("Talkcraft-") for component_id in commercial)
 
 
 def test_manifest_is_wheel_package_data():
     resource = importlib.resources.files("videoagents").joinpath("component-manifest.json")
     payload = json.loads(resource.read_text(encoding="utf-8"))
-    assert len(payload["entries"]) == 161
+    assert len(payload["entries"]) == EXPECTED_TOTAL_COMPONENTS
 
 
 def test_component_study_payload_projects_vertical_usage_and_source_guides():
     payload = component_study_payload("unspecified")
     presets = [entry for entry in payload["components"] if entry["kind"] == "preset"]
-    assert len(presets) == 152
+    assert len(presets) == EXPECTED_COMMUNITY_PRESETS
     assert payload["source_fingerprint"]
     encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
     assert len(encoded.encode("utf-8")) < 180 * 1024
@@ -75,3 +89,12 @@ def test_component_study_payload_projects_vertical_usage_and_source_guides():
     assert "durationInFrames" in summary["meta_hint"]
     assert "CONFIG" in summary["config_hint"]
     assert "Props" in summary["props_hint"]
+
+
+def test_component_knowledge_doc_lists_every_production_component_with_scene_and_effect():
+    text = (PROJECT_ROOT / "docs" / "knowledge" / "remotion-shot-library.md").read_text(encoding="utf-8")
+    assert "196 个生产组件" in text
+    assert "适用场景" in text
+    assert "画面效果" in text
+    for component_id in PRODUCTION_COMPONENT_IDS:
+        assert f"| `{component_id}` |" in text

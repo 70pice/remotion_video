@@ -4,12 +4,14 @@ import {componentDemos as rve} from '../component-horizontal/rve/demo';
 import {componentDemos as remocn} from '../component-horizontal/remocn/demo';
 import {componentDemos as remotionUi} from '../component-horizontal/remotion-ui/demo';
 import {componentDemos as bits} from '../component-horizontal/bits/demo';
+import {componentDemos as rendercomp} from '../component-horizontal/rendercomp/demo';
 import {componentDemos as talkcraft} from '../component-horizontal/video-talkcraft/demo';
 import {nativeDemos as snapcnPortrait} from '../component-vertical/snapcn/demo';
 import {nativeDemos as rvePortrait} from '../component-vertical/rve/demo';
 import {nativeDemos as remocnPortrait} from '../component-vertical/remocn/demo';
 import {nativeDemos as remotionUiPortrait} from '../component-vertical/remotion-ui/demo';
 import {nativeDemos as bitsPortrait} from '../component-vertical/bits/demo';
+import {nativeDemos as rendercompPortrait} from '../component-vertical/rendercomp/demo';
 import {nativeDemos as talkcraftA} from '../component-vertical/video-talkcraft/group-a';
 import {nativeDemos as talkcraftB} from '../component-vertical/video-talkcraft/group-b';
 import {nativeDemos as talkcraftC} from '../component-vertical/video-talkcraft/group-c';
@@ -22,6 +24,7 @@ export const communityGroups = [
   {name: 'Remocn', demos: remocn},
   {name: 'RemotionUI', demos: remotionUi},
   {name: 'Bits', demos: bits},
+  {name: 'RenderComp', demos: rendercomp},
   {name: 'Talkcraft', demos: talkcraft},
 ];
 
@@ -31,6 +34,7 @@ export const nativePortraitGroups = [
   {name: 'Remocn', demos: remocnPortrait},
   {name: 'RemotionUI', demos: remotionUiPortrait},
   {name: 'Bits', demos: bitsPortrait},
+  {name: 'RenderComp', demos: rendercompPortrait},
   {name: 'Talkcraft', demos: [...talkcraftA, ...talkcraftB, ...talkcraftC, ...talkcraftD]},
 ];
 

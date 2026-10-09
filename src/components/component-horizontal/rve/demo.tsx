@@ -9,6 +9,7 @@ import ProgressSteps from "./progress-steps";
 import ComparisonChart from "./comparison-chart";
 import SplitScreen from "./split-screen";
 import ImageComparisonSlider from "./image-comparison-slider";
+import {rveCuratedDemos} from './additions';
 
 export const componentDemos = [
   {id: "Rve-QuoteCard", name: "Quote Card", slug: "quote-card", component: QuoteCard, width: 1280, height: 720, durationInFrames: 180, fps: 30},
@@ -22,4 +23,5 @@ export const componentDemos = [
   {id: "Rve-ComparisonChart", name: "Comparison Chart", slug: "comparison-chart", component: ComparisonChart, width: 1280, height: 720, durationInFrames: 180, fps: 30},
   {id: "Rve-SplitScreen", name: "Split Screen", slug: "split-screen", component: SplitScreen, width: 1280, height: 720, durationInFrames: 180, fps: 30},
   {id: "Rve-ImageComparisonSlider", name: "Image Comparison Slider", slug: "image-comparison-slider", component: ImageComparisonSlider, width: 1280, height: 720, durationInFrames: 180, fps: 30},
+  ...rveCuratedDemos,
 ];

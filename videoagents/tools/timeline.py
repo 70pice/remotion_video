@@ -17,6 +17,9 @@ ALLOWED_PROPS = {
     "comparison": {"left_title", "left_body", "right_title", "right_body", "right_reveal_frame"},
     "data": {"items"}, "steps": {"items", "layout"}, "conclusion": {"call_to_action"},
 }
+COMMUNITY_PRESET_PROPS = {
+    "content_mode", "asset_fit", "asset_crop", "start_seconds", "end_seconds", "items", "metric",
+}
 MEDIA_COMPONENT_IDS = frozenset({"video", "evidence", "image_focus"})
 MEDIA_COVERAGE_TARGET = 0.7
 NON_RENDERABLE_LICENSE_MARKERS = (
@@ -156,10 +159,13 @@ def media_coverage_report(
     actual_frames = 0
     used_video_ranges: dict[str, list[tuple[float, float]]] = {}
     for shot in timeline.shots:
-        if shot.component_id not in MEDIA_COMPONENT_IDS or not shot.asset_src:
+        if not shot.asset_src or (
+            shot.component_id not in MEDIA_COMPONENT_IDS
+            and shot.component_id not in COMMUNITY_COMPONENT_ID_SET
+        ):
             continue
         asset = assets_by_src.get(shot.asset_src)
-        if shot.component_id == "video" and asset is not None:
+        if asset is not None and asset.mime_type.startswith("video/"):
             start_seconds = shot.props.get("start_seconds", 0)
             if isinstance(start_seconds, (int, float)) and not isinstance(start_seconds, bool):
                 end_seconds = float(start_seconds) + (shot.end_frame - shot.start_frame) / timeline.fps
@@ -241,6 +247,47 @@ def reveal_frame(value: object, duration: int) -> None:
         raise ValueError("展示帧必须是镜头内 0 到镜头时长减 15 的整数")
 
 
+def validate_community_preset_slots(shot) -> None:
+    unknown = set(shot.props) - COMMUNITY_PRESET_PROPS
+    if unknown:
+        raise ValueError(f"预设组件 {shot.component_id} 不接受参数 {', '.join(sorted(unknown))}")
+    mode = shot.props.get("content_mode")
+    if mode is not None and mode not in {"auto", "media", "list", "metric"}:
+        raise ValueError("预设组件内容模式只能是 auto、media、list 或 metric")
+    fit = shot.props.get("asset_fit", "contain")
+    if fit not in {"contain", "cover"}:
+        raise ValueError("预设组件素材 fit 只能是 contain 或 cover")
+    crop = shot.props.get("asset_crop")
+    if crop is not None:
+        normalized_rect(crop, "预设组件素材裁剪框必须在画面内部且面积非零")
+    start_seconds = shot.props.get("start_seconds", 0)
+    end_seconds = shot.props.get("end_seconds")
+    if not isinstance(start_seconds, (int, float)) or isinstance(start_seconds, bool) or not math.isfinite(start_seconds) or start_seconds < 0:
+        raise ValueError("预设组件视频起始时间必须是非负秒数")
+    if end_seconds is not None and (
+        not isinstance(end_seconds, (int, float))
+        or isinstance(end_seconds, bool)
+        or not math.isfinite(end_seconds)
+        or end_seconds <= start_seconds
+    ):
+        raise ValueError("预设组件视频结束时间必须晚于起始时间")
+    items = shot.props.get("items")
+    if items is not None:
+        if not isinstance(items, list) or not 1 <= len(items) <= 4 or any(not prop_text(item, 64) for item in items):
+            raise ValueError("预设组件内容项需要 1 到 4 条非空短文本")
+    metric = shot.props.get("metric")
+    if metric is not None:
+        required = {"label", "value"}
+        allowed = required | {"detail"}
+        limits = {"label": 48, "value": 40, "detail": 64}
+        if (
+            not isinstance(metric, dict)
+            or not required <= set(metric) <= allowed
+            or any(not prop_text(value, limits[key]) for key, value in metric.items())
+        ):
+            raise ValueError("预设组件指标需要 label/value 和可选 detail")
+
+
 def validate_timeline(timeline: Timeline, job: Job, asset_metadata: dict[str, dict[str, object]] | None = None) -> None:
     if timeline.job_id != job.job_id:
         raise ValueError("分镜任务身份不匹配")
@@ -258,10 +305,30 @@ def validate_timeline(timeline: Timeline, job: Job, asset_metadata: dict[str, di
         if not component_allowed(shot.component_id, job.brief.usage):
             raise ValueError(f"组件 {shot.component_id} 的许可不允许当前 {job.brief.usage} 使用场景")
         if shot.component_id in COMMUNITY_COMPONENT_ID_SET:
-            if shot.props:
-                raise ValueError(f"预设组件 {shot.component_id} 当前不接受自定义 props")
+            validate_community_preset_slots(shot)
             if shot.asset_src:
-                raise ValueError(f"预设组件 {shot.component_id} 使用已核验的内置素材，不接受 asset_src")
+                safe_media_source(shot.asset_src, job.job_id)
+                asset = known.get(shot.asset_src)
+                if asset is None or not asset.mime_type.startswith(("image/", "video/")):
+                    raise ValueError("预设组件素材必须来自此任务已导入的图片或视频")
+                if asset.mime_type.startswith("video/"):
+                    if not re.search(r"\.mp4$", shot.asset_src, re.I):
+                        raise ValueError("预设组件素材必须是图片或 MP4 视频")
+                    start_seconds = shot.props.get("start_seconds", 0)
+                    end_seconds = shot.props.get("end_seconds")
+                    metadata = (asset_metadata or {}).get(asset.asset_id, {})
+                    duration = metadata.get("duration_seconds")
+                    if duration is not None:
+                        if not isinstance(duration, (int, float)) or isinstance(duration, bool) or not math.isfinite(duration) or duration <= 0:
+                            raise ValueError("预设组件视频素材缺少有效实测时长")
+                        selected_end = duration if end_seconds is None else end_seconds
+                        shot_seconds = (shot.end_frame - shot.start_frame) / timeline.fps
+                        if selected_end > duration + 0.001 or selected_end - start_seconds + 0.001 < shot_seconds:
+                            raise ValueError("预设组件视频素材截取区间必须在实测时长内并覆盖镜头时长")
+                elif not re.search(r"\.(png|jpe?g|webp)$", shot.asset_src, re.I):
+                    raise ValueError("预设组件素材必须是图片或 MP4 视频")
+                if not asset_renderable(asset):
+                    raise ValueError("镜头素材的许可回执明确仅供核验或禁止使用，不能进入制作画面")
             continue
         unknown = set(shot.props) - ALLOWED_PROPS[shot.component_id]
         if unknown:

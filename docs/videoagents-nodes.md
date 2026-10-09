@@ -77,6 +77,23 @@ value = self.model.invoke(
 
 `JsonModel` 负责 Codex/Claude CLI 的结构化调用及提交台账。节点负责选择 state 输入、校验最终产物、保存和路由；前后角色通过 state 交接。工具过程留在审计文件中，交接清理的规则见 [通用上下文](videoagents-context.md#agent-的输入与最终输出)。
 
+## 模型输入字段总表
+
+每个 Agent 都通过 `fields=(...)` 从 `VideoState` 选择最终业务字段。`brief` 必须随当前
+任务一起进入模型输入；其他字段只放上游冻结后的结论、素材引用或当前阶段约束。搜索过程、
+工具调用、CLI 事件、数据库回执和历史聊天消息不作为下游 Agent 的输入。
+
+| Agent | 模型输入字段 | 交接含义 |
+| --- | --- | --- |
+| `materials` | `brief`, `assets`, `settings` | 读取选题、受众、用途、已有素材和公开研究配置，输出冻结的 `research` 与新素材。 |
+| `screenwriter` | `brief`, `research`, `assets` | 初稿只读取素材节点的最终研究包和素材清单，不读取素材工具过程。 |
+| `screenwriter` 改稿 | `brief`, `script`, `script_discussion`, `research`, `assets`，必要时 `extras` | 读取当前稿、每轮最终审查意见及人工返工结论；不读取审查中间推理。 |
+| `script_reviewer` | `brief`, `script`, `script_discussion`, `research`, `assets`，必要时 `extras` | 审查当前完整稿和讨论状态，返回最终 `ScriptCritique`。 |
+| `voice` | `brief`, `script`, `settings` | 读取当前稿、受众和公开配音设置，输出朗读表演指导；真实音频由 provider 生成并校验。 |
+| `director` | `brief`, `script`, `timeline`, `research`, `assets`, `asset_metadata`, `extras` | 读取实测音频合成的基线分镜、素材能力和返工约束，返回最终镜头列表。 |
+| `editing` | `brief`, `script`, `timeline`, `assets`, `asset_metadata`, `action`，必要时 `extras` | 读取当前可执行分镜和素材元信息，做渲染前剪辑预检并输出最终建议。 |
+| `review` | `brief`, `script`, `timeline`, `assets`, `research`, `alignment` | 历史兼容的成片审核输入；当前默认生产图已不注册该节点。 |
+
 ## 本次精简范围与验证
 
 重构前先运行现有 200 项 Python 回归。精简范围是分离的 Agent 类、图中的 `node_*` 包装和动态 `getattr` 注册；先合并角色，再迁移检查/等待节点，最后修正调用、测试和说明。

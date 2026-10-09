@@ -1,9 +1,10 @@
 # AI 科普视频工作台
 
 **VideoAgents 全栈视频工作台**通过 React 前端、FastAPI 接口、多 Agent 工作流和
-Remotion 渲染，制作面向普通大众的 AI 科普、AI 新闻/产品解释和 AI 工具使用
-视频。默认不要求观众懂编程或 AI 专业术语；素材、文案、配音、导演和剪辑
-共同把专业信息翻译成生活与工作中能听懂、能判断、能使用的内容。运行
+Remotion 渲染，制作面向对 AI 感兴趣、愿意了解前沿进展并尝试工具的人看的
+AI 资讯、产品解释和 AI 工具使用视频。作者身份是大厂程序员，但默认不要求
+观众懂编程或 AI 专业术语；素材、文案、配音、导演和剪辑共同把专业信息翻译
+成生活与工作中能听懂、能判断、能使用的内容。运行
 `npm run studio:dev` 后打开 `http://127.0.0.1:5173`。首次安装、配置、操作和
 故障排查见 [VideoAgents 使用说明](docs/videoagents-setup.md)；代码 Review 入口
 见 [实现与验证记录](docs/videoagents-implementation-status.md)，原方案见
@@ -13,6 +14,10 @@ Remotion 渲染，制作面向普通大众的 AI 科普、AI 新闻/产品解释
 当前生产图只在文案通过机器检查后等待人工确认，随后完成配音、分镜和剪辑。
 成片生成后结束，缺素材或执行能力不足时仍可补充输入并续跑；详见
 [生产图精简](docs/videoagents-graph-simplification.md)。
+
+每个正式视频应使用一条独立任务分支，建议按 `video/<job_id>` 命名。运行数据、
+素材、音频、分镜、成片和 checkpoint 都以 `job_id` 与 `revision` 隔离；跨视频
+复用必须显式导入为当前任务素材或来源，不能直接引用另一个视频的运行目录。
 
 下面保留原有单集视频作为渲染兼容性回归样片。它不是当前账号的受众定位，
 也不是 Agent 的选题或文案示例；正式生产统一从 VideoAgents 工作流进入。
@@ -71,25 +76,27 @@ out/                                 可播放 MP4、封面与播放页
 
 Remotion 系列统一固定 4.0.532。该版本修复 4.0.531 发布包中的空 JavaScript 文件，避免 Studio 的 `getRenderQueue is not a function` 错误，见[官方发布说明](https://github.com/remotion-dev/remotion/releases/tag/v4.0.532)。Shapes、Captions 和 Snapcn 为 MIT；Remotion 核心及转场受 [Remotion 许可证](https://github.com/remotion-dev/remotion/blob/v4.0.532/LICENSE.md) 约束，使用方需按组织情况确认许可。
 
-## 152 个现成组件的预览、生产选择与复用
+## 187 个现成组件的预览、生产选择与复用
 
-运行 `npm run components`，打开 `http://127.0.0.1:3102`。实际源码与复用入口分别在 `src/components/component-vertical` 和 `src/components/component-horizontal`；注册、目录元数据和共享工具在 `src/components/community`。每个库下的 `entries/<slug>.tsx` 是单组件入口，路径索引见 `docs/component-paths.json`。当前包含原先 44 个组件（Snapcn 21、RVE 11、Remocn 5、RemotionUI 3、Bits 4）和新增 video-talkcraft 108 张卡，共 152 个。
+运行 `npm run components`，打开 `http://127.0.0.1:3102`。实际源码与复用入口分别在 `src/components/component-vertical` 和 `src/components/component-horizontal`；注册、目录元数据和共享工具在 `src/components/community`。每个库下的 `entries/<slug>.tsx` 是单组件入口，路径索引见 `docs/component-paths.json`。当前共 187 个社区组件：原先 152 个，加上 RemotionUI 10 个、RVE 15 个、RenderComp 10 个精选补充。
 
-Studio 分两个同名文件夹：`component-horizontal` 展示 152 个横版演示；`component-vertical` 展示对应的 152 个 1080×1920 / 30fps 原生竖屏演示，共 304 个 Composition。竖屏使用独立布局：文字分行、对比上下排列、界面内容纵向展开、图表和动画路径使用竖屏坐标。Bits 聊天组件的横版演示使用1280×720，其余横版沿用来源画布。详见 [原生竖屏说明](docs/native-portrait.md)。
+Studio 分两个同名文件夹：`component-horizontal` 展示 187 个横版演示；`component-vertical` 展示对应的 187 个 1080×1920 / 30fps 原生竖屏演示，共 374 个 Composition。竖屏使用独立布局：文字分行、对比上下排列、界面内容纵向展开、图表和动画路径使用竖屏坐标。Bits 聊天组件的横版演示使用1280×720，其余横版沿用来源画布。详见 [原生竖屏说明](docs/native-portrait.md)。
 
-VideoAgents 的生产 Timeline 已开放全部 152 个逻辑组件，并提供 9 个可参数化
-适配器，共 161 个稳定 `component_id`。同一社区组件不拆成两个生产 ID，渲染器
+VideoAgents 的生产 Timeline 已开放全部 187 个社区组件，并提供 9 个可参数化
+适配器，共 196 个稳定 `component_id`。同一社区组件不拆成两个生产 ID，渲染器
 会根据 timeline 方向自动选择横版或原生竖版实现。统一清单由
 `scripts/build-production-component-manifest.mjs` 从组件目录和使用指南生成到
 `videoagents/component-manifest.json`，Python 导演/校验、React 分镜编辑器和
 Remotion registry 共用；运行 `npm run check:production-components` 可检查清单
 是否漂移。
 
-152 个社区组件目前以**固定视觉预设**接入：`props={}`、`asset_src=null`，内置
-演示文案和数字不能作为本片事实证据；真实文案、数据、证据图、视频和步骤应
-使用 9 个参数化适配器。Talkcraft 的 108 个预设受 PolyForm Noncommercial
-限制，仅对 personal/unspecified 任务开放，commercial 任务会在导演 schema、
-后端校验和前端选择器中排除。
+187 个社区组件以**安全内容槽位**接入：导演可以按组件知识库选择合适预设，
+把当前任务的素材、短文案、指标、列表或视频片段塞进 `content_mode`、`items`、
+`metric`、`asset_fit`、`asset_crop`、`start_seconds`、`end_seconds` 等受控字段；
+内置演示文案和数字不能作为本片事实证据。需要完全结构化的数据图、步骤、对比、
+结论或证据图时，继续优先使用 9 个参数化适配器。Talkcraft 的 108 个预设受
+PolyForm Noncommercial 限制，仅对 personal/unspecified 任务开放，commercial
+任务会在导演 schema、后端校验和前端选择器中排除。
 
 详细用法见 [组件库说明](docs/component-library.md)。`npm run check:components` 会核对 108 个原始 Talkcraft 源码 SHA-256，在原分辨率渲染每个原版的起始 / 中间 / 结束帧及每个原生竖屏的起始 / 中间 / 结束帧；`npm run catalog:components` 据验证结果更新离线效果页 `out/components/index.html`。具体检查结果以生成的 `out/components/verification.json` 为准。
 

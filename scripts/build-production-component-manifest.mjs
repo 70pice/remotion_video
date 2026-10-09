@@ -4,12 +4,15 @@ import process from 'node:process';
 
 const root = process.cwd();
 const output = path.join(root, 'videoagents', 'component-manifest.json');
+const expectedAdapterCount = 9;
+const expectedPresetCount = 187;
 const libraries = [
   {key: 'snapcn', name: 'Snapcn'},
   {key: 'rve', name: 'RVE'},
   {key: 'remocn', name: 'Remocn'},
   {key: 'remotion-ui', name: 'RemotionUI'},
   {key: 'bits', name: 'Bits'},
+  {key: 'rendercomp', name: 'RenderComp'},
   {key: 'video-talkcraft', name: 'Talkcraft'},
 ];
 
@@ -63,7 +66,7 @@ for (const library of libraries) {
       library: library.name,
       orientation: 'both',
       kind: 'preset',
-      props_mode: 'empty',
+      props_mode: 'material_slots',
       production_ready: true,
       min_frames: 15,
       allowed_usages: library.name === 'Talkcraft'
@@ -77,8 +80,9 @@ for (const library of libraries) {
 
 const entries = [...semantic, ...community];
 const ids = new Set(entries.map((entry) => entry.component_id));
-if (semantic.length !== 9 || community.length !== 152 || ids.size !== 161) {
-  throw new Error(`Expected 9 adapters + 152 presets = 161 unique IDs, got ${ids.size}`);
+if (semantic.length !== expectedAdapterCount || community.length !== expectedPresetCount ||
+  ids.size !== expectedAdapterCount + expectedPresetCount) {
+  throw new Error(`Expected ${expectedAdapterCount} adapters + ${expectedPresetCount} presets = ${expectedAdapterCount + expectedPresetCount} unique IDs, got ${ids.size}`);
 }
 for (const entry of entries) {
   if (!/^[A-Za-z0-9_-]{1,100}$/.test(entry.component_id)) {
@@ -95,5 +99,5 @@ if (process.argv.includes('--check')) {
   }
 } else {
   await writeFile(output, content);
-  console.log(`Wrote ${path.relative(root, output)} with 9 adapters and 152 production presets.`);
+  console.log(`Wrote ${path.relative(root, output)} with ${expectedAdapterCount} adapters and ${expectedPresetCount} production presets.`);
 }

@@ -43,5 +43,115 @@
     "licenseNote": "MIT，原文保存在 licenses/community/remotion-ui/LICENSE.txt；保留版权与许可声明。",
     "width": 1280,
     "height": 720
+  },
+  {
+    "slug": "remotion-ui-social-clip",
+    "name": "Social Clip",
+    "effect": "完整短视频钩子、字幕和结尾卡框架",
+    "useCase": "口播短视频和社媒切片",
+    "sourcePath": "registry/remotion-ui-social-clip.tsx",
+    "previewUrl": "https://remotionui.com/docs/components/social-clip",
+    "localPath": "src/components/component-horizontal/remotion-ui/additions.tsx",
+    "compositionId": "RemotionUI-SocialClip",
+    "licenseNote": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "remotion-ui-bar-chart-race",
+    "name": "Bar Chart Race",
+    "effect": "排行条随时间重新排序",
+    "useCase": "展示排名变化和竞赛感",
+    "sourcePath": "registry/remotion-ui-bar-chart-race.tsx",
+    "previewUrl": "https://remotionui.com/docs/components/bar-chart-race",
+    "localPath": "src/components/component-horizontal/remotion-ui/additions.tsx",
+    "compositionId": "RemotionUI-BarChartRace",
+    "licenseNote": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "remotion-ui-kanban-move",
+    "name": "Kanban Move",
+    "effect": "任务卡在看板列之间移动",
+    "useCase": "表达项目流转和 agent workflow",
+    "sourcePath": "registry/remotion-ui-kanban-move.tsx",
+    "previewUrl": "https://remotionui.com/docs/components/kanban-move",
+    "localPath": "src/components/component-horizontal/remotion-ui/additions.tsx",
+    "compositionId": "RemotionUI-KanbanMove",
+    "licenseNote": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "remotion-ui-device-mockup-3d",
+    "name": "Device Mockup 3D",
+    "effect": "带透视的设备界面展示",
+    "useCase": "产品演示、开发工具和录屏包装",
+    "sourcePath": "registry/remotion-ui-device-mockup-3d.tsx",
+    "previewUrl": "https://remotionui.com/docs/components/device-mockup-3d",
+    "localPath": "src/components/component-horizontal/remotion-ui/additions.tsx",
+    "compositionId": "RemotionUI-DeviceMockup3D",
+    "licenseNote": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "remotion-ui-split-text-chars",
+    "name": "Split Text Chars",
+    "effect": "标题字符逐个入场",
+    "useCase": "强节奏标题和关键词开场",
+    "sourcePath": "registry/remotion-ui-split-text-chars.tsx",
+    "previewUrl": "https://remotionui.com/docs/components/split-text-chars",
+    "localPath": "src/components/component-horizontal/remotion-ui/additions.tsx",
+    "compositionId": "RemotionUI-SplitTextChars",
+    "licenseNote": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "remotion-ui-aurora-bg",
+    "name": "Aurora Background",
+    "effect": "柔性流动背景配标题",
+    "useCase": "标题页、章节页和氛围过渡",
+    "sourcePath": "registry/remotion-ui-aurora-bg.tsx",
+    "previewUrl": "https://remotionui.com/docs/components/aurora-bg",
+    "localPath": "src/components/component-horizontal/remotion-ui/additions.tsx",
+    "compositionId": "RemotionUI-AuroraBg",
+    "licenseNote": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "remotion-ui-audio-wave-captions",
+    "name": "Audio Wave Captions",
+    "effect": "声波与字幕同步出现",
+    "useCase": "旁白、播客、采访和语音片段",
+    "sourcePath": "registry/remotion-ui-audio-wave-captions.tsx",
+    "previewUrl": "https://remotionui.com/docs/components/audio-wave-captions",
+    "localPath": "src/components/component-horizontal/remotion-ui/additions.tsx",
+    "compositionId": "RemotionUI-AudioWaveCaptions",
+    "licenseNote": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "remotion-ui-end-card",
+    "name": "End Card",
+    "effect": "结尾行动卡和下一步提示",
+    "useCase": "视频收束、关注/跳转/总结",
+    "sourcePath": "registry/remotion-ui-end-card.tsx",
+    "previewUrl": "https://remotionui.com/docs/components/end-card",
+    "localPath": "src/components/component-horizontal/remotion-ui/additions.tsx",
+    "compositionId": "RemotionUI-EndCard",
+    "licenseNote": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "remotion-ui-glass-panel",
+    "name": "Glass Panel",
+    "effect": "玻璃态信息覆盖层",
+    "useCase": "来源、指标、解释文本叠加",
+    "sourcePath": "registry/remotion-ui-glass-panel.tsx",
+    "previewUrl": "https://remotionui.com/docs/components/glass-panel",
+    "localPath": "src/components/component-horizontal/remotion-ui/additions.tsx",
+    "compositionId": "RemotionUI-GlassPanel",
+    "licenseNote": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。"
+  },
+  {
+    "slug": "remotion-ui-path-draw",
+    "name": "Path Draw",
+    "effect": "路径线条逐步画出",
+    "useCase": "路线、流程和因果路径",
+    "sourcePath": "registry/remotion-ui-path-draw.tsx",
+    "previewUrl": "https://remotionui.com/docs/components/path-draw",
+    "localPath": "src/components/component-horizontal/remotion-ui/additions.tsx",
+    "compositionId": "RemotionUI-PathDraw",
+    "licenseNote": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。"
   }
 ]

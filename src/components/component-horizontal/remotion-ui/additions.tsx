@@ -1,0 +1,40 @@
+import {makeCuratedDemos, type CuratedDemoDefinition} from '../curated/CuratedScene';
+
+export const remotionUiAdditions: CuratedDemoDefinition[] = [
+  {id: 'RemotionUI-SocialClip', name: 'Social Clip', slug: 'remotion-ui-social-clip',
+    variant: 'social-clip', title: '素材变成短视频钩子', kicker: 'social clip', accent: '#2DD4BF',
+    secondary: 'Hook / caption / end card', durationInFrames: 210},
+  {id: 'RemotionUI-BarChartRace', name: 'Bar Chart Race', slug: 'remotion-ui-bar-chart-race',
+    variant: 'bar-chart-race', title: '排行随时间变化', kicker: 'data race', accent: '#38BDF8',
+    secondary: 'ranking change', durationInFrames: 220},
+  {id: 'RemotionUI-KanbanMove', name: 'Kanban Move', slug: 'remotion-ui-kanban-move',
+    variant: 'kanban-move', title: '任务从计划流转到完成', kicker: 'workflow', accent: '#A3E635',
+    secondary: 'agent pipeline', durationInFrames: 210},
+  {id: 'RemotionUI-DeviceMockup3D', name: 'Device Mockup 3D', slug: 'remotion-ui-device-mockup-3d',
+    variant: 'device-mockup-3d', title: '产品界面放进设备框', kicker: 'product demo', accent: '#F97316',
+    secondary: 'screen recording', durationInFrames: 210},
+  {id: 'RemotionUI-SplitTextChars', name: 'Split Text Chars', slug: 'remotion-ui-split-text-chars',
+    variant: 'split-text-chars', title: 'Key Idea', kicker: 'title layer', accent: '#FACC15',
+    secondary: 'character reveal', durationInFrames: 150},
+  {id: 'RemotionUI-AuroraBg', name: 'Aurora Background', slug: 'remotion-ui-aurora-bg',
+    variant: 'aurora-bg', title: '柔性氛围背景', kicker: 'background', accent: '#60A5FA',
+    secondary: 'title safe zone', durationInFrames: 210},
+  {id: 'RemotionUI-AudioWaveCaptions', name: 'Audio Wave Captions', slug: 'remotion-ui-audio-wave-captions',
+    variant: 'audio-wave-captions', title: '声波配字幕', kicker: 'voice visual', accent: '#FB7185',
+    secondary: '旁白重点跟随声波', durationInFrames: 210},
+  {id: 'RemotionUI-EndCard', name: 'End Card', slug: 'remotion-ui-end-card',
+    variant: 'end-card', title: '结尾行动卡', kicker: 'closing', accent: '#22C55E',
+    secondary: 'next video', durationInFrames: 180},
+  {id: 'RemotionUI-GlassPanel', name: 'Glass Panel', slug: 'remotion-ui-glass-panel',
+    variant: 'glass-panel', title: '玻璃信息层', kicker: 'overlay', accent: '#38BDF8',
+    secondary: 'source label', durationInFrames: 180},
+  {id: 'RemotionUI-PathDraw', name: 'Path Draw', slug: 'remotion-ui-path-draw',
+    variant: 'path-draw', title: '路径逐步画出', kicker: 'motion path', accent: '#F97316',
+    secondary: 'route highlight', durationInFrames: 180},
+];
+
+export const remotionUiCuratedDemos = makeCuratedDemos(
+  remotionUiAdditions,
+  'landscape',
+  {width: 1280, height: 720},
+);

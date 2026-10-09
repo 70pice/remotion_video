@@ -1,0 +1,112 @@
+[
+  {
+    "slug": "pixel-candlestick-ohlc",
+    "name": "Pixel Candlestick OHLC",
+    "effect": "像素风 K 线蜡烛图",
+    "useCase": "股票、量化和行情解读",
+    "sourcePath": "templates/pixel-candlestick-ohlc.tsx",
+    "previewUrl": "https://github.com/RenderComp/free-remotion-templates/tree/main/templates/pixel-candlestick-ohlc",
+    "localPath": "src/components/component-horizontal/rendercomp/demo.tsx",
+    "compositionId": "RenderComp-PixelCandlestickOhlc",
+    "licenseNote": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。"
+  },
+  {
+    "slug": "racing-chart",
+    "name": "Racing Chart",
+    "effect": "横向排行条竞速变化",
+    "useCase": "榜单、排名和竞赛数据",
+    "sourcePath": "templates/racing-chart.tsx",
+    "previewUrl": "https://github.com/RenderComp/free-remotion-templates/tree/main/templates/racing-chart",
+    "localPath": "src/components/component-horizontal/rendercomp/demo.tsx",
+    "compositionId": "RenderComp-RacingChart",
+    "licenseNote": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。"
+  },
+  {
+    "slug": "kpi-counter",
+    "name": "KPI Counter",
+    "effect": "大数字从零计数到目标值",
+    "useCase": "强调关键结果和业务指标",
+    "sourcePath": "templates/kpi-counter.tsx",
+    "previewUrl": "https://github.com/RenderComp/free-remotion-templates/tree/main/templates/kpi-counter",
+    "localPath": "src/components/component-horizontal/rendercomp/demo.tsx",
+    "compositionId": "RenderComp-KpiCounter",
+    "licenseNote": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。"
+  },
+  {
+    "slug": "glass-lower-third",
+    "name": "Glass Lower Third",
+    "effect": "半透明下三分之一信息条",
+    "useCase": "人物、来源和频道说明",
+    "sourcePath": "templates/glass-lower-third.tsx",
+    "previewUrl": "https://github.com/RenderComp/free-remotion-templates/tree/main/templates/glass-lower-third",
+    "localPath": "src/components/component-horizontal/rendercomp/demo.tsx",
+    "compositionId": "RenderComp-GlassLowerThird",
+    "licenseNote": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。"
+  },
+  {
+    "slug": "social-reel",
+    "name": "Social Reel",
+    "effect": "竖屏社媒视频框架",
+    "useCase": "短视频开头、字幕和互动提示",
+    "sourcePath": "templates/social-reel.tsx",
+    "previewUrl": "https://github.com/RenderComp/free-remotion-templates/tree/main/templates/social-reel",
+    "localPath": "src/components/component-horizontal/rendercomp/demo.tsx",
+    "compositionId": "RenderComp-SocialReel",
+    "licenseNote": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。"
+  },
+  {
+    "slug": "pixel-waterfall-cycle",
+    "name": "Pixel Waterfall Cycle",
+    "effect": "像素块瀑布循环流动",
+    "useCase": "节奏、科技感和背景层",
+    "sourcePath": "templates/pixel-waterfall-cycle.tsx",
+    "previewUrl": "https://github.com/RenderComp/free-remotion-templates/tree/main/templates/pixel-waterfall-cycle",
+    "localPath": "src/components/component-horizontal/rendercomp/demo.tsx",
+    "compositionId": "RenderComp-PixelWaterfallCycle",
+    "licenseNote": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。"
+  },
+  {
+    "slug": "pencil-draw",
+    "name": "Pencil Draw",
+    "effect": "手绘线条逐步生成",
+    "useCase": "标注、草图和路径讲解",
+    "sourcePath": "templates/pencil-draw.tsx",
+    "previewUrl": "https://github.com/RenderComp/free-remotion-templates/tree/main/templates/pencil-draw",
+    "localPath": "src/components/component-horizontal/rendercomp/demo.tsx",
+    "compositionId": "RenderComp-PencilDraw",
+    "licenseNote": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。"
+  },
+  {
+    "slug": "eye-reveal",
+    "name": "Eye Reveal",
+    "effect": "视线形遮罩打开画面",
+    "useCase": "揭示重点、注意力聚焦",
+    "sourcePath": "templates/eye-reveal.tsx",
+    "previewUrl": "https://github.com/RenderComp/free-remotion-templates/tree/main/templates/eye-reveal",
+    "localPath": "src/components/component-horizontal/rendercomp/demo.tsx",
+    "compositionId": "RenderComp-EyeReveal",
+    "licenseNote": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。"
+  },
+  {
+    "slug": "news-ticker",
+    "name": "News Ticker",
+    "effect": "底部新闻跑马灯滚动",
+    "useCase": "新闻摘要、状态流和实时更新",
+    "sourcePath": "templates/news-ticker.tsx",
+    "previewUrl": "https://github.com/RenderComp/free-remotion-templates/tree/main/templates/news-ticker",
+    "localPath": "src/components/component-horizontal/rendercomp/demo.tsx",
+    "compositionId": "RenderComp-NewsTicker",
+    "licenseNote": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。"
+  },
+  {
+    "slug": "product-spotlight",
+    "name": "Product Spotlight",
+    "effect": "产品界面和卖点聚焦",
+    "useCase": "产品功能、工具介绍、卖点解释",
+    "sourcePath": "templates/product-spotlight.tsx",
+    "previewUrl": "https://github.com/RenderComp/free-remotion-templates/tree/main/templates/product-spotlight",
+    "localPath": "src/components/component-horizontal/rendercomp/demo.tsx",
+    "compositionId": "RenderComp-ProductSpotlight",
+    "licenseNote": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。"
+  }
+]

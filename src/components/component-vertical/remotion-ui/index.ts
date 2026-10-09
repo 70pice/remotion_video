@@ -1,3 +1,13 @@
 export {default as RemotionUiDataFlowPipes} from './entries/remotion-ui-data-flow-pipes';
 export {default as RemotionUiCodeReveal} from './entries/remotion-ui-code-reveal';
 export {default as RemotionUiAnimatedBarChart} from './entries/remotion-ui-animated-bar-chart';
+export {default as RemotionUiSocialClip} from './entries/remotion-ui-social-clip';
+export {default as RemotionUiBarChartRace} from './entries/remotion-ui-bar-chart-race';
+export {default as RemotionUiKanbanMove} from './entries/remotion-ui-kanban-move';
+export {default as RemotionUiDeviceMockup3d} from './entries/remotion-ui-device-mockup-3d';
+export {default as RemotionUiSplitTextChars} from './entries/remotion-ui-split-text-chars';
+export {default as RemotionUiAuroraBg} from './entries/remotion-ui-aurora-bg';
+export {default as RemotionUiAudioWaveCaptions} from './entries/remotion-ui-audio-wave-captions';
+export {default as RemotionUiEndCard} from './entries/remotion-ui-end-card';
+export {default as RemotionUiGlassPanel} from './entries/remotion-ui-glass-panel';
+export {default as RemotionUiPathDraw} from './entries/remotion-ui-path-draw';

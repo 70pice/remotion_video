@@ -12,6 +12,7 @@ export const communityComponentIds = Object.freeze(
   componentManifest.entries.filter((entry) => entry.kind === 'preset').map((entry) => entry.component_id),
 );
 const communityComponentIdSet = new Set(communityComponentIds);
+const communityPresetPropKeys = ['content_mode', 'asset_fit', 'asset_crop', 'start_seconds', 'end_seconds', 'items', 'metric'];
 
 const fail = (message) => { throw new Error(`Timeline validation: ${message}`); };
 const object = (value, name) => {
@@ -57,6 +58,39 @@ const seconds = (value, name) => {
   }
 };
 
+const validateCommunityPresetProps = (shot, name) => {
+  const props = object(shot.props, `${name}.props`);
+  keys(props, communityPresetPropKeys, `${name}.props`);
+  if (props.content_mode !== undefined && !['auto', 'media', 'list', 'metric'].includes(props.content_mode)) {
+    fail(`${name}.props.content_mode must be auto, media, list or metric`);
+  }
+  if (props.asset_fit !== undefined && !['contain', 'cover'].includes(props.asset_fit)) {
+    fail(`${name}.props.asset_fit must be contain or cover`);
+  }
+  if (props.asset_crop !== undefined) {
+    normalizedRect(props.asset_crop, `${name}.props.asset_crop`, 'asset');
+  }
+  seconds(props.start_seconds, `${name}.props.start_seconds`);
+  seconds(props.end_seconds, `${name}.props.end_seconds`);
+  const start = props.start_seconds ?? 0;
+  if (props.end_seconds !== undefined && props.end_seconds <= start) {
+    fail(`${name}.props.end_seconds must be greater than start_seconds`);
+  }
+  if (props.items !== undefined) {
+    if (!Array.isArray(props.items) || props.items.length < 1 || props.items.length > 4) {
+      fail(`${name}.props.items requires 1 to 4 supplied text items`);
+    }
+    props.items.forEach((item, index) => text(item, `${name}.props.items[${index}]`, 64, true));
+  }
+  if (props.metric !== undefined) {
+    const metric = object(props.metric, `${name}.props.metric`);
+    keys(metric, ['label', 'value', 'detail'], `${name}.props.metric`);
+    text(metric.label, `${name}.props.metric.label`, 48, true);
+    text(metric.value, `${name}.props.metric.value`, 40, true);
+    optionalText(metric.detail, `${name}.props.metric.detail`, 64);
+  }
+};
+
 export const validateMediaSource = (source, jobId, name = 'media source') => {
   if (source === null) return;
   if (typeof source !== 'string') fail(`${name} must be a controlled local media path or null`);
@@ -81,8 +115,7 @@ const validateProps = (shot, name) => {
     });
   };
   if (communityComponentIdSet.has(shot.component_id)) {
-    keys(props, [], `${name}.props`);
-    if (shot.asset_src) fail(`${name}: preset components do not accept asset_src`);
+    validateCommunityPresetProps(shot, name);
     return;
   }
   switch (shot.component_id) {
@@ -195,8 +228,13 @@ export const validateTimeline = (input) => {
     text(shot.source_label, `${name}.source_label`, 160);
     if (typeof shot.accent_color !== 'string' || !/^#[a-fA-F0-9]{6}$/.test(shot.accent_color)) fail(`${name}.accent_color must be a six-digit hex color`);
     validateMediaSource(shot.asset_src, timeline.job_id, `${name}.asset_src`);
-    if (shot.asset_src && (shot.component_id === 'video' ? !/\.mp4$/i.test(shot.asset_src) : !/\.(png|jpe?g|webp)$/i.test(shot.asset_src))) {
-      fail(`${name}.asset_src requires ${shot.component_id === 'video' ? 'an MP4 video' : 'a PNG, JPEG or WebP image'}`);
+    if (shot.asset_src) {
+      const acceptsVideo = shot.component_id === 'video' || communityComponentIdSet.has(shot.component_id);
+      const acceptsImage = shot.component_id !== 'video';
+      const valid = (acceptsVideo && /\.mp4$/i.test(shot.asset_src)) || (acceptsImage && /\.(png|jpe?g|webp)$/i.test(shot.asset_src));
+      if (!valid) {
+        fail(`${name}.asset_src requires ${communityComponentIdSet.has(shot.component_id) ? 'a PNG, JPEG, WebP image or MP4 video' : shot.component_id === 'video' ? 'an MP4 video' : 'a PNG, JPEG or WebP image'}`);
+      }
     }
     validateProps(shot, name);
   });

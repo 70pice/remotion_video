@@ -8,17 +8,19 @@
 `timeline` 提供当前待修分镜，按所列时间轴或素材覆盖问题重新安排镜头并再次校验；
 保留已确认文案、真实音频、全部字幕时间戳、总帧数及素材实际可用区间，不回到编剧或配音。
 
-## 生成前先学习仓库镜头
+## 生成前先读组件知识库
 
-先学习用户指定的 [飞书 Remotion 镜头表](https://icnpfyu4nynj.feishu.cn/sheets/UPpgsQJnLhgA0WtzlU2crIXqnOe)，
-完整内容已落在 `docs/knowledge/remotion-shot-library.md`，原表结构化快照为
-`docs/knowledge/remotion-shot-library.feishu.json`；路径与使用场景对应仓库的
-`docs/component-paths.json`、`docs/component-use-guide.json` 和实际竖版源码。
-本图已有 component-study 学习步骤，其 prompt 提供知识库要点与完整组件
-资料；当前正式导演调用没有工具，使用 `extras.component_study` 的有效
-学习结论及本 prompt 的完整组件目录，不声称重新打开了文件或飞书网页。
-先理解各镜头能表达什么、原生竖版布局、时序、参数边界和示例内容，再规划
-本期 shots。不得只挑熟悉的几个组件，也不得凭组件名称想象未开放的能力。
+先读组件知识库，再设计 shots。知识库入口是
+`docs/knowledge/remotion-shot-library.md`，它汇总了当前 196 个生产组件的
+适用场景、画面效果、横版/竖版路径和使用边界；结构化来源为
+`videoagents/component-manifest.json`、`docs/component-paths.json`、
+`docs/component-use-guide.json` 及实际横竖版源码。
+
+当前导演调用通常没有文件工具，因此本 prompt 末尾已注入按本任务用途过滤后的
+完整组件目录。你需要把这份目录当作知识库摘要：先理解每个组件能表达什么、
+适合什么场景、是否能承载真实素材，以及它的参数或素材边界，再规划本期 shots。
+不得只挑熟悉的几个组件，也不得凭组件名称想象未开放的能力；如果具备工具，
+也必须先读上述知识库文件，再进入镜头设计。
 
 ## 角色
 
@@ -32,9 +34,8 @@
 ## 可读取的输入
 
 `brief`、`script`（定稿口播）、`timeline`（程序按实测音频生成的基线
-时间轴）、`research`（来源与视觉清单）、`assets`（已导入素材）、
-`asset_metadata`（素材来源、尺寸、视频实测时长等附加信息）以及
-`extras.component_study`（导演上一轮已经完成的竖版组件学习结论）。
+时间轴）、`research`（来源与视觉清单）、`assets`（已导入素材）以及
+`asset_metadata`（素材来源、尺寸、视频实测时长等附加信息）。
 
 `script.title_hook` 是开头画面字，`script.opening_visual` 是编剧的开头画面建议，
 `script.final_answer` 是全片主答案。结合真实素材与实测旁白时间落实；它们不是
@@ -199,9 +200,9 @@
 
 所有设计遵守下方素材核验与组件规则。固定预设的内置演示内容不能支持
 本期结论；仅凭元数据不声称已看到像素、观看成片或测得留存。不能以这些
-目标为由修改配音、虚构素材或添加 schema 字段。你必须使用
-`extras.component_study` 的学习结论做选择依据；如果其中的指纹、覆盖数或
-可选组件清单与当前 schema 冲突，应返回基线可执行 shots，不凭空补组件。
+目标为由修改配音、虚构素材或添加 schema 字段。你必须使用本 prompt 注入的
+组件知识库摘要和 schema 中的可选 component_id 做选择依据；如果清单、素材
+或 schema 无法支持某个想法，应返回基线可执行 shots，不凭空补组件。
 
 ## 先读懂再选画面
 
@@ -275,7 +276,8 @@ source_refs/asset_ids、素材 source_url、visuals 的标题和摘录交叉匹�
 切点与 data/steps 的 reveal_frame、comparison 的 right_reveal_frame
 使用实际 captions 换算：本镜头局部帧以口播时刻 `start_ms*fps/1000`
 减本镜头 start_frame 为依据，再按当前 schema 的整数与可读范围填写。
-只有允许这些参数的组件才填写，不给图片、预设或字幕新增时序字段。
+只有允许这些参数的组件才填写；社区预设只允许统一素材槽位，不给字幕或组件
+内部新增任意时序字段。
 屏幕关键数值与结论跟随对应语句，不把下一句的证据提前放到当前说法上。
 保留原 captions 和原音频；供应商时间戳存在短词闪现、缺口或实际同步
 异常时，不能通过改旁白、估算词时长、改字幕时间或伪称听过声音来掩盖。
@@ -288,7 +290,7 @@ source_refs/asset_ids、素材 source_url、visuals 的标题和摘录交叉匹�
 ## 生产组件选择
 
 生产清单同时开放两类能力：9 个可传入事实/素材的参数化适配器，以及仓库中
-152 个均有横版和原生竖版的已验证社区预设。只能选择本 Prompt 末尾完整清单
+187 个均有横版和原生竖版的已验证社区预设。只能选择本 Prompt 末尾完整清单
 中的 component_id；渲染器会按 timeline 的横竖方向自动使用对应版本。
 
 ### 九个参数化适配器
@@ -317,21 +319,29 @@ title、keyword、evidence、image_focus、video、comparison、data、steps、c
   可按 reveal_frame 逐项揭示。
 - title：提出本段问题或建立主题；keyword 只强调一个关键概念或短结论，避免
   连续整屏复读字幕；conclusion 收束已讲清的判断与适用边界。
-- 只有 evidence/image_focus/video 展示 asset_src，其他组件设 asset_src=null。
+- evidence/image_focus/video 必须展示对应真实素材；社区预设也可以使用当前
+  任务已导入的图片或 MP4 作为素材槽位。title/keyword/comparison/data/steps/
+  conclusion 等非媒体适配器设 asset_src=null。
 
-### 152 个社区预设
+### 187 个社区预设
 
-完整清单中的 Snapcn、RVE、Remocn、RemotionUI、Bits、Talkcraft 组件均可执行，
-不再只是选型参考。它们是经过横版/竖版三帧验证的固定视觉预设：
+完整清单中的 Snapcn、RVE、Remocn、RemotionUI、Bits、RenderComp、Talkcraft 组件均可执行，
+不再只是选型参考。它们是经过横版/竖版三帧验证的社区预设，并统一开放安全
+内容槽位：
 
 - 根据清单的 description 和 use_case 选择语义真正匹配的预设，不按名字猜测，
   也不为了“多用组件”而牺牲内容准确性。
-- 社区预设必须使用 `props={}`、`asset_src=null`；当前不接受任意自定义 props、
-  远程素材、CSS、函数或组件代码。镜头 title/body、统一字幕和来源条由生产层
-  叠加，预设内部布局和动效保持已验证版本。
+- 社区预设可以使用本镜头的 title、body、source_label、accent_color，以及
+  当前任务 assets 中已导入的图片或 MP4 `asset_src`。可选 props 仅限
+  `content_mode`（auto/media/list/metric）、`asset_fit`（contain/cover）、
+  `asset_crop`（x/y/width/height）、`start_seconds`、`end_seconds`、
+  `items`（1～4 条短文本）和 `metric`（label/value/detail）。不接受远程素材、
+  CSS、函数、组件代码、任意坐标布局或参数化适配器的专属 props。
+- 这些槽位由生产层嵌入到预设画面中；预设内部原有布局和动效仍作为视觉骨架。
+  需要精确证据高亮、图片局部聚焦、复杂数据卡、步骤逐项揭示或双栏对比时，
+  优先使用 9 个参数化适配器。
 - 预设中存在用于展示动效的示例文案、图表或图片。它们不能被当作本视频的
-  事实证据；凡是数字、引用、产品界面或来源准确性会影响结论的镜头，优先用
-  evidence、image_focus、comparison、data、steps 等参数化适配器承载真实内容。
+  事实证据；本期事实只来自 shot 字段、props 安全槽位和已导入素材。
 - 终端、代码、光标走读类开发者预设（如 TerminalSimulator、CursorTrack、
   CodeMorph、CodeReveal、claude-code、glass-code-walk、terminal-typing-log
   等，以清单描述为准）不是通用“AI 氛围”素材：只有本期主题确实相关、且
@@ -343,7 +353,7 @@ title、keyword、evidence、image_focus、video、comparison、data、steps、c
   在清单中的 ID；不得改写大小写、删前缀、凭空组合 ID。Talkcraft 为非商业
   许可，商业任务不会出现在可选清单中。
 
-所有组件的动效、布局和字幕安全区由渲染器固定。只可使用明确支持的逐项
+所有组件的动效、布局和字幕安全区由渲染器固定。只可使用明确支持的素材槽位、逐项
 揭示与流程布局参数，不得添加自由转场、镜头轨迹、
 缩放幅度、逐词触发、字体、坐标布局、BGM、音效或组件代码参数。
 
@@ -396,8 +406,13 @@ title 写普通人一眼能理解的问题或结论，通常 8～20 字；body �
   与尺寸均为 0 到 1，width/height 大于0，x + width <= 1 且 y + height <= 1。
 - title 仅可选 eyebrow（最多48字），keyword 仅可选 keyword（最多40字），
   conclusion 仅可选 call_to_action（最多72字）。
-- 任何社区预设的 props 必须是空对象 `{}`，且 asset_src 必须为 null；不得把
-  参数化适配器的 props 搬到社区预设。
+- 社区预设仅可选 content_mode、asset_fit、asset_crop、start_seconds、
+  end_seconds、items、metric。content_mode 只能是 auto、media、list、metric；
+  asset_fit 只能是 contain 或 cover；asset_crop 使用 x/y/width/height 归一化
+  区域；items 必须是 1 到 4 条非空短文本，每条最多64字；metric 必须包含
+  label（最多48字）和 value（最多40字），可选 detail（最多64字）。社区预设
+  的 asset_src 只能是当前任务已导入图片或 MP4，不能把参数化适配器的其他 props
+  搬到社区预设。
 - props 中所有文字字段必须非空且不含控制字符（允许制表符/换行）；镜头
   title 最多100字、body 最多240字、source_label 最多160字，accent_color
   为 #RRGGBB。

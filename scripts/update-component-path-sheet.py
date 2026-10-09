@@ -38,12 +38,12 @@ SHEET_IDS = {
 
 PATH_COLUMNS = ["组件名称", "竖版相对文件路径", "横版相对文件路径", "适合表达的内容", "适用场景"]
 EXPECTED_SHAPES = {
-    FIRST_SHEET_NAME: (5, 152),
-    REPO_SHEET_NAME: (9, 6),
+    FIRST_SHEET_NAME: (5, 187),
+    REPO_SHEET_NAME: (9, 7),
     TALKCRAFT_SHEET_NAME: (5, 108),
     INTRO_SHEET_NAME: (2, 12),
 }
-OBSOLETE_RANGE = "F1:M153"
+OBSOLETE_RANGE = "F1:M188"
 
 
 def load_json(path: Path) -> Any:
@@ -147,7 +147,7 @@ def validate_target_payload(payload: dict[str, Any], metadata_path: Path) -> Non
 
     metadata_by_name = load_metadata_by_name(metadata_path)
     by_name = {sheet["name"]: sheet for sheet in sheets}
-    validate_path_rows(by_name[FIRST_SHEET_NAME], expected_rows=152, metadata_by_name=metadata_by_name)
+    validate_path_rows(by_name[FIRST_SHEET_NAME], expected_rows=187, metadata_by_name=metadata_by_name)
     validate_path_rows(by_name[TALKCRAFT_SHEET_NAME], expected_rows=108, metadata_by_name=None)
     for name in (REPO_SHEET_NAME, INTRO_SHEET_NAME):
         columns, rows = EXPECTED_SHAPES[name]

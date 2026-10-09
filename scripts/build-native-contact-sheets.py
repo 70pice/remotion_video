@@ -16,7 +16,7 @@ else:
     report = json.loads((output / report_name).read_text(encoding='utf-8'))
     portraits = report['portraitResults']
     if not is_progress:
-        assert len(portraits) == 152
+        assert len(portraits) == 187
 font = ImageFont.truetype('C:/Windows/Fonts/consola.ttf', 15)
 columns, per_page = 4, 20
 tile_w, tile_h = 240, 455

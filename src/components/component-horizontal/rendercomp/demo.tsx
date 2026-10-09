@@ -1,0 +1,40 @@
+import {makeCuratedDemos, type CuratedDemoDefinition} from '../curated/CuratedScene';
+
+export const renderCompDefinitions: CuratedDemoDefinition[] = [
+  {id: 'RenderComp-PixelCandlestickOhlc', name: 'Pixel Candlestick OHLC', slug: 'pixel-candlestick-ohlc',
+    variant: 'pixel-candlestick-ohlc', title: 'A 股走势解读', kicker: 'market chart', accent: '#22C55E',
+    secondary: 'OHLC data', durationInFrames: 210},
+  {id: 'RenderComp-RacingChart', name: 'Racing Chart', slug: 'racing-chart',
+    variant: 'racing-chart', title: '榜单动态变化', kicker: 'ranking', accent: '#38BDF8',
+    secondary: 'leaderboard', durationInFrames: 220},
+  {id: 'RenderComp-KpiCounter', name: 'KPI Counter', slug: 'kpi-counter',
+    variant: 'kpi-counter', title: '关键指标放大', kicker: 'kpi', accent: '#FACC15',
+    secondary: 'verified number', durationInFrames: 180},
+  {id: 'RenderComp-GlassLowerThird', name: 'Glass Lower Third', slug: 'glass-lower-third',
+    variant: 'glass-lower-third', title: '人物与来源说明', kicker: 'lower third', accent: '#2DD4BF',
+    secondary: 'source / role', durationInFrames: 180},
+  {id: 'RenderComp-SocialReel', name: 'Social Reel', slug: 'social-reel',
+    variant: 'social-reel', title: '竖屏短视频框架', kicker: 'reel', accent: '#FB7185',
+    secondary: 'caption ready', durationInFrames: 210},
+  {id: 'RenderComp-PixelWaterfallCycle', name: 'Pixel Waterfall Cycle', slug: 'pixel-waterfall-cycle',
+    variant: 'pixel-waterfall-cycle', title: '像素瀑布循环', kicker: 'texture', accent: '#60A5FA',
+    secondary: 'style beat', durationInFrames: 180},
+  {id: 'RenderComp-PencilDraw', name: 'Pencil Draw', slug: 'pencil-draw',
+    variant: 'pencil-draw', title: '手绘路径生成', kicker: 'sketch', accent: '#F97316',
+    secondary: 'annotation', durationInFrames: 180},
+  {id: 'RenderComp-EyeReveal', name: 'Eye Reveal', slug: 'eye-reveal',
+    variant: 'eye-reveal', title: '视线打开揭示', kicker: 'reveal', accent: '#A3E635',
+    secondary: 'attention shift', durationInFrames: 150},
+  {id: 'RenderComp-NewsTicker', name: 'News Ticker', slug: 'news-ticker',
+    variant: 'news-ticker', title: '新闻跑马灯', kicker: 'ticker', accent: '#38BDF8',
+    secondary: 'live updates', durationInFrames: 180},
+  {id: 'RenderComp-ProductSpotlight', name: 'Product Spotlight', slug: 'product-spotlight',
+    variant: 'product-spotlight', title: '产品卖点聚焦', kicker: 'spotlight', accent: '#FACC15',
+    secondary: 'feature card', durationInFrames: 210},
+];
+
+export const componentDemos = makeCuratedDemos(
+  renderCompDefinitions,
+  'landscape',
+  {width: 1280, height: 720},
+);

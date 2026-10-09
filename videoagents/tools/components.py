@@ -15,6 +15,8 @@ MANIFEST_PATH = Path(__file__).resolve().parents[1] / "component-manifest.json"
 COMPONENT_PATHS_PATH = PROJECT_ROOT / "docs" / "component-paths.json"
 COMPONENT_USE_GUIDE_PATH = PROJECT_ROOT / "docs" / "component-use-guide.json"
 VALID_USAGES = {"personal", "commercial", "unspecified"}
+EXPECTED_ADAPTER_COUNT = 9
+EXPECTED_PRESET_COUNT = 187
 
 
 @cache
@@ -26,8 +28,15 @@ def component_manifest() -> tuple[dict[str, Any], ...]:
     identifiers = [entry.get("component_id") for entry in entries]
     adapter_count = sum(1 for entry in entries if entry.get("kind") == "adapter")
     preset_count = sum(1 for entry in entries if entry.get("kind") == "preset")
-    if len(entries) != len(set(identifiers)) or adapter_count != 9 or preset_count != 152:
-        raise RuntimeError("组件清单必须包含 9 个参数适配器和 152 个预设组件")
+    if (
+        len(entries) != len(set(identifiers))
+        or adapter_count != EXPECTED_ADAPTER_COUNT
+        or preset_count != EXPECTED_PRESET_COUNT
+    ):
+        raise RuntimeError(
+            f"组件清单必须包含 {EXPECTED_ADAPTER_COUNT} 个参数适配器和"
+            f" {EXPECTED_PRESET_COUNT} 个预设组件"
+        )
     for entry in entries:
         usages = set(entry.get("allowed_usages", []))
         if entry.get("kind") not in {"adapter", "preset"} or not usages or not usages <= VALID_USAGES:
@@ -125,7 +134,7 @@ def component_source_guide() -> dict[str, Any]:
             "use_case": guide_item.get("useCase") or entry["use_case"],
             "allowed_usages": entry["allowed_usages"],
             "license_scope": "commercial_ok" if "commercial" in entry["allowed_usages"] else "noncommercial_only",
-            "props_mode": entry.get("props_mode", "typed" if entry["kind"] == "adapter" else "empty"),
+            "props_mode": entry.get("props_mode", "typed" if entry["kind"] == "adapter" else "material_slots"),
         }
         if entry["kind"] == "preset":
             path_info = path_by_id.get(entry["component_id"])
@@ -140,8 +149,6 @@ def component_source_guide() -> dict[str, Any]:
             item.update({
                 "vertical_path": path_info["verticalPath"],
                 "vertical_source_path": path_info["verticalSourcePath"],
-                "vertical_path_sha256": hashlib.sha256(vertical_entry.read_bytes()).hexdigest(),
-                "vertical_source_sha256": hashlib.sha256(vertical_source.read_bytes()).hexdigest(),
                 "source_summary": _source_summary(entry_text, source_text, entry["component_id"]),
             })
         else:
@@ -156,13 +163,13 @@ def component_source_guide() -> dict[str, Any]:
         "components": components,
         "selection_rules": [
             "先用真实视频素材；只有视频不存在、时长不足或语义不匹配时才退回图片或解释组件。",
-            "商业用途按 allowed_usages 过滤可选组件，但学习阶段仍要覆盖全部 152 个竖版预设。",
-            "社区预设不能承载事实证据；事实、数字、原文与产品画面优先使用参数化适配器。",
-            "所有竖版预设来源于 docs/component-paths.json 的 verticalPath/verticalSourcePath，并以 SHA256 防漂移。",
+            f"商业用途按 allowed_usages 过滤可选组件，但学习阶段仍要覆盖全部 {EXPECTED_PRESET_COUNT} 个竖版预设。",
+            "社区预设可承载当前任务的图片/视频、标题、正文、短列表、指标和强调色；需要精确证据框、复杂数据或步骤同步时优先使用参数化适配器。",
+            "所有竖版预设来源于 docs/component-paths.json 的 verticalPath/verticalSourcePath，并由 source_fingerprint 防漂移。",
         ],
         "inspection_limits": [
             "组件资料来自使用指南、入口文件和竖版源码静态摘录；没有逐像素渲染观看全部动画。",
-            "固定预设仅作为动效和布局模板，不能把内置 demo 文案或图片当成本期素材。",
+            "预设内部 demo 文案或图片不能当成本期素材；生产时只使用任务导入素材和导演填写的安全内容槽位。",
         ],
     }
     return {**guide, "source_fingerprint": _json_hash(guide)}

@@ -36,6 +36,7 @@ def valid_study(usage="unspecified", **overrides):
             {"group": "Remocn", "use": "适合搜索、Agent 与代码概念"},
             {"group": "RemotionUI", "use": "适合数据流和代码展示"},
             {"group": "Bits", "use": "适合对话、指标和巡看"},
+            {"group": "RenderComp", "use": "适合行情、KPI、下三分之一和短视频包装"},
             {"group": "Talkcraft", "use": "适合非商业短视频节目化包装"},
         ],
         "limits": ["学习来自组件说明、路径和源码 hash，没有逐像素复看全部动画"],
@@ -166,34 +167,34 @@ def test_visual_rebuild_without_director_model_cannot_render_old_timeline(tmp_pa
         node.plan(job, audio, alignment, 2.0, state=state)
 
 
-def test_director_node_retains_new_component_study_in_job_and_handoff(tmp_path, monkeypatch):
+def test_director_node_uses_single_timeline_call_and_no_component_study_handoff(tmp_path, monkeypatch):
     node, job, audio, alignment = director_job(tmp_path)
     node.repo.update_asset_metadata(audio.asset_id, {
         "duration_seconds": 2.0, "alignment": alignment.model_dump(), "origin": "manual",
     })
-    state = VideoState(**job_context(job), run_id="unit-study-handoff",
-                       thread_id="unit-study-handoff", action="produce", extras={})
+    state = VideoState(**job_context(job), run_id="unit-director-single-call",
+                       thread_id="unit-director-single-call", action="produce", extras={})
     calls = []
     monkeypatch.setattr(node.model, "available", lambda role: True)
 
     def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
-        calls.append(output_schema)
-        if "reviewed_preset_ids" in json.dumps(output_schema or {}):
-            return valid_study(job.brief.usage)
+        calls.append(command_id)
+        assert "reviewed_preset_ids" not in json.dumps(output_schema or {})
         return {"shots": context["timeline"]["shots"]}
 
     monkeypatch.setattr(node.model, "call", model)
     result = node(state)
     saved = node.repo.get_job(job.job_id)
     assert result["route"] == "editing"
-    assert {item.kind for item in saved.artifacts} >= {"component_study", "storyboard", "timeline"}
-    assert result["extras"]["component_study"] == valid_study(job.brief.usage)
+    assert {item.kind for item in saved.artifacts} >= {"storyboard", "timeline"}
+    assert "component_study" not in {item.kind for item in saved.artifacts}
+    assert "component_study" not in result.get("extras", {})
     assert saved.timeline.audio_src == audio.timeline_src
     assert result["alignment"] == alignment.model_dump()
 
-    # Re-entering this revision uses the committed study instead of studying again.
+    # Re-entering this revision returns the committed timeline without a model call.
     node.plan(saved, audio, alignment, 2.0, state=result)
-    assert sum("reviewed_preset_ids" in json.dumps(schema) for schema in calls) == 1
+    assert calls == ["unit-director-single-call:timeline"]
 
 
 @pytest.mark.parametrize("image", [False, True])
@@ -204,8 +205,6 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
 
     def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
         calls.append((instruction, context, output_schema))
-        if "reviewed_preset_ids" in json.dumps(output_schema or {}):
-            return valid_study(job.brief.usage)
         return {"shots": context["timeline"]["shots"]}
 
     monkeypatch.setattr(node.model, "call", model)
@@ -213,21 +212,19 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
                               "artifact_url": "/api/artifacts/unprovided-image"}]}
     node.plan(job, audio, alignment, 2.0, research)
 
-    assert len(calls) == 2
-    assert "组件研究助理" in calls[0][0]
-    assert set(calls[0][1]) == {"brief"}
-    instruction, context, schema = calls[1]
+    assert len(calls) == 1
+    instruction, context, schema = calls[0]
     assert instruction.startswith(PROMPT)
     assert ("本次提交的硬约束" in instruction) is image
     assert set(context) == {"brief", "script", "timeline", "research", "assets", "asset_metadata", "extras"}
-    assert "component_study" in context["extras"]
+    assert "component_study" not in context["extras"]
     assert context["extras"]["media_coverage"]["target_ratio"] == 0.7
     assert context["extras"]["media_coverage"]["required"] is image
     assert "component_props_examples" not in context
     expected = [asset.timeline_src for asset in job.assets if asset.mime_type.startswith("image/")] + [None]
     assert schema["$defs"]["Shot"]["properties"]["asset_src"]["enum"] == expected
     components = schema["$defs"]["Shot"]["properties"]["component_id"]["enum"]
-    assert len(components) == 161
+    assert len(components) == 196
     assert "video" in components
     assert "Snapcn-TextReveal" in components
     assert "Talkcraft-crash-zoom-punch" in components
@@ -292,9 +289,9 @@ def test_verification_only_image_is_excluded_from_schema_coverage_and_timeline(t
     result = node.plan(job, audio, alignment, 2.0)
 
     assert not asset_renderable(blocked)
-    assert calls[1][0]["extras"]["media_coverage"]["required"] is False
-    assert calls[1][0]["extras"]["media_coverage"]["eligible_capacity_frames"] == 0
-    assert calls[1][1]["$defs"]["Shot"]["properties"]["asset_src"]["enum"] == [None]
+    assert calls[0][0]["extras"]["media_coverage"]["required"] is False
+    assert calls[0][0]["extras"]["media_coverage"]["eligible_capacity_frames"] == 0
+    assert calls[0][1]["$defs"]["Shot"]["properties"]["asset_src"]["enum"] == [None]
     assert result.shots[0].asset_src is None
     invalid = result.model_copy(update={"shots": [result.shots[0].model_copy(update={
         "component_id": "evidence", "asset_src": blocked.timeline_src, "source_label": "example.test",
@@ -332,7 +329,7 @@ def test_pending_review_assets_enter_director_schema_baseline_and_coverage(tmp_p
     monkeypatch.setattr(node.model, "call", model)
     timeline = node.plan(job, audio, alignment, 2.0)
 
-    schema = calls[1][1]
+    schema = calls[0][1]
     allowed_sources = schema["$defs"]["Shot"]["properties"]["asset_src"]["enum"]
     assert image.timeline_src in allowed_sources
     assert video.timeline_src in allowed_sources
@@ -373,9 +370,9 @@ def test_director_filters_noncommercial_presets_from_commercial_jobs(tmp_path, m
 
     monkeypatch.setattr(node.model, "call", model)
     node.plan(job, audio, alignment, 2.0)
-    instruction, schema = calls[1]
+    instruction, schema = calls[0]
     components = schema["$defs"]["Shot"]["properties"]["component_id"]["enum"]
-    assert len(components) == 53
+    assert len(components) == 88
     assert "Snapcn-TextReveal" in components
     assert "video" in components
     assert all(not component.startswith("Talkcraft-") for component in components)
@@ -553,7 +550,6 @@ def test_shared_final_state_is_read_without_committing_unvalidated_baseline(tmp_
         if "reviewed_preset_ids" in json.dumps(output_schema or {}):
             return valid_study(job.brief.usage)
         assert state["timeline"] is None
-        assert state["extras"]["component_study"] == valid_study(job.brief.usage)
         assert context["timeline"]["audio_src"] == audio.timeline_src
         value = {"shots": copy.deepcopy(context["timeline"]["shots"])}
         if reject:
@@ -566,41 +562,34 @@ def test_shared_final_state_is_read_without_committing_unvalidated_baseline(tmp_
     else:
         timeline = node.plan(job, audio, alignment, 2.0, {"sources": [{"text": "不应覆盖共享state"}]}, state=state)
         assert timeline.audio_src == audio.timeline_src
-    assert calls[0][1] == "unit-resume-command:component-study"
-    context, command = calls[1]
+    assert len(calls) == 1
+    context, command = calls[0]
     assert context["research"]["sources"][0]["text"] == "已冻结的最终证据"
     assert "tools" not in context["research"]
     assert context["asset_metadata"]["unit-image"] == {"description": "最终图片描述", "renderable": True}
     assert context["asset_metadata"].get("unit-audio") == {}
     assert command == "unit-resume-command:timeline"
-    expected_state = copy.deepcopy(original_state)
-    expected_state["extras"] = {"component_study": valid_study(job.brief.usage)}
-    assert state == expected_state and node.repo.get_job(job.job_id).timeline is None
+    assert state == original_state and node.repo.get_job(job.job_id).timeline is None
 
 
-@pytest.mark.parametrize("bad", ["missing_preset", "stale_fingerprint", "wrong_allowed"])
-def test_director_rejects_incomplete_or_stale_component_study(tmp_path, monkeypatch, bad):
+def test_director_ignores_stale_component_study_context(tmp_path, monkeypatch):
     node, job, audio, alignment = director_job(tmp_path)
+    state = VideoState(**job_context(job), run_id="unit-stale-study",
+                       extras={"component_study": valid_study(job.brief.usage, source_fingerprint="0" * 64)})
     monkeypatch.setattr(node.model, "available", lambda role: True)
 
     def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
-        if "reviewed_preset_ids" in json.dumps(output_schema or {}):
-            study = valid_study(job.brief.usage)
-            if bad == "missing_preset":
-                study["reviewed_preset_ids"][-1] = study["reviewed_preset_ids"][0]
-            elif bad == "stale_fingerprint":
-                study["source_fingerprint"] = "0" * 64
-            else:
-                study["allowed_component_ids"] = study["allowed_component_ids"][:-1]
-            return study
+        assert command_id == "unit-stale-study:timeline"
+        assert "component_study" in context["extras"]
         return {"shots": context["timeline"]["shots"]}
 
     monkeypatch.setattr(node.model, "call", model)
-    with pytest.raises(ValueError, match="组件学习"):
-        node.plan(job, audio, alignment, 2.0)
+    result = node.plan(job, audio, alignment, 2.0, state=state)
+
+    assert result.audio_src == audio.timeline_src
 
 
-def test_director_reuses_current_component_study_from_state(tmp_path, monkeypatch):
+def test_director_does_not_emit_component_study_model_call_when_context_has_old_state(tmp_path, monkeypatch):
     node, job, audio, alignment = director_job(tmp_path)
     state = VideoState(**job_context(job), run_id="unit-original-command",
                        extras={"component_study": valid_study(job.brief.usage)})
@@ -620,12 +609,13 @@ def test_director_reuses_current_component_study_from_state(tmp_path, monkeypatc
     assert state["extras"]["component_study"] == valid_study(job.brief.usage)
 
 
-def test_production_director_requires_component_study_when_model_is_disabled(tmp_path, monkeypatch):
-    node, job, audio, alignment = director_job(tmp_path, production=True)
+def test_production_director_can_build_baseline_without_component_study_when_model_is_disabled(tmp_path, monkeypatch):
+    node, job, audio, alignment = director_job(tmp_path, production=True, image=False)
     monkeypatch.setattr(node.model, "available", lambda role: False)
 
-    with pytest.raises(Exception, match="必须先完成全部竖版组件学习"):
-        node.plan(job, audio, alignment, 2.0, state=VideoState(**job_context(job), run_id="unit"))
+    result = node.plan(job, audio, alignment, 2.0, state=VideoState(**job_context(job), run_id="unit"))
+
+    assert result.audio_src == audio.timeline_src
 
 
 def test_production_manual_timeline_accepts_valid_component_study_without_model(tmp_path, monkeypatch):
@@ -646,9 +636,7 @@ def test_production_manual_timeline_accepts_valid_component_study_without_model(
     assert result == timeline
 
 
-def test_stale_component_study_is_refreshed_when_director_model_is_enabled(tmp_path, monkeypatch):
-    # Study renewal is independent of images; a two-second evidence shot is
-    # intentionally invalid under production reading-duration constraints.
+def test_stale_component_study_is_not_refreshed_when_director_model_is_enabled(tmp_path, monkeypatch):
     node, job, audio, alignment = director_job(tmp_path, production=True, image=False)
     stale = valid_study(job.brief.usage, source_fingerprint="0" * 64)
     state = VideoState(**job_context(job), run_id="unit-refresh", extras={"component_study": stale})
@@ -657,15 +645,14 @@ def test_stale_component_study_is_refreshed_when_director_model_is_enabled(tmp_p
 
     def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
         calls.append(command_id)
-        if "reviewed_preset_ids" in json.dumps(output_schema or {}):
-            return valid_study(job.brief.usage)
+        assert "reviewed_preset_ids" not in json.dumps(output_schema or {})
         return {"shots": context["timeline"]["shots"]}
 
     monkeypatch.setattr(node.model, "call", model)
     node.plan(job, audio, alignment, 2.0, state=state)
 
-    assert calls == ["unit-refresh:component-study", "unit-refresh:timeline"]
-    assert state["extras"]["component_study"] == valid_study(job.brief.usage)
+    assert calls == ["unit-refresh:timeline"]
+    assert state["extras"]["component_study"] == stale
 
 
 @pytest.mark.parametrize("video_seconds,expected_component", [(2.5, "video"), (1.0, "evidence")])

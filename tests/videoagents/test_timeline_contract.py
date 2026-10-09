@@ -104,19 +104,33 @@ def test_python_and_node_accept_supplied_cues_without_changing_facts(component, 
     assert result.returncode == 0, result.stderr
 
 
-def test_python_and_node_accept_verified_preset_and_reject_injected_values():
+def test_python_and_node_accept_verified_preset_material_slots_and_reject_unsafe_values():
     data = timeline("Snapcn-TextReveal")
-    validate_timeline(Timeline.model_validate(data), job())
+    data["shots"][0]["asset_src"] = "videoagents/unit-test/assets/unit.png"
+    data["shots"][0]["source_label"] = "example.com"
+    data["shots"][0]["props"] = {
+        "content_mode": "media",
+        "asset_fit": "cover",
+        "asset_crop": {"x": 0.1, "y": 0.2, "width": 0.7, "height": 0.6},
+        "items": ["来自任务素材的一项", "来自当前旁白的一项"],
+        "metric": {"label": "节省时间", "value": "42%", "detail": "测试来源"},
+    }
+    asset = Asset(asset_id="unit-image", name="unit.png", role="evidence", mime_type="image/png",
+                  size_bytes=10, sha256="b" * 64, source_url="https://example.com/image",
+                  license_note="unit", artifact_id="unit-image-artifact", url="/api/artifacts/unit-image",
+                  timeline_src="videoagents/unit-test/assets/unit.png")
+    image_job = job().model_copy(update={"assets": [asset]})
+    validate_timeline(Timeline.model_validate(data), image_job)
     module = (PROJECT_ROOT / "src/video-production/validation.mjs").as_uri()
     code = "import {validateTimeline} from " + json.dumps(module) + "; let input=''; for await(const c of process.stdin) input+=c; try{validateTimeline(JSON.parse(input));process.exit(0)}catch{process.exit(1)}"
     result = subprocess.run(["node", "--input-type=module", "-e", code], input=json.dumps(data), text=True, capture_output=True, check=False)
     assert result.returncode == 0
     data["shots"][0]["props"] = {"src": "https://example.test/injected.png"}
-    with pytest.raises(ValueError, match="不接受自定义 props"):
+    with pytest.raises(ValueError, match="不接受参数"):
         validate_timeline(Timeline.model_validate(data), job())
     data["shots"][0]["props"] = {}
-    data["shots"][0]["asset_src"] = "videoagents/unit-test/source.png"
-    with pytest.raises(ValueError, match="不接受 asset_src"):
+    data["shots"][0]["asset_src"] = "videoagents/unit-test/assets/unit.svg"
+    with pytest.raises(ValueError, match="图片或视频|图片或 MP4 视频"):
         validate_timeline(Timeline.model_validate(data), job())
 
 

@@ -171,7 +171,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -190,7 +190,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -209,7 +209,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -228,7 +228,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -247,7 +247,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -266,7 +266,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -285,7 +285,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -304,7 +304,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -323,7 +323,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -342,7 +342,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -361,7 +361,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -380,7 +380,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -399,7 +399,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -418,7 +418,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -437,7 +437,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -456,7 +456,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -475,7 +475,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -494,7 +494,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -513,7 +513,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -532,7 +532,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -551,7 +551,7 @@
       "library": "Snapcn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -570,7 +570,7 @@
       "library": "RVE",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -589,7 +589,7 @@
       "library": "RVE",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -608,7 +608,7 @@
       "library": "RVE",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -627,7 +627,7 @@
       "library": "RVE",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -646,7 +646,7 @@
       "library": "RVE",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -665,7 +665,7 @@
       "library": "RVE",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -684,7 +684,7 @@
       "library": "RVE",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -703,7 +703,7 @@
       "library": "RVE",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -722,7 +722,7 @@
       "library": "RVE",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -741,7 +741,7 @@
       "library": "RVE",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -760,7 +760,7 @@
       "library": "RVE",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -772,6 +772,291 @@
       "slug": "image-comparison-slider"
     },
     {
+      "component_id": "Rve-AreaChart",
+      "name": "RVE / Area Chart",
+      "description": "展示一个指标随时间上升或波动",
+      "use_case": "讲趋势、增长、热度和阶段性变化时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "area-chart"
+    },
+    {
+      "component_id": "Rve-CircularProgress",
+      "name": "RVE / Circular Progress",
+      "description": "展示完成度和比例",
+      "use_case": "讲任务进展、能力覆盖、验收百分比时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "circular-progress"
+    },
+    {
+      "component_id": "Rve-AnimatedList",
+      "name": "RVE / Animated List",
+      "description": "逐条展开短清单",
+      "use_case": "讲流程、要点、待办或多条结论时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "animated-list"
+    },
+    {
+      "component_id": "Rve-NotificationPop",
+      "name": "RVE / Notification Pop",
+      "description": "模拟通知和状态更新",
+      "use_case": "讲部署状态、任务反馈、agent 消息时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "notification-pop"
+    },
+    {
+      "component_id": "Rve-SoundWave",
+      "name": "RVE / Sound Wave",
+      "description": "展示声音强弱和口播节奏",
+      "use_case": "讲语音输入、采访片段、旁白重点时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "sound-wave"
+    },
+    {
+      "component_id": "Rve-TextHighlight",
+      "name": "RVE / Text Highlight",
+      "description": "强调标题或关键词",
+      "use_case": "讲概念名、核心判断、口播金句时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "text-highlight"
+    },
+    {
+      "component_id": "Rve-GalleryGrid",
+      "name": "RVE / Gallery Grid",
+      "description": "把多张素材铺成网格",
+      "use_case": "讲案例集合、截图墙、素材对照时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "gallery-grid"
+    },
+    {
+      "component_id": "Rve-ImageCarousel",
+      "name": "RVE / Image Carousel",
+      "description": "轮播多张素材",
+      "use_case": "讲多阶段、多个案例或素材集合时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "image-carousel"
+    },
+    {
+      "component_id": "Rve-ImageZoomReveal",
+      "name": "RVE / Image Zoom Reveal",
+      "description": "推近真实图片细节",
+      "use_case": "讲截图细节、图表局部、证据放大时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "image-zoom-reveal"
+    },
+    {
+      "component_id": "Rve-MasonryGallery",
+      "name": "RVE / Masonry Gallery",
+      "description": "展示多素材氛围墙",
+      "use_case": "讲资料收集、案例库、灵感板时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "masonry-gallery"
+    },
+    {
+      "component_id": "Rve-PhotoStack",
+      "name": "RVE / Photo Stack",
+      "description": "用照片堆叠讲故事",
+      "use_case": "讲过程回顾、素材积累、阶段快照时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "photo-stack"
+    },
+    {
+      "component_id": "Rve-PictureInPicture",
+      "name": "RVE / Picture In Picture",
+      "description": "主素材加小窗讲解",
+      "use_case": "讲录屏、演示视频、采访或补充说明时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "picture-in-picture"
+    },
+    {
+      "component_id": "Rve-PolaroidFrame",
+      "name": "RVE / Polaroid Frame",
+      "description": "把素材变成拍立得卡片",
+      "use_case": "讲案例、里程碑、现场照片时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "polaroid-frame"
+    },
+    {
+      "component_id": "Rve-ClockWipe",
+      "name": "RVE / Clock Wipe",
+      "description": "用时钟动势切章节",
+      "use_case": "讲时间推进、阶段切换、倒计时时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "clock-wipe"
+    },
+    {
+      "component_id": "Rve-IrisTransition",
+      "name": "RVE / Iris Transition",
+      "description": "用圆形开合聚焦",
+      "use_case": "讲重点揭示、镜头收束、下一段引入时使用",
+      "library": "RVE",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "iris-transition"
+    },
+    {
       "component_id": "Remocn-AnimatedLineChart",
       "name": "Remocn / Animated Line Chart",
       "description": "表达一个指标沿时间线持续变化",
@@ -779,7 +1064,7 @@
       "library": "Remocn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -798,7 +1083,7 @@
       "library": "Remocn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -817,7 +1102,7 @@
       "library": "Remocn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -836,7 +1121,7 @@
       "library": "Remocn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -855,7 +1140,7 @@
       "library": "Remocn",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -874,7 +1159,7 @@
       "library": "RemotionUI",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -893,7 +1178,7 @@
       "library": "RemotionUI",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -912,7 +1197,7 @@
       "library": "RemotionUI",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -924,6 +1209,196 @@
       "slug": "remotion-ui-animated-bar-chart"
     },
     {
+      "component_id": "RemotionUI-SocialClip",
+      "name": "RemotionUI / Social Clip",
+      "description": "把素材组织成短视频钩子画面",
+      "use_case": "讲观点开场、短视频口播、社媒切片时使用",
+      "library": "RemotionUI",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "remotion-ui-social-clip"
+    },
+    {
+      "component_id": "RemotionUI-BarChartRace",
+      "name": "RemotionUI / Bar Chart Race",
+      "description": "展示动态排行变化",
+      "use_case": "讲模型排行、产品指标、市场份额变化时使用",
+      "library": "RemotionUI",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "remotion-ui-bar-chart-race"
+    },
+    {
+      "component_id": "RemotionUI-KanbanMove",
+      "name": "RemotionUI / Kanban Move",
+      "description": "展示任务状态迁移",
+      "use_case": "讲研发流程、agent 执行链路、需求推进时使用",
+      "library": "RemotionUI",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "remotion-ui-kanban-move"
+    },
+    {
+      "component_id": "RemotionUI-DeviceMockup3D",
+      "name": "RemotionUI / Device Mockup 3D",
+      "description": "把界面素材放进设备框",
+      "use_case": "讲产品功能、AI Coding demo、工具界面时使用",
+      "library": "RemotionUI",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "remotion-ui-device-mockup-3d"
+    },
+    {
+      "component_id": "RemotionUI-SplitTextChars",
+      "name": "RemotionUI / Split Text Chars",
+      "description": "字符级标题入场",
+      "use_case": "讲章节标题、关键词、概念名时使用",
+      "library": "RemotionUI",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "remotion-ui-split-text-chars"
+    },
+    {
+      "component_id": "RemotionUI-AuroraBg",
+      "name": "RemotionUI / Aurora Background",
+      "description": "作为干净的标题背景",
+      "use_case": "讲抽象概念、章节分隔、情绪铺垫时使用",
+      "library": "RemotionUI",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "remotion-ui-aurora-bg"
+    },
+    {
+      "component_id": "RemotionUI-AudioWaveCaptions",
+      "name": "RemotionUI / Audio Wave Captions",
+      "description": "用声波承载旁白重点",
+      "use_case": "讲语音、访谈、旁白摘要时使用",
+      "library": "RemotionUI",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "remotion-ui-audio-wave-captions"
+    },
+    {
+      "component_id": "RemotionUI-EndCard",
+      "name": "RemotionUI / End Card",
+      "description": "收束视频并提示下一步",
+      "use_case": "讲结论、行动建议、片尾 CTA 时使用",
+      "library": "RemotionUI",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "remotion-ui-end-card"
+    },
+    {
+      "component_id": "RemotionUI-GlassPanel",
+      "name": "RemotionUI / Glass Panel",
+      "description": "在素材上覆盖信息层",
+      "use_case": "讲截图解释、来源标注、指标摘要时使用",
+      "library": "RemotionUI",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "remotion-ui-glass-panel"
+    },
+    {
+      "component_id": "RemotionUI-PathDraw",
+      "name": "RemotionUI / Path Draw",
+      "description": "逐步画出路径或关系",
+      "use_case": "讲流程路径、调用链、路线规划时使用",
+      "library": "RemotionUI",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "slug": "remotion-ui-path-draw"
+    },
+    {
       "component_id": "Bits-ChatConversation",
       "name": "Bits / Chat Conversation",
       "description": "表达人机或多角色对话来回推进",
@@ -931,7 +1406,7 @@
       "library": "Bits",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -950,7 +1425,7 @@
       "library": "Bits",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -969,7 +1444,7 @@
       "library": "Bits",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -988,7 +1463,7 @@
       "library": "Bits",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1000,6 +1475,196 @@
       "slug": "bits-ken-burns"
     },
     {
+      "component_id": "RenderComp-PixelCandlestickOhlc",
+      "name": "RenderComp / Pixel Candlestick OHLC",
+      "description": "展示股票或量化行情变化",
+      "use_case": "讲 TradingAgents、A 股走势、价格波动时使用",
+      "library": "RenderComp",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。",
+      "slug": "pixel-candlestick-ohlc"
+    },
+    {
+      "component_id": "RenderComp-RacingChart",
+      "name": "RenderComp / Racing Chart",
+      "description": "展示排名随时间变化",
+      "use_case": "讲排行榜、竞品对比、指标追赶时使用",
+      "library": "RenderComp",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。",
+      "slug": "racing-chart"
+    },
+    {
+      "component_id": "RenderComp-KpiCounter",
+      "name": "RenderComp / KPI Counter",
+      "description": "放大一个关键指标",
+      "use_case": "讲增长结果、成本节省、验收数字时使用",
+      "library": "RenderComp",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。",
+      "slug": "kpi-counter"
+    },
+    {
+      "component_id": "RenderComp-GlassLowerThird",
+      "name": "RenderComp / Glass Lower Third",
+      "description": "给人物或素材加说明条",
+      "use_case": "讲采访人、来源、系统状态、频道标识时使用",
+      "library": "RenderComp",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。",
+      "slug": "glass-lower-third"
+    },
+    {
+      "component_id": "RenderComp-SocialReel",
+      "name": "RenderComp / Social Reel",
+      "description": "包装竖屏短视频素材",
+      "use_case": "讲社媒切片、口播、产品演示时使用",
+      "library": "RenderComp",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。",
+      "slug": "social-reel"
+    },
+    {
+      "component_id": "RenderComp-PixelWaterfallCycle",
+      "name": "RenderComp / Pixel Waterfall Cycle",
+      "description": "做强节奏视觉背景",
+      "use_case": "讲数据流、模型计算、转场节拍时使用",
+      "library": "RenderComp",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。",
+      "slug": "pixel-waterfall-cycle"
+    },
+    {
+      "component_id": "RenderComp-PencilDraw",
+      "name": "RenderComp / Pencil Draw",
+      "description": "用手绘线条表达推导",
+      "use_case": "讲草图、注释、路径和因果关系时使用",
+      "library": "RenderComp",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。",
+      "slug": "pencil-draw"
+    },
+    {
+      "component_id": "RenderComp-EyeReveal",
+      "name": "RenderComp / Eye Reveal",
+      "description": "用视线打开重点画面",
+      "use_case": "讲发现问题、揭示结果、注意力转移时使用",
+      "library": "RenderComp",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。",
+      "slug": "eye-reveal"
+    },
+    {
+      "component_id": "RenderComp-NewsTicker",
+      "name": "RenderComp / News Ticker",
+      "description": "展示连续短消息",
+      "use_case": "讲新闻流、部署日志、状态更新时使用",
+      "library": "RenderComp",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。",
+      "slug": "news-ticker"
+    },
+    {
+      "component_id": "RenderComp-ProductSpotlight",
+      "name": "RenderComp / Product Spotlight",
+      "description": "突出产品或工具画面",
+      "use_case": "讲功能亮点、AI 工具界面、产品页时使用",
+      "library": "RenderComp",
+      "orientation": "both",
+      "kind": "preset",
+      "props_mode": "material_slots",
+      "production_ready": true,
+      "min_frames": 15,
+      "allowed_usages": [
+        "personal",
+        "commercial",
+        "unspecified"
+      ],
+      "license_note": "上游 README / package 声明 MIT；本机 GitHub 直连超时，当前以仓库主分支候选名接入并保留来源说明。",
+      "slug": "product-spotlight"
+    },
+    {
       "component_id": "Talkcraft-focus-dim-spotlight",
       "name": "Talkcraft / 聚焦压暗切换",
       "description": "表达“我正在讲这一处”的逐项指认",
@@ -1007,7 +1672,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1025,7 +1690,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1043,7 +1708,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1061,7 +1726,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1079,7 +1744,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1097,7 +1762,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1115,7 +1780,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1133,7 +1798,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1151,7 +1816,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1169,7 +1834,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1187,7 +1852,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1205,7 +1870,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1223,7 +1888,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1241,7 +1906,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1259,7 +1924,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1277,7 +1942,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1295,7 +1960,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1313,7 +1978,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1331,7 +1996,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1349,7 +2014,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1367,7 +2032,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1385,7 +2050,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1403,7 +2068,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1421,7 +2086,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1439,7 +2104,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1457,7 +2122,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1475,7 +2140,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1493,7 +2158,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1511,7 +2176,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1529,7 +2194,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1547,7 +2212,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1565,7 +2230,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1583,7 +2248,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1601,7 +2266,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1619,7 +2284,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1637,7 +2302,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1655,7 +2320,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1673,7 +2338,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1691,7 +2356,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1709,7 +2374,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1727,7 +2392,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1745,7 +2410,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1763,7 +2428,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1781,7 +2446,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1799,7 +2464,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1817,7 +2482,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1835,7 +2500,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1853,7 +2518,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1871,7 +2536,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1889,7 +2554,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1907,7 +2572,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1925,7 +2590,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1943,7 +2608,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1961,7 +2626,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1979,7 +2644,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1997,7 +2662,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2015,7 +2680,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2033,7 +2698,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2051,7 +2716,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2069,7 +2734,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2087,7 +2752,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2105,7 +2770,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2123,7 +2788,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2141,7 +2806,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2159,7 +2824,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2177,7 +2842,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2195,7 +2860,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2213,7 +2878,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2231,7 +2896,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2249,7 +2914,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2267,7 +2932,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2285,7 +2950,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2303,7 +2968,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2321,7 +2986,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2339,7 +3004,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2357,7 +3022,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2375,7 +3040,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2393,7 +3058,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2411,7 +3076,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2429,7 +3094,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2447,7 +3112,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2465,7 +3130,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2483,7 +3148,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2501,7 +3166,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2519,7 +3184,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2537,7 +3202,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2555,7 +3220,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2573,7 +3238,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2591,7 +3256,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2609,7 +3274,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2627,7 +3292,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2645,7 +3310,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2663,7 +3328,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2681,7 +3346,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2699,7 +3364,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2717,7 +3382,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2735,7 +3400,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2753,7 +3418,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2771,7 +3436,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2789,7 +3454,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2807,7 +3472,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2825,7 +3490,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2843,7 +3508,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2861,7 +3526,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2879,7 +3544,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2897,7 +3562,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2915,7 +3580,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2933,7 +3598,7 @@
       "library": "Talkcraft",
       "orientation": "both",
       "kind": "preset",
-      "props_mode": "empty",
+      "props_mode": "material_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [

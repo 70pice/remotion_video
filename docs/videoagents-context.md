@@ -67,9 +67,9 @@ graph.add_edge("audience_analysis", "materials")
 
 ## Agent 的输入与最终输出
 
-所有调用大模型的角色都使用 `JsonModel.invoke(state, role, PROMPT, fields=...)`。`fields` 选择当前角色需要的最终业务字段，输入来自同一个 `VideoState`；不把 `Job`、查询连接、聊天消息或调用回执传给模型。固定提示词独立保存在 `videoagents/prompts/*.md`，对应 `nodes/*.py` 在导入时组合成兼容的 `PROMPT` 常量；编剧改稿另有 `REWRITE_PROMPT`。
+所有调用大模型的角色都使用 `JsonModel.invoke(state, role, PROMPT, fields=...)`。`fields` 只能选择最终业务字段，输入来自同一个 `VideoState`；每次调用都显式列出需要的 `brief`、上游结论和当前阶段约束，不把 `Job`、查询连接、聊天消息或调用回执传给模型。固定提示词独立保存在 `videoagents/prompts/*.md`，对应 `nodes/*.py` 在导入时组合成兼容的 `PROMPT` 常量；编剧改稿另有 `REWRITE_PROMPT`。
 
-素材 → 编剧读取 `research`、`assets`；编剧 → 文案审查读取 `script`、`script_discussion`；审查 → 编剧读取最后一轮 `critique` 再改稿。讨论历史是各轮最终产物，因此保留。配音、导演、剪辑、成片审核同样从 state 选择业务输入，模型返回的最终 JSON 经契约校验、保存后再更新 state。
+素材 → 编剧读取 `research`、`assets`；编剧 → 文案审查读取 `script`、`script_discussion`；审查 → 编剧读取最后一轮 `critique` 再改稿。讨论历史是各轮最终产物，因此保留。配音、导演、剪辑、成片审核同样从 state 选择业务输入，模型返回的最终 JSON 经契约校验、保存后再更新 state。下游 Agent 看到的是前面 Agent 已冻结的业务结论，不会携带中间过程、工具日志、搜索过程或历史聊天消息。
 
 TradingAgents-astock 的分析师结束后走 `Msg Clear <角色>`：用 `RemoveMessage` 清空 `messages`，保留 state 中的最终报告。本项目 CLI 返回最终 JSON，没有 LangChain 消息通道，因此不用 `RemoveMessage` 或占位消息；在七个模型角色后各注册 `clear_<角色>`，执行 `ClearToolsNode` 后才按原 `route` 路由。文案每次改稿、审查也都经过清理。
 

@@ -198,18 +198,34 @@ test('remote, absolute, encoded and other-job media references cannot reach a re
   }
 });
 
-test('all 152 presets are registered while unknown IDs and preset injections are rejected', () => {
-  assert.equal(productionComponentIds.length, 161);
-  assert.equal(communityComponentIds.length, 152);
+test('all curated community presets are registered and accept safe material slots', () => {
+  assert.equal(productionComponentIds.length, 196);
+  assert.equal(communityComponentIds.length, 187);
+  assert.ok(communityComponentIds.includes('RemotionUI-SocialClip'));
+  assert.ok(communityComponentIds.includes('Rve-GalleryGrid'));
+  assert.ok(communityComponentIds.includes('RenderComp-SocialReel'));
   const preset = fixture();
   preset.shots[0].component_id = 'Snapcn-TextReveal';
+  preset.shots[0].asset_src = 'videoagents/test-job/assets/source.png';
+  preset.shots[0].source_label = 'example.test';
+  preset.shots[0].props = {
+    content_mode: 'media',
+    asset_fit: 'cover',
+    asset_crop: {x: 0.1, y: 0.2, width: 0.7, height: 0.6},
+    items: ['来自任务素材的一项', '来自当前旁白的一项'],
+    metric: {label: '节省时间', value: '42%', detail: '测试来源'},
+  };
   assert.equal(validateTimeline(preset), preset);
   const presetProps = structuredClone(preset);
   presetProps.shots[0].props = {src: 'https://example.com/payload.svg'};
   assert.throws(() => validateTimeline(presetProps), /unsupported/);
   const presetAsset = structuredClone(preset);
-  presetAsset.shots[0].asset_src = 'videoagents/test-job/a.png';
-  assert.throws(() => validateTimeline(presetAsset), /do not accept asset_src/);
+  presetAsset.shots[0].asset_src = 'videoagents/test-job/assets/source.svg';
+  assert.throws(() => validateTimeline(presetAsset), /image or MP4 video/);
+  const presetVideo = structuredClone(preset);
+  presetVideo.shots[0].asset_src = 'videoagents/test-job/assets/source.mp4';
+  presetVideo.shots[0].props = {content_mode: 'media', start_seconds: 1.2, end_seconds: 4.8, asset_fit: 'contain'};
+  assert.equal(validateTimeline(presetVideo), presetVideo);
   const injection = fixture();
   injection.shots[0].props = {src: 'https://example.com/payload.svg'};
   assert.throws(() => validateTimeline(injection), /unsupported/);

@@ -344,6 +344,14 @@
           "title": "Kind",
           "type": "string"
         },
+        "props_mode": {
+          "enum": [
+            "typed",
+            "material_slots"
+          ],
+          "title": "Props Mode",
+          "type": "string"
+        },
         "orientation": {
           "title": "Orientation",
           "type": "string"
@@ -392,6 +400,7 @@
         "use_case",
         "library",
         "kind",
+        "props_mode",
         "orientation",
         "production_ready",
         "min_frames",

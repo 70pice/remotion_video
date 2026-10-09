@@ -13,6 +13,7 @@ import {
   componentNames,
   defaultProps,
   isCommunityComponent,
+  isVisualAssetCompatible,
   removeShot,
   splitShot,
   validateTimeline,
@@ -110,6 +111,7 @@ export function StoryboardEditor({
       use_case: "产品演示、实拍证据、动态素材",
       library: "VideoAgents",
       kind: "adapter",
+      props_mode: "typed",
       orientation: "vertical",
       production_ready: true,
       min_frames: 1,
@@ -122,17 +124,17 @@ export function StoryboardEditor({
   const assetChoices = (shot: Shot) => {
     if (shot.component_id === "video") return videos;
     if (["evidence", "image_focus"].includes(shot.component_id)) return images;
+    if (isCommunityComponent(shot.component_id))
+      return allVisualAssets.filter((asset) =>
+        isVisualAssetCompatible(shot.component_id, asset.mime_type),
+      );
     return [];
   };
-  const mediaCapable = (componentId: string) =>
-    componentId === "video" || ["evidence", "image_focus"].includes(componentId);
   const compatibleAssetSrc = (componentId: string, assetSrc: string | null) => {
-    if (!mediaCapable(componentId) || !assetSrc) return null;
+    if (!assetSrc) return null;
     const asset = allVisualAssets.find((item) => item.timeline_src === assetSrc);
     if (!asset) return null;
-    if (componentId === "video")
-      return asset.mime_type === "video/mp4" ? assetSrc : null;
-    return asset.mime_type.startsWith("image/") ? assetSrc : null;
+    return isVisualAssetCompatible(componentId, asset.mime_type) ? assetSrc : null;
   };
   return (
     <fieldset
@@ -334,7 +336,7 @@ export function StoryboardEditor({
                       {shot.component_id === "video" ? "视频素材" : "画面素材"}
                       <select
                         value={shot.asset_src ?? ""}
-                        disabled={locked || isCommunityComponent(shot.component_id)}
+                        disabled={locked}
                         onChange={(event) =>
                           update(index, {
                             asset_src: event.target.value || null,
@@ -344,7 +346,9 @@ export function StoryboardEditor({
                         <option value="">
                           {shot.component_id === "video"
                             ? "不使用视频"
-                            : ["evidence", "image_focus"].includes(shot.component_id)
+                            : isCommunityComponent(shot.component_id)
+                              ? "不使用素材"
+                              : ["evidence", "image_focus"].includes(shot.component_id)
                               ? "不使用图片"
                               : "该组件不使用素材"}
                         </option>

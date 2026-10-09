@@ -289,6 +289,141 @@
       "horizontalSourcePath": "src/components/component-horizontal/rve/image-comparison-slider.tsx"
     },
     {
+      "compositionId": "Rve-AreaChart",
+      "name": "RVE / Area Chart",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/area-chart.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/area-chart.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/additions.tsx"
+    },
+    {
+      "compositionId": "Rve-CircularProgress",
+      "name": "RVE / Circular Progress",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/circular-progress.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/circular-progress.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/additions.tsx"
+    },
+    {
+      "compositionId": "Rve-AnimatedList",
+      "name": "RVE / Animated List",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/animated-list.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/animated-list.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/additions.tsx"
+    },
+    {
+      "compositionId": "Rve-NotificationPop",
+      "name": "RVE / Notification Pop",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/notification-pop.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/notification-pop.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/additions.tsx"
+    },
+    {
+      "compositionId": "Rve-SoundWave",
+      "name": "RVE / Sound Wave",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/sound-wave.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/sound-wave.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/additions.tsx"
+    },
+    {
+      "compositionId": "Rve-TextHighlight",
+      "name": "RVE / Text Highlight",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/text-highlight.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/text-highlight.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/additions.tsx"
+    },
+    {
+      "compositionId": "Rve-GalleryGrid",
+      "name": "RVE / Gallery Grid",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/gallery-grid.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/gallery-grid.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/additions.tsx"
+    },
+    {
+      "compositionId": "Rve-ImageCarousel",
+      "name": "RVE / Image Carousel",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/image-carousel.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/image-carousel.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/additions.tsx"
+    },
+    {
+      "compositionId": "Rve-ImageZoomReveal",
+      "name": "RVE / Image Zoom Reveal",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/image-zoom-reveal.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/image-zoom-reveal.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/additions.tsx"
+    },
+    {
+      "compositionId": "Rve-MasonryGallery",
+      "name": "RVE / Masonry Gallery",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/masonry-gallery.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/masonry-gallery.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/additions.tsx"
+    },
+    {
+      "compositionId": "Rve-PhotoStack",
+      "name": "RVE / Photo Stack",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/photo-stack.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/photo-stack.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/additions.tsx"
+    },
+    {
+      "compositionId": "Rve-PictureInPicture",
+      "name": "RVE / Picture In Picture",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/picture-in-picture.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/picture-in-picture.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/additions.tsx"
+    },
+    {
+      "compositionId": "Rve-PolaroidFrame",
+      "name": "RVE / Polaroid Frame",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/polaroid-frame.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/polaroid-frame.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/additions.tsx"
+    },
+    {
+      "compositionId": "Rve-ClockWipe",
+      "name": "RVE / Clock Wipe",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/clock-wipe.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/clock-wipe.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/additions.tsx"
+    },
+    {
+      "compositionId": "Rve-IrisTransition",
+      "name": "RVE / Iris Transition",
+      "library": "RVE",
+      "verticalPath": "src/components/component-vertical/rve/entries/iris-transition.tsx",
+      "horizontalPath": "src/components/component-horizontal/rve/entries/iris-transition.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rve/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rve/additions.tsx"
+    },
+    {
       "compositionId": "Remocn-AnimatedLineChart",
       "name": "Remocn / Animated Line Chart",
       "library": "Remocn",
@@ -361,6 +496,96 @@
       "horizontalSourcePath": "src/components/component-horizontal/remotion-ui/scenes/animated-bar-chart/index.tsx"
     },
     {
+      "compositionId": "RemotionUI-SocialClip",
+      "name": "RemotionUI / Social Clip",
+      "library": "RemotionUI",
+      "verticalPath": "src/components/component-vertical/remotion-ui/entries/remotion-ui-social-clip.tsx",
+      "horizontalPath": "src/components/component-horizontal/remotion-ui/entries/remotion-ui-social-clip.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remotion-ui/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remotion-ui/additions.tsx"
+    },
+    {
+      "compositionId": "RemotionUI-BarChartRace",
+      "name": "RemotionUI / Bar Chart Race",
+      "library": "RemotionUI",
+      "verticalPath": "src/components/component-vertical/remotion-ui/entries/remotion-ui-bar-chart-race.tsx",
+      "horizontalPath": "src/components/component-horizontal/remotion-ui/entries/remotion-ui-bar-chart-race.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remotion-ui/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remotion-ui/additions.tsx"
+    },
+    {
+      "compositionId": "RemotionUI-KanbanMove",
+      "name": "RemotionUI / Kanban Move",
+      "library": "RemotionUI",
+      "verticalPath": "src/components/component-vertical/remotion-ui/entries/remotion-ui-kanban-move.tsx",
+      "horizontalPath": "src/components/component-horizontal/remotion-ui/entries/remotion-ui-kanban-move.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remotion-ui/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remotion-ui/additions.tsx"
+    },
+    {
+      "compositionId": "RemotionUI-DeviceMockup3D",
+      "name": "RemotionUI / Device Mockup 3D",
+      "library": "RemotionUI",
+      "verticalPath": "src/components/component-vertical/remotion-ui/entries/remotion-ui-device-mockup-3d.tsx",
+      "horizontalPath": "src/components/component-horizontal/remotion-ui/entries/remotion-ui-device-mockup-3d.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remotion-ui/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remotion-ui/additions.tsx"
+    },
+    {
+      "compositionId": "RemotionUI-SplitTextChars",
+      "name": "RemotionUI / Split Text Chars",
+      "library": "RemotionUI",
+      "verticalPath": "src/components/component-vertical/remotion-ui/entries/remotion-ui-split-text-chars.tsx",
+      "horizontalPath": "src/components/component-horizontal/remotion-ui/entries/remotion-ui-split-text-chars.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remotion-ui/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remotion-ui/additions.tsx"
+    },
+    {
+      "compositionId": "RemotionUI-AuroraBg",
+      "name": "RemotionUI / Aurora Background",
+      "library": "RemotionUI",
+      "verticalPath": "src/components/component-vertical/remotion-ui/entries/remotion-ui-aurora-bg.tsx",
+      "horizontalPath": "src/components/component-horizontal/remotion-ui/entries/remotion-ui-aurora-bg.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remotion-ui/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remotion-ui/additions.tsx"
+    },
+    {
+      "compositionId": "RemotionUI-AudioWaveCaptions",
+      "name": "RemotionUI / Audio Wave Captions",
+      "library": "RemotionUI",
+      "verticalPath": "src/components/component-vertical/remotion-ui/entries/remotion-ui-audio-wave-captions.tsx",
+      "horizontalPath": "src/components/component-horizontal/remotion-ui/entries/remotion-ui-audio-wave-captions.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remotion-ui/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remotion-ui/additions.tsx"
+    },
+    {
+      "compositionId": "RemotionUI-EndCard",
+      "name": "RemotionUI / End Card",
+      "library": "RemotionUI",
+      "verticalPath": "src/components/component-vertical/remotion-ui/entries/remotion-ui-end-card.tsx",
+      "horizontalPath": "src/components/component-horizontal/remotion-ui/entries/remotion-ui-end-card.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remotion-ui/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remotion-ui/additions.tsx"
+    },
+    {
+      "compositionId": "RemotionUI-GlassPanel",
+      "name": "RemotionUI / Glass Panel",
+      "library": "RemotionUI",
+      "verticalPath": "src/components/component-vertical/remotion-ui/entries/remotion-ui-glass-panel.tsx",
+      "horizontalPath": "src/components/component-horizontal/remotion-ui/entries/remotion-ui-glass-panel.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remotion-ui/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remotion-ui/additions.tsx"
+    },
+    {
+      "compositionId": "RemotionUI-PathDraw",
+      "name": "RemotionUI / Path Draw",
+      "library": "RemotionUI",
+      "verticalPath": "src/components/component-vertical/remotion-ui/entries/remotion-ui-path-draw.tsx",
+      "horizontalPath": "src/components/component-horizontal/remotion-ui/entries/remotion-ui-path-draw.tsx",
+      "verticalSourcePath": "src/components/component-vertical/remotion-ui/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/remotion-ui/additions.tsx"
+    },
+    {
       "compositionId": "Bits-ChatConversation",
       "name": "Bits / Chat Conversation",
       "library": "Bits",
@@ -395,6 +620,96 @@
       "horizontalPath": "src/components/component-horizontal/bits/entries/bits-ken-burns.tsx",
       "verticalSourcePath": "src/components/component-vertical/bits/demo.tsx",
       "horizontalSourcePath": "src/components/component-horizontal/bits/examples/KenBurns.tsx"
+    },
+    {
+      "compositionId": "RenderComp-PixelCandlestickOhlc",
+      "name": "RenderComp / Pixel Candlestick OHLC",
+      "library": "RenderComp",
+      "verticalPath": "src/components/component-vertical/rendercomp/entries/pixel-candlestick-ohlc.tsx",
+      "horizontalPath": "src/components/component-horizontal/rendercomp/entries/pixel-candlestick-ohlc.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rendercomp/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rendercomp/demo.tsx"
+    },
+    {
+      "compositionId": "RenderComp-RacingChart",
+      "name": "RenderComp / Racing Chart",
+      "library": "RenderComp",
+      "verticalPath": "src/components/component-vertical/rendercomp/entries/racing-chart.tsx",
+      "horizontalPath": "src/components/component-horizontal/rendercomp/entries/racing-chart.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rendercomp/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rendercomp/demo.tsx"
+    },
+    {
+      "compositionId": "RenderComp-KpiCounter",
+      "name": "RenderComp / KPI Counter",
+      "library": "RenderComp",
+      "verticalPath": "src/components/component-vertical/rendercomp/entries/kpi-counter.tsx",
+      "horizontalPath": "src/components/component-horizontal/rendercomp/entries/kpi-counter.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rendercomp/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rendercomp/demo.tsx"
+    },
+    {
+      "compositionId": "RenderComp-GlassLowerThird",
+      "name": "RenderComp / Glass Lower Third",
+      "library": "RenderComp",
+      "verticalPath": "src/components/component-vertical/rendercomp/entries/glass-lower-third.tsx",
+      "horizontalPath": "src/components/component-horizontal/rendercomp/entries/glass-lower-third.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rendercomp/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rendercomp/demo.tsx"
+    },
+    {
+      "compositionId": "RenderComp-SocialReel",
+      "name": "RenderComp / Social Reel",
+      "library": "RenderComp",
+      "verticalPath": "src/components/component-vertical/rendercomp/entries/social-reel.tsx",
+      "horizontalPath": "src/components/component-horizontal/rendercomp/entries/social-reel.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rendercomp/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rendercomp/demo.tsx"
+    },
+    {
+      "compositionId": "RenderComp-PixelWaterfallCycle",
+      "name": "RenderComp / Pixel Waterfall Cycle",
+      "library": "RenderComp",
+      "verticalPath": "src/components/component-vertical/rendercomp/entries/pixel-waterfall-cycle.tsx",
+      "horizontalPath": "src/components/component-horizontal/rendercomp/entries/pixel-waterfall-cycle.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rendercomp/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rendercomp/demo.tsx"
+    },
+    {
+      "compositionId": "RenderComp-PencilDraw",
+      "name": "RenderComp / Pencil Draw",
+      "library": "RenderComp",
+      "verticalPath": "src/components/component-vertical/rendercomp/entries/pencil-draw.tsx",
+      "horizontalPath": "src/components/component-horizontal/rendercomp/entries/pencil-draw.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rendercomp/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rendercomp/demo.tsx"
+    },
+    {
+      "compositionId": "RenderComp-EyeReveal",
+      "name": "RenderComp / Eye Reveal",
+      "library": "RenderComp",
+      "verticalPath": "src/components/component-vertical/rendercomp/entries/eye-reveal.tsx",
+      "horizontalPath": "src/components/component-horizontal/rendercomp/entries/eye-reveal.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rendercomp/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rendercomp/demo.tsx"
+    },
+    {
+      "compositionId": "RenderComp-NewsTicker",
+      "name": "RenderComp / News Ticker",
+      "library": "RenderComp",
+      "verticalPath": "src/components/component-vertical/rendercomp/entries/news-ticker.tsx",
+      "horizontalPath": "src/components/component-horizontal/rendercomp/entries/news-ticker.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rendercomp/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rendercomp/demo.tsx"
+    },
+    {
+      "compositionId": "RenderComp-ProductSpotlight",
+      "name": "RenderComp / Product Spotlight",
+      "library": "RenderComp",
+      "verticalPath": "src/components/component-vertical/rendercomp/entries/product-spotlight.tsx",
+      "horizontalPath": "src/components/component-horizontal/rendercomp/entries/product-spotlight.tsx",
+      "verticalSourcePath": "src/components/component-vertical/rendercomp/demo.tsx",
+      "horizontalSourcePath": "src/components/component-horizontal/rendercomp/demo.tsx"
     },
     {
       "compositionId": "Talkcraft-focus-dim-spotlight",

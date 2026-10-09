@@ -584,7 +584,6 @@ def test_director_feedback_replay_after_sql_before_applied_receipt_does_not_call
     repo.update_job(job.job_id, timeline=old_timeline)
     job = repo.get_job(job.job_id)
     SettingsService(repo).patch(SettingsPatch(role_models={"director": {"enabled": True, "provider": "codex_cli"}}))
-    monkeypatch.setattr(DirectorNode, "ensure_component_study", lambda *a, **k: type("Study", (), {"model_dump": lambda self: {"unit": True}})())
     calls = []
 
     def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
@@ -654,8 +653,6 @@ def test_director_feedback_rejects_noop_timeline(tmp_path, monkeypatch):
     old_timeline = DirectorNode(repo, service).plan(repo.get_job(job.job_id), audio, alignment, 1.0, state=initial)
     repo.update_job(job.job_id, timeline=old_timeline)
     SettingsService(repo).patch(SettingsPatch(role_models={"director": {"enabled": True, "provider": "codex_cli"}}))
-    monkeypatch.setattr(DirectorNode, "ensure_component_study", lambda *a, **k: type("Study", (), {"model_dump": lambda self: {"unit": True}})())
-
     def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
         return {"shots": context["timeline"]["shots"]}
 

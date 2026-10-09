@@ -759,6 +759,181 @@
       "compositionId": "Talkcraft-split-text-stagger",
       "description": "表达标题从基线中利落长出来",
       "useCase": "章节题、频道名、短金句入场时使用"
+    },
+    {
+      "compositionId": "Rve-AreaChart",
+      "description": "展示一个指标随时间上升或波动",
+      "useCase": "讲趋势、增长、热度和阶段性变化时使用"
+    },
+    {
+      "compositionId": "Rve-CircularProgress",
+      "description": "展示完成度和比例",
+      "useCase": "讲任务进展、能力覆盖、验收百分比时使用"
+    },
+    {
+      "compositionId": "Rve-AnimatedList",
+      "description": "逐条展开短清单",
+      "useCase": "讲流程、要点、待办或多条结论时使用"
+    },
+    {
+      "compositionId": "Rve-NotificationPop",
+      "description": "模拟通知和状态更新",
+      "useCase": "讲部署状态、任务反馈、agent 消息时使用"
+    },
+    {
+      "compositionId": "Rve-SoundWave",
+      "description": "展示声音强弱和口播节奏",
+      "useCase": "讲语音输入、采访片段、旁白重点时使用"
+    },
+    {
+      "compositionId": "Rve-TextHighlight",
+      "description": "强调标题或关键词",
+      "useCase": "讲概念名、核心判断、口播金句时使用"
+    },
+    {
+      "compositionId": "Rve-GalleryGrid",
+      "description": "把多张素材铺成网格",
+      "useCase": "讲案例集合、截图墙、素材对照时使用"
+    },
+    {
+      "compositionId": "Rve-ImageCarousel",
+      "description": "轮播多张素材",
+      "useCase": "讲多阶段、多个案例或素材集合时使用"
+    },
+    {
+      "compositionId": "Rve-ImageZoomReveal",
+      "description": "推近真实图片细节",
+      "useCase": "讲截图细节、图表局部、证据放大时使用"
+    },
+    {
+      "compositionId": "Rve-MasonryGallery",
+      "description": "展示多素材氛围墙",
+      "useCase": "讲资料收集、案例库、灵感板时使用"
+    },
+    {
+      "compositionId": "Rve-PhotoStack",
+      "description": "用照片堆叠讲故事",
+      "useCase": "讲过程回顾、素材积累、阶段快照时使用"
+    },
+    {
+      "compositionId": "Rve-PictureInPicture",
+      "description": "主素材加小窗讲解",
+      "useCase": "讲录屏、演示视频、采访或补充说明时使用"
+    },
+    {
+      "compositionId": "Rve-PolaroidFrame",
+      "description": "把素材变成拍立得卡片",
+      "useCase": "讲案例、里程碑、现场照片时使用"
+    },
+    {
+      "compositionId": "Rve-ClockWipe",
+      "description": "用时钟动势切章节",
+      "useCase": "讲时间推进、阶段切换、倒计时时使用"
+    },
+    {
+      "compositionId": "Rve-IrisTransition",
+      "description": "用圆形开合聚焦",
+      "useCase": "讲重点揭示、镜头收束、下一段引入时使用"
+    },
+    {
+      "compositionId": "RemotionUI-SocialClip",
+      "description": "把素材组织成短视频钩子画面",
+      "useCase": "讲观点开场、短视频口播、社媒切片时使用"
+    },
+    {
+      "compositionId": "RemotionUI-BarChartRace",
+      "description": "展示动态排行变化",
+      "useCase": "讲模型排行、产品指标、市场份额变化时使用"
+    },
+    {
+      "compositionId": "RemotionUI-KanbanMove",
+      "description": "展示任务状态迁移",
+      "useCase": "讲研发流程、agent 执行链路、需求推进时使用"
+    },
+    {
+      "compositionId": "RemotionUI-DeviceMockup3D",
+      "description": "把界面素材放进设备框",
+      "useCase": "讲产品功能、AI Coding demo、工具界面时使用"
+    },
+    {
+      "compositionId": "RemotionUI-SplitTextChars",
+      "description": "字符级标题入场",
+      "useCase": "讲章节标题、关键词、概念名时使用"
+    },
+    {
+      "compositionId": "RemotionUI-AuroraBg",
+      "description": "作为干净的标题背景",
+      "useCase": "讲抽象概念、章节分隔、情绪铺垫时使用"
+    },
+    {
+      "compositionId": "RemotionUI-AudioWaveCaptions",
+      "description": "用声波承载旁白重点",
+      "useCase": "讲语音、访谈、旁白摘要时使用"
+    },
+    {
+      "compositionId": "RemotionUI-EndCard",
+      "description": "收束视频并提示下一步",
+      "useCase": "讲结论、行动建议、片尾 CTA 时使用"
+    },
+    {
+      "compositionId": "RemotionUI-GlassPanel",
+      "description": "在素材上覆盖信息层",
+      "useCase": "讲截图解释、来源标注、指标摘要时使用"
+    },
+    {
+      "compositionId": "RemotionUI-PathDraw",
+      "description": "逐步画出路径或关系",
+      "useCase": "讲流程路径、调用链、路线规划时使用"
+    },
+    {
+      "compositionId": "RenderComp-PixelCandlestickOhlc",
+      "description": "展示股票或量化行情变化",
+      "useCase": "讲 TradingAgents、A 股走势、价格波动时使用"
+    },
+    {
+      "compositionId": "RenderComp-RacingChart",
+      "description": "展示排名随时间变化",
+      "useCase": "讲排行榜、竞品对比、指标追赶时使用"
+    },
+    {
+      "compositionId": "RenderComp-KpiCounter",
+      "description": "放大一个关键指标",
+      "useCase": "讲增长结果、成本节省、验收数字时使用"
+    },
+    {
+      "compositionId": "RenderComp-GlassLowerThird",
+      "description": "给人物或素材加说明条",
+      "useCase": "讲采访人、来源、系统状态、频道标识时使用"
+    },
+    {
+      "compositionId": "RenderComp-SocialReel",
+      "description": "包装竖屏短视频素材",
+      "useCase": "讲社媒切片、口播、产品演示时使用"
+    },
+    {
+      "compositionId": "RenderComp-PixelWaterfallCycle",
+      "description": "做强节奏视觉背景",
+      "useCase": "讲数据流、模型计算、转场节拍时使用"
+    },
+    {
+      "compositionId": "RenderComp-PencilDraw",
+      "description": "用手绘线条表达推导",
+      "useCase": "讲草图、注释、路径和因果关系时使用"
+    },
+    {
+      "compositionId": "RenderComp-EyeReveal",
+      "description": "用视线打开重点画面",
+      "useCase": "讲发现问题、揭示结果、注意力转移时使用"
+    },
+    {
+      "compositionId": "RenderComp-NewsTicker",
+      "description": "展示连续短消息",
+      "useCase": "讲新闻流、部署日志、状态更新时使用"
+    },
+    {
+      "compositionId": "RenderComp-ProductSpotlight",
+      "description": "突出产品或工具画面",
+      "useCase": "讲功能亮点、AI 工具界面、产品页时使用"
     }
   ]
 }

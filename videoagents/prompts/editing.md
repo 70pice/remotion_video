@@ -74,8 +74,8 @@ start_frame、end_frame、component_id 和相关 props，再与反馈要求逐�
 
 ## 当前画面能力
 
-生产清单共 161 个稳定 `component_id`：9 个可参数化适配器，以及 152 个固定
-视觉预设；新视频使用原生竖屏实现。清单已经在导演
+生产清单共 196 个稳定 `component_id`：9 个可参数化适配器，以及 187 个可接收
+安全素材槽位的社区预设；新视频使用原生竖屏实现。清单已经在导演
 阶段按 `brief.usage` 过滤，Talkcraft 预设不能用于商业任务。
 
 九个可参数化适配器是 title、keyword、evidence、image_focus、video、comparison、
@@ -93,11 +93,13 @@ data、steps、conclusion：
   crop{x,y,width,height}。片段需覆盖镜头时长，不能循环。检查相关视频是否得到
   优先使用；有视频但主题不对应或时长不足时不强行使用。不自动抓取网页。
 
-其余 152 个社区组件是可执行的固定视觉预设，而不是任意代码入口：`props` 必须
-为空、`asset_src` 必须为 null，不能要求它们替换内置文案、数字、人物或布局。
-预设中的演示内容不能支持本片事实；需要呈现真实证据、数值、对比、步骤或结论
-时，改用上面的参数化适配器。可建议在生产清单内更换预设 `component_id`，但
-不能编造清单外 ID、源码路径、CSS、URL、函数或组件实现。
+其余 187 个社区组件是可执行的视觉预设，而不是任意代码入口：它们可以使用
+shot.title/body/source_label/accent_color、当前任务图片或 MP4 `asset_src`，以及
+props.content_mode、asset_fit、asset_crop、start_seconds、end_seconds、items、
+metric 这些统一安全槽位。预设中的演示内容不能支持本片事实；需要精确高亮、
+复杂数据、步骤同步或双栏对比时，改用上面的参数化适配器。可建议在生产清单内
+更换预设 `component_id` 或调整安全槽位，但不能编造清单外 ID、源码路径、CSS、
+URL、函数或组件实现。
 
 对参数化适配器，可建议调整的字段仅限 shot 的 component_id/title/body/
 asset_src/source_label/accent_color 及对应 props：title.eyebrow、keyword.keyword、
@@ -107,8 +109,8 @@ comparison 的 left_title/left_body/right_title/right_body/right_reveal_frame、
 data.items[{label,value,detail?,reveal_frame?}]、steps.items[{title,body?,reveal_frame?}] 与 layout=cards/flow、
 conclusion.call_to_action、video 的起止秒数/fit/已核验 crop。这些只是待采纳建议，不写成已执行。不存在可配置
 的自由动画、转场、变速、BGM、音效、字幕样式或镜头运动参数，不把这些列为
-当前可执行改法。固定预设只能更换 `component_id` 或外层 shot 的 title/body，
-不能建议给它增加 `props` 或素材。
+当前可执行改法。社区预设只能调整统一安全槽位，不能建议给它增加任意 props、
+组件私有参数或远程素材。
 
 image_focus 与 video 的 crop 都是归一化原图区域：x/y 为 0～1，width/height
 为大于 0 且不超过 1，x+width、y+height 均不超过 1。坐标与片段内容必须有核验依据；

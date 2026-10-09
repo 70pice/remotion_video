@@ -2,7 +2,7 @@
 
 import json
 import math
-from typing import Any, Literal
+from typing import Any
 from urllib.parse import urlparse
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -22,12 +22,10 @@ from videoagents.prompts import load_prompt
 from videoagents.prompts import render as render_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.jobs import JobService
-from videoagents.state import VideoState, merge_extras
+from videoagents.state import VideoState
 from videoagents.storage import Repository
 from videoagents.tools.components import (
-    COMMUNITY_COMPONENT_IDS,
     available_component_ids,
-    component_study_payload,
     prompt_component_catalog,
 )
 from videoagents.tools.timeline import (
@@ -60,34 +58,6 @@ COMPONENT_PROPS_EXAMPLES = {
 }
 
 
-class ComponentGroupStudy(BaseModel):
-    model_config = ConfigDict(extra="forbid", allow_inf_nan=False, strict=True)
-
-    group: str = Field(min_length=1, max_length=80)
-    use: str = Field(min_length=1, max_length=800)
-
-
-class ComponentStudy(BaseModel):
-    model_config = ConfigDict(extra="forbid", allow_inf_nan=False, strict=True)
-
-    manifest_fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
-    source_fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
-    usage: Literal["personal", "commercial", "unspecified"]
-    reviewed_preset_ids: list[str] = Field(min_length=152, max_length=152)
-    allowed_component_ids: list[str] = Field(min_length=1, max_length=161)
-    video_first: Literal[True]
-    selection_principles: list[str] = Field(min_length=4, max_length=8)
-    component_groups: list[ComponentGroupStudy] = Field(min_length=6, max_length=12)
-    limits: list[str] = Field(min_length=1, max_length=8)
-
-    @model_validator(mode="after")
-    def readable(self) -> "ComponentStudy":
-        for values in (self.selection_principles, self.limits):
-            if any(not value.strip() or len(value) > 1000 for value in values):
-                raise ValueError("组件学习结论须为非空短文本")
-        return self
-
-
 class DirectorPlan(BaseModel):
     """导演只交付镜头；实测音频、字幕和画幅由程序合入最终 Timeline。"""
 
@@ -99,37 +69,6 @@ class DirectorPlan(BaseModel):
         if any(shot.end_frame - shot.start_frame < 15 for shot in self.shots):
             raise ValueError("镜头至少需要 15 帧")
         return self
-
-
-def component_study_prompt(usage: str) -> tuple[str, dict[str, Any]]:
-    payload = component_study_payload(usage)
-    return (
-        load_prompt("shared-style") + "\n\n" + render_prompt(
-            "component-study",
-            component_source_guide=json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
-        ),
-        payload,
-    )
-
-
-def validate_component_study(study: ComponentStudy, payload: dict[str, Any]) -> None:
-    if study.manifest_fingerprint != payload["manifest_fingerprint"]:
-        raise ValueError("组件学习使用的组件清单已失效")
-    if study.source_fingerprint != payload["source_fingerprint"]:
-        raise ValueError("组件学习使用的竖版组件资料已失效")
-    if study.usage != payload["usage"]:
-        raise ValueError("组件学习的使用场景不匹配")
-    if set(study.reviewed_preset_ids) != set(COMMUNITY_COMPONENT_IDS):
-        raise ValueError("组件学习未覆盖全部 152 个竖版预设")
-    if len(study.reviewed_preset_ids) != len(set(study.reviewed_preset_ids)):
-        raise ValueError("组件学习的竖版预设清单存在重复")
-    if set(study.allowed_component_ids) != set(payload["allowed_component_ids"]):
-        raise ValueError("组件学习的可选组件清单已失效")
-
-
-def save_component_study_state(state: VideoState | None, study: ComponentStudy) -> None:
-    if state is not None:
-        state["extras"] = merge_extras(state.get("extras", {}), {"component_study": study.model_dump()})
 
 
 def production_portrait(job: Job) -> bool:
@@ -192,8 +131,8 @@ class DirectorNode:
             if feedback and type(feedback.get("timeline")) is dict and timeline.model_dump() == feedback["timeline"]:
                 raise ValueError("人工返工未产生分镜修改，请补充更明确的修改意见")
             stale = {"preview", "final", "cover", "captions", "review", "package", "storyboard",
-                     "timeline", "editing_guidance", "human_review"}
-            # plan() may register the component study after start_stage's Job snapshot.
+                     "timeline", "editing_guidance", "human_review", "component_study"}
+            # Drop stale downstream artifacts from the snapshot read before planning.
             current = self.repo.get_job(job.job_id)
             artifacts = [item for item in current.artifacts if item.kind not in stale]
             job = self.repo.update_job(job.job_id, job.revision, expected_event_id=current.latest_event_id,
@@ -257,10 +196,6 @@ class DirectorNode:
         if feedback and not model_available:
             raise CapabilityMissing("人工返工需要导演模型读取审核意见并重新规划镜头；请启用导演模型或提供新的人工分镜", ["role_models", "timeline"])
         if job.timeline and not feedback and not rebuilding:
-            if model_available:
-                self.ensure_component_study(job, context, state)
-            elif production_portrait(job):
-                self.require_component_study(job, context, state)
             validate_timeline(job.timeline, job, asset_metadata)
             expected = [(item.text, item.start_ms, item.end_ms) for item in alignment.segments]
             actual = [(item.text, item.start_ms, item.end_ms) for item in job.timeline.captions]
@@ -318,7 +253,6 @@ class DirectorNode:
                             fps=job.brief.fps, duration_in_frames=total, audio_src=audio.timeline_src, shots=shots,
                             captions=[Caption(text=item.text, start_ms=item.start_ms, end_ms=item.end_ms) for item in alignment.segments])
         if model_available:
-            study = self.ensure_component_study(job, context, state)
             schema = DirectorPlan.model_json_schema()
             schema["$defs"]["Shot"]["properties"]["component_id"]["enum"] = available_component_ids(
                 job.brief.usage
@@ -350,7 +284,7 @@ class DirectorNode:
                                **({"renderable": asset_renderable(asset)}
                                   if asset.mime_type.startswith(("image/", "video/")) else {}),
                            } for asset in job.assets},
-                           "extras": {**context.get("extras", {}), "component_study": study.model_dump(),
+                           "extras": {**context.get("extras", {}),
                                       "media_coverage": coverage, "timeline_repair_issues": repair_issues}}
             instruction = director_prompt(job.brief.usage)
             if coverage["required"]:
@@ -367,8 +301,6 @@ class DirectorNode:
             # 镜头切点属于画面编排，不是音频对齐：只替换 shots，真实音频、
             # 字幕、画幅和总帧数保持程序实测值，连续覆盖由 Timeline 校验。
             timeline = Timeline.model_validate({**timeline.model_dump(), "shots": [shot.model_dump() for shot in plan.shots]})
-        elif production_portrait(job):
-            self.require_component_study(job, context, state)
         validate_timeline(timeline, job, asset_metadata)
         issues = timeline_readability_issues(timeline) if production_portrait(job) else []
         if issues:
@@ -376,51 +308,3 @@ class DirectorNode:
         if model_available:
             validate_media_coverage(timeline, job, asset_metadata)
         return timeline
-
-    def component_study_from_context(self, job: Job, context: VideoState,
-                                     state: VideoState | None) -> ComponentStudy | None:
-        raw = (state or context).get("extras", {}).get("component_study")
-        if not raw:
-            return None
-        study = ComponentStudy.model_validate(raw)
-        validate_component_study(study, component_study_payload(job.brief.usage))
-        save_component_study_state(state, study)
-        return study
-
-    def require_component_study(self, job: Job, context: VideoState,
-                                state: VideoState | None) -> ComponentStudy:
-        try:
-            study = self.component_study_from_context(job, context, state)
-        except ValueError as exc:
-            raise CapabilityMissing("正式竖屏制作的组件学习报告已失效；请启用导演模型重新学习组件后再生成分镜", ["role_models", "timeline"]) from exc
-        if study:
-            return study
-        raise CapabilityMissing("正式竖屏制作必须先完成全部竖版组件学习；请在设置中启用导演模型，或提供带有效组件学习报告的人工分镜", ["role_models", "timeline"])
-
-    def ensure_component_study(self, job: Job, context: VideoState, state: VideoState | None) -> ComponentStudy:
-        try:
-            study = self.component_study_from_context(job, context, state)
-            if study:
-                return study
-        except ValueError:
-            pass
-        study = self.study_components(job, context)
-        save_component_study_state(state, study)
-        return study
-
-    def study_components(self, job: Job, context: VideoState) -> ComponentStudy:
-        prompt, payload = component_study_prompt(job.brief.usage)
-        value = self.model.invoke(context, "director", prompt,
-            # The full 152-preset source guide is already embedded in the
-            # instruction.  Script, research and per-asset metadata neither
-            # change that guide nor the usage-filtered allow-list; forwarding
-            # them here only duplicates a very large job context.  In a real
-            # 4-5 minute run that pushed the Seed CLI request beyond its
-            # practical context limit before timeline planning even began.
-            fields=("brief",),
-            command_id=(context.get("resume_command_id") or context.get("run_id", "")) + ":component-study",
-            output_schema=ComponentStudy.model_json_schema())
-        study = ComponentStudy.model_validate(value)
-        validate_component_study(study, payload)
-        self.service.write_json(job, "component-study.json", study.model_dump(), "component_study")
-        return study

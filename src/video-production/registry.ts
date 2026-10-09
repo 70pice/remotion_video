@@ -49,14 +49,15 @@ const collect = (groups: typeof communityGroups | typeof nativePortraitGroups) =
 
 const horizontalPresets = collect(communityGroups);
 const verticalPresets = collect(nativePortraitGroups);
+const expectedPresetCount = 187;
 const expected = new Set(communityComponentIds);
 if (
-  expected.size !== 152 ||
+  expected.size !== expectedPresetCount ||
   horizontalPresets.size !== expected.size ||
   verticalPresets.size !== expected.size ||
   [...expected].some((id) => !horizontalPresets.has(id) || !verticalPresets.has(id))
 ) {
-  throw new Error('Production preset registry must cover all 152 horizontal/vertical component pairs');
+  throw new Error(`Production preset registry must cover all ${expectedPresetCount} horizontal/vertical component pairs`);
 }
 
 export const isSemanticComponent = (componentId: string) => componentId in semanticProductionRegistry;

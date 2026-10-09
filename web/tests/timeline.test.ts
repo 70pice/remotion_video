@@ -4,6 +4,7 @@ import {createElement} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import {ShotPropsEditor} from "../src/features/storyboard/ShotPropsEditor";
 import {
+  isVisualAssetCompatible,
   removeShot,
   splitShot,
   validateTimeline,
@@ -73,15 +74,35 @@ describe("editable timeline boundaries", () => {
     expect(errors).toContain("两侧对比内容");
   });
 
-  it("accepts all registered presets but rejects custom preset props and assets", () => {
+  it("accepts registered presets with safe material slots and rejects unsafe values", () => {
     const preset = timeline();
     preset.shots[0].component_id = "Snapcn-TextReveal";
+    preset.shots[0].asset_src = "videoagents/test/assets/source.png";
+    preset.shots[0].props = {
+      content_mode: "media",
+      asset_fit: "cover",
+      asset_crop: { x: 0.1, y: 0.1, width: 0.8, height: 0.8 },
+      items: ["现状", "变化"],
+      metric: { label: "完成率", value: "92%", detail: "自动生成" },
+    };
     expect(validateTimeline(preset)).toEqual([]);
     preset.shots[0].props = { src: "https://example.test/injected.png" };
-    expect(validateTimeline(preset).join(" ")).toContain("不接受自定义参数");
+    expect(validateTimeline(preset).join(" ")).toContain("不接受参数 src");
     preset.shots[0].props = {};
-    preset.shots[0].asset_src = "videoagents/test/source.png";
-    expect(validateTimeline(preset).join(" ")).toContain("不接受额外图片素材");
+    preset.shots[0].asset_src = "videoagents/test/assets/source.svg";
+    expect(validateTimeline(preset).join(" ")).toContain("PNG、JPEG、WebP 图片或 MP4 视频");
+    preset.shots[0].asset_src = "videoagents/test/assets/source.mp4";
+    preset.shots[0].props = { content_mode: "media", start_seconds: 1, end_seconds: 4 };
+    expect(validateTimeline(preset)).toEqual([]);
+  });
+
+  it("recognizes community presets as compatible with task images and videos", () => {
+    expect(isVisualAssetCompatible("Snapcn-TextReveal", "image/png")).toBe(true);
+    expect(isVisualAssetCompatible("Snapcn-TextReveal", "image/webp")).toBe(true);
+    expect(isVisualAssetCompatible("Snapcn-TextReveal", "video/mp4")).toBe(true);
+    expect(isVisualAssetCompatible("Snapcn-TextReveal", "image/svg+xml")).toBe(false);
+    expect(isVisualAssetCompatible("video", "image/png")).toBe(false);
+    expect(isVisualAssetCompatible("title", "image/png")).toBe(false);
   });
 
   it("validates video trim, crop and mp4 source rules", () => {
@@ -224,6 +245,23 @@ describe("editable timeline boundaries", () => {
     expect(html).toContain("手动裁切图片区域");
     expect(html).toMatch(/type="number" min="0" max="1" step="0.01"[^>]*value="0.3"/);
     expect(html).toMatch(/type="number" min="0" max="1" step="0.01"[^>]*value="0.6"/);
+  });
+
+  it("exposes community material slot controls in the props editor", () => {
+    const shot = timeline().shots[0];
+    Object.assign(shot, {component_id: "Snapcn-TextReveal", props: {
+      content_mode: "media",
+      asset_fit: "cover",
+      asset_crop: {x: 0.1, y: 0.1, width: 0.8, height: 0.8},
+      items: ["现状"],
+      metric: {label: "完成率", value: "92%"},
+    }});
+    const html = renderToStaticMarkup(createElement(ShotPropsEditor, {shot, disabled: false, update: () => {}}));
+    expect(html).toContain("内容槽位");
+    expect(html).toContain("素材填充");
+    expect(html).toContain("短列表项");
+    expect(html).toContain("指标名称");
+    expect(html).toMatch(/type="number" min="0" max="1" step="0.01"[^>]*value="0.8"/);
   });
 
   it("does not silently copy local cues into different shot boundaries on split", () => {

@@ -278,10 +278,6 @@ def test_completed_video_rebuild_runs_only_director_and_editing_and_is_replay_sa
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.available", lambda self, role: role == "director")
 
     def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
-        if command_id.endswith(":component-study"):
-            from tests.videoagents.test_director_model_contract import valid_study
-
-            return valid_study(before.brief.usage)
         assert role == "director" and context["extras"]["timeline_rebuild"] is True
         assert context["timeline"] == before.timeline.model_dump()
         return {"shots": [{**shot, "title": "UNIT new visuals"} for shot in context["timeline"]["shots"]]}
@@ -607,7 +603,6 @@ def test_director_repairs_saved_short_shot_with_existing_audio(manual_job, monke
     job = repo.update_job(job.job_id, timeline=timeline, brief=brief)
     director = DirectorNode(repo, service)
     monkeypatch.setattr(director.model, "available", lambda *a: True)
-    monkeypatch.setattr(director, "ensure_component_study", lambda *a: SimpleNamespace(model_dump=lambda: {}))
     calls = []
 
     def plan(context, *a, **k):
