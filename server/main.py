@@ -7,7 +7,7 @@ import secrets
 from pathlib import Path
 from typing import Any
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -64,7 +64,7 @@ def create_app(runtime_dir: Path | None = None, project_root: Path | None = None
     app.state.model_catalog = ModelCatalogService()
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "[::1]", "testserver"])
     app.add_middleware(CORSMiddleware, allow_origins=list(sessions.origins), allow_credentials=True,
-                       allow_methods=["GET", "POST", "PATCH", "HEAD", "OPTIONS"],
+                       allow_methods=["GET", "POST", "PATCH", "DELETE", "HEAD", "OPTIONS"],
                        allow_headers=["Content-Type", "X-CSRF-Token", "Last-Event-ID", "Range"],
                        expose_headers=["Content-Range", "Accept-Ranges", "Content-Length"])
 
@@ -148,6 +148,11 @@ def create_app(runtime_dir: Path | None = None, project_root: Path | None = None
     @app.post("/api/jobs/{job_id}/cancel", response_model=Job, dependencies=protected)
     def cancel(job_id: str):
         return repository.cancel(job_id)
+
+    @app.delete("/api/jobs/{job_id}", status_code=204, dependencies=protected)
+    def delete_job(job_id: str, base_revision: int = Query(ge=1)):
+        service.delete(job_id, base_revision)
+        return Response(status_code=204)
 
     @app.post("/api/jobs/{job_id}/resume", response_model=Job, status_code=202, dependencies=protected)
     def resume(job_id: str, command: ResumeRequest):

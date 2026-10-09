@@ -1,11 +1,14 @@
 """Versioned draft editing and manual, real media ingestion."""
 
 import json
+import re
 import shutil
 import uuid
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
+
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 from videoagents.contracts import Alignment, Artifact, Asset, DraftRequest, Job
 from videoagents.default_config import PROJECT_ROOT
@@ -21,6 +24,46 @@ class JobService:
     def __init__(self, repository: Repository, project_root: Path = PROJECT_ROOT):
         self.repo = repository
         self.project_root = project_root
+
+    def delete(self, job_id: str, base_revision: int) -> None:
+        """Remove only the cancelled job's owned files, checkpoints and records."""
+        if not re.fullmatch(r"[0-9a-f]{32}", job_id):
+            raise ValueError("删除任务需要有效的任务 ID")
+
+        def cleanup(job: Job, artifact_paths: list[Path]) -> None:
+            roots = (self.repo.root / "jobs", self.project_root.resolve() / "public" / "videoagents")
+            folders = tuple(root / job.job_id for root in roots)
+            checkpoint = self.repo.root / "checkpoints.sqlite"
+            # Validate every target before the first recursive removal. Never follow
+            # a job directory, parent directory or artifact redirected elsewhere.
+            for root, folder in zip(roots, folders, strict=True):
+                if root.resolve() != root or folder.resolve() != folder:
+                    raise ValueError("任务目录越界或指向链接，不能删除")
+                if folder.exists() and not folder.is_dir():
+                    raise ValueError("任务目录不是文件夹，不能删除")
+            if any(not path.resolve().is_relative_to(folders[0]) for path in artifact_paths):
+                raise ValueError("任务产物不在所属任务目录，不能删除")
+            if checkpoint.resolve() != checkpoint:
+                raise ValueError("检查点文件指向链接，不能删除")
+            try:
+                for folder in folders:
+                    if folder.exists():
+                        shutil.rmtree(folder)
+                if checkpoint.exists():
+                    with SqliteSaver.from_conn_string(str(checkpoint)) as saver:
+                        prefix = f"job:{job.job_id}:"
+                        with saver.cursor(transaction=False) as cursor:
+                            threads = [row[0] for row in cursor.execute(
+                                "SELECT thread_id FROM checkpoints WHERE substr(thread_id,1,?)=? "
+                                "UNION SELECT thread_id FROM writes WHERE substr(thread_id,1,?)=?",
+                                (len(prefix), prefix, len(prefix), prefix),
+                            )]
+                        for thread_id in threads:
+                            saver.delete_thread(thread_id)
+            except OSError as exc:
+                raise ValueError("任务文件删除失败，任务记录已保留，请排除文件占用后重试") from exc
+
+        self.repo.delete_job(job_id, base_revision, cleanup)
 
     def draft(self, job_id: str, request: DraftRequest) -> Job:
         if request.brief is None and request.script is None and request.timeline is None:

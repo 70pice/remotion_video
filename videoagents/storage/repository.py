@@ -162,6 +162,25 @@ class Repository:
             updated = transform(job)
             return self._save(db, Job.model_validate(updated.model_dump()), "revision")
 
+    def delete_job(self, job_id: str, base_revision: int, cleanup: Any) -> None:
+        """Delete a cancelled, idle job while excluding concurrent queue/edit writes."""
+        with self.connection(immediate=True) as db:
+            job = self._get(db, job_id)
+            self.check_editable(db, job, base_revision)
+            if job.status != "CANCELLED":
+                raise Conflict("请先取消任务，待执行进程退出后再删除")
+            if job.stage == "complete":
+                raise Conflict("已完成任务不属于在途创作，不能通过此入口删除")
+            paths = [Path(row[0]) for row in db.execute("SELECT path FROM artifacts WHERE job_id=?", (job_id,))]
+            # A failed filesystem cleanup keeps the cancelled job available for retry.
+            cleanup(job, paths)
+            asset_ids = {asset.asset_id for asset in job.assets}
+            db.executemany("DELETE FROM asset_metadata WHERE asset_id=?", [(asset_id,) for asset_id in asset_ids])
+            db.execute("DELETE FROM artifact_metadata WHERE artifact_id IN "
+                       "(SELECT artifact_id FROM artifacts WHERE job_id=?)", (job_id,))
+            for table in ("artifacts", "job_inputs", "operations", "run_metrics", "events", "commands", "jobs"):
+                db.execute(f"DELETE FROM {table} WHERE job_id=?", (job_id,))
+
     def enqueue(self, job_id: str, payload: dict[str, Any]) -> Job:
         key = payload["idempotency_key"]
         digest = fingerprint(payload)

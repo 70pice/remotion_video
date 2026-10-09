@@ -155,6 +155,15 @@ Windows 配置密钥使用当前用户的 DPAPI 加密后保存在运行数据�
 
 ## 验证与故障排查
 
+### 清理在途创作
+
+先调用 `POST /api/jobs/{job_id}/cancel`，待该任务的待执行/执行中命令退出，再调用
+`DELETE /api/jobs/{job_id}?base_revision=<当前版本>`。接口沿用本机会话、CSRF 与 Origin 检查，
+旧版本、未取消任务、仍在执行的命令以及 `stage=complete` 的任务均拒绝删除。
+删除会清理该任务的记录、全部版本产物元数据、素材元数据、运行目录、公开素材副本和 LangGraph 检查点，
+只操作该任务的所属路径。路径越界或链接提前拒绝；文件清理失败保留取消后的任务记录，可排除占用后重试。
+运行目录与检查点的清理不具备文件系统事务回滚；重试可能继续清理已部分删除的文件。
+
 ```powershell
 .venv-videoagents/Scripts/python.exe -m pytest
 .venv-videoagents/Scripts/python.exe -m ruff check server worker videoagents tests scripts/export-contracts.py
