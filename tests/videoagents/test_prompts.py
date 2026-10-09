@@ -73,7 +73,6 @@ def _field_env(function: ast.FunctionDef | ast.AsyncFunctionDef) -> dict[str, tu
 PROMPT_FILES = [
     "materials",
     "screenwriter",
-    "screenwriter-draft",
     "screenwriter-rewrite",
     "script-reviewer",
     "voice",
@@ -219,8 +218,8 @@ def test_markdown_ships_as_package_data():
 
 
 def test_compose_joins_with_single_blank_line():
-    assert compose("screenwriter", "screenwriter-draft") == (
-        load_prompt("screenwriter") + "\n\n" + load_prompt("screenwriter-draft")
+    assert compose("screenwriter", "screenwriter-rewrite") == (
+        load_prompt("screenwriter") + "\n\n" + load_prompt("screenwriter-rewrite")
     )
 
 
@@ -288,7 +287,7 @@ def test_nodes_compose_prompts_without_unrendered_placeholders():
 @pytest.mark.parametrize("actual,names", [
     (materials.PROMPT, ("materials",)),
     (screenwriter.NARRATIVE_PROMPT, ("screenwriter",)),
-    (screenwriter.PROMPT, ("screenwriter", "screenwriter-draft")),
+    (screenwriter.PROMPT, ("screenwriter",)),
     (screenwriter.REWRITE_PROMPT, ("screenwriter", "screenwriter-rewrite")),
     (script_reviewer.PROMPT, ("script-reviewer",)),
     (voice.PROMPT, ("voice",)),
@@ -505,12 +504,10 @@ def test_director_chain_keeps_developer_preset_boundary():
         ("materials", "shell 落盘（不用补丁工具）"),
         ("materials", "PNG、JPEG、WebP"),
         ("materials", "SVG/HTML/PDF/GIF/AVIF 不能作为"),
-        ("screenwriter", "每段 source_refs 必须有真实来源"),
-        ("screenwriter", "不要单独宣布“我的观点”"),
+        ("screenwriter", "每段 `source_refs` 必填真实来源 URL"),
         ("screenwriter", "结尾判断也要有依据"),
         ("screenwriter", "一个本期受众都能进入的具体任务"),
         ("screenwriter", "成本与上手门槛"),
-        ("screenwriter", "来源和 limitations 是写作边界"),
         ("screenwriter", "不从产品定义、行业背景、功能清单起笔"),
         ("screenwriter", "不虚构第一人称经历"),
         ("screenwriter", "`creative_direction` 本期方向"),

@@ -7,7 +7,7 @@
 | 维护内容 | 文件 | 代码调用 |
 | --- | --- | --- |
 | 用户重写的编剧创作风格、输入说明、Script 字段 | `videoagents/prompts/screenwriter.md` | `nodes/screenwriter.py` 的 NARRATIVE_PROMPT，初稿和改稿共用 |
-| 初稿交付约束 | `videoagents/prompts/screenwriter-draft.md` | 编剧 PROMPT，只返回 Script |
+| 初稿交付约束 | `videoagents/prompts/screenwriter.md` 第 11 节 | 编剧 PROMPT 直接使用主 Prompt，只返回 Script |
 | 机器意见及人工反馈改稿 | `videoagents/prompts/screenwriter-rewrite.md` | 编剧 REWRITE_PROMPT，返回 ScriptRewrite（完整 script + response） |
 | 用户重写的文案审查标准 | `videoagents/prompts/script-reviewer.md` | `nodes/script_reviewer.py` 的 PROMPT，返回 ScriptCritique |
 
@@ -46,7 +46,7 @@
 | 节点 | 本次模型读取的业务输入 | 最终产出 | Prompt 文件 |
 | --- | --- | --- | --- |
 | 素材 | brief、assets、settings 中的检索配置 | MaterialResearch；实际正文、图片和截图经校验后进入研究与资产清单 | [materials.md](../videoagents/prompts/materials.md) |
-| 编剧 | brief、research、assets；讨论改稿再读取 script、script_discussion，必要时读取 extras 中的人工返工结论 | Script；改稿为 ScriptRewrite，包括完整 script 和 response | [screenwriter.md](../videoagents/prompts/screenwriter.md)、[screenwriter-draft.md](../videoagents/prompts/screenwriter-draft.md)、[screenwriter-rewrite.md](../videoagents/prompts/screenwriter-rewrite.md) |
+| 编剧 | brief、research、assets；讨论改稿再读取 script、script_discussion，必要时读取 extras 中的人工返工结论 | Script；改稿为 ScriptRewrite，包括完整 script 和 response | [screenwriter.md](../videoagents/prompts/screenwriter.md)、[screenwriter-rewrite.md](../videoagents/prompts/screenwriter-rewrite.md) |
 | 文案审查 | brief、script、script_discussion、research、assets，必要时读取 extras 中的人工返工结论 | ScriptCritique：APPROVE 或带具体意见的 REVISE | [script-reviewer.md](../videoagents/prompts/script-reviewer.md) |
 | 配音指导 | brief、script、settings 中的声音配置 | VoiceAdvice；其后实际调用语音服务并进行时间对齐 | [voice.md](../videoagents/prompts/voice.md) |
 | 导演 | brief、script、实测 timeline、research、assets、asset_metadata、extras | 完整 Timeline | [director.md](../videoagents/prompts/director.md) |

@@ -32,7 +32,7 @@ from videoagents.storage import Repository
 # 编剧的创作标准由角色自己的独立 Markdown 维护；初稿与
 # 讨论改稿共享同一叙事标准，避免改稿退回产品说明书。
 NARRATIVE_PROMPT = load_prompt("screenwriter")
-PROMPT = NARRATIVE_PROMPT + "\n\n" + load_prompt("screenwriter-draft")
+PROMPT = NARRATIVE_PROMPT
 REWRITE_PROMPT = NARRATIVE_PROMPT + "\n\n" + load_prompt("screenwriter-rewrite")
 SOURCE_DIGEST = re.compile(r"^[a-f0-9]{64}$")
 
