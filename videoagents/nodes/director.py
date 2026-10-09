@@ -18,7 +18,6 @@ from videoagents.nodes.common import (
     state_context,
 )
 from videoagents.nodes.gates import timeline_readability_issues
-from videoagents.prompts import load_prompt
 from videoagents.prompts import render as render_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.jobs import JobService
@@ -88,7 +87,7 @@ def _video_covers(asset: Asset, metadata: dict[str, dict[str, Any]], shot_second
 def director_prompt(usage: str) -> str:
     """Build the complete component guide for this job's license context."""
 
-    return load_prompt("shared-style") + "\n\n" + render_prompt(
+    return render_prompt(
         "director",
         component_props=json.dumps(COMPONENT_PROPS_EXAMPLES, ensure_ascii=False, separators=(",", ":")),
         component_scene_playbook=prompt_scene_playbook(usage),

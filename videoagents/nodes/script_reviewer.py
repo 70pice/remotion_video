@@ -12,7 +12,7 @@ from videoagents.nodes.common import (
     state_context,
 )
 from videoagents.nodes.screenwriter import script_issues
-from videoagents.prompts import compose
+from videoagents.prompts import load_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState
@@ -20,7 +20,7 @@ from videoagents.storage import Repository
 
 # 文案审查 Agent 的固定提示词来自独立 Markdown；讨论历史只包含各轮稿件、
 # 回应和最终审查结果。
-PROMPT = compose("shared-style", "script-reviewer")
+PROMPT = load_prompt("script-reviewer")
 
 
 class ScriptReviewerNode:

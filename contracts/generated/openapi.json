@@ -885,7 +885,7 @@
             "type": "string",
             "maxLength": 500,
             "title": "Audience",
-            "default": "对 AI 感兴趣、愿意了解前沿进展并尝试工具的人"
+            "default": "关心 AI 如何影响自己的钱、工作和生活的普通人，无需技术背景"
           },
           "platform": {
             "type": "string",
@@ -1988,14 +1988,14 @@
             "anyOf": [
               {
                 "type": "integer",
-                "maximum": 20.0,
                 "minimum": 0.0
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Research Max Visuals"
+            "title": "Research Max Visuals",
+            "deprecated": true
           },
           "research_download_images": {
             "anyOf": [

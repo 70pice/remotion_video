@@ -8,7 +8,7 @@ const initialBrief: Brief = {
   topic: "",
   creative_direction: "",
   script_text: "",
-  audience: "对 AI 感兴趣、愿意了解前沿进展并尝试工具的人",
+  audience: "关心 AI 如何影响自己的钱、工作和生活的普通人，无需技术背景",
   platform: "抖音",
   usage: "personal",
   target_seconds: 60,

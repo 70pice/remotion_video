@@ -30,7 +30,7 @@ def test_creative_direction_is_model_input_not_finished_narration(tmp_path, monk
     assert len(calls) == 1
     assert calls[0][0]["brief"]["creative_direction"] == direction
     assert calls[0][1:3] == ("screenwriter", ("brief", "research", "assets"))
-    assert "不是已有口播稿" in calls[0][3]
+    assert "不是现成口播稿，据此重新创作" in calls[0][3]
     assert script.segments[0].narration != direction
 
 

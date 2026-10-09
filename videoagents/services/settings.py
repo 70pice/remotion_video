@@ -82,6 +82,9 @@ class SettingsService:
         result = deepcopy(DEFAULT_SETTINGS)
         stored = self.repo.setting_values()
         for key, value in stored.items():
+            if key == "research_max_visuals":
+                # 旧安装保存的数量限制不再应用于素材采集。
+                continue
             if key in {"llm_api_key", "llm_base_url", "llm_model"}:
                 # Preserve old encrypted rows without decrypting unused HTTP
                 # credentials, including after moving a DB to another user.
@@ -129,6 +132,7 @@ class SettingsService:
     def patch(self, patch: SettingsPatch) -> dict[str, Any]:
         values = patch.model_dump(exclude_none=True, exclude_unset=True)
         values.pop("script_discussion_enabled", None)
+        values.pop("research_max_visuals", None)
         if "role_models" in values:
             roles = self.internal()["role_models"]
             for role, updates in values["role_models"].items():

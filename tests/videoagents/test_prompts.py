@@ -71,7 +71,6 @@ def _field_env(function: ast.FunctionDef | ast.AsyncFunctionDef) -> dict[str, tu
 
 
 PROMPT_FILES = [
-    "shared-style",
     "materials",
     "screenwriter",
     "screenwriter-draft",
@@ -101,18 +100,18 @@ def test_legacy_programmer_focused_root_prompt_does_not_return():
     assert not (PROMPTS_DIR.parents[1] / "screenwriter-prompt-v2.md").exists()
 
 
-def test_new_jobs_default_to_ai_interested_audience_and_preserve_explicit_audience():
+def test_new_jobs_default_to_ordinary_people_and_preserve_explicit_audience():
     assert (
         Brief(topic="AI 新闻").audience
-        == "对 AI 感兴趣、愿意了解前沿进展并尝试工具的人"
+        == "关心 AI 如何影响自己的钱、工作和生活的普通人，无需技术背景"
     )
     assert (
-        Brief(topic="AI 新闻", audience="没有技术背景的普通大众").audience
-        == "没有技术背景的普通大众"
+        Brief(topic="AI 编程", audience="专业程序员").audience
+        == "专业程序员"
     )
 
 
-def test_repository_rules_pin_ai_interested_audience_and_video_isolation():
+def test_repository_rules_pin_ordinary_people_audience_and_video_isolation():
     agents = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
     implementation_contract = (
@@ -125,13 +124,16 @@ def test_repository_rules_pin_ai_interested_audience_and_video_isolation():
         REPO_ROOT / "docs/videoagents-storytelling-standard.md"
     ).read_text(encoding="utf-8")
 
-    assert "面向对 AI 感兴趣、愿意了解前沿进展并尝试工具的人" in readme
-    assert "普通大众的 AI 科普" not in readme
-    assert "audience \"对 AI 感兴趣、愿意了解前沿进展并尝试工具的人\"" in (
+    assert "面向关心 AI 如何影响自己的钱、工作和生活的普通人" in readme
+    assert "普通人与 AI" in agents
+    assert "不再以“前20%”筛选观众" in agents
+    assert "audience \"关心 AI 如何影响自己的钱、工作和生活的普通人，无需技术背景\"" in (
         implementation_contract
     )
-    assert "面向对 AI 感兴趣、愿意了解前沿进展并尝试工具的人" in metrics
-    assert "面向对 AI 感兴趣、愿意了解前沿进展并尝试工具的人" in storytelling
+    assert "普通人与 AI" in metrics
+    assert "面向关心自身处境的普通人" in storytelling
+    for text in (readme, metrics, storytelling):
+        assert "愿意了解前沿进展并尝试工具的人" not in text
     assert "每个视频一条独立分支" in agents
     assert "video/<job_id>" in agents
     assert "视频与视频之间不得复用未显式导入的 state、素材、产物或运行目录" in agents
@@ -163,6 +165,8 @@ def test_docs_list_agent_final_field_handoff_contract():
     assert "不会携带中间过程、工具日志、搜索过程或历史聊天消息" in context_doc
     assert "assets、research、alignment" in prompt_design
     assert "成片复核 | brief、script、timeline、research、assets、reviews" not in prompt_design
+    assert "compose 在角色 Prompt 前拼接" not in prompt_design
+    assert "所有运行时角色经 `compose` 自动继承" not in prompt_design
 
 
 def test_every_agent_model_call_uses_explicit_final_fields_and_brief():
@@ -215,8 +219,8 @@ def test_markdown_ships_as_package_data():
 
 
 def test_compose_joins_with_single_blank_line():
-    assert compose("shared-style", "materials") == (
-        load_prompt("shared-style") + "\n\n" + load_prompt("materials")
+    assert compose("screenwriter", "screenwriter-draft") == (
+        load_prompt("screenwriter") + "\n\n" + load_prompt("screenwriter-draft")
     )
 
 
@@ -242,7 +246,7 @@ def test_director_prompt_requires_native_slots_for_all_community_presets():
 
 
 def test_render_rejects_missing_and_unknown_variables():
-    with pytest.raises(ValueError, match="component_props"):
+    with pytest.raises(ValueError, match="component_scene_playbook"):
         render("director")
     with pytest.raises(ValueError, match="component_catalog"):
         render("director", component_props="x", component_scene_playbook="y")
@@ -252,7 +256,7 @@ def test_render_rejects_missing_and_unknown_variables():
         render("director", component_props="x", component_scene_playbook="y", component_catalog="z", unexpected="w")
 
 
-@pytest.mark.parametrize("bad_name", ["", "UPPER", "has space", "a/b", "a.b", "../shared-style"])
+@pytest.mark.parametrize("bad_name", ["", "UPPER", "has space", "a/b", "a.b", "../screenwriter"])
 def test_loader_rejects_unsafe_names(bad_name):
     with pytest.raises(ValueError):
         load_prompt(bad_name)
@@ -279,6 +283,27 @@ def test_nodes_compose_prompts_without_unrendered_placeholders():
         assert "{{" not in prompt, label
     assert screenwriter.NARRATIVE_PROMPT in screenwriter.PROMPT
     assert screenwriter.NARRATIVE_PROMPT in screenwriter.REWRITE_PROMPT
+
+
+@pytest.mark.parametrize("actual,names", [
+    (materials.PROMPT, ("materials",)),
+    (screenwriter.NARRATIVE_PROMPT, ("screenwriter",)),
+    (screenwriter.PROMPT, ("screenwriter", "screenwriter-draft")),
+    (screenwriter.REWRITE_PROMPT, ("screenwriter", "screenwriter-rewrite")),
+    (script_reviewer.PROMPT, ("script-reviewer",)),
+    (voice.PROMPT, ("voice",)),
+    (editing.PROMPT, ("editing",)),
+    (reviewers.PROMPT, ("review",)),
+], ids=["materials", "narrative", "draft", "rewrite", "script-reviewer", "voice", "editing", "review"])
+def test_runtime_prompts_use_only_their_own_role_files(actual, names):
+    assert actual == "\n\n".join(load_prompt(name) for name in names)
+
+
+def test_shared_style_file_is_absent_and_not_loaded_by_runtime_nodes():
+    assert not (PROMPTS_DIR / "shared-style.md").exists()
+    assert "shared-style" not in materials.PROMPT
+    assert "shared-style" not in screenwriter.PROMPT
+    assert "shared-style" not in script_reviewer.PROMPT
 
 
 def test_director_prompt_injects_props_examples():
@@ -367,15 +392,14 @@ def test_editing_prompt_treats_current_timeline_as_authoritative():
 
 
 def test_script_prompts_limit_repetition_without_dropping_necessary_evidence_boundaries():
-    assert "合计不超过 10%" in screenwriter.PROMPT
     assert "不是本期事实或预设推荐" in screenwriter.PROMPT
     assert "什么任务优先选谁" in screenwriter.PROMPT
     assert "不是文案审查任务，不能返回 ScriptCritique" in screenwriter.REWRITE_PROMPT
     assert "旧稿的通过结论不能沿用" in screenwriter.REWRITE_PROMPT
-    assert "同一必要边界只说一次" in screenwriter.REWRITE_PROMPT
-    assert "不受这个预算压制" in screenwriter.PROMPT
-    assert "不能仅因占比就逼编剧删除" in script_reviewer.PROMPT
-    assert "不能因为稿件“很谨慎”就 APPROVE" in script_reviewer.PROMPT
+    assert "必要事实条件不受字数压制" in screenwriter.PROMPT
+    assert "同一边界只说一次" in screenwriter.PROMPT
+    assert "APPROVE 空" in script_reviewer.PROMPT
+    assert "REVISE 非空" in script_reviewer.PROMPT
 
 
 RUNTIME_PROMPTS = [
@@ -394,27 +418,38 @@ RUNTIME_PROMPTS = [
     "materials", "screenwriter", "screenwriter-rewrite", "script-reviewer",
     "voice", "director", "editing", "reviewers",
 ])
-def test_every_runtime_prompt_inherits_ai_interested_audience(prompt):
-    # 主动关注 AI 不等于会编程；具体深度来自本期 brief，而非作者身份。
-    assert "主动关注 AI、愿意探索新能力和新工具的人" in prompt
-    assert "不预设他们会编程" in prompt
-    assert "编辑取向" in prompt
-    assert "brief.audience" in prompt
+def test_runtime_prompts_do_not_reintroduce_old_ai_interest_audience(prompt):
+    assert "前20%" not in prompt
+    assert "主动关注 AI、愿意探索新能力和新工具的人" not in prompt
+    assert "愿意了解前沿进展并尝试工具的人" not in prompt
 
 
 @pytest.mark.parametrize("prompt", [
+    materials.PROMPT,
     screenwriter.PROMPT,
     screenwriter.REWRITE_PROMPT,
     script_reviewer.PROMPT,
-    voice.PROMPT,
-    editing.PROMPT,
-    reviewers.PROMPT,
-], ids=["screenwriter", "screenwriter-rewrite", "script-reviewer", "voice", "editing", "reviewers"])
-def test_noncatalog_prompts_keep_developer_scenarios_tied_to_topic(prompt):
+    director.PROMPT,
+], ids=["materials", "screenwriter", "screenwriter-rewrite", "script-reviewer", "director"])
+def test_creative_prompts_target_ordinary_people_unless_brief_overrides(prompt):
+    assert "普通人" in prompt
+    assert "brief.audience" in prompt or "brief 另有指定才按 brief" in prompt
+    assert (
+        "不默认观众懂编程" in prompt
+        or "不会编程" in prompt
+        or "不懂技术" in prompt
+        or "默认观众会编程" in prompt
+    )
+
+
+def test_prompt_chain_keeps_developer_scenarios_tied_to_topic():
     # 编程工具也可以是主题；禁止用作者身份把所有选题变成编程教程。
-    assert "博主是程序员不等于观众是程序员" in prompt
-    assert "本期主题确实相关" in prompt
-    assert "预设内置的演示代码" in prompt
+    assert "brief 指定程序员受众时按 brief" in screenwriter.PROMPT
+    assert "不虚构" in screenwriter.PROMPT and "内部消息" in screenwriter.PROMPT
+    assert "本期主题确实相关" in director.PROMPT
+    assert "示例文案、图表或图片" in director.PROMPT
+    assert "不能被当作本视频的" in director.PROMPT
+    assert "事实证据" in director.PROMPT
 
 
 def test_director_catalog_retains_developer_presets_with_topic_boundary():
@@ -426,11 +461,11 @@ def test_director_catalog_retains_developer_presets_with_topic_boundary():
 
 
 @pytest.mark.parametrize("label,phrase", [
-    ("materials", "难以直观理解、且影响判断的数字"),
+    ("materials", "难直观感知、又影响判断的数字"),
     ("materials", "不用类比"),
-    ("screenwriter", "难以直观理解、且会影响判断的数字"),
-    ("screenwriter", "不强行类比"),
-    ("script_reviewer", "直观数字不要求类比"),
+    ("screenwriter", "数字可口语化"),
+    ("screenwriter", "不能损坏统计口径"),
+    ("script_reviewer", "难懂数字裸抛"),
     ("reviewers", "被强行类比"),
 ])
 def test_life_scale_only_required_for_hard_numbers(label, phrase):
@@ -443,12 +478,6 @@ def test_life_scale_only_required_for_hard_numbers(label, phrase):
         "reviewers": reviewers.PROMPT,
     }
     assert phrase in prompts[label]
-
-
-def test_shared_style_carries_softened_number_rule():
-    style = load_prompt("shared-style")
-    assert "不强行类比" in style
-    assert "难以直观理解、且会影响判断的数字" in style
 
 
 def test_director_chain_keeps_developer_preset_boundary():
@@ -467,37 +496,37 @@ def test_director_chain_keeps_developer_preset_boundary():
     "label,phrase",
     [
         ("materials", "MaterialResearch"),
-        ("materials", "一个所有对象都能参与的共同任务"),
+        ("materials", "所有对象都能做的**共同任务**"),
         ("materials", "[证据缺口]"),
         ("materials", "[未完成平台]"),
         ("materials", "白话怎么说"),
         ("materials", "生活尺度"),
         ("materials", "command_execution"),
-        ("materials", "不能把一次补丁工具失败误报为整个工作目录不可写"),
-        ("materials", "PNG、JPEG 或 WebP"),
-        ("materials", "SVG、HTML、PDF、GIF、AVIF 不能作为"),
+        ("materials", "shell 落盘（不用补丁工具）"),
+        ("materials", "PNG、JPEG、WebP"),
+        ("materials", "SVG/HTML/PDF/GIF/AVIF 不能作为"),
         ("screenwriter", "每段 source_refs 必须有真实来源"),
         ("screenwriter", "不要单独宣布“我的观点”"),
-        ("screenwriter", "结尾的判断也要有依据"),
+        ("screenwriter", "结尾判断也要有依据"),
         ("screenwriter", "一个本期受众都能进入的具体任务"),
         ("screenwriter", "成本与上手门槛"),
         ("screenwriter", "来源和 limitations 是写作边界"),
-        ("screenwriter", "不要从产品定义、行业背景、能力清单起笔"),
-        ("screenwriter", "不假装第一人称经历"),
-        ("screenwriter", "brief.creative_direction"),
+        ("screenwriter", "不从产品定义、行业背景、功能清单起笔"),
+        ("screenwriter", "不虚构第一人称经历"),
+        ("screenwriter", "`creative_direction` 本期方向"),
         ("screenwriter", "research.sources"),
         ("screenwriter", "title_hook"),
         ("screenwriter", "opening_visual"),
         ("screenwriter", "final_answer"),
         ("screenwriter", "先用动作或结果解释"),
-        ("script_reviewer", "全稿问题使用空字符串"),
-        ("script_reviewer", "script_discussion.rounds[-1].script.segments"),
-        ("script_reviewer", "不得使用范围"),
+        ("script_reviewer", "全稿问题用空字符串"),
+        ("script_reviewer", "script_discussion.rounds[-1].script"),
+        ("script_reviewer", "不用范围、组合 ID 或新 ID"),
         ("script_reviewer", "新 ID"),
-        ("script_reviewer", "事实正确不等于值得看"),
+        ("script_reviewer", "观众会不会看完、看不看得懂、信不信、有没有收获"),
         ("script_reviewer", "模板腔"),
-        ("script_reviewer", "最影响成片成立的 2～4 个问题"),
-        ("script_reviewer", "不能要求编剧虚构实测"),
+        ("script_reviewer", "issues **只放 blocker，2–4 个**"),
+        ("script_reviewer", "禁止要求编剧编造"),
         ("director", "research.visuals"),
         ("director", "artifact_url"),
         ("director", "asset_src=null"),

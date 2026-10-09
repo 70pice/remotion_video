@@ -7,6 +7,7 @@ import pytest
 
 from videoagents.contracts import Brief, SettingsPatch
 from videoagents.nodes.materials import MaterialsNode
+from videoagents.providers.llm import JsonModel
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.storage import Repository
@@ -104,6 +105,64 @@ def test_skills_strips_browser_only_url_fragments_before_validation(setup, monke
     assert result["research"]["visuals"][0]["image_url"] == "https://example.com/image.png?size=large"
     metadata = repo.asset_metadata(saved.assets[0].asset_id)
     assert metadata["image_url"] == "https://example.com/image.png?size=large"
+
+
+def test_skills_freezes_more_than_twenty_visuals_despite_legacy_limit(setup, monkeypatch):
+    repo, _, node, job = setup
+    repo.write_settings({"research_max_visuals": json.dumps(8)})
+
+    def add_distinct_visuals(data, folder):
+        data["visuals"] = []
+        for index in range(25):
+            contents = PNG + bytes([index])
+            filename = f"image-{index}.png"
+            (folder / filename).write_bytes(contents)
+            data["visuals"].append({
+                "source_url": URL,
+                "kind": "image",
+                "file": filename,
+                "sha256": hashlib.sha256(contents).hexdigest(),
+                "description": f"测试来源的不同画面 {index}",
+            })
+
+    install_output(monkeypatch, node, mutate=add_distinct_visuals)
+    result = node(state(job))
+    saved = repo.get_job(job.job_id)
+
+    assert result["route"] == "screenwriter"
+    assert len(result["research"]["visuals"]) == len(saved.assets) == 25
+    assert len({asset.sha256 for asset in saved.assets}) == 25
+
+
+def test_material_model_context_drops_legacy_visual_limit(setup, monkeypatch):
+    repo, _, _, job = setup
+    model = JsonModel(repo)
+    contexts = []
+
+    def capture(job_id, revision, role, instruction, context, command_id="", **kwargs):
+        contexts.append(context)
+        return {}
+
+    monkeypatch.setattr(model, "call", capture)
+    model.invoke(
+        {**state(job), "settings": {"research_max_visuals": 8, "capture_enabled": True}},
+        "materials",
+        "test",
+        fields=("settings",),
+        research_directory=repo.root,
+    )
+
+    assert contexts == [{"settings": {"capture_enabled": True}}]
+
+
+def test_legacy_visual_limit_setting_is_accepted_but_not_persisted(setup):
+    repo, _, _, _ = setup
+
+    public = SettingsService(repo).patch(SettingsPatch(research_max_visuals=999))
+
+    assert "research_max_visuals" not in SettingsService(repo).internal()
+    assert "research_max_visuals" not in public
+    assert "research_max_visuals" not in repo.setting_values()
 
 
 def test_skills_audit_rebuilds_whitelist_instead_of_publishing_file_contents(setup, monkeypatch):

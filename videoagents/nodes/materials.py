@@ -10,7 +10,7 @@ from urllib.parse import urldefrag, urlparse
 
 from videoagents.contracts import Asset, Job, MaterialResearch
 from videoagents.nodes.common import agent_state, request_input, start_stage, state_context
-from videoagents.prompts import compose
+from videoagents.prompts import load_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.providers.network import validate_url
 from videoagents.services.jobs import JobService
@@ -21,9 +21,9 @@ from videoagents.storage.repository import fingerprint, now
 from videoagents.tools.media import decode_check, detect_media, probe, sha256, video_metadata
 from worker.process_manager import RenderCancelled
 
-# 研究行为由独立 Markdown Prompt 定义；统一风格圣经在前，素材角色规则在后。
+# 研究行为仅由素材角色自己的 Markdown Prompt 定义。
 # CLI provider 只负责执行与接收最终 JSON；业务输入只从共享 VideoState 读取。
-PROMPT = compose("shared-style", "materials")
+PROMPT = load_prompt("materials")
 
 
 class MaterialsNode:
@@ -180,8 +180,8 @@ class MaterialsNode:
         if not bundle.sources:
             detail = "；".join(bundle.limitations)[:1500]
             raise CapabilityMissing("技能研究未读取到可用正文；" + (detail or "请补充来源链接或检查检索能力"), ["source_urls", "role_models"])
-        if len(bundle.sources) > settings["research_max_sources"] or len(bundle.visuals) > settings["research_max_visuals"]:
-            raise ValueError("技能研究清单超过设置中的来源或画面数量上限")
+        if len(bundle.sources) > settings["research_max_sources"]:
+            raise ValueError("技能研究清单超过设置中的来源数量上限")
         urls = [item.url for item in bundle.sources]
         if len(urls) != len(set(urls)):
             raise ValueError("技能研究清单包含重复来源")
@@ -237,7 +237,7 @@ class MaterialsNode:
 
         research = {"schema_version": "3", "status": "COMPLETED", "sources": [], "visuals": [],
                     "limitations": list(bundle.limitations), "collected_at": now()}
-        if not bundle.visuals and settings["research_max_visuals"] and (settings["capture_enabled"] or settings["research_download_images"]):
+        if not bundle.visuals and (settings["capture_enabled"] or settings["research_download_images"]):
             research["limitations"].append("本次未取得真实图片或截图，导演仍需补充画面素材。")
         for item in bundle.sources:
             existing = next((artifact for artifact in self.active(job).artifacts

@@ -23,15 +23,15 @@ from videoagents.nodes.common import (
     start_stage,
     state_context,
 )
-from videoagents.prompts import compose, load_prompt
+from videoagents.prompts import load_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState
 from videoagents.storage import Repository
 
-# 编剧的创作标准由独立 Markdown 维护：统一风格圣经 + 文案角色标准；初稿与
+# 编剧的创作标准由角色自己的独立 Markdown 维护；初稿与
 # 讨论改稿共享同一叙事标准，避免改稿退回产品说明书。
-NARRATIVE_PROMPT = compose("shared-style", "screenwriter")
+NARRATIVE_PROMPT = load_prompt("screenwriter")
 PROMPT = NARRATIVE_PROMPT + "\n\n" + load_prompt("screenwriter-draft")
 REWRITE_PROMPT = NARRATIVE_PROMPT + "\n\n" + load_prompt("screenwriter-rewrite")
 SOURCE_DIGEST = re.compile(r"^[a-f0-9]{64}$")

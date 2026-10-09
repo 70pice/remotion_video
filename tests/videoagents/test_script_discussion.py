@@ -139,7 +139,7 @@ def test_script_discussion_revise_then_approve_updates_script_and_history(monkey
         if role == "script_reviewer" and len(calls) == 1:
             return _critique("REVISE")
         if role == "screenwriter":
-            assert "结尾的判断也要有依据" in instruction
+            assert "结尾判断也要有依据" in instruction
             assert "不是文案审查任务，不能返回 ScriptCritique" in instruction
             assert "research" in context and "assets" in context
             return _rewrite()
@@ -336,8 +336,9 @@ def test_reviewer_schema_and_instruction_use_only_current_draft_ids(monkeypatch,
     draft = context["script_discussion"]["rounds"][-1]["script"]
     assert [item["segment_id"] for item in draft["segments"]] == segment_ids
     assert schema["$defs"]["ScriptCritiqueIssue"]["properties"]["segment_id"]["enum"] == ["", *segment_ids]
-    assert "script_discussion.rounds[-1].script.segments" in instruction and "逐字" in instruction
-    assert "全稿问题使用空字符串" in instruction and "不得使用范围" in instruction and "新 ID" in instruction
+    assert "script_discussion.rounds[-1].script" in instruction
+    assert "逐字使用本轮 segments 的真实 ID" in instruction
+    assert "全稿问题用空字符串" in instruction and "不用范围、组合 ID 或新 ID" in instruction
     # Each call narrows its own transport schema, without changing the shared contract.
     assert "enum" not in ScriptCritique.model_json_schema()["$defs"]["ScriptCritiqueIssue"]["properties"]["segment_id"]
     current = repo.get_job(job.job_id)
