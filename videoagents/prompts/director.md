@@ -290,8 +290,33 @@ source_refs/asset_ids、素材 source_url、visuals 的标题和摘录交叉匹�
 ## 生产组件选择
 
 生产清单同时开放两类能力：9 个可传入事实/素材的参数化适配器，以及仓库中
-187 个均有横版和原生竖版的已验证社区预设。只能选择本 Prompt 末尾完整清单
+187 个均有横版和原生竖版的已验证社区预设。当前 196 个生产组件全部为
+`native_slots`：9 个适配器 + 187 个社区预设。
+只能选择本 Prompt 末尾完整清单
 中的 component_id；渲染器会按 timeline 的横竖方向自动使用对应版本。
+
+先不要从 196 个组件里逐个“抽卡”。每个 10-20 秒连续段落先判定所属场景，
+再按下方场景组件组合 Playbook 选择 2-4 个承担不同职责的镜头：开头、主体、
+证据、局部、结果或收束。一个段落内尽量保持同一素材主体、颜色语义和组件家族，
+只在旁白的信息动作变化时换组件；组件之间必须形成递进关系，而不是把同一素材
+反复套进不同外壳。
+
+## 场景组件组合 Playbook
+
+{{component_scene_playbook}}
+
+清单中的 `material_capability` 是组件选择的硬信号：
+
+- `material_capability=native_slots`：素材、标题、正文和 props 会进入组件本体
+  或参数化布局，适合把当前视频内容做成真正的画面主体。35 个 CuratedScene
+  精选预设会把素材映射进手机框、图库、画中画、遮罩、玻璃卡、图表或背景槽位；
+  其余社区预设会按组件语义进入 device、gallery、pip、data、workspace、
+  reveal、text、motion 或 material card 原生展示面，保留原预设动效和构图。
+
+当本镜头需要“把素材塞进组件结构里”才能成立，例如证据细节、步骤同步、双栏对比、
+真实视频演示或数据卡片，优先选择语义匹配且 `material_capability=native_slots`
+的组件；所有社区预设都不能退回纯覆盖层思路。不得为了组件 ID 多样化而把同一套
+素材展示反复套在无关预设上。
 
 ### 九个参数化适配器
 
@@ -337,9 +362,12 @@ title、keyword、evidence、image_focus、video、comparison、data、steps、c
   `asset_crop`（x/y/width/height）、`start_seconds`、`end_seconds`、
   `items`（1～4 条短文本）和 `metric`（label/value/detail）。不接受远程素材、
   CSS、函数、组件代码、任意坐标布局或参数化适配器的专属 props。
-- 这些槽位由生产层嵌入到预设画面中；预设内部原有布局和动效仍作为视觉骨架。
-  需要精确证据高亮、图片局部聚焦、复杂数据卡、步骤逐项揭示或双栏对比时，
-  优先使用 9 个参数化适配器。
+- 对 `material_capability=native_slots` 的社区预设，生产层会把这些槽位映射到
+  组件原生展示面，并保留原组件动效和构图。35 个 CuratedScene 精选预设走
+  专用素材槽；其余预设按组件语义进入 device、gallery、pip、data、workspace、
+  reveal、text、motion 或 material card。需要精确证据高亮、图片局部聚焦、
+  复杂数据卡、步骤逐项揭示或双栏对比时，如果必须要更强的事实控制，再用
+  9 个参数化适配器。
 - 预设中存在用于展示动效的示例文案、图表或图片。它们不能被当作本视频的
   事实证据；本期事实只来自 shot 字段、props 安全槽位和已导入素材。
 - 终端、代码、光标走读类开发者预设（如 TerminalSimulator、CursorTrack、
@@ -433,7 +461,7 @@ title 写普通人一眼能理解的问题或结论，通常 8～20 字；body �
 
 ## 本任务允许的完整组件清单
 
-每行格式为 `component_id | 组件库 | 模式 | 表达内容 | 适用场景`。该清单已按
+每行格式为 `component_id | 组件库 | 模式 | material_capability | 表达内容 | 适用场景`。该清单已按
 本任务 usage 过滤，返回值只能从这些 component_id 中选择：
 
 {{component_catalog}}

@@ -1,8 +1,11 @@
 import {useMemo, type CSSProperties} from 'react';
 import {Audio} from '@remotion/media';
 import {AbsoluteFill, Freeze, Img, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
+import {CuratedScene} from '../components/component-horizontal/curated/CuratedScene';
 import {FittedText, muted, productionFont, useLayout, white} from './adapters/layout';
 import {buildCaptionPages} from './captionPages';
+import {communityMaterialSurfaceForComponentId, communityMaterialSurfaceName, type CommunityMaterialSurface} from './communityMaterial';
+import {curatedScenePropsForShot, materializedCommunityComponentIdSet} from './curatedMaterial';
 import {isSemanticComponent, resolveCommunityPreset, semanticProductionRegistry} from './registry';
 import type {Timeline, TimelineShot, TimelineVideoProps} from './types';
 import {validateTimeline} from './validation.mjs';
@@ -13,11 +16,12 @@ type CommunityCrop = {x: number; y: number; width: number; height: number};
 const isCommunityMetric = (value: unknown): value is CommunityMetric => Boolean(value && typeof value === 'object');
 const isCommunityCrop = (value: unknown): value is CommunityCrop => Boolean(value && typeof value === 'object');
 
-const CommunityMaterial = ({shot, durationInFrames}: {shot: TimelineShot; durationInFrames: number}) => {
+const CommunityNativeMaterial = ({shot, durationInFrames}: {shot: TimelineShot; durationInFrames: number}) => {
   const {fps} = useVideoConfig();
   const frame = useCurrentFrame();
   const {unit, vertical, margin, contentWidth} = useLayout();
   const props = shot.props as Record<string, unknown>;
+  const surface = communityMaterialSurfaceForComponentId(shot.component_id);
   const items = Array.isArray(props.items) ? props.items.filter((item): item is string => typeof item === 'string') : [];
   const metric = isCommunityMetric(props.metric) ? props.metric : null;
   const crop = isCommunityCrop(props.asset_crop) ? props.asset_crop : null;
@@ -44,51 +48,133 @@ const CommunityMaterial = ({shot, durationInFrames}: {shot: TimelineShot; durati
     objectFit: fit as CSSProperties['objectFit'],
   };
   const entrance = Math.min(1, Math.max(0, frame / Math.max(1, Math.min(18, durationInFrames * 0.22))));
-  const mediaHeight = (vertical ? 720 : 330) * unit;
-  const panelTop = (vertical ? 228 : 92) * unit;
+  const mediaHeight = (vertical ? 660 : 300) * unit;
+  const panelTop = (vertical ? 214 : 82) * unit;
   const panelPadding = (vertical ? 28 : 20) * unit;
   const panelWidth = contentWidth;
   const titleHeight = (vertical ? 128 : 66) * unit;
   const bodyHeight = shot.body ? (vertical ? 114 : 56) * unit : 0;
-  return <div style={{position: 'absolute', left: margin, right: margin, top: panelTop,
+  const media = (style: CSSProperties = {}) => mode === 'media' && src ? <div style={{position: 'relative',
+    height: mediaHeight, background: '#050A12', overflow: 'hidden', ...style}}>
+    {isVideo ? <OffthreadVideo src={src} muted trimBefore={trimBefore} trimAfter={trimAfter}
+      style={{...cropStyle, display: 'block'}} /> : <Img src={src} style={{...cropStyle, display: 'block'}} />}
+    <div style={{position: 'absolute', inset: 0,
+      background: `linear-gradient(180deg, #050A1200 48%, #050A12D9 100%), radial-gradient(circle at 18% 16%, ${shot.accent_color}33, transparent 34%)`}} />
+  </div> : null;
+  const metricBlock = mode === 'metric' && metric?.label && metric?.value ? <div style={{display: 'grid', gridTemplateColumns: '1fr auto',
+    alignItems: 'end', gap: 18 * unit, padding: `${18 * unit}px ${20 * unit}px`, borderRadius: 16 * unit,
+    border: `1px solid ${shot.accent_color}4D`, background: `${shot.accent_color}14`}}>
+    <FittedText text={metric.label} width={(panelWidth - panelPadding * 2) * 0.46} height={48 * unit}
+      fontSize={26 * unit} minFontSize={14 * unit} style={{color: muted, fontWeight: 600}} />
+    <FittedText text={metric.value} width={(panelWidth - panelPadding * 2) * 0.42} height={76 * unit}
+      fontSize={58 * unit} minFontSize={20 * unit} style={{color: white, textAlign: 'right'}} />
+    {metric.detail ? <div style={{gridColumn: '1 / -1', color: '#C2CAD6', fontSize: 20 * unit,
+      fontWeight: 500}}>{metric.detail}</div> : null}
+  </div> : null;
+  const listBlock = mode === 'list' && items.length ? <div style={{display: 'grid', gap: 10 * unit}}>
+    {items.map((item, index) => <div key={index} style={{display: 'grid', gridTemplateColumns: `${28 * unit}px 1fr`,
+      alignItems: 'center', gap: 12 * unit, color: '#E9EEF4', fontSize: (vertical ? 25 : 17) * unit,
+      fontWeight: 650}}>
+      <span style={{width: 24 * unit, height: 24 * unit, borderRadius: 999, background: shot.accent_color,
+        color: '#08111F', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 14 * unit, fontWeight: 800}}>{index + 1}</span>
+      <span>{item}</span>
+    </div>)}
+  </div> : null;
+  const primaryCopy = <div style={{padding: panelPadding, display: 'grid', gap: 16 * unit}}>
+    <div style={{height: 5 * unit, width: 74 * unit, borderRadius: 999, background: shot.accent_color}} />
+    <FittedText text={shot.title} width={panelWidth - panelPadding * 2} height={titleHeight}
+      fontSize={(vertical ? 54 : 34) * unit} minFontSize={18 * unit} />
+    {shot.body ? <FittedText text={shot.body} width={panelWidth - panelPadding * 2} height={bodyHeight}
+      fontSize={(vertical ? 28 : 18) * unit} minFontSize={14 * unit}
+      style={{color: '#D6DFEC', fontWeight: 500}} /> : null}
+    {metricBlock}
+    {listBlock}
+    {shot.source_label ? <div style={{fontSize: 17 * unit, color: muted, fontWeight: 600}}>{shot.source_label}</div> : null}
+  </div>;
+  const frameChrome = (label: string) => <div style={{height: 32 * unit, display: 'flex', alignItems: 'center',
+    gap: 8 * unit, padding: `0 ${14 * unit}px`, borderBottom: '1px solid #FFFFFF1F',
+    color: '#C8D2E0', fontSize: 13 * unit, fontWeight: 800, letterSpacing: 0}}>
+    {[0, 1, 2].map((index) => <span key={index} style={{width: 8 * unit, height: 8 * unit,
+      borderRadius: 999, background: index === 0 ? '#FB7185' : index === 1 ? '#FACC15' : '#34D399'}} />)}
+    <span style={{marginLeft: 6 * unit, textTransform: 'uppercase'}}>{label}</span>
+  </div>;
+  const thumbnailRail = surface === 'gallery' && src ? <div style={{display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 * unit, padding: `${0}px ${panelPadding}px ${panelPadding}px`}}>
+    {[0, 1, 2].map((index) => <div key={index} style={{height: (vertical ? 92 : 54) * unit,
+      borderRadius: 12 * unit, background: `${shot.accent_color}${index === 1 ? '33' : '1F'}`,
+      border: `1px solid ${shot.accent_color}${index === 1 ? '99' : '44'}`}} />)}
+  </div> : null;
+  const textBadge = <div style={{position: 'absolute', top: 14 * unit, right: 16 * unit,
+    color: '#07101F', background: shot.accent_color, borderRadius: 999, padding: `${6 * unit}px ${12 * unit}px`,
+    fontSize: 13 * unit, fontWeight: 900, textTransform: 'uppercase'}}>
+    {communityMaterialSurfaceName[surface as CommunityMaterialSurface]}
+  </div>;
+  const shellStyle: CSSProperties = {position: 'absolute', left: margin, right: margin, top: panelTop,
     opacity: entrance, transform: `translateY(${(1 - entrance) * 24 * unit}px)`,
-    borderRadius: 24 * unit, overflow: 'hidden', border: `1px solid ${shot.accent_color}66`,
-    background: '#07101FE8', boxShadow: `0 ${18 * unit}px ${48 * unit}px #0008`}}>
-    {mode === 'media' && src ? <div style={{position: 'relative', height: mediaHeight, background: '#050A12', overflow: 'hidden'}}>
-      {isVideo ? <OffthreadVideo src={src} muted trimBefore={trimBefore} trimAfter={trimAfter}
-        style={{...cropStyle, display: 'block'}} /> : <Img src={src} style={{...cropStyle, display: 'block'}} />}
-      <div style={{position: 'absolute', inset: 0,
-        background: `linear-gradient(180deg, #050A1200 42%, #050A12D9 100%), radial-gradient(circle at 18% 16%, ${shot.accent_color}33, transparent 34%)`}} />
-    </div> : null}
-    <div style={{padding: panelPadding, display: 'grid', gap: 16 * unit}}>
-      <div style={{height: 5 * unit, width: 74 * unit, borderRadius: 999, background: shot.accent_color}} />
-      <FittedText text={shot.title} width={panelWidth - panelPadding * 2} height={titleHeight}
-        fontSize={(vertical ? 54 : 34) * unit} minFontSize={18 * unit} />
-      {shot.body ? <FittedText text={shot.body} width={panelWidth - panelPadding * 2} height={bodyHeight}
-        fontSize={(vertical ? 28 : 18) * unit} minFontSize={14 * unit}
-        style={{color: '#D6DFEC', fontWeight: 500}} /> : null}
-      {mode === 'metric' && metric?.label && metric?.value ? <div style={{display: 'grid', gridTemplateColumns: '1fr auto',
-        alignItems: 'end', gap: 18 * unit, padding: `${18 * unit}px ${20 * unit}px`, borderRadius: 16 * unit,
-        border: `1px solid ${shot.accent_color}4D`, background: `${shot.accent_color}14`}}>
-        <FittedText text={metric.label} width={(panelWidth - panelPadding * 2) * 0.46} height={48 * unit}
-          fontSize={26 * unit} minFontSize={14 * unit} style={{color: muted, fontWeight: 600}} />
-        <FittedText text={metric.value} width={(panelWidth - panelPadding * 2) * 0.42} height={76 * unit}
-          fontSize={58 * unit} minFontSize={20 * unit} style={{color: white, textAlign: 'right'}} />
-        {metric.detail ? <div style={{gridColumn: '1 / -1', color: '#C2CAD6', fontSize: 20 * unit,
-          fontWeight: 500}}>{metric.detail}</div> : null}
-      </div> : null}
-      {mode === 'list' && items.length ? <div style={{display: 'grid', gap: 10 * unit}}>
-        {items.map((item, index) => <div key={index} style={{display: 'grid', gridTemplateColumns: `${28 * unit}px 1fr`,
-          alignItems: 'center', gap: 12 * unit, color: '#E9EEF4', fontSize: (vertical ? 25 : 17) * unit,
-          fontWeight: 650}}>
-          <span style={{width: 24 * unit, height: 24 * unit, borderRadius: 999, background: shot.accent_color,
-            color: '#08111F', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 14 * unit, fontWeight: 800}}>{index + 1}</span>
-          <span>{item}</span>
-        </div>)}
-      </div> : null}
-      {shot.source_label ? <div style={{fontSize: 17 * unit, color: muted, fontWeight: 600}}>{shot.source_label}</div> : null}
-    </div>
+    borderRadius: surface === 'pip' ? 34 * unit : 24 * unit, overflow: 'hidden',
+    border: `1px solid ${shot.accent_color}66`, background: '#07101FE8',
+    boxShadow: `0 ${18 * unit}px ${48 * unit}px #0008`};
+  if (surface === 'pip' && vertical) {
+    shellStyle.left = margin + 84 * unit;
+    shellStyle.right = margin + 84 * unit;
+  }
+  if (surface === 'reveal') {
+    shellStyle.clipPath = vertical ? 'polygon(0 8%, 92% 0, 100% 90%, 8% 100%)' : 'polygon(0 0, 94% 8%, 100% 100%, 6% 92%)';
+  }
+  if (surface === 'workspace' || surface === 'device') {
+    return <div style={shellStyle}>
+      {frameChrome(surface === 'workspace' ? 'workspace material' : 'live material')}
+      {media({height: (vertical ? 520 : 246) * unit, borderBottom: '1px solid #FFFFFF14'})}
+      {primaryCopy}
+      {textBadge}
+    </div>;
+  }
+  if (surface === 'gallery') {
+    return <div style={shellStyle}>
+      {media({height: (vertical ? 590 : 270) * unit})}
+      {thumbnailRail}
+      {primaryCopy}
+      {textBadge}
+    </div>;
+  }
+  if (surface === 'pip') {
+    return <div style={shellStyle}>
+      {media({height: (vertical ? 720 : 310) * unit, borderRadius: `${28 * unit}px ${28 * unit}px 0 0`})}
+      {primaryCopy}
+      {textBadge}
+    </div>;
+  }
+  if (surface === 'data') {
+    return <div style={shellStyle}>
+      {src && vertical ? media({height: 360 * unit, borderBottom: '1px solid #FFFFFF14'}) : null}
+      <div style={{display: 'grid', gridTemplateColumns: src && !vertical ? '0.9fr 1.1fr' : '1fr', gap: 0}}>
+        {src && !vertical ? media({height: (vertical ? 520 : 330) * unit}) : null}
+        <div>{primaryCopy}</div>
+      </div>
+      {textBadge}
+    </div>;
+  }
+  if (surface === 'text') {
+    return <div style={{...shellStyle, background: `linear-gradient(135deg, ${shot.accent_color}2B, #07101FF2 42%, #050A12F5)`}}>
+      {src ? media({height: (vertical ? 360 : 158) * unit, opacity: 0.72}) : null}
+      {primaryCopy}
+      {textBadge}
+    </div>;
+  }
+  if (surface === 'reveal' || surface === 'motion') {
+    return <div style={shellStyle}>
+      {media({height: (vertical ? 630 : 286) * unit})}
+      <div style={{position: 'absolute', inset: 0, border: `${2 * unit}px solid ${shot.accent_color}`,
+        pointerEvents: 'none'}} />
+      {primaryCopy}
+      {textBadge}
+    </div>;
+  }
+  return <div style={shellStyle}>
+    {media()}
+    {primaryCopy}
+    {textBadge}
   </div>;
 };
 
@@ -96,6 +182,9 @@ const CommunityPresetScene = ({shot}: {shot: TimelineShot}) => {
   const frame = useCurrentFrame();
   const {width, height} = useVideoConfig();
   const {unit, vertical, margin, contentWidth} = useLayout();
+  if (materializedCommunityComponentIdSet.has(shot.component_id)) {
+    return <CuratedScene {...curatedScenePropsForShot(shot, vertical)} />;
+  }
   const preset = resolveCommunityPreset(shot.component_id, vertical);
   const Preset = preset.component;
   const scale = Math.min(width / preset.width, height / preset.height);
@@ -110,7 +199,7 @@ const CommunityPresetScene = ({shot}: {shot: TimelineShot}) => {
       filter: shot.asset_src || Object.keys(shot.props).length ? 'saturate(0.8) brightness(0.55)' : undefined}}>
       <Sequence width={preset.width} height={preset.height}>{content}</Sequence>
     </div>
-    {shot.asset_src || Object.keys(shot.props).length ? <CommunityMaterial shot={shot}
+    {shot.asset_src || Object.keys(shot.props).length ? <CommunityNativeMaterial shot={shot}
       durationInFrames={shot.end_frame - shot.start_frame} /> : <div style={{position: 'absolute', left: margin, right: margin, top: (vertical ? 180 : 112) * unit,
       padding: `${18 * unit}px ${24 * unit}px`, borderRadius: 18 * unit, background: '#07101FD9',
       border: '1px solid #FFFFFF2E', boxSizing: 'border-box'}}>

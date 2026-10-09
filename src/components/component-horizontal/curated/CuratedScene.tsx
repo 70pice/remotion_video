@@ -1,5 +1,5 @@
 import type {CSSProperties, FC, ReactNode} from 'react';
-import {AbsoluteFill, useCurrentFrame, useVideoConfig} from 'remotion';
+import {AbsoluteFill, Img, OffthreadVideo, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 
 export type CuratedVariant =
   | 'social-clip'
@@ -45,6 +45,16 @@ export type CuratedSceneProps = {
   kicker: string;
   accent: string;
   secondary?: string;
+  material?: CuratedSceneMaterial;
+};
+
+export type CuratedSceneMaterial = {
+  src: string;
+  kind: 'image' | 'video';
+  fit: 'contain' | 'cover';
+  crop?: {x: number; y: number; width: number; height: number};
+  startSeconds?: number;
+  endSeconds?: number;
 };
 
 export type CuratedDemoDefinition = Omit<CuratedSceneProps, 'layout'> & {
@@ -96,16 +106,26 @@ const TitleBlock: FC<{title: string; kicker: string; accent: string; unit: numbe
   </div>
 </div>;
 
-const Shell: FC<{children: ReactNode; accent: string; unit: number; portrait: boolean}> = ({
+const Shell: FC<{
+  children: ReactNode;
+  accent: string;
+  unit: number;
+  portrait: boolean;
+  material?: CuratedSceneMaterial;
+  fps?: number;
+}> = ({
   children,
   accent,
   unit,
   portrait,
+  material,
+  fps = 30,
 }) => <AbsoluteFill style={{background: slate, color: ink, fontFamily: font, overflow: 'hidden'}}>
   <div style={{position: 'absolute', inset: 0,
     background: `radial-gradient(circle at 18% 14%, ${accent}42, transparent 30%),
       radial-gradient(circle at 88% 72%, #2DD4BF33, transparent 32%),
       linear-gradient(135deg, #08111F 0%, #172033 55%, #070B12 100%)`}} />
+  <AmbientMaterialLayer material={material} accent={accent} unit={unit} portrait={portrait} fps={fps} />
   <div style={{position: 'absolute', inset: portrait ? `${72 * unit}px ${58 * unit}px` : `${44 * unit}px ${58 * unit}px`,
     border: `1px solid ${accent}3D`, borderRadius: 28 * unit, boxShadow: 'inset 0 0 0 1px #FFFFFF0F'}} />
   {children}
@@ -131,6 +151,57 @@ const FlowDots: FC<{count: number; frame: number; accent: string; unit: number; 
 </div>;
 
 const chartColors = ['#38BDF8', '#A3E635', '#F97316', '#F43F5E', '#FACC15'];
+
+const MaterialFrame: FC<{
+  material?: CuratedSceneMaterial;
+  accent: string;
+  fps: number;
+  radius: number;
+  style?: CSSProperties;
+  overlay?: boolean;
+}> = ({material, accent, fps, radius, style, overlay = true}) => {
+  const fallback = <div style={{position: 'absolute', inset: 0,
+    background: `linear-gradient(135deg, ${accent}, #38BDF8 54%, #111827)`}} />;
+  const crop = material?.crop;
+  const mediaStyle: CSSProperties = crop ? {
+    position: 'absolute',
+    left: `${-crop.x / crop.width * 100}%`,
+    top: `${-crop.y / crop.height * 100}%`,
+    width: `${100 / crop.width}%`,
+    height: `${100 / crop.height}%`,
+    objectFit: 'fill',
+  } : {
+    position: 'absolute',
+    inset: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: material?.fit ?? 'cover',
+  };
+  const media = material ? (material.kind === 'video'
+    ? <OffthreadVideo src={staticFile(material.src)} muted
+        trimBefore={Math.round((material.startSeconds ?? 0) * fps)}
+        trimAfter={material.endSeconds === undefined ? undefined : Math.round(material.endSeconds * fps)}
+        style={mediaStyle} />
+    : <Img src={staticFile(material.src)} style={mediaStyle} />) : fallback;
+  return <div style={{position: 'relative', overflow: 'hidden', borderRadius: radius, background: '#050A12', ...style}}>
+    {media}
+    {overlay ? <div style={{position: 'absolute', inset: 0,
+      background: `linear-gradient(180deg, #050A1200 42%, #050A12CC 100%),
+        radial-gradient(circle at 20% 18%, ${accent}3D, transparent 34%)`}} /> : null}
+  </div>;
+};
+
+const AmbientMaterialLayer: FC<{material?: CuratedSceneMaterial; accent: string; unit: number; portrait: boolean; fps: number}> = ({
+  material,
+  accent,
+  unit,
+  portrait,
+  fps,
+}) => material ? <MaterialFrame material={material} accent={accent} fps={fps} radius={30 * unit}
+  style={{position: 'absolute', right: portrait ? -110 * unit : -60 * unit, bottom: portrait ? 150 * unit : 24 * unit,
+    width: portrait ? 500 * unit : 390 * unit, height: portrait ? 720 * unit : 250 * unit,
+    opacity: 0.22, transform: portrait ? 'rotate(-6deg)' : 'rotate(-4deg)', filter: `blur(${portrait ? 1.2 : 0.6}px)`,
+    boxShadow: `0 ${22 * unit}px ${80 * unit}px #0008`}} /> : null;
 
 const ChartPanel: FC<{frame: number; accent: string; unit: number; mode?: 'area' | 'bars' | 'candles' | 'race'}> = ({
   frame,
@@ -186,17 +257,29 @@ const ChartPanel: FC<{frame: number; accent: string; unit: number; mode?: 'area'
   </div>;
 };
 
-const PhoneCard: FC<{frame: number; accent: string; unit: number; portrait: boolean; title: string}> = ({
+const PhoneCard: FC<{
+  frame: number;
+  accent: string;
+  unit: number;
+  portrait: boolean;
+  title: string;
+  fps: number;
+  material?: CuratedSceneMaterial;
+}> = ({
   frame,
   accent,
   unit,
   portrait,
   title,
+  fps,
+  material,
 }) => <div style={{position: 'relative', width: portrait ? 500 * unit : 300 * unit, height: portrait ? 850 * unit : 560 * unit,
   borderRadius: 42 * unit, padding: 12 * unit, background: '#020617', border: '1px solid #FFFFFF33',
   boxShadow: `0 ${30 * unit}px ${90 * unit}px #000A`, transform: portrait ? undefined : 'rotate(-4deg)'}}>
   <div style={{height: '100%', borderRadius: 32 * unit, overflow: 'hidden', position: 'relative',
     background: `linear-gradient(160deg, ${accent} 0%, #0F172A 42%, #101827 100%)`}}>
+    {material ? <MaterialFrame material={material} accent={accent} fps={fps} radius={32 * unit}
+      style={{position: 'absolute', inset: 0}} /> : null}
     <div style={{position: 'absolute', inset: 0, opacity: 0.22,
       background: 'repeating-linear-gradient(0deg, #fff 0 1px, transparent 1px 28px)'}} />
     <div style={{position: 'absolute', left: 22 * unit, right: 22 * unit, bottom: 34 * unit,
@@ -211,12 +294,22 @@ const PhoneCard: FC<{frame: number; accent: string; unit: number; portrait: bool
   </div>
 </div>;
 
-const Gallery: FC<{frame: number; accent: string; unit: number; portrait: boolean; mode: 'grid' | 'carousel' | 'masonry' | 'stack' | 'polaroid' | 'zoom'}> = ({
+const Gallery: FC<{
+  frame: number;
+  accent: string;
+  unit: number;
+  portrait: boolean;
+  mode: 'grid' | 'carousel' | 'masonry' | 'stack' | 'polaroid' | 'zoom';
+  fps: number;
+  material?: CuratedSceneMaterial;
+}> = ({
   frame,
   accent,
   unit,
   portrait,
   mode,
+  fps,
+  material,
 }) => {
   const count = mode === 'masonry' ? 8 : mode === 'stack' || mode === 'polaroid' ? 5 : 6;
   return <div style={{position: 'relative', width: portrait ? 760 * unit : 690 * unit,
@@ -236,8 +329,9 @@ const Gallery: FC<{frame: number; accent: string; unit: number; portrait: boolea
         padding: mode === 'polaroid' ? 14 * unit : 0, background: mode === 'polaroid' ? '#F8FAFC' : undefined,
         transform: `translateY(${(1 - revealed) * 28 * unit}px) rotate(${stacked ? -9 + index * 5 : 0}deg) scale(${zoom})`,
         opacity: revealed, boxShadow: `0 ${20 * unit}px ${54 * unit}px #0008`, overflow: 'hidden'}}>
-        <div style={{height: mode === 'polaroid' ? '82%' : '100%', borderRadius: (mode === 'polaroid' ? 5 : 22) * unit,
-          background: `linear-gradient(135deg, ${chartColors[index % chartColors.length]} 0%, ${accent} 52%, #111827 100%)`}} />
+        <MaterialFrame material={material} accent={chartColors[index % chartColors.length] || accent} fps={fps}
+          radius={(mode === 'polaroid' ? 5 : 22) * unit} overlay={Boolean(material)}
+          style={{height: mode === 'polaroid' ? '82%' : '100%'}} />
         {mode === 'polaroid' ? <div style={{height: '18%', color: '#1E293B', fontSize: 16 * unit,
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800}}>scene {index + 1}</div> : null}
       </div>;
@@ -288,26 +382,37 @@ const CircularProgress: FC<{frame: number; accent: string; unit: number; value?:
   </svg>;
 };
 
-const RevealMask: FC<{frame: number; unit: number; mode: 'clock' | 'iris' | 'eye'; accent: string}> = ({
+const RevealMask: FC<{
+  frame: number;
+  unit: number;
+  mode: 'clock' | 'iris' | 'eye';
+  accent: string;
+  fps: number;
+  material?: CuratedSceneMaterial;
+}> = ({
   frame,
   unit,
   mode,
   accent,
+  fps,
+  material,
 }) => {
   const progress = mix(frame, 12, 60);
   if (mode === 'iris' || mode === 'eye') {
     return <div style={{position: 'relative', width: 600 * unit, height: 390 * unit, borderRadius: mode === 'eye' ? '50%' : 30 * unit,
       overflow: 'hidden', border: `2px solid ${accent}`, background: '#07101F'}}>
-      <div style={{position: 'absolute', inset: `${(1 - progress) * 46}%`, borderRadius: mode === 'eye' ? '50%' : 24 * unit,
-        background: `linear-gradient(135deg, ${accent}, #38BDF8 56%, #111827)`, boxShadow: `0 0 ${90 * unit}px ${accent}`}} />
+      <MaterialFrame material={material} accent={accent} fps={fps} radius={mode === 'eye' ? 999 * unit : 24 * unit}
+        style={{position: 'absolute', inset: `${(1 - progress) * 46}%`, boxShadow: `0 0 ${90 * unit}px ${accent}`}} />
       <div style={{position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: 36 * unit, fontWeight: 860}}>reveal</div>
     </div>;
   }
   return <div style={{position: 'relative', width: 600 * unit, height: 390 * unit, borderRadius: 30 * unit,
     overflow: 'hidden', background: '#07101F', border: `1px solid ${accent}88`}}>
+    <MaterialFrame material={material} accent={accent} fps={fps} radius={30 * unit}
+      style={{position: 'absolute', inset: 0}} />
     <div style={{position: 'absolute', inset: 0,
-      background: `conic-gradient(from -90deg, ${accent} ${progress * 360}deg, #101827 ${progress * 360}deg)`}} />
+      background: `conic-gradient(from -90deg, transparent ${progress * 360}deg, #101827E8 ${progress * 360}deg)`}} />
     <div style={{position: 'absolute', inset: 30 * unit, borderRadius: 24 * unit, background: '#07101FE8',
       display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 34 * unit, fontWeight: 850}}>
       clock wipe
@@ -315,9 +420,9 @@ const RevealMask: FC<{frame: number; unit: number; mode: 'clock' | 'iris' | 'eye
   </div>;
 };
 
-export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscape', title, kicker, accent, secondary}) => {
+export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscape', title, kicker, accent, secondary, material}) => {
   const frame = useCurrentFrame();
-  const {width, height} = useVideoConfig();
+  const {width, height, fps} = useVideoConfig();
   const portrait = layout === 'portrait';
   const unit = Math.min(width / (portrait ? 1080 : 1280), height / (portrait ? 1920 : 720));
   const left = portrait ? 104 * unit : 92 * unit;
@@ -327,16 +432,17 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
   const commonTitle = <div style={panelStyle}><TitleBlock title={title} kicker={kicker} accent={accent} unit={unit} compact={portrait} /></div>;
 
   if (variant === 'social-clip' || variant === 'social-reel') {
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       {commonTitle}
       <div style={{position: 'absolute', right: portrait ? 285 * unit : 150 * unit, top: heroTop}}>
-        <PhoneCard frame={frame} accent={accent} unit={unit} portrait={portrait} title={secondary || title} />
+        <PhoneCard frame={frame} accent={accent} unit={unit} portrait={portrait} title={secondary || title}
+          fps={fps} material={material} />
       </div>
     </Shell>;
   }
 
   if (variant === 'bar-chart-race' || variant === 'racing-chart') {
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       {commonTitle}
       <div style={{position: 'absolute', left, right: left, top: heroTop,
         padding: 30 * unit, borderRadius: 28 * unit, background: '#07101FDD', border: '1px solid #FFFFFF1F'}}>
@@ -346,7 +452,7 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
   }
 
   if (variant === 'area-chart' || variant === 'pixel-candlestick-ohlc') {
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       {commonTitle}
       <div style={{position: 'absolute', left, right: left, top: heroTop,
         height: portrait ? 690 * unit : 360 * unit, padding: 34 * unit, borderRadius: 28 * unit,
@@ -358,7 +464,7 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
 
   if (variant === 'circular-progress' || variant === 'kpi-counter') {
     const progress = Math.round(mix(frame, 5, 62) * 860);
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       {commonTitle}
       <div style={{position: 'absolute', left, right: left, top: heroTop, display: 'flex',
         alignItems: 'center', justifyContent: 'space-around', gap: 36 * unit}}>
@@ -375,7 +481,7 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
 
   if (variant === 'kanban-move') {
     const columns = ['Todo', 'Doing', 'Done'];
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       {commonTitle}
       <div style={{position: 'absolute', left, right: left, top: heroTop, display: 'grid',
         gridTemplateColumns: portrait ? '1fr' : 'repeat(3, 1fr)', gap: 18 * unit}}>
@@ -394,7 +500,7 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
   }
 
   if (variant === 'device-mockup-3d' || variant === 'product-spotlight') {
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       {commonTitle}
       <div style={{position: 'absolute', left: portrait ? 160 * unit : 520 * unit, top: heroTop,
         width: portrait ? 760 * unit : 560 * unit, height: portrait ? 680 * unit : 330 * unit,
@@ -406,7 +512,7 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
           <div style={{display: 'flex', gap: 9 * unit}}>{['#F87171', '#FACC15', '#34D399'].map((color) =>
             <span key={color} style={{width: 13 * unit, height: 13 * unit, borderRadius: 999, background: color}} />)}</div>
           <div style={{display: 'grid', gridTemplateColumns: '0.8fr 1.2fr', gap: 18 * unit}}>
-            <div style={{borderRadius: 18 * unit, background: `linear-gradient(135deg, ${accent}, #38BDF8)`}} />
+            <MaterialFrame material={material} accent={accent} fps={fps} radius={18 * unit} overlay={Boolean(material)} />
             <div style={{display: 'grid', gap: 14 * unit, alignContent: 'center'}}>
               {[0.85, 0.64, 0.92, 0.48].map((value, index) =>
                 <span key={index} style={{height: 16 * unit, width: `${value * 100}%`, borderRadius: 999, background: '#CBD5E1'}} />)}
@@ -419,7 +525,7 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
 
   if (variant === 'split-text-chars' || variant === 'text-highlight') {
     const words = title.split('');
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       <div style={{position: 'absolute', left, right: left, top: portrait ? 450 * unit : 230 * unit,
         display: 'flex', flexWrap: 'wrap', gap: 5 * unit, alignItems: 'center', justifyContent: 'center'}}>
         {words.map((character, index) => {
@@ -438,7 +544,7 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
   }
 
   if (variant === 'aurora-bg') {
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       <div style={{position: 'absolute', inset: 0, filter: `blur(${36 * unit}px)`, opacity: 0.78}}>
         {[accent, '#22C55E', '#F97316', '#38BDF8'].map((color, index) =>
           <div key={color} style={{position: 'absolute', left: `${18 + index * 19 + Math.sin(frame / 45 + index) * 7}%`,
@@ -451,7 +557,7 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
   }
 
   if (variant === 'audio-wave-captions' || variant === 'sound-wave') {
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       {commonTitle}
       <div style={{position: 'absolute', left, right: left, top: heroTop + (portrait ? 70 * unit : 20 * unit),
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 * unit}}>
@@ -469,7 +575,7 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
   if (variant === 'end-card' || variant === 'glass-panel' || variant === 'glass-lower-third') {
     const reveal = mix(frame, 8, 52);
     const sweep = ((frame * 3) % 160) / 160;
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       <div style={{position: 'absolute', left, right: left, top: variant === 'glass-lower-third'
         ? (portrait ? 1180 : 455) * unit : heroTop, padding: 34 * unit, borderRadius: 30 * unit,
         background: '#FFFFFF18', border: '1px solid #FFFFFF3D', backdropFilter: 'blur(18px)',
@@ -492,7 +598,7 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
 
   if (variant === 'path-draw' || variant === 'pencil-draw') {
     const dash = 610 * (1 - mix(frame, 8, 76));
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       {commonTitle}
       <svg viewBox="0 0 680 360" style={{position: 'absolute', left, top: heroTop,
         width: portrait ? 840 * unit : 700 * unit, height: portrait ? 500 * unit : 360 * unit}}>
@@ -505,7 +611,7 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
   }
 
   if (variant === 'animated-list' || variant === 'notification-pop') {
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       {commonTitle}
       <div style={{position: 'absolute', left: portrait ? 160 * unit : 590 * unit, top: heroTop}}>
         <ListPanel frame={frame} accent={accent} unit={unit} portrait={portrait} notification={variant === 'notification-pop'} />
@@ -518,10 +624,11 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
     const mode = variant === 'gallery-grid' ? 'grid' : variant === 'image-carousel' ? 'carousel' :
       variant === 'image-zoom-reveal' ? 'zoom' : variant === 'masonry-gallery' ? 'masonry' :
         variant === 'photo-stack' ? 'stack' : 'polaroid';
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       {commonTitle}
       <div style={{position: 'absolute', left: portrait ? 130 * unit : 520 * unit, top: heroTop - (portrait ? 30 * unit : 35 * unit)}}>
-        <Gallery frame={frame} accent={accent} unit={unit} portrait={portrait} mode={mode} />
+        <Gallery frame={frame} accent={accent} unit={unit} portrait={portrait} mode={mode}
+          fps={fps} material={material} />
       </div>
     </Shell>;
   }
@@ -529,11 +636,13 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
   if (variant === 'picture-in-picture') {
     const pan = Math.sin(frame / 28);
     const pulse = mix(frame, 10, 90);
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       {commonTitle}
       <div style={{position: 'absolute', left, right: left, top: heroTop, height: portrait ? 720 * unit : 370 * unit,
         borderRadius: 30 * unit, overflow: 'hidden', background: `linear-gradient(135deg, ${accent}, #0F172A 68%)`,
         border: '1px solid #FFFFFF22'}}>
+        {material ? <MaterialFrame material={material} accent={accent} fps={fps} radius={30 * unit}
+          style={{position: 'absolute', inset: 0}} /> : null}
         <div style={{position: 'absolute', inset: 0,
           background: `radial-gradient(circle at ${46 + pan * 14}% ${38 + Math.cos(frame / 34) * 10}%, #FFFFFF55, transparent 34%),
             linear-gradient(120deg, transparent, #FFFFFF1C ${42 + pulse * 32}%, transparent ${58 + pulse * 22}%)`,
@@ -549,7 +658,9 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
           boxShadow: `0 ${18 * unit}px ${50 * unit}px #0008`, display: 'grid', placeItems: 'center',
           color: '#0F172A', fontSize: 24 * unit, fontWeight: 850,
           transform: `translateY(${(1 - pulse) * 34 * unit}px) scale(${0.96 + pulse * 0.04})`}}>
-          <span style={{width: 74 * unit, height: 74 * unit, borderRadius: 999, background: accent,
+          {material ? <MaterialFrame material={material} accent={accent} fps={fps} radius={18 * unit}
+            overlay={false} style={{position: 'absolute', inset: 10 * unit}} /> : null}
+          <span style={{position: 'relative', width: 74 * unit, height: 74 * unit, borderRadius: 999, background: accent,
             boxShadow: `0 0 0 ${8 * unit}px #0F172A14`, display: 'grid', placeItems: 'center', color: '#0F172A'}}>
             {Math.round(76 + pulse * 18)}%
           </span>
@@ -559,17 +670,18 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
   }
 
   if (variant === 'clock-wipe' || variant === 'iris-transition' || variant === 'eye-reveal') {
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       {commonTitle}
       <div style={{position: 'absolute', left: portrait ? 230 * unit : 520 * unit, top: heroTop}}>
         <RevealMask frame={frame} unit={unit} accent={accent}
-          mode={variant === 'clock-wipe' ? 'clock' : variant === 'iris-transition' ? 'iris' : 'eye'} />
+          mode={variant === 'clock-wipe' ? 'clock' : variant === 'iris-transition' ? 'iris' : 'eye'}
+          fps={fps} material={material} />
       </div>
     </Shell>;
   }
 
   if (variant === 'pixel-waterfall-cycle') {
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       {commonTitle}
       <div style={{position: 'absolute', left, right: left, top: heroTop, display: 'grid',
         gridTemplateColumns: 'repeat(18, 1fr)', gap: 5 * unit}}>
@@ -583,7 +695,7 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
 
   if (variant === 'news-ticker') {
     const offset = -((frame * 6) % 520) * unit;
-    return <Shell accent={accent} unit={unit} portrait={portrait}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       {commonTitle}
       <div style={{position: 'absolute', left: 0, right: 0, bottom: portrait ? 420 * unit : 92 * unit,
         height: 86 * unit, background: '#F8FAFC', color: '#0F172A', overflow: 'hidden',
@@ -595,7 +707,7 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
     </Shell>;
   }
 
-  return <Shell accent={accent} unit={unit} portrait={portrait}>
+  return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
     {commonTitle}
     <div style={{position: 'absolute', left, right: left, top: heroTop,
       padding: 34 * unit, borderRadius: 28 * unit, background: '#07101FDD'}}>

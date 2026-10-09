@@ -19,6 +19,7 @@ def component_catalog(root: Path = PROJECT_ROOT) -> list[ComponentEntry]:
             library=entry["library"],
             kind=entry["kind"],
             props_mode=entry["props_mode"],
+            material_capability=entry["material_capability"],
             orientation=entry["orientation"],
             production_ready=entry["production_ready"],
             min_frames=entry["min_frames"],

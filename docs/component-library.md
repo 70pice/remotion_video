@@ -138,7 +138,7 @@ npm run check:production-components
 - `check:components`：核对 108 个原卡 SHA-256、187 个原版及 187 个竖屏注册项；原版抽起始 / 中间 / 结束三帧，原生竖屏也抽起始 / 中间 / 结束三帧，均使用 `scale: 1`。检查浏览器错误、素材加载与抽样画面变化。
 - `catalog:components`：根据验证报告生成目录，不能替代前面的源码和渲染检查。
 - `check:component-paths`：检查187对入口与实现、374条入口路径、表格行数据和108个原卡哈希。
-- `check:production-components`：重新推导 9 个 adapter + 187 个 preset 的统一生产清单，检查 ID、用途许可和组件目录是否漂移。
+- `check:production-components`：重新推导 9 个 adapter + 187 个 preset 的统一生产清单，检查 ID、用途许可、全量 `native_slots` 能力和组件目录是否漂移。
 
 更新已有飞书表格时运行 `python scripts/update-component-path-sheet.py --execute`，随后 `python scripts/verify-component-path-sheet.py` 回读全部1399个单元格。省略 `--execute` 仅预览请求。
 

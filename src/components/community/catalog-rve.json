@@ -129,7 +129,7 @@
     "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/area-chart",
     "localPath": "src/components/component-horizontal/rve/additions.tsx",
     "compositionId": "Rve-AreaChart",
-    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。"
   },
   {
     "slug": "circular-progress",
@@ -140,7 +140,7 @@
     "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/circular-progress",
     "localPath": "src/components/component-horizontal/rve/additions.tsx",
     "compositionId": "Rve-CircularProgress",
-    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。"
   },
   {
     "slug": "animated-list",
@@ -151,7 +151,7 @@
     "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/animated-list",
     "localPath": "src/components/component-horizontal/rve/additions.tsx",
     "compositionId": "Rve-AnimatedList",
-    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。"
   },
   {
     "slug": "notification-pop",
@@ -162,7 +162,7 @@
     "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/notification-pop",
     "localPath": "src/components/component-horizontal/rve/additions.tsx",
     "compositionId": "Rve-NotificationPop",
-    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。"
   },
   {
     "slug": "sound-wave",
@@ -173,7 +173,7 @@
     "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/sound-wave",
     "localPath": "src/components/component-horizontal/rve/additions.tsx",
     "compositionId": "Rve-SoundWave",
-    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。"
   },
   {
     "slug": "text-highlight",
@@ -184,7 +184,7 @@
     "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/text-highlight",
     "localPath": "src/components/component-horizontal/rve/additions.tsx",
     "compositionId": "Rve-TextHighlight",
-    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。"
   },
   {
     "slug": "gallery-grid",
@@ -195,7 +195,7 @@
     "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/gallery-grid",
     "localPath": "src/components/component-horizontal/rve/additions.tsx",
     "compositionId": "Rve-GalleryGrid",
-    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。"
   },
   {
     "slug": "image-carousel",
@@ -206,7 +206,7 @@
     "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/image-carousel",
     "localPath": "src/components/component-horizontal/rve/additions.tsx",
     "compositionId": "Rve-ImageCarousel",
-    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。"
   },
   {
     "slug": "image-zoom-reveal",
@@ -217,7 +217,7 @@
     "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/image-zoom-reveal",
     "localPath": "src/components/component-horizontal/rve/additions.tsx",
     "compositionId": "Rve-ImageZoomReveal",
-    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。"
   },
   {
     "slug": "masonry-gallery",
@@ -228,7 +228,7 @@
     "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/masonry-gallery",
     "localPath": "src/components/component-horizontal/rve/additions.tsx",
     "compositionId": "Rve-MasonryGallery",
-    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。"
   },
   {
     "slug": "photo-stack",
@@ -239,7 +239,7 @@
     "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/photo-stack",
     "localPath": "src/components/component-horizontal/rve/additions.tsx",
     "compositionId": "Rve-PhotoStack",
-    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。"
   },
   {
     "slug": "picture-in-picture",
@@ -250,7 +250,7 @@
     "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/picture-in-picture",
     "localPath": "src/components/component-horizontal/rve/additions.tsx",
     "compositionId": "Rve-PictureInPicture",
-    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。"
   },
   {
     "slug": "polaroid-frame",
@@ -261,7 +261,7 @@
     "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/polaroid-frame",
     "localPath": "src/components/component-horizontal/rve/additions.tsx",
     "compositionId": "Rve-PolaroidFrame",
-    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。"
   },
   {
     "slug": "clock-wipe",
@@ -272,7 +272,7 @@
     "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/clock-wipe",
     "localPath": "src/components/component-horizontal/rve/additions.tsx",
     "compositionId": "Rve-ClockWipe",
-    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。"
   },
   {
     "slug": "iris-transition",
@@ -283,6 +283,6 @@
     "previewUrl": "https://www.reactvideoeditor.com/remotion-templates/iris-transition",
     "localPath": "src/components/component-horizontal/rve/additions.tsx",
     "compositionId": "Rve-IrisTransition",
-    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。"
+    "licenseNote": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。"
   }
 ]

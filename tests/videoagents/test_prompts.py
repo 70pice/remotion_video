@@ -224,19 +224,32 @@ def test_render_substitutes_every_placeholder():
     text = render(
         "director",
         component_props='{"title": {}}',
+        component_scene_playbook="先定场景，再选组件",
         component_catalog="Snapcn-TextReveal | Snapcn | 固定预设 | 标题 | 开场",
     )
     assert "{{" not in text and "component_props" not in text
     assert '{"title": {}}' in text
 
 
+def test_director_prompt_requires_native_slots_for_all_community_presets():
+    text = load_prompt("director")
+    assert "material_capability=native_slots" in text
+    assert "196 个生产组件全部为" in text
+    assert "9 个适配器 + 187 个社区预设" in text
+    assert "所有社区预设都不能退回纯覆盖层思路" in text
+    assert "device、gallery、pip、data、workspace" in text
+    assert "material_capability=overlay" not in text
+
+
 def test_render_rejects_missing_and_unknown_variables():
     with pytest.raises(ValueError, match="component_props"):
         render("director")
     with pytest.raises(ValueError, match="component_catalog"):
+        render("director", component_props="x", component_scene_playbook="y")
+    with pytest.raises(ValueError, match="component_scene_playbook"):
         render("director", component_props="x")
     with pytest.raises(ValueError, match="未使用"):
-        render("director", component_props="x", component_catalog="y", unexpected="z")
+        render("director", component_props="x", component_scene_playbook="y", component_catalog="z", unexpected="w")
 
 
 @pytest.mark.parametrize("bad_name", ["", "UPPER", "has space", "a/b", "a.b", "../shared-style"])

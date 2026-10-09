@@ -18,7 +18,7 @@ Fresh 验证：**709 Python、85 React、23 Remotion 时间轴测试通过**；R
 
 生产组件包含 `video` 在内的 9 个参数化适配器。由现有组件目录和使用指南生成的 `videoagents/component-manifest.json`，统一提供 **196 个生产 ID：9 个可参数化适配器 + 187 个社区预设**。每个社区预设都有横版和原生竖版实现，Remotion registry 严格核对 187 对实现，并按 Timeline 方向自动选择，因此底层共执行 374 个社区 Composition，但不会向 Agent 暴露重复的方向 ID。
 
-清单现已贯穿 `/api/catalog`、Pydantic/JSON Schema、导演动态输出 schema 与 Prompt、Python/Node Timeline 校验、React 分镜选择器和 `VideoFromTimeline`。社区预设统一开放安全素材槽位：当前任务图片/MP4、title/body/source_label/accent_color、content_mode、asset_fit、asset_crop、start_seconds/end_seconds、短列表和指标；仍阻止 CSS、URL、函数、源码路径和任意组件私有 props 注入。预设内置演示内容不能作为事实证据；需要精确证据框、复杂数据或步骤同步时仍使用 9 个参数化适配器。
+清单现已贯穿 `/api/catalog`、Pydantic/JSON Schema、导演动态输出 schema 与 Prompt、Python/Node Timeline 校验、React 分镜选择器和 `VideoFromTimeline`。社区预设统一开放安全素材槽位：当前任务图片/MP4、title/body/source_label/accent_color、content_mode、asset_fit、asset_crop、start_seconds/end_seconds、短列表和指标；全部 187 个社区预设均为 `native_slots`。其中 35 个 CuratedScene 预设进入专用原生槽，其余预设按组件语义进入 device、gallery、pip、data、workspace、reveal、text、motion 或 material-card 展示面。系统仍阻止 CSS、URL、函数、源码路径和任意组件私有 props 注入。预设内置演示内容不能作为事实证据；需要精确证据框、复杂数据或步骤同步时优先使用 9 个参数化适配器。
 
 许可按 `Brief.usage` 硬过滤：Snapcn/RVE/Remocn/RemotionUI/Bits/RenderComp 与 9 个适配器允许商业使用；108 个 Talkcraft 预设只允许 personal/unspecified。默认导演 schema 包含 196 个 ID，commercial schema 包含 88 个 ID，前端和服务端都会拒绝越权选择。
 
@@ -173,7 +173,7 @@ D:\remotion_video\
 - 草稿、素材或对齐变更递增版本，使相关分镜、视频和审核失效。编辑状态保留，保存期间保护正在提交的草稿，旧版本写入返回 409。
 - 编剧可使用用户文案，或通过搜索与真实来源生成稿件。研究收据在模型请求前冻结，来源文件不可覆盖；实际网页截图可选启用，示意图不作为事实证据。
 - 字节 v3 HTTP 流式配音 adapter、复刻音色配置、用户音频导入与实测对齐已接入。音频绑定内容及音色 fingerprint，导演使用所选音频的实测时间，而非按字数估时。
-- 9 个参数化适配器支持真实标题、关键词、证据截图、图片聚焦、视频、前后对比、数据卡、步骤和结论；另有 187 个社区组件作为固定视觉预设进入生产 Timeline。预设可执行但不伪装成统一可编辑模板：只接收统一安全素材槽位，演示内容不作为事实证据。
+- 9 个参数化适配器支持真实标题、关键词、证据截图、图片聚焦、视频、前后对比、数据卡、步骤和结论；另有 187 个社区组件作为固定视觉预设进入生产 Timeline，全部可使用 native material path：35 个映射进 CuratedScene 原生槽位，其余按语义映射进组件风格展示面。预设可执行但不伪装成统一可编辑模板：只接收统一安全素材槽位，演示内容不作为事实证据。
 - 最终检查包括实际 MP4 完整解码、分辨率/帧率/时长、对齐文本、产物与素材 hash、来源与用途、渲染依赖绑定。缺少完整视听复核能力时明确要求人完整观看。
 - 人工回复绑定版本、依赖 fingerprint、媒体 hash、pending token 和 LangGraph interrupt ID。旧配置回复重放不能回答后来的人审；人工确认不能绕过硬失败。
 - 明确的服务拒绝可在修正配置后由新显式命令重试；受理未知则保留 UNKNOWN 台账、阻止盲重提。配音仍可导入实际服务结果与实测对齐进行恢复。

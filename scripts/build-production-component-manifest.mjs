@@ -35,6 +35,7 @@ const semantic = [
   orientation: 'both',
   kind: 'adapter',
   props_mode: 'typed',
+  material_capability: 'native_slots',
   production_ready: true,
   min_frames: 15,
   allowed_usages: ['personal', 'commercial', 'unspecified'],
@@ -67,6 +68,7 @@ for (const library of libraries) {
       orientation: 'both',
       kind: 'preset',
       props_mode: 'material_slots',
+      material_capability: 'native_slots',
       production_ready: true,
       min_frames: 15,
       allowed_usages: library.name === 'Talkcraft'

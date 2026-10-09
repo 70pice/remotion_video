@@ -243,6 +243,65 @@ test('all curated community presets are registered and accept safe material slot
   assert.throws(() => validateTimeline(evidence), /inside the image/);
 });
 
+test('materialized curated presets map normalized shot materials into native scene props', async (t) => {
+  const {
+    materializedCommunityComponentIds,
+    curatedScenePropsForShot,
+  } = await importTypeScript(t, 'src/video-production/curatedMaterial.ts');
+  assert.equal(materializedCommunityComponentIds.length, 35);
+  assert.ok(materializedCommunityComponentIds.includes('RenderComp-ProductSpotlight'));
+  assert.ok(materializedCommunityComponentIds.includes('RemotionUI-SocialClip'));
+  assert.ok(!materializedCommunityComponentIds.includes('Snapcn-TextReveal'));
+
+  const shot = {
+    ...fixture().shots[0],
+    component_id: 'RenderComp-ProductSpotlight',
+    title: '把素材放进产品聚焦组件',
+    body: '视频限制时长，图片限制大小，然后让组件自己展示。',
+    asset_src: 'videoagents/test-job/assets/demo.mp4',
+    accent_color: '#38BDF8',
+    source_label: 'demo source',
+    props: {
+      asset_fit: 'cover',
+      asset_crop: {x: 0.1, y: 0.2, width: 0.7, height: 0.6},
+      start_seconds: 2,
+      end_seconds: 7,
+    },
+  };
+  const props = curatedScenePropsForShot(shot, true);
+  assert.equal(props.layout, 'portrait');
+  assert.equal(props.variant, 'product-spotlight');
+  assert.equal(props.title, shot.title);
+  assert.equal(props.secondary, shot.body);
+  assert.equal(props.accent, '#38BDF8');
+  assert.deepEqual(props.material, {
+    src: shot.asset_src,
+    kind: 'video',
+    fit: 'cover',
+    crop: shot.props.asset_crop,
+    startSeconds: 2,
+    endSeconds: 7,
+  });
+});
+
+test('all community presets route to a native material surface instead of generic overlay', async (t) => {
+  const {
+    communityMaterialSurfaceForComponentId,
+  } = await importTypeScript(t, 'src/video-production/communityMaterial.ts');
+  const surfaces = communityComponentIds.map((componentId) => communityMaterialSurfaceForComponentId(componentId));
+  assert.equal(communityComponentIds.length, 187);
+  assert.equal(surfaces.length, communityComponentIds.length);
+  assert.ok(surfaces.every((surface) => typeof surface === 'string' && surface.length > 0));
+  assert.ok(new Set(surfaces).size >= 7);
+  assert.equal(communityMaterialSurfaceForComponentId('Snapcn-TextReveal'), 'text');
+  assert.equal(communityMaterialSurfaceForComponentId('Rve-GalleryGrid'), 'gallery');
+  assert.equal(communityMaterialSurfaceForComponentId('Rve-PictureInPicture'), 'pip');
+  assert.equal(communityMaterialSurfaceForComponentId('RemotionUI-DeviceMockup3D'), 'device');
+  assert.equal(communityMaterialSurfaceForComponentId('Snapcn-PromptSend'), 'workspace');
+  assert.equal(communityMaterialSurfaceForComponentId('Talkcraft-terminal-typing-log'), 'workspace');
+  assert.equal(communityMaterialSurfaceForComponentId('Talkcraft-reticle-lock-on'), 'reveal');
+});
+
 test('video shots require local MP4 footage and valid trim, fit and crop props', () => {
   const timeline = fixture();
   Object.assign(timeline.shots[0], {

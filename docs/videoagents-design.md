@@ -174,7 +174,7 @@ flowchart TD
 
 新增 `VideoFromTimeline` composition。Node 渲染适配器读取 JSON，先完成运行时 schema/素材/组件白名单校验，再调用 `selectComposition()` 与 `renderMedia()`；两次传同一份冻结 props。使用 `calculateMetadata()` 设置准确时长、尺寸和 fps。[Remotion 渲染接口](https://www.remotion.dev/docs/renderer/render-media)、[动态 metadata](https://www.remotion.dev/docs/calculate-metadata)
 
-生产 `component registry` 负责将 `component_id` 解析为已审核实现。LLM 不填写任意 import 路径，不执行任意 TSX。当前 9 个 adapter 通过严格 props schema 组装真实内容（含已导入的真实视频）；187 个 community preset 已全部注册为固定视觉实现，可接收统一安全素材槽位和受限 props，按 timeline 方向选择横版或原生竖版。需要让某个 preset 接收新的任意输入面时，仍须形成独立参数化适配任务，经类型、许可和预览验证后扩展契约。
+生产 `component registry` 负责将 `component_id` 解析为已审核实现。LLM 不填写任意 import 路径，不执行任意 TSX。当前 9 个 adapter 通过严格 props schema 组装真实内容（含已导入的真实视频）；187 个 community preset 已全部注册为固定视觉实现，可接收统一安全素材槽位和受限 props，按 timeline 方向选择横版或原生竖版。196 个生产组件全部标记为 `native_slots`：35 个 CuratedScene 预设使用专用原生素材槽，其余社区预设按组件语义进入 device、gallery、pip、data、workspace、reveal、text、motion 或 material-card 展示面。需要让某个 preset 接收新的任意输入面时，仍须形成独立参数化适配任务，经类型、许可和预览验证后扩展契约。
 
 先生成低分辨率完整预览与关键帧联系表，检查布局和节奏；通过后按最终参数渲染。预览通过不等于最终通过，最终 MP4 仍需独立解码、音频和内容检查。
 
@@ -305,7 +305,7 @@ LangGraph 默认持久化，`job_id` 是 thread 身份，`revision_id` 是产物
 
 ## 8. 组件目录升级
 
-保留飞书现有五列作为历史来源；运行时使用仓库内生成并随版本冻结的 `videoagents/component-manifest.json`，结合本地代码注册表、预览和 [Remotion 组件知识库](knowledge/remotion-shot-library.md)。清单包含 9 个 adapter 和 187 个 preset，`npm run check:production-components` 会检查目录、用途说明与清单是否漂移。
+保留飞书现有五列作为历史来源；运行时使用仓库内生成并随版本冻结的 `videoagents/component-manifest.json`，结合本地代码注册表、预览和 [Remotion 组件知识库](knowledge/remotion-shot-library.md)。清单包含 9 个 adapter 和 187 个 preset，并标明全部 196 个生产组件均为 `native_slots`，`npm run check:production-components` 会检查目录、用途说明与清单是否漂移。
 
 生产 registry 补充：
 

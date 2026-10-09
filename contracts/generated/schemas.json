@@ -352,6 +352,14 @@
           "title": "Props Mode",
           "type": "string"
         },
+        "material_capability": {
+          "enum": [
+            "native_slots",
+            "overlay"
+          ],
+          "title": "Material Capability",
+          "type": "string"
+        },
         "orientation": {
           "title": "Orientation",
           "type": "string"
@@ -401,6 +409,7 @@
         "library",
         "kind",
         "props_mode",
+        "material_capability",
         "orientation",
         "production_ready",
         "min_frames",

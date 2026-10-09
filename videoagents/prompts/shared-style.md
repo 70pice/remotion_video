@@ -133,13 +133,15 @@ claude-code、glass-code-walk、terminal-typing-log 等，完整识别以组件�
   brief.usage 与对应素材、组件的使用范围。
 - 当前生产清单开放 196 个稳定 `component_id`：9 个可传入真实文案、数据、
   图片或视频的参数化适配器，以及 187 个具有原生竖版实现、可接收安全素材
-  槽位的社区预设。
+  槽位的社区预设。当前 196 个生产组件全部是 `native_slots`：9 个适配器 +
+  187 个社区预设。
   只能使用当前任务按 `brief.usage` 过滤后的清单；Talkcraft 预设仅允许个人或
   用途未指定的预览，商业任务不得选择。
 - 社区预设只接受统一安全槽位：shot.title/body/source_label/accent_color、
   当前任务已导入的图片或 MP4 `asset_src`，以及 props.content_mode、asset_fit、
-  asset_crop、start_seconds、end_seconds、items、metric。演示文字、人物、聊天和
-  图表数字不能当作本期事实证据；需要精确高亮、复杂数据或步骤同步时使用
+  asset_crop、start_seconds、end_seconds、items、metric。社区预设会把素材
+  映射进组件本体或语义匹配的原生展示面；演示文字、人物、聊天和图表数字不能
+  当作本期事实证据；需要精确高亮、复杂数据或步骤同步时使用更强类型约束的
   参数化适配器。已有与内容相关、时长足够的真实视频/录屏时优先使用 video；
   证据截图与原图补充细节。
 - 导演必须先读组件知识库再设计镜头；不能仅凭组件名称猜功能。

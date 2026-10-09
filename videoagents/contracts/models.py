@@ -303,6 +303,7 @@ class ComponentEntry(Contract):
     library: str
     kind: Literal["adapter", "preset"]
     props_mode: Literal["typed", "material_slots"]
+    material_capability: Literal["native_slots", "overlay"]
     orientation: str
     production_ready: bool
     min_frames: int

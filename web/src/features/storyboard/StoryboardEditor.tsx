@@ -112,6 +112,7 @@ export function StoryboardEditor({
       library: "VideoAgents",
       kind: "adapter",
       props_mode: "typed",
+      material_capability: "native_slots",
       orientation: "vertical",
       production_ready: true,
       min_frames: 1,

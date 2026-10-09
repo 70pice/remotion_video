@@ -68,6 +68,7 @@ export interface ComponentEntry {
   library: string;
   kind: "adapter" | "preset";
   props_mode: "typed" | "material_slots";
+  material_capability: "native_slots" | "overlay";
   orientation: string;
   production_ready: boolean;
   min_frames: number;

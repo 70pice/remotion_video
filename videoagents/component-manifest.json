@@ -10,6 +10,7 @@
       "orientation": "both",
       "kind": "adapter",
       "props_mode": "typed",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -28,6 +29,7 @@
       "orientation": "both",
       "kind": "adapter",
       "props_mode": "typed",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -46,6 +48,7 @@
       "orientation": "both",
       "kind": "adapter",
       "props_mode": "typed",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -64,6 +67,7 @@
       "orientation": "both",
       "kind": "adapter",
       "props_mode": "typed",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -82,6 +86,7 @@
       "orientation": "both",
       "kind": "adapter",
       "props_mode": "typed",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -100,6 +105,7 @@
       "orientation": "both",
       "kind": "adapter",
       "props_mode": "typed",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -118,6 +124,7 @@
       "orientation": "both",
       "kind": "adapter",
       "props_mode": "typed",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -136,6 +143,7 @@
       "orientation": "both",
       "kind": "adapter",
       "props_mode": "typed",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -154,6 +162,7 @@
       "orientation": "both",
       "kind": "adapter",
       "props_mode": "typed",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -172,6 +181,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -191,6 +201,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -210,6 +221,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -229,6 +241,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -248,6 +261,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -267,6 +281,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -286,6 +301,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -305,6 +321,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -324,6 +341,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -343,6 +361,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -362,6 +381,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -381,6 +401,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -400,6 +421,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -419,6 +441,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -438,6 +461,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -457,6 +481,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -476,6 +501,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -495,6 +521,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -514,6 +541,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -533,6 +561,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -552,6 +581,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -571,6 +601,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -590,6 +621,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -609,6 +641,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -628,6 +661,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -647,6 +681,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -666,6 +701,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -685,6 +721,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -704,6 +741,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -723,6 +761,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -742,6 +781,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -761,6 +801,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -780,6 +821,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -787,7 +829,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。",
       "slug": "area-chart"
     },
     {
@@ -799,6 +841,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -806,7 +849,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。",
       "slug": "circular-progress"
     },
     {
@@ -818,6 +861,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -825,7 +869,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。",
       "slug": "animated-list"
     },
     {
@@ -837,6 +881,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -844,7 +889,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。",
       "slug": "notification-pop"
     },
     {
@@ -856,6 +901,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -863,7 +909,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。",
       "slug": "sound-wave"
     },
     {
@@ -875,6 +921,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -882,7 +929,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。",
       "slug": "text-highlight"
     },
     {
@@ -894,6 +941,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -901,7 +949,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。",
       "slug": "gallery-grid"
     },
     {
@@ -913,6 +961,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -920,7 +969,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。",
       "slug": "image-carousel"
     },
     {
@@ -932,6 +981,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -939,7 +989,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。",
       "slug": "image-zoom-reveal"
     },
     {
@@ -951,6 +1001,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -958,7 +1009,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。",
       "slug": "masonry-gallery"
     },
     {
@@ -970,6 +1021,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -977,7 +1029,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。",
       "slug": "photo-stack"
     },
     {
@@ -989,6 +1041,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -996,7 +1049,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。",
       "slug": "picture-in-picture"
     },
     {
@@ -1008,6 +1061,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1015,7 +1069,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。",
       "slug": "polaroid-frame"
     },
     {
@@ -1027,6 +1081,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1034,7 +1089,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。",
       "slug": "clock-wipe"
     },
     {
@@ -1046,6 +1101,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1053,7 +1109,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游 README 声明 MIT；未提供独立 LICENSE 文件。该批为精选模板的本地轻量接入，统一支持 native material path。",
       "slug": "iris-transition"
     },
     {
@@ -1065,6 +1121,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1084,6 +1141,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1103,6 +1161,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1122,6 +1181,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1141,6 +1201,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1160,6 +1221,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1179,6 +1241,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1198,6 +1261,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1217,6 +1281,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1224,7 +1289,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持 native material path。",
       "slug": "remotion-ui-social-clip"
     },
     {
@@ -1236,6 +1301,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1243,7 +1309,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持 native material path。",
       "slug": "remotion-ui-bar-chart-race"
     },
     {
@@ -1255,6 +1321,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1262,7 +1329,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持 native material path。",
       "slug": "remotion-ui-kanban-move"
     },
     {
@@ -1274,6 +1341,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1281,7 +1349,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持 native material path。",
       "slug": "remotion-ui-device-mockup-3d"
     },
     {
@@ -1293,6 +1361,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1300,7 +1369,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持 native material path。",
       "slug": "remotion-ui-split-text-chars"
     },
     {
@@ -1312,6 +1381,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1319,7 +1389,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持 native material path。",
       "slug": "remotion-ui-aurora-bg"
     },
     {
@@ -1331,6 +1401,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1338,7 +1409,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持 native material path。",
       "slug": "remotion-ui-audio-wave-captions"
     },
     {
@@ -1350,6 +1421,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1357,7 +1429,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持 native material path。",
       "slug": "remotion-ui-end-card"
     },
     {
@@ -1369,6 +1441,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1376,7 +1449,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持 native material path。",
       "slug": "remotion-ui-glass-panel"
     },
     {
@@ -1388,6 +1461,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1395,7 +1469,7 @@
         "commercial",
         "unspecified"
       ],
-      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持素材槽覆盖层。",
+      "license_note": "上游仓库 LICENSE 声明 MIT。该批为 registry 精选组件的本地轻量接入，统一支持 native material path。",
       "slug": "remotion-ui-path-draw"
     },
     {
@@ -1407,6 +1481,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1426,6 +1501,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1445,6 +1521,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1464,6 +1541,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1483,6 +1561,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1502,6 +1581,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1521,6 +1601,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1540,6 +1621,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1559,6 +1641,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1578,6 +1661,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1597,6 +1681,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1616,6 +1701,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1635,6 +1721,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1654,6 +1741,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1673,6 +1761,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1691,6 +1780,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1709,6 +1799,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1727,6 +1818,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1745,6 +1837,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1763,6 +1856,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1781,6 +1875,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1799,6 +1894,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1817,6 +1913,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1835,6 +1932,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1853,6 +1951,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1871,6 +1970,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1889,6 +1989,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1907,6 +2008,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1925,6 +2027,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1943,6 +2046,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1961,6 +2065,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1979,6 +2084,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -1997,6 +2103,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2015,6 +2122,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2033,6 +2141,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2051,6 +2160,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2069,6 +2179,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2087,6 +2198,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2105,6 +2217,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2123,6 +2236,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2141,6 +2255,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2159,6 +2274,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2177,6 +2293,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2195,6 +2312,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2213,6 +2331,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2231,6 +2350,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2249,6 +2369,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2267,6 +2388,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2285,6 +2407,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2303,6 +2426,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2321,6 +2445,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2339,6 +2464,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2357,6 +2483,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2375,6 +2502,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2393,6 +2521,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2411,6 +2540,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2429,6 +2559,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2447,6 +2578,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2465,6 +2597,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2483,6 +2616,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2501,6 +2635,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2519,6 +2654,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2537,6 +2673,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2555,6 +2692,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2573,6 +2711,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2591,6 +2730,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2609,6 +2749,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2627,6 +2768,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2645,6 +2787,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2663,6 +2806,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2681,6 +2825,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2699,6 +2844,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2717,6 +2863,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2735,6 +2882,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2753,6 +2901,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2771,6 +2920,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2789,6 +2939,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2807,6 +2958,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2825,6 +2977,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2843,6 +2996,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2861,6 +3015,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2879,6 +3034,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2897,6 +3053,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2915,6 +3072,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2933,6 +3091,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2951,6 +3110,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2969,6 +3129,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -2987,6 +3148,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3005,6 +3167,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3023,6 +3186,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3041,6 +3205,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3059,6 +3224,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3077,6 +3243,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3095,6 +3262,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3113,6 +3281,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3131,6 +3300,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3149,6 +3319,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3167,6 +3338,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3185,6 +3357,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3203,6 +3376,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3221,6 +3395,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3239,6 +3414,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3257,6 +3433,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3275,6 +3452,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3293,6 +3471,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3311,6 +3490,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3329,6 +3509,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3347,6 +3528,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3365,6 +3547,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3383,6 +3566,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3401,6 +3585,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3419,6 +3604,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3437,6 +3623,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3455,6 +3642,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3473,6 +3661,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3491,6 +3680,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3509,6 +3699,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3527,6 +3718,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3545,6 +3737,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3563,6 +3756,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3581,6 +3775,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [
@@ -3599,6 +3794,7 @@
       "orientation": "both",
       "kind": "preset",
       "props_mode": "material_slots",
+      "material_capability": "native_slots",
       "production_ready": true,
       "min_frames": 15,
       "allowed_usages": [

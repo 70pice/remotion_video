@@ -27,6 +27,7 @@ from videoagents.storage import Repository
 from videoagents.tools.components import (
     available_component_ids,
     prompt_component_catalog,
+    prompt_scene_playbook,
 )
 from videoagents.tools.timeline import (
     asset_renderable,
@@ -90,6 +91,7 @@ def director_prompt(usage: str) -> str:
     return load_prompt("shared-style") + "\n\n" + render_prompt(
         "director",
         component_props=json.dumps(COMPONENT_PROPS_EXAMPLES, ensure_ascii=False, separators=(",", ":")),
+        component_scene_playbook=prompt_scene_playbook(usage),
         component_catalog=prompt_component_catalog(usage),
     )
 
