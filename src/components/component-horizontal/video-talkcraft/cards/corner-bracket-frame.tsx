@@ -98,7 +98,7 @@ const CSS = `
 .cb-line.l2 { top: 104px; }
 `;
 
-export default function CornerBracketFrame({ hostSrc }: { hostSrc?: string }) {
+export default function CornerBracketFrame({ hostSrc, line1 = "一条思路", line2 = "讲清楚一件事" }: { hostSrc?: string; line1?: string; line2?: string }) {
   const t = useCurrentFrame() / FPS;
 
   const t0 = CONFIG.lead;
@@ -120,8 +120,8 @@ export default function CornerBracketFrame({ hostSrc }: { hostSrc?: string }) {
       <div className="cb-frame">
         <div className="cb-br tl" style={{ opacity: brP, transform: `translate(${-d}px, ${-d}px)` }} />
         <div className="cb-br br" style={{ opacity: brP, transform: `translate(${d}px, ${d}px)` }} />
-        <div className="cb-line l1" style={{ opacity: l1P, transform: `translateY(${lerp(CONFIG.lineRise, 0, l1P)}px)` }}>一条思路</div>
-        <div className="cb-line l2" style={{ opacity: l2P, transform: `translateY(${lerp(CONFIG.lineRise, 0, l2P)}px)` }}>讲清楚一件事</div>
+        <div className="cb-line l1" style={{ opacity: l1P, transform: `translateY(${lerp(CONFIG.lineRise, 0, l1P)}px)` }}>{line1}</div>
+        <div className="cb-line l2" style={{ opacity: l2P, transform: `translateY(${lerp(CONFIG.lineRise, 0, l2P)}px)` }}>{line2}</div>
       </div>
     </AbsoluteFill>
   );

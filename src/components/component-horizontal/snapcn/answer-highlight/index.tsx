@@ -123,6 +123,8 @@ const WORD_GAP = 0.28;
 // ---------------------------------------------------------------------------
 
 export interface AnswerHighlightProps {
+  /** Readable callout layout without changing the original demo layout. */
+  productionCompact?: boolean;
   /** The prompt, in the pill at the top. */
   question?: string;
   /** The answer. It writes itself a word at a time; line breaks are the
@@ -157,6 +159,10 @@ export interface AnswerHighlightProps {
   accentColor?: string;
   /** Where the lockup sits, as a fraction of frame height. */
   centerY?: number;
+  compactAnswerFontSize?: number;
+  compactQuestionFontSize?: number;
+  compactWidthRatio?: number;
+  compactCallout?: boolean;
   fontFamily?: string;
   theme?: Partial<SnapCnTheme>;
   mode?: "light" | "dark";
@@ -268,6 +274,7 @@ const DEFAULT_ANSWER =
 // ---------------------------------------------------------------------------
 
 export function AnswerHighlight({
+  productionCompact = false,
   question = "How should we structure the demo video?",
   answer = DEFAULT_ANSWER,
   statement = "keep the timeline declarative",
@@ -283,6 +290,10 @@ export function AnswerHighlight({
   answerColor,
   accentColor,
   centerY = 0.5,
+  compactAnswerFontSize,
+  compactQuestionFontSize,
+  compactWidthRatio,
+  compactCallout = false,
   fontFamily,
   theme: themeOverride,
   mode,
@@ -311,7 +322,7 @@ export function AnswerHighlight({
   // colour over paper is an alpha composite, not a hue interpolation.
   const band = withAlpha(accent, 0.16);
 
-  const font = ANSWER_FONT * height;
+  const font = productionCompact ? compactAnswerFontSize ?? 34 : ANSWER_FONT * height;
   const words = splitWords(answer);
   const run = findRun(words, statement);
   const wordRun = run ? findRun(words, word) : null;
@@ -353,17 +364,17 @@ export function AnswerHighlight({
     >
       <div
         style={{
-          position: "absolute",
-          top: `${centerY * 100}%`,
-          transform: "translateY(-50%)",
-          width: MEASURE * width,
+          position: compactCallout ? "relative" : "absolute",
+          top: compactCallout ? undefined : `${centerY * 100}%`,
+          transform: compactCallout ? undefined : "translateY(-50%)",
+          width: productionCompact ? width * (compactWidthRatio ?? 0.84) : MEASURE * width,
           display: "flex",
           flexDirection: "column",
-          alignItems: "flex-start",
+          alignItems: compactCallout ? "center" : "flex-start",
         }}
       >
         {/* The question. Same pill, same entrance, as `agent-steps`. */}
-        <div
+        {question || !compactCallout ? <div
           style={{
             opacity: intro,
             filter: introBlur > 0.01 ? `blur(${introBlur}px)` : undefined,
@@ -375,12 +386,12 @@ export function AnswerHighlight({
           <div
             style={{
               fontFamily: face,
-              fontSize: QUESTION_FONT * height,
+              fontSize: productionCompact ? compactQuestionFontSize ?? Math.min(30, width * 0.76 / Math.max(1, [...question].length)) : QUESTION_FONT * height,
               fontWeight: 500,
               lineHeight: 1,
               color: askInk,
               background: pill,
-              height: PILL_H * height,
+              height: productionCompact ? compactQuestionFontSize === undefined ? 42 : Math.max(42, compactQuestionFontSize * 1.55) : PILL_H * height,
               borderRadius: PILL_R * PILL_H * height,
               padding: `0 ${PILL_PAD * PILL_H * height}px`,
               display: "flex",
@@ -390,7 +401,7 @@ export function AnswerHighlight({
           >
             {question}
           </div>
-        </div>
+        </div> : null}
 
         {/* The answer. Every word is its own inline span, which is what lets the
             selection band be a background rather than a measured rectangle: the
@@ -402,7 +413,8 @@ export function AnswerHighlight({
             fontFamily: face,
             fontSize: font,
             fontWeight: 400,
-            lineHeight: ANSWER_LEADING,
+            lineHeight: compactCallout ? 1.3 : ANSWER_LEADING,
+            textAlign: compactCallout ? "center" : undefined,
             color: ink,
           }}
         >
@@ -426,6 +438,8 @@ export function AnswerHighlight({
                 key={i}
                 style={{
                   display: "inline-block",
+                  maxWidth: productionCompact ? '100%' : undefined,
+                  overflowWrap: productionCompact ? 'anywhere' : undefined,
                   opacity: arrive,
                   transform: `translateY(${(1 - arrive) * WORD_RISE * font}px)`,
                   color: isPicked ? mixOklch(ink, accent, wordIn) : ink,

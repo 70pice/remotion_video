@@ -34,8 +34,11 @@ export const metadata = {
   },
 };
 
-export interface CursorFlyoverProps { src?: string; layout?: "default" | "portrait"; }
-export const Component: React.FC<CursorFlyoverProps> = ({ src = staticFile("community/ai-ui.svg"), layout = "default" }) => {
+type Crop = {x: number; y: number; width: number; height: number};
+const fallbackSrc = staticFile("community/ai-ui.svg");
+
+export interface CursorFlyoverProps { src?: string; layout?: "default" | "portrait"; fit?: "contain" | "cover"; crop?: Crop | null; }
+export const Component: React.FC<CursorFlyoverProps> = ({ src = fallbackSrc, layout = "default", fit = "cover", crop = null }) => {
   const rect = useViewportRect();
   const portrait = layout === "portrait";
 
@@ -47,6 +50,27 @@ export const Component: React.FC<CursorFlyoverProps> = ({ src = staticFile("comm
   const cameraPoint = (anchor: Parameters<typeof resolvePoint>[1]) => {
     const point = corner(anchor);
     return portrait ? { x: 0, y: point.y * 0.55 } : point;
+  };
+  const cropStyle = crop ? {
+    position: "absolute" as const,
+    left: `${-crop.x / crop.width * 100}%`,
+    top: `${-crop.y / crop.height * 100}%`,
+    width: `${100 / crop.width}%`,
+    height: `${100 / crop.height}%`,
+    objectFit: "fill" as const,
+  } : {
+    width: "100%",
+    height: "100%",
+    objectFit: fit,
+  };
+  const imageFrameStyle = {
+    width: imgWidth,
+    height: imgHeight,
+    overflow: "hidden",
+    position: "relative" as const,
+    borderRadius: rect.vmin * 1.5,
+    boxShadow: `0 ${rect.vmin * 2}px ${rect.vmin * 6}px rgba(0,0,0,0.6)`,
+    background: "#050a12",
   };
 
   const Cursor: React.FC<{ size: number }> = ({ size }) => (
@@ -79,7 +103,7 @@ export const Component: React.FC<CursorFlyoverProps> = ({ src = staticFile("comm
       style={{ background: "#0a0a0a" }}
     >
       <Element3D x={-imgWidth / 2} y={-imgHeight / 2} z={0}>
-        {portrait ? (
+        {portrait && src === fallbackSrc ? (
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width={imgWidth}
@@ -111,16 +135,9 @@ export const Component: React.FC<CursorFlyoverProps> = ({ src = staticFile("comm
             <path d="M598 942l16-18 16 18M614 925v31" stroke="#101827" fill="none" strokeWidth="5" />
           </svg>
         ) : (
-          <Img
-            src={src}
-            style={{
-              width: imgWidth,
-              height: imgHeight,
-              objectFit: "cover",
-              borderRadius: rect.vmin * 1.5,
-              boxShadow: `0 ${rect.vmin * 2}px ${rect.vmin * 6}px rgba(0,0,0,0.6)`,
-            }}
-          />
+          <div style={imageFrameStyle}>
+            <Img src={src} style={{...cropStyle, display: "block"}} />
+          </div>
         )}
       </Element3D>
 

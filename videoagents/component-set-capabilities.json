@@ -1,0 +1,2855 @@
+{
+  "version": 1,
+  "safe_area": {
+    "x": 64,
+    "y": 96,
+    "width": 952,
+    "height": 1304
+  },
+  "sets": [
+    {
+      "set_id": "A01",
+      "main_component_id": "Bits-KenBurns",
+      "material_kind": "image",
+      "parts": [
+        {
+          "part_id": "main",
+          "component_id": "Bits-KenBurns",
+          "role": "main",
+          "binding": "media",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.429448
+          },
+          "start_ratio": 0,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.447853,
+            "width": 1.0,
+            "height": 0.115031
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.45
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-QuoteCard",
+          "role": "support",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.584356,
+            "width": 0.478992,
+            "height": 0.161043
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.85
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.584356,
+            "width": 0.5,
+            "height": 0.161043
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-WordFlip",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.763804,
+            "width": 0.478992,
+            "height": 0.138037
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.921779,
+            "width": 1.0,
+            "height": 0.078221
+          },
+          "start_ratio": 0.72,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "A02",
+      "main_component_id": "Snapcn-PhoneFrame",
+      "material_kind": "image_or_video",
+      "parts": [
+        {
+          "part_id": "main",
+          "component_id": "Snapcn-PhoneFrame",
+          "role": "main",
+          "binding": "media",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.429448
+          },
+          "start_ratio": 0,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.447853,
+            "width": 1.0,
+            "height": 0.115031
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.45
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.584356,
+            "width": 0.478992,
+            "height": 0.161043
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.85
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Snapcn-WordFlip",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.584356,
+            "width": 0.5,
+            "height": 0.161043
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Talkcraft-source-converge",
+          "role": "support",
+          "binding": "supporting_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.763804,
+            "width": 0.478992,
+            "height": 0.138037
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.921779,
+            "width": 1.0,
+            "height": 0.078221
+          },
+          "start_ratio": 0.72,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "A03",
+      "main_component_id": "video",
+      "material_kind": "video",
+      "parts": [
+        {
+          "part_id": "main",
+          "component_id": "video",
+          "role": "main",
+          "binding": "media",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.429448
+          },
+          "start_ratio": 0,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.447853,
+            "width": 1.0,
+            "height": 0.115031
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.45
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.584356,
+            "width": 0.478992,
+            "height": 0.161043
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.85
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Snapcn-TextBuild",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.584356,
+            "width": 0.5,
+            "height": 0.161043
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-TextSwap",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.763804,
+            "width": 0.478992,
+            "height": 0.138037
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.921779,
+            "width": 1.0,
+            "height": 0.078221
+          },
+          "start_ratio": 0.72,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": true
+    },
+    {
+      "set_id": "A04",
+      "main_component_id": "Talkcraft-tilt-3d-page",
+      "material_kind": "image",
+      "parts": [
+        {
+          "part_id": "main",
+          "component_id": "Talkcraft-tilt-3d-page",
+          "role": "main",
+          "binding": "media",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.429448
+          },
+          "start_ratio": 0,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.447853,
+            "width": 1.0,
+            "height": 0.115031
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.45
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-QuoteCard",
+          "role": "support",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.584356,
+            "width": 0.478992,
+            "height": 0.161043
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.85
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Talkcraft-ink-underline",
+          "role": "support",
+          "binding": "supporting_items",
+          "box": {
+            "x": 0.5,
+            "y": 0.584356,
+            "width": 0.5,
+            "height": 0.161043
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-WordFlip",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.763804,
+            "width": 0.478992,
+            "height": 0.138037
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.921779,
+            "width": 1.0,
+            "height": 0.078221
+          },
+          "start_ratio": 0.72,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "A05",
+      "main_component_id": "evidence",
+      "material_kind": "image",
+      "parts": [
+        {
+          "part_id": "main",
+          "component_id": "evidence",
+          "role": "main",
+          "binding": "media",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.429448
+          },
+          "start_ratio": 0,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.447853,
+            "width": 1.0,
+            "height": 0.115031
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.45
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Talkcraft-source-converge",
+          "role": "support",
+          "binding": "supporting_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.584356,
+            "width": 0.478992,
+            "height": 0.161043
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.85
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-QuoteCard",
+          "role": "support",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.5,
+            "y": 0.584356,
+            "width": 0.5,
+            "height": 0.161043
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-TextBuild",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.763804,
+            "width": 0.478992,
+            "height": 0.138037
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.921779,
+            "width": 1.0,
+            "height": 0.078221
+          },
+          "start_ratio": 0.72,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": true
+    },
+    {
+      "set_id": "A06",
+      "main_component_id": "image_focus",
+      "material_kind": "image",
+      "parts": [
+        {
+          "part_id": "main",
+          "component_id": "image_focus",
+          "role": "main",
+          "binding": "media",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.429448
+          },
+          "start_ratio": 0,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.447853,
+            "width": 1.0,
+            "height": 0.115031
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.45
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.584356,
+            "width": 0.478992,
+            "height": 0.161043
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.85
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-SplitScreen",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.584356,
+            "width": 0.5,
+            "height": 0.161043
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Talkcraft-source-converge",
+          "role": "support",
+          "binding": "supporting_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.763804,
+            "width": 0.478992,
+            "height": 0.138037
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.921779,
+            "width": 1.0,
+            "height": 0.078221
+          },
+          "start_ratio": 0.72,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": true
+    },
+    {
+      "set_id": "A07",
+      "main_component_id": "Talkcraft-slow-push-in",
+      "material_kind": "image",
+      "parts": [
+        {
+          "part_id": "main",
+          "component_id": "Talkcraft-slow-push-in",
+          "role": "main",
+          "binding": "media",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.429448
+          },
+          "start_ratio": 0,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.447853,
+            "width": 1.0,
+            "height": 0.115031
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.45
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-QuoteCard",
+          "role": "support",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.584356,
+            "width": 0.478992,
+            "height": 0.161043
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.584356,
+            "width": 0.5,
+            "height": 0.161043
+          },
+          "start_ratio": 0.28,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-WordFlip",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.763804,
+            "width": 0.478992,
+            "height": 0.138037
+          },
+          "start_ratio": 0.42,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "support_4",
+          "component_id": "Talkcraft-source-converge",
+          "role": "support",
+          "binding": "supporting_items",
+          "box": {
+            "x": 0.5,
+            "y": 0.763804,
+            "width": 0.5,
+            "height": 0.138037
+          },
+          "start_ratio": 0.5,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.921779,
+            "width": 1.0,
+            "height": 0.078221
+          },
+          "start_ratio": 0.72,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "A08",
+      "main_component_id": "Snapcn-PhoneFrame",
+      "material_kind": "image_or_video",
+      "parts": [
+        {
+          "part_id": "main",
+          "component_id": "Snapcn-PhoneFrame",
+          "role": "main",
+          "binding": "media",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.429448
+          },
+          "start_ratio": 0,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.447853,
+            "width": 1.0,
+            "height": 0.115031
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.45
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.584356,
+            "width": 0.478992,
+            "height": 0.161043
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-SplitScreen",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.584356,
+            "width": 0.5,
+            "height": 0.161043
+          },
+          "start_ratio": 0.28,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-WordFlip",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.763804,
+            "width": 0.478992,
+            "height": 0.138037
+          },
+          "start_ratio": 0.42,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "support_4",
+          "component_id": "Talkcraft-source-converge",
+          "role": "support",
+          "binding": "supporting_items",
+          "box": {
+            "x": 0.5,
+            "y": 0.763804,
+            "width": 0.5,
+            "height": 0.138037
+          },
+          "start_ratio": 0.5,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.921779,
+            "width": 1.0,
+            "height": 0.078221
+          },
+          "start_ratio": 0.72,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "A09",
+      "main_component_id": "Snapcn-PhoneFrame",
+      "material_kind": "video",
+      "parts": [
+        {
+          "part_id": "main",
+          "component_id": "Snapcn-PhoneFrame",
+          "role": "main",
+          "binding": "media",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.429448
+          },
+          "start_ratio": 0,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.447853,
+            "width": 1.0,
+            "height": 0.115031
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.45
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.584356,
+            "width": 0.478992,
+            "height": 0.161043
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-StatCounter",
+          "role": "support",
+          "binding": "metric",
+          "box": {
+            "x": 0.5,
+            "y": 0.584356,
+            "width": 0.5,
+            "height": 0.161043
+          },
+          "start_ratio": 0.28,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-TextBuild",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.763804,
+            "width": 0.478992,
+            "height": 0.138037
+          },
+          "start_ratio": 0.42,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "support_4",
+          "component_id": "Snapcn-TextSwap",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.763804,
+            "width": 0.5,
+            "height": 0.138037
+          },
+          "start_ratio": 0.5,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.921779,
+            "width": 1.0,
+            "height": 0.078221
+          },
+          "start_ratio": 0.72,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": true
+    },
+    {
+      "set_id": "A10",
+      "main_component_id": "Talkcraft-scanline-annotate",
+      "material_kind": "image",
+      "parts": [
+        {
+          "part_id": "main",
+          "component_id": "Talkcraft-scanline-annotate",
+          "role": "main",
+          "binding": "media",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.429448
+          },
+          "start_ratio": 0,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.447853,
+            "width": 1.0,
+            "height": 0.115031
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.45
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-ChartAnimation",
+          "role": "support",
+          "binding": "numeric_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.584356,
+            "width": 0.478992,
+            "height": 0.161043
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-StatCounter",
+          "role": "support",
+          "binding": "metric",
+          "box": {
+            "x": 0.5,
+            "y": 0.584356,
+            "width": 0.5,
+            "height": 0.161043
+          },
+          "start_ratio": 0.28,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-TextBuild",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.763804,
+            "width": 0.478992,
+            "height": 0.138037
+          },
+          "start_ratio": 0.42,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "support_4",
+          "component_id": "Rve-LineChart",
+          "role": "support",
+          "binding": "numeric_items",
+          "box": {
+            "x": 0.5,
+            "y": 0.763804,
+            "width": 0.5,
+            "height": 0.138037
+          },
+          "start_ratio": 0.5,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Talkcraft-ink-underline",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.921779,
+            "width": 1.0,
+            "height": 0.078221
+          },
+          "start_ratio": 0.72,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "A11",
+      "main_component_id": "Talkcraft-tilt-3d-page",
+      "material_kind": "image",
+      "parts": [
+        {
+          "part_id": "main",
+          "component_id": "Talkcraft-tilt-3d-page",
+          "role": "main",
+          "binding": "media",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.429448
+          },
+          "start_ratio": 0,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.447853,
+            "width": 1.0,
+            "height": 0.115031
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.45
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-QuoteCard",
+          "role": "support",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.584356,
+            "width": 0.478992,
+            "height": 0.161043
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Snapcn-WordFlip",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.584356,
+            "width": 0.5,
+            "height": 0.161043
+          },
+          "start_ratio": 0.28,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Talkcraft-source-converge",
+          "role": "support",
+          "binding": "supporting_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.763804,
+            "width": 0.478992,
+            "height": 0.138037
+          },
+          "start_ratio": 0.42,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "support_4",
+          "component_id": "Talkcraft-ink-underline",
+          "role": "support",
+          "binding": "supporting_items",
+          "box": {
+            "x": 0.5,
+            "y": 0.763804,
+            "width": 0.5,
+            "height": 0.138037
+          },
+          "start_ratio": 0.5,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.921779,
+            "width": 1.0,
+            "height": 0.078221
+          },
+          "start_ratio": 0.72,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "A12",
+      "main_component_id": "Talkcraft-slow-pull-reveal",
+      "material_kind": "image",
+      "parts": [
+        {
+          "part_id": "main",
+          "component_id": "Talkcraft-slow-pull-reveal",
+          "role": "main",
+          "binding": "media",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.429448
+          },
+          "start_ratio": 0,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.447853,
+            "width": 1.0,
+            "height": 0.115031
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.45
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-SplitScreen",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.584356,
+            "width": 0.478992,
+            "height": 0.161043
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.584356,
+            "width": 0.5,
+            "height": 0.161043
+          },
+          "start_ratio": 0.28,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Talkcraft-source-converge",
+          "role": "support",
+          "binding": "supporting_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.763804,
+            "width": 0.478992,
+            "height": 0.138037
+          },
+          "start_ratio": 0.42,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "support_4",
+          "component_id": "Snapcn-WordFlip",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.763804,
+            "width": 0.5,
+            "height": 0.138037
+          },
+          "start_ratio": 0.5,
+          "end_ratio": 0.75
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.921779,
+            "width": 1.0,
+            "height": 0.078221
+          },
+          "start_ratio": 0.72,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B01",
+      "main_component_id": "Rve-QuoteCard",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Rve-QuoteCard",
+          "role": "main",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-StatCounter",
+          "role": "support",
+          "binding": "metric",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-WordFlip",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B02",
+      "main_component_id": "keyword",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Snapcn-WordFlip",
+          "role": "main",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-StatCounter",
+          "role": "support",
+          "binding": "metric",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Talkcraft-word-slot-cycle",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B03",
+      "main_component_id": "Rve-SplitScreen",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Rve-SplitScreen",
+          "role": "main",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-ComparisonChart",
+          "role": "support",
+          "binding": "numeric_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Snapcn-TextBuild",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-TextSwap",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B04",
+      "main_component_id": "Rve-StatCounter",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Rve-StatCounter",
+          "role": "main",
+          "binding": "metric",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Snapcn-TextBuild",
+          "role": "support",
+          "binding": "numeric_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-ChartAnimation",
+          "role": "support",
+          "binding": "numeric_items",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Rve-LineChart",
+          "role": "support",
+          "binding": "numeric_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Talkcraft-ink-underline",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B05",
+      "main_component_id": "Rve-ProgressSteps",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Rve-ProgressSteps",
+          "role": "main",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-StatCounter",
+          "role": "support",
+          "binding": "metric",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-QuoteCard",
+          "role": "support",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-TextBuild",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B06",
+      "main_component_id": "conclusion",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Bits-ChatConversation",
+          "role": "main",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-StatCounter",
+          "role": "support",
+          "binding": "metric",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Snapcn-TextBuild",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B07",
+      "main_component_id": "Rve-ChartAnimation",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Rve-ProgressSteps",
+          "role": "main",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-StatCounter",
+          "role": "support",
+          "binding": "metric",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-WordFlip",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B08",
+      "main_component_id": "Rve-StatCounter",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Rve-StatCounter",
+          "role": "main",
+          "binding": "metric",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Snapcn-TextBuild",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-ChartAnimation",
+          "role": "support",
+          "binding": "numeric_items",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-WordFlip",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Talkcraft-ink-underline",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B09",
+      "main_component_id": "Rve-ComparisonChart",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Rve-ComparisonChart",
+          "role": "main",
+          "binding": "numeric_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-StatCounter",
+          "role": "support",
+          "binding": "metric",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Snapcn-TextSwap",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Talkcraft-strike-and-replace",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B10",
+      "main_component_id": "Rve-ChartAnimation",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Rve-ChartAnimation",
+          "role": "main",
+          "binding": "numeric_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-LineChart",
+          "role": "support",
+          "binding": "numeric_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Snapcn-TextBuild",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Rve-StatCounter",
+          "role": "support",
+          "binding": "metric",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Talkcraft-ink-underline",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B11",
+      "main_component_id": "Rve-ProgressSteps",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Rve-ProgressSteps",
+          "role": "main",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-StatCounter",
+          "role": "support",
+          "binding": "metric",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Snapcn-TextBuild",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Talkcraft-word-slot-cycle",
+          "role": "support",
+          "binding": "supporting_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B12",
+      "main_component_id": "Rve-QuoteCard",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Rve-QuoteCard",
+          "role": "main",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Talkcraft-source-converge",
+          "role": "support",
+          "binding": "supporting_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-WordFlip",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B13",
+      "main_component_id": "Rve-SplitScreen",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Rve-SplitScreen",
+          "role": "main",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Talkcraft-error-retype",
+          "role": "support",
+          "binding": "supporting_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-QuoteCard",
+          "role": "support",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Talkcraft-strike-and-replace",
+          "role": "support",
+          "binding": "supporting_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B14",
+      "main_component_id": "Snapcn-AnswerStream",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Snapcn-AnswerStream",
+          "role": "main",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Bits-ChatConversation",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Snapcn-TextBuild",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Rve-StatCounter",
+          "role": "support",
+          "binding": "metric",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B15",
+      "main_component_id": "Rve-QuoteCard",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Rve-QuoteCard",
+          "role": "main",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-ChartAnimation",
+          "role": "support",
+          "binding": "numeric_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-TextBuild",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B16",
+      "main_component_id": "Rve-ProgressSteps",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Rve-ProgressSteps",
+          "role": "main",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-StatCounter",
+          "role": "support",
+          "binding": "metric",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Snapcn-WordFlip",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Rve-QuoteCard",
+          "role": "support",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B17",
+      "main_component_id": "Bits-ChatConversation",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Bits-ChatConversation",
+          "role": "main",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-StatCounter",
+          "role": "support",
+          "binding": "metric",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Snapcn-TextBuild",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    },
+    {
+      "set_id": "B18",
+      "main_component_id": "Rve-ComparisonChart",
+      "material_kind": "none",
+      "parts": [
+        {
+          "part_id": "title",
+          "component_id": "Snapcn-TextReveal",
+          "role": "title",
+          "binding": "title",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.122699
+          },
+          "start_ratio": 0,
+          "end_ratio": 0.35
+        },
+        {
+          "part_id": "main",
+          "component_id": "Rve-ComparisonChart",
+          "role": "main",
+          "binding": "numeric_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.144172,
+            "width": 1.0,
+            "height": 0.276074
+          },
+          "start_ratio": 0.08,
+          "end_ratio": 0.82
+        },
+        {
+          "part_id": "support_1",
+          "component_id": "Rve-SplitScreen",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.0,
+            "y": 0.441718,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.22,
+          "end_ratio": 0.9
+        },
+        {
+          "part_id": "support_2",
+          "component_id": "Rve-ProgressSteps",
+          "role": "support",
+          "binding": "items",
+          "box": {
+            "x": 0.5,
+            "y": 0.441718,
+            "width": 0.5,
+            "height": 0.168712
+          },
+          "start_ratio": 0.34,
+          "end_ratio": 0.95
+        },
+        {
+          "part_id": "support_3",
+          "component_id": "Talkcraft-strike-and-replace",
+          "role": "support",
+          "binding": "supporting_items",
+          "box": {
+            "x": 0.0,
+            "y": 0.631902,
+            "width": 0.478992,
+            "height": 0.168712
+          },
+          "start_ratio": 0.48,
+          "end_ratio": 1
+        },
+        {
+          "part_id": "emphasis",
+          "component_id": "Snapcn-TextHighlight",
+          "role": "emphasis",
+          "binding": "takeaway",
+          "box": {
+            "x": 0.0,
+            "y": 0.825153,
+            "width": 1.0,
+            "height": 0.174847
+          },
+          "start_ratio": 0.76,
+          "end_ratio": 1
+        }
+      ],
+      "focus_supported": false
+    }
+  ]
+}

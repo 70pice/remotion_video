@@ -47,7 +47,15 @@ export const controls = [
 ];
 
 export type ChatMessage = { from: "me" | "them"; text: string };
-export interface ChatConversationProps { messages?: ChatMessage[]; variant?: "pop" | "slide" | "rise"; showAvatars?: boolean; stagger?: number; }
+export interface ChatConversationProps {
+  messages?: ChatMessage[];
+  variant?: "pop" | "slide" | "rise";
+  showAvatars?: boolean;
+  stagger?: number;
+  compactBox?: boolean;
+  fontSize?: number;
+  fontFamily?: string;
+}
 const defaultMessages: ChatMessage[] = [
   { from: "them", text: "Hey, did the render finish?" },
   { from: "me", text: "Yep, 4K in under two minutes." },
@@ -56,14 +64,22 @@ const defaultMessages: ChatMessage[] = [
   { from: "me", text: "Staggered motion, zero manual keyframes." },
   { from: "them", text: "Okay, sending you the next brief now." },
 ];
-export const Component: React.FC<ChatConversationProps> = ({ messages = defaultMessages, variant = "pop", showAvatars = true, stagger = 20 }) => {
+export const Component: React.FC<ChatConversationProps> = ({
+  messages = defaultMessages,
+  variant = "pop",
+  showAvatars = true,
+  stagger = 20,
+  compactBox = false,
+  fontSize,
+  fontFamily,
+}) => {
   const rect = useViewportRect();
   const vmin = rect.vmin;
 
 
-  const bubbleFont = vmin * 4;
-  const maxBubbleWidth = rect.vw * 66;
-  const avatarSize = vmin * 6;
+  const bubbleFont = fontSize ?? (compactBox ? 44 : vmin * 4);
+  const maxBubbleWidth = compactBox ? Math.max(220, rect.vw - 96) : rect.vw * 66;
+  const avatarSize = compactBox ? 48 : vmin * 6;
   const startDelay = 10;
 
   const transitionFor = (isMe: boolean) => {
@@ -101,10 +117,11 @@ export const Component: React.FC<ChatConversationProps> = ({ messages = defaultM
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        gap: vmin * 2.2,
-        padding: `0 ${rect.vw * 6}px`,
+        gap: compactBox ? 18 : vmin * 2.2,
+        padding: compactBox ? "0 32px" : `0 ${rect.vw * 6}px`,
         backgroundColor: "var(--color-background-dark, #0b1020)",
-        fontFamily: "sans-serif",
+        fontFamily: fontFamily || "sans-serif",
+        boxSizing: "border-box",
       }}
     >
       {messages.map((message, index) => {
@@ -120,7 +137,7 @@ export const Component: React.FC<ChatConversationProps> = ({ messages = defaultM
               display: "flex",
               flexDirection: isMe ? "row-reverse" : "row",
               alignItems: "flex-end",
-              gap: vmin * 1.5,
+              gap: compactBox ? 12 : vmin * 1.5,
             }}
           >
             <div
@@ -128,7 +145,7 @@ export const Component: React.FC<ChatConversationProps> = ({ messages = defaultM
                 display: "flex",
                 flexDirection: isMe ? "row-reverse" : "row",
                 alignItems: "flex-end",
-                gap: vmin * 1.5,
+                gap: compactBox ? 12 : vmin * 1.5,
                 transformOrigin: isMe ? "bottom right" : "bottom left",
               }}
             >
@@ -154,10 +171,10 @@ export const Component: React.FC<ChatConversationProps> = ({ messages = defaultM
               <div
                 style={{
                   maxWidth: maxBubbleWidth,
-                  padding: `${vmin * 2.2}px ${vmin * 3.2}px`,
-                  borderRadius: vmin * 4,
-                  borderBottomRightRadius: isMe ? vmin * 1 : vmin * 4,
-                  borderBottomLeftRadius: isMe ? vmin * 4 : vmin * 1,
+                  padding: compactBox ? "18px 24px" : `${vmin * 2.2}px ${vmin * 3.2}px`,
+                  borderRadius: compactBox ? 28 : vmin * 4,
+                  borderBottomRightRadius: isMe ? compactBox ? 8 : vmin * 1 : compactBox ? 28 : vmin * 4,
+                  borderBottomLeftRadius: isMe ? compactBox ? 28 : vmin * 4 : compactBox ? 8 : vmin * 1,
                   backgroundColor: isMe ? "var(--color-primary, #6366f1)" : "var(--color-surface-light, #27344d)",
                   color: "white",
                   fontSize: bubbleFont,

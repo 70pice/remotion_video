@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Loop, OffthreadVideo, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Img, Loop, OffthreadVideo, useCurrentFrame } from "remotion";
 
 // pip-zoom-box · 画中画放大 —— 自包含 Remotion 源码（与 demos/pip-zoom-box/index.html 同画面）
 // 复制本文件进你的工程即可用；主持人视频经 hostSrc prop 注入，不传则灰阶剪影占位。
@@ -113,7 +113,7 @@ const CSS = `
 #pz-arrow path { fill: none; stroke: #0066cc; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 `;
 
-export default function PipZoomBox({ hostSrc }: { hostSrc?: string }) {
+export default function PipZoomBox({ hostSrc, mediaSrc, mediaFit = "cover", mediaStyle }: { hostSrc?: string; mediaSrc?: string; mediaFit?: "cover" | "contain"; mediaStyle?: React.CSSProperties }) {
   const t = useCurrentFrame() / FPS;
   const C = CONFIG;
   const SW = 960, SH = 540;
@@ -146,6 +146,34 @@ export default function PipZoomBox({ hostSrc }: { hostSrc?: string }) {
   const headLen = 2 * Math.hypot(13, 10);                // M585,260 L598,270 L585,280
   const shaftOff = shaftLen * (1 - tw(t, tLand + C.arrowAt, C.arrowDur, power2Out));
   const headOff = headLen * (1 - tw(t, tLand + C.arrowAt + C.arrowDur * 0.7, 0.1, power2Out));
+
+  if (mediaSrc) {
+    const mediaScene = <Img src={mediaSrc} style={{position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: mediaFit, ...mediaStyle}} />;
+    return (
+      <AbsoluteFill style={{background: "#ffffff", color: "#1d1d1f", overflow: "hidden", fontFamily: '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif'}}>
+        <style>{CSS}</style>
+        <div className="pz-scene">{mediaScene}</div>
+        <svg id="pz-arrow" viewBox="0 0 960 540">
+          <path d="M 540 270 L 598 270" strokeDasharray={shaftLen} strokeDashoffset={shaftOff} />
+          <path d="M 585 260 L 598 270 L 585 280" strokeDasharray={headLen} strokeDashoffset={headOff} />
+        </svg>
+        <div className="pz-shell" style={{
+          left: cx - w / 2, top: cy - h / 2, width: w, height: h,
+          opacity: shellOpacity,
+          transform: `scale(${shellScale})`, transformOrigin: "50% 50%",
+        }}>
+          <div className="pz-win" style={{ borderRadius: r }}>
+            <div className="pz-scene" style={{
+              transformOrigin: "0 0",
+              transform: `translate(${w / 2 - zoom * fx}px, ${h / 2 - zoom * fy}px) scale(${zoom})`,
+            }}>{mediaScene}</div>
+          </div>
+          <div className="pz-hair" style={{ opacity: hairOpacity, borderRadius: r }} />
+          <div className="pz-card" style={{ opacity: cardOpacity, borderRadius: r }} />
+        </div>
+      </AbsoluteFill>
+    );
+  }
 
   return (
     <AbsoluteFill style={{

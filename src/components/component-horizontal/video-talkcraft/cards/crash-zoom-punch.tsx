@@ -78,9 +78,10 @@ type Props = {
   /** 假设置页的目标行文案（仅无 src 时用） */
   label?: string;
   sub?: string;
+  mediaStyle?: React.CSSProperties;
 };
 
-export default function CrashZoomPunch({ src, target = DEMO_TARGET, label = "自动续费", sub = "下次扣款 2026-10-05 · ¥ 199 / 月" }: Props) {
+export default function CrashZoomPunch({ src, target = DEMO_TARGET, label = "自动续费", sub = "下次扣款 2026-10-05 · ¥ 199 / 月", mediaStyle }: Props) {
   const t = useCurrentFrame() / FPS;
 
   // 目标中心钉死：推进与回收共用同一 (px, py)
@@ -105,7 +106,7 @@ export default function CrashZoomPunch({ src, target = DEMO_TARGET, label = "自
       <div className="czp-cam" style={{ opacity: exitK, transform: `translate(${cam.x}px, ${cam.y}px) scale(${cam.scale})`, filter: `blur(${Math.max(0, blur).toFixed(2)}px)` }}>
         <div className="czp-shot">
           {src ? (
-            <Img src={src} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+            <Img src={src} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", ...mediaStyle }} />
           ) : (
             <>
               <div className="czp-hd">订阅与账单</div>

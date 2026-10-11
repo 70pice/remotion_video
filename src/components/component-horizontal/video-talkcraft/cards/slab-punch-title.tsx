@@ -102,7 +102,7 @@ const CSS = `
 }
 `;
 
-export default function SlabPunchTitle({ hostSrc }: { hostSrc?: string }) {
+export default function SlabPunchTitle({ hostSrc, title = "找到", emphasis = "关键点" }: { hostSrc?: string; title?: string; emphasis?: string }) {
   const t = useCurrentFrame() / FPS;
 
   // ① 第一行硬现
@@ -126,12 +126,12 @@ export default function SlabPunchTitle({ hostSrc }: { hostSrc?: string }) {
       <style>{CSS}</style>
       <div className="host-wrap"><Host src={hostSrc} /></div>
       <div className="sp-title">
-        <div className="sp-l1" style={{ opacity: l1P, transform: `scale(${l1Scale})` }}>找到</div>
+        <div className="sp-l1" style={{ opacity: l1P, transform: `scale(${l1Scale})` }}>{title}</div>
         <div className="sp-l2">
           <span className="sp-slab">
             <span className="sp-slab-bg" style={{ transform: `scaleX(${bgScaleX})` }} />
             <span className="sp-l2-t" style={{ opacity: l2Opacity, transform: `scale(${l2Scale})` }}>
-              关键点
+              {emphasis}
             </span>
           </span>
         </div>

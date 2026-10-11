@@ -55,6 +55,7 @@ const CSS = `
 `;
 
 type Props = {
+  holdResult?: boolean;
   /** 句干（先在，不动） */
   prefix?: string;
   /** 错的半句（打出后被退掉） */
@@ -65,7 +66,7 @@ type Props = {
   accent?: string;
 };
 
-export default function ErrorRetype({ prefix = "口播做得好，靠的是", first = "模型大小", second = "讲述方法", accent = "#0066cc" }: Props) {
+export default function ErrorRetype({ holdResult = false, prefix = "口播做得好，靠的是", first = "模型大小", second = "讲述方法", accent = "#0066cc" }: Props) {
   const t = useCurrentFrame() / FPS;
   const N = Math.max(first.length, second.length);
 
@@ -101,7 +102,7 @@ export default function ErrorRetype({ prefix = "口播做得好，靠的是", fi
   else if (t >= tB1 && t < tB1 + 4 * CONFIG.blink) cursor = blinkOn(tB1);
 
   const prefixK = tw(t, CONFIG.prefixIn, 0.3, power1Out);
-  const exitK = 1 - tw(t, exitAt, CONFIG.exitDur, power2In);
+  const exitK = holdResult ? 1 : 1 - tw(t, exitAt, CONFIG.exitDur, power2In);
 
   return (
     <AbsoluteFill style={{ background: "#ffffff", color: "#1d1d1f", overflow: "hidden", fontFamily: '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif' }}>

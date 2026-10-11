@@ -39,12 +39,15 @@ export type CuratedVariant =
   | 'product-spotlight';
 
 export type CuratedSceneProps = {
+  productionLayers?: {title: boolean; emphasis: boolean};
   variant: CuratedVariant;
   layout?: 'landscape' | 'portrait';
   title: string;
   kicker: string;
   accent: string;
   secondary?: string;
+  items?: string[];
+  metric?: {label: string; value: string; detail?: string};
   material?: CuratedSceneMaterial;
 };
 
@@ -265,6 +268,7 @@ const PhoneCard: FC<{
   title: string;
   fps: number;
   material?: CuratedSceneMaterial;
+  productionHeight?: number;
 }> = ({
   frame,
   accent,
@@ -273,16 +277,17 @@ const PhoneCard: FC<{
   title,
   fps,
   material,
-}) => <div style={{position: 'relative', width: portrait ? 500 * unit : 300 * unit, height: portrait ? 850 * unit : 560 * unit,
+  productionHeight,
+}) => <div style={{position: 'relative', width: portrait ? (material ? 872 : 500) * unit : 300 * unit, height: portrait ? (productionHeight ?? 850) * unit : 560 * unit,
   borderRadius: 42 * unit, padding: 12 * unit, background: '#020617', border: '1px solid #FFFFFF33',
   boxShadow: `0 ${30 * unit}px ${90 * unit}px #000A`, transform: portrait ? undefined : 'rotate(-4deg)'}}>
   <div style={{height: '100%', borderRadius: 32 * unit, overflow: 'hidden', position: 'relative',
     background: `linear-gradient(160deg, ${accent} 0%, #0F172A 42%, #101827 100%)`}}>
     {material ? <MaterialFrame material={material} accent={accent} fps={fps} radius={32 * unit}
-      style={{position: 'absolute', inset: 0}} /> : null}
-    <div style={{position: 'absolute', inset: 0, opacity: 0.22,
-      background: 'repeating-linear-gradient(0deg, #fff 0 1px, transparent 1px 28px)'}} />
-    <div style={{position: 'absolute', left: 22 * unit, right: 22 * unit, bottom: 34 * unit,
+      style={{position: 'absolute', inset: 0}} overlay={false} /> : null}
+    {!material ? <div style={{position: 'absolute', inset: 0, opacity: 0.22,
+      background: 'repeating-linear-gradient(0deg, #fff 0 1px, transparent 1px 28px)'}} /> : null}
+    {!material ? <div style={{position: 'absolute', left: 22 * unit, right: 22 * unit, bottom: 34 * unit,
       display: 'grid', gap: 12 * unit}}>
       <FlowDots count={9} frame={frame} accent="#F8FAFC" unit={unit} />
       <div style={{fontSize: (portrait ? 36 : 24) * unit, lineHeight: 1.05, fontWeight: 860}}>{title}</div>
@@ -290,7 +295,7 @@ const PhoneCard: FC<{
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 * unit, fontWeight: 850}}>
         Caption synced from material
       </div>
-    </div>
+    </div> : null}
   </div>
 </div>;
 
@@ -339,14 +344,17 @@ const Gallery: FC<{
   </div>;
 };
 
-const ListPanel: FC<{frame: number; accent: string; unit: number; portrait: boolean; notification?: boolean}> = ({
+const defaultListItems = ['hook', 'evidence', 'edit', 'publish'];
+
+const ListPanel: FC<{frame: number; accent: string; unit: number; portrait: boolean; notification?: boolean; items?: string[]}> = ({
   frame,
   accent,
   unit,
   portrait,
   notification = false,
+  items,
 }) => <div style={{display: 'grid', gap: 18 * unit, width: portrait ? 760 * unit : 590 * unit}}>
-  {['hook', 'evidence', 'edit', 'publish'].map((item, index) => {
+  {(items ?? defaultListItems).map((item, index) => {
     const reveal = mix(frame, index * 10, 18);
     return <div key={item} style={{display: 'grid', gridTemplateColumns: `${(notification ? 58 : 44) * unit}px 1fr`,
       alignItems: 'center', gap: 18 * unit, padding: `${18 * unit}px ${22 * unit}px`, borderRadius: 22 * unit,
@@ -420,23 +428,23 @@ const RevealMask: FC<{
   </div>;
 };
 
-export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscape', title, kicker, accent, secondary, material}) => {
+export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscape', title, kicker, accent, secondary, items, metric, material, productionLayers}) => {
   const frame = useCurrentFrame();
   const {width, height, fps} = useVideoConfig();
   const portrait = layout === 'portrait';
   const unit = Math.min(width / (portrait ? 1080 : 1280), height / (portrait ? 1920 : 720));
   const left = portrait ? 104 * unit : 92 * unit;
   const top = portrait ? 150 * unit : 86 * unit;
-  const heroTop = portrait ? 590 * unit : 210 * unit;
+  const heroTop = portrait ? (productionLayers ? 520 : 590) * unit : 210 * unit;
   const panelStyle: CSSProperties = {position: 'absolute', left, top, right: left};
-  const commonTitle = <div style={panelStyle}><TitleBlock title={title} kicker={kicker} accent={accent} unit={unit} compact={portrait} /></div>;
+  const commonTitle = productionLayers?.title ? null : <div style={panelStyle}><TitleBlock title={title} kicker={kicker} accent={accent} unit={unit} compact={portrait} /></div>;
 
   if (variant === 'social-clip' || variant === 'social-reel') {
-    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
+    return <Shell accent={accent} unit={unit} portrait={portrait} fps={fps}>
       {commonTitle}
-      <div style={{position: 'absolute', right: portrait ? 285 * unit : 150 * unit, top: heroTop}}>
+      <div style={{position: 'absolute', right: portrait ? (material ? 104 : 285) * unit : 150 * unit, top: material && portrait ? 500 * unit : heroTop}}>
         <PhoneCard frame={frame} accent={accent} unit={unit} portrait={portrait} title={secondary || title}
-          fps={fps} material={material} />
+          fps={fps} material={material} productionHeight={productionLayers?.emphasis ? 490 : undefined} />
       </div>
     </Shell>;
   }
@@ -458,6 +466,23 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
         height: portrait ? 690 * unit : 360 * unit, padding: 34 * unit, borderRadius: 28 * unit,
         background: '#07101FDD', border: '1px solid #FFFFFF1F'}}>
         <ChartPanel frame={frame} accent={accent} unit={unit} mode={variant === 'area-chart' ? 'area' : 'candles'} />
+      </div>
+    </Shell>;
+  }
+
+  if (variant === 'kpi-counter' && metric) {
+    const entrance = mix(frame, 5, 24);
+    return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
+      {commonTitle}
+      <div style={{position: 'absolute', left, right: left, top: heroTop, padding: 40 * unit,
+        borderRadius: 28 * unit, background: '#07101FDD', border: `1px solid ${accent}66`,
+        opacity: entrance, transform: `translateY(${(1 - entrance) * 24 * unit}px)`}}>
+        <div style={{fontSize: 30 * unit, color: muted, fontWeight: 700}}>{metric.label}</div>
+        <div style={{fontSize: (portrait ? 100 : 84) * unit, color: accent, fontWeight: 900,
+          marginTop: 24 * unit}}>{metric.value}</div>
+        {metric.detail ? <div style={{fontSize: 26 * unit, color: ink, marginTop: 24 * unit}}>
+          {metric.detail}
+        </div> : null}
       </div>
     </Shell>;
   }
@@ -614,7 +639,8 @@ export const CuratedScene: FC<CuratedSceneProps> = ({variant, layout = 'landscap
     return <Shell accent={accent} unit={unit} portrait={portrait} material={material} fps={fps}>
       {commonTitle}
       <div style={{position: 'absolute', left: portrait ? 160 * unit : 590 * unit, top: heroTop}}>
-        <ListPanel frame={frame} accent={accent} unit={unit} portrait={portrait} notification={variant === 'notification-pop'} />
+        <ListPanel frame={frame} accent={accent} unit={unit} portrait={portrait}
+          notification={variant === 'notification-pop'} items={items} />
       </div>
     </Shell>;
   }

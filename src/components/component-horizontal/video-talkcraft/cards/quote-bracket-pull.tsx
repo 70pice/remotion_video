@@ -108,7 +108,7 @@ const CSS = `
 }
 `;
 
-export default function QuoteBracketPull({ hostSrc }: { hostSrc?: string }) {
+export default function QuoteBracketPull({ hostSrc, lines = ["真正拉开差距的", "从来不是谁更聪明", "而是谁愿意主动去解决问题"], highlight = "主动去解决问题" }: { hostSrc?: string; lines?: string[]; highlight?: string }) {
   const t = useCurrentFrame() / FPS;
 
   // ① 两枚引号从画外向内推入——同帧同曲线（"夹住"是一个动作）
@@ -127,6 +127,11 @@ export default function QuoteBracketPull({ hostSrc }: { hostSrc?: string }) {
   // ③ 末行到位后荧光笔扫过关键短语
   const markerAt = linesAt + CONFIG.lineStagger * 2 + CONFIG.lineDur + CONFIG.markerGap;
   const markerX = tw(t, markerAt, CONFIG.markerDur, power2InOut);
+  const quoteLines = [...lines, "", ""].slice(0, 3);
+  const last = quoteLines[2];
+  const before = last.includes(highlight) ? last.split(highlight)[0] : "";
+  const marked = last.includes(highlight) ? highlight : last;
+  const after = last.includes(highlight) ? last.split(highlight).slice(1).join(highlight) : "";
 
   return (
     <AbsoluteFill style={{
@@ -138,14 +143,15 @@ export default function QuoteBracketPull({ hostSrc }: { hostSrc?: string }) {
         <span className="qb-mark open" style={{
           opacity: markOpacity, transform: `translate(${openX}px, ${openY}px)`,
         }}>&ldquo;</span>
-        <div className="qb-line" style={lineStyle(0)}>真正拉开差距的</div>
-        <div className="qb-line" style={lineStyle(1)}>从来不是谁更聪明</div>
+        <div className="qb-line" style={lineStyle(0)}>{quoteLines[0]}</div>
+        <div className="qb-line" style={lineStyle(1)}>{quoteLines[1]}</div>
         <div className="qb-line" style={lineStyle(2)}>
-          而是谁愿意
+          {before}
           <span className="qb-mark-wrap">
             <span className="qb-marker" style={{ transform: `scaleX(${markerX})` }} />
-            主动去解决问题
+            {marked}
           </span>
+          {after}
         </div>
         <span className="qb-mark close" style={{
           opacity: markOpacity, transform: `translate(${closeX}px, ${closeY}px)`,

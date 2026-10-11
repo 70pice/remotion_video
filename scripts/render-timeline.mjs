@@ -21,12 +21,12 @@ const inside = (root, candidate) => {
 
 export const parseArgs = (argv) => {
   const options = {};
-  const allowed = new Set(['--timeline', '--output', '--mode', '--cover']);
+  const allowed = new Set(['--timeline', '--output', '--mode', '--cover', '--start-frame', '--end-frame']);
   for (let index = 0; index < argv.length; index += 2) {
     const key = argv[index];
     const value = argv[index + 1];
     if (!allowed.has(key) || !value || value.startsWith('--') || Object.hasOwn(options, key.slice(2))) {
-      throw new Error('Usage: node scripts/render-timeline.mjs --timeline <absolute-json> --output <absolute-mp4> --mode preview|final [--cover <absolute-png>]');
+      throw new Error('Usage: node scripts/render-timeline.mjs --timeline <absolute-json> --output <absolute-mp4> --mode preview|final [--cover <absolute-png>] [--start-frame <frame> --end-frame <exclusive-frame>]');
     }
     options[key.slice(2)] = value;
   }
@@ -39,7 +39,48 @@ export const parseArgs = (argv) => {
   if (options.cover && (!path.isAbsolute(options.cover) || path.extname(options.cover).toLowerCase() !== '.png')) {
     throw new Error('--cover requires an absolute PNG file path');
   }
+  const hasStart = options['start-frame'] !== undefined;
+  const hasEnd = options['end-frame'] !== undefined;
+  if (hasStart !== hasEnd) throw new Error('--start-frame and --end-frame must be provided together');
+  if (options.mode === 'final' && hasStart) throw new Error('final render does not accept --start-frame or --end-frame');
+  if (hasStart) {
+    for (const key of ['start-frame', 'end-frame']) {
+      if (!/^(0|[1-9]\d*)$/.test(options[key])) throw new Error(`--${key} must be a nonnegative integer frame`);
+      options[key] = Number(options[key]);
+      if (!Number.isSafeInteger(options[key])) throw new Error(`--${key} must be a safe integer frame`);
+    }
+    if (options['end-frame'] <= options['start-frame']) throw new Error('--end-frame must be greater than --start-frame');
+    options.frameRange = {startFrame: options['start-frame'], endFrame: options['end-frame']};
+  }
   return options;
+};
+
+export const resolvePreviewFrameRange = (timeline, options) => {
+  if (options.mode === 'final') return null;
+  const maxFrames = timeline.fps * 30;
+  const requested = options.frameRange ?? {startFrame: 0, endFrame: Math.min(timeline.duration_in_frames, maxFrames)};
+  if (requested.startFrame < 0 || requested.endFrame <= requested.startFrame) {
+    throw new Error('Preview frame range must be a nonempty half-open interval');
+  }
+  if (requested.endFrame > timeline.duration_in_frames) {
+    throw new Error('Preview frame range is outside the timeline duration');
+  }
+  if (requested.endFrame - requested.startFrame > maxFrames) {
+    throw new Error('Preview frame range may not exceed 30 seconds');
+  }
+  return {
+    startFrame: requested.startFrame,
+    endFrame: requested.endFrame,
+    remotionFrameRange: [requested.startFrame, requested.endFrame - 1],
+  };
+};
+
+export const selectCoverFrame = (timeline, frameRange) => {
+  const firstShot = timeline.shots[0];
+  const coverStart = frameRange?.startFrame ?? 0;
+  const coverEnd = frameRange?.endFrame ?? timeline.duration_in_frames;
+  const preferredFrame = Math.min(firstShot.end_frame - 1, Math.max(firstShot.start_frame, Math.round(timeline.fps * 0.8)));
+  return Math.min(coverEnd - 1, Math.max(coverStart, preferredFrame));
 };
 
 const assertNewOutput = async (file) => {
@@ -98,7 +139,7 @@ export const validateLocalInputs = async (timeline) => {
   if (!sources.length) return {files: [], videoMetadata: {}};
   const videoShotsBySource = new Map();
   for (const shot of timeline.shots) {
-    if (shot.component_id !== 'video' || !shot.asset_src) continue;
+    if (!['video', 'Snapcn-PhoneFrame'].includes(shot.component_id) || !shot.asset_src || !/\.mp4$/i.test(shot.asset_src)) continue;
     const items = videoShotsBySource.get(shot.asset_src) ?? [];
     items.push(shot);
     videoShotsBySource.set(shot.asset_src, items);
@@ -128,11 +169,30 @@ export const validateLocalInputs = async (timeline) => {
     } finally {
       await handle.close();
     }
+    const focusShots = timeline.shots.filter((shot) => shot.asset_src === source && shot.props.focus_source_size);
+    if (isImage && focusShots.length) {
+      const {stdout} = await execFileAsync('ffprobe', ['-v', 'error', '-show_entries', 'stream=width,height', '-of', 'json', actualFile]);
+      const dimensions = JSON.parse(stdout).streams?.[0];
+      for (const shot of focusShots) {
+        const size = shot.props.focus_source_size;
+        if (!dimensions || size.width !== dimensions.width || size.height !== dimensions.height) {
+          throw new Error(`Focus source dimensions must match measured media: ${source}`);
+        }
+      }
+    }
     if (isVideo) {
-      if (!videoShotsBySource.has(source)) throw new Error(`MP4 media is only allowed for video shots: ${source}`);
+      if (!videoShotsBySource.has(source)) throw new Error(`MP4 media requires a supported video component: ${source}`);
       const metadata = await videoProbe(actualFile, source);
       videoMetadata[source] = metadata;
       for (const shot of videoShotsBySource.get(source)) {
+        const tutorialSize = shot.props.tutorial_source_size;
+        if (tutorialSize && (tutorialSize.width !== metadata.width || tutorialSize.height !== metadata.height)) {
+          throw new Error(`Tutorial source dimensions must match measured media: ${source}`);
+        }
+        const focusSize = shot.props.focus_source_size;
+        if (focusSize && (focusSize.width !== metadata.width || focusSize.height !== metadata.height)) {
+          throw new Error(`Focus source dimensions must match measured media: ${source}`);
+        }
         const start = shot.props.start_seconds ?? 0;
         const end = shot.props.end_seconds ?? metadata.duration;
         const shotSeconds = (shot.end_frame - shot.start_frame) / timeline.fps;
@@ -223,18 +283,20 @@ export const main = async (argv = process.argv.slice(2)) => {
       puppeteerInstance: browser, logLevel: 'error'});
     assertRunning();
     const scale = outputScale(timeline, options.mode);
+    const frameRange = resolvePreviewFrameRange(timeline, options);
     // Reuse the exact same frozen props for selection, MP4 and cover. Preview
-    // changes only output scale; canonical timeline coordinates never change.
+    // changes only output scale and renderMedia's source frame range; canonical
+    // timeline coordinates, audio time and shot-local animation never change.
     const offthreadVideoOptions = {offthreadVideoCacheSizeInBytes: 256 * 1024 * 1024, offthreadVideoThreads: 2};
     await renderMedia({serveUrl, composition, inputProps, outputLocation: path.join(tempDir, 'video.mp4'),
       codec: 'h264', crf: options.mode === 'preview' ? 26 : 18, pixelFormat: 'yuv420p',
       scale, concurrency: 2, puppeteerInstance: browser, cancelSignal, logLevel: 'error',
+      ...(frameRange ? {frameRange: frameRange.remotionFrameRange} : {}),
       ...offthreadVideoOptions,
       onProgress: (event) => progress(0.15 + event.progress * 0.75)});
     assertRunning();
     if (options.cover) {
-      const firstShot = timeline.shots[0];
-      const coverFrame = Math.min(firstShot.end_frame - 1, Math.max(firstShot.start_frame, Math.round(timeline.fps * 0.8)));
+      const coverFrame = selectCoverFrame(timeline, frameRange);
       await renderStill({serveUrl, composition, inputProps, output: path.join(tempDir, 'cover.png'),
         imageFormat: 'png', frame: coverFrame, scale, puppeteerInstance: browser, cancelSignal, logLevel: 'error',
         ...offthreadVideoOptions});
@@ -247,7 +309,8 @@ export const main = async (argv = process.argv.slice(2)) => {
       await fs.copyFile(path.join(tempDir, 'cover.png'), options.cover, constants.COPYFILE_EXCL);
     }
     progress(1);
-    emit({event: 'complete', output: options.output, cover: options.cover ?? null});
+    emit({event: 'complete', output: options.output, cover: options.cover ?? null,
+      frame_range: frameRange ? {start_frame: frameRange.startFrame, end_frame: frameRange.endFrame} : null});
   } finally {
     process.off('SIGINT', stop);
     process.off('SIGTERM', stop);

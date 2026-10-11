@@ -94,6 +94,9 @@ const CSS = `
 `;
 
 type Props = {
+  holdResult?: boolean;
+  speed?: number;
+  compactFit?: boolean;
   /** 标题（版面内容，不是旁白字幕） */
   title?: string;
   /** 来源名（每项一个胶囊；4 条是甜点，>6 条曲线几乎重合） */
@@ -104,8 +107,14 @@ type Props = {
   caption?: string;
 };
 
-export default function SourceConverge({ title = "四个平台的数据，怎么汇成一张表", sources = ["抖音", "小红书", "B 站", "公众号"], hub = "一张表", caption = "每天 8 点自动更新" }: Props) {
-  const t = useCurrentFrame() / FPS;
+const labelLength = (value: string) => Array.from(value).reduce((sum, ch) => sum + (/[\x00-\x7F]/.test(ch) ? 0.58 : 1), 0);
+const compactPillWidth = (value: string, minWidth: number, maxWidth: number) =>
+  Math.max(minWidth, Math.min(maxWidth, labelLength(value) * 58 + 96));
+const compactFontSize = (value: string, pillWidth: number, max = 64) =>
+  Math.max(38, Math.min(max, (pillWidth - 52) / Math.max(1, labelLength(value)) * 0.9));
+
+export default function SourceConverge({ holdResult = false, speed = 1, compactFit = false, title = "四个平台的数据，怎么汇成一张表", sources = ["抖音", "小红书", "B 站", "公众号"], hub = "一张表", caption = "每天 8 点自动更新" }: Props) {
+  const t = useCurrentFrame() / FPS * speed;
   const ys = ysFor(sources.length);
   const curves = ys.map((y) => buildCurve([{ x: CONFIG.srcX, y }, { x: CONFIG.ctrl[0], y }, { x: CONFIG.ctrl[1], y: CONFIG.hubY }, { x: CONFIG.hubX, y: CONFIG.hubY }]));
 
@@ -122,7 +131,7 @@ export default function SourceConverge({ title = "四个平台的数据，怎么
   const cx = lerp(CONFIG.hubX, 480, tw(t, CONFIG.centerAt, CONFIG.centerDur, power2InOut));   // 结果居中
   const ttlIn = tw(t, CONFIG.titleIn, 0.4, power3Out);
   const capIn = tw(t, CONFIG.capIn, 0.4, power1Out);
-  const exitK = 1 - tw(t, CONFIG.exitAt, CONFIG.end - CONFIG.exitAt, power2In);
+  const exitK = holdResult ? 1 : 1 - tw(t, CONFIG.exitAt, CONFIG.end - CONFIG.exitAt, power2In);
 
   return (
     <AbsoluteFill style={{ background: "#ffffff", color: "#1d1d1f", overflow: "hidden", fontFamily: '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif' }}>
@@ -142,16 +151,26 @@ export default function SourceConverge({ title = "四个平台的数据，怎么
         {/* 来源胶囊：沿真实曲线滑向汇聚点，三段式缩小 */}
         {curves.map((c, i) => {
           const p = c.at(conv * c.len); const nodeIn = tw(t, CONFIG.nodeIn + i * CONFIG.nodeStagger, 0.3, power1Out);
+          const pillWidth = compactFit ? compactPillWidth(sources[i], 256, 560) : 128;
+          const pillHeight = compactFit ? 82 : 44;
           return (
             <g key={`n${i}`} className="scv-node" transform={`translate(${p.x} ${p.y}) scale(${size})`} opacity={nodeIn}>
-              <rect x={-64} y={-22} width={128} height={44} rx={22} /><text y={7}>{sources[i]}</text>
+              <rect x={-pillWidth / 2} y={-pillHeight / 2} width={pillWidth} height={pillHeight} rx={pillHeight / 2} />
+              <text y={compactFit ? 15 : 7} style={compactFit ? {fontSize: compactFontSize(sources[i], pillWidth), fontWeight: 900} : undefined}>{sources[i]}</text>
             </g>
           );
         })}
         {/* 汇聚胶囊 + 说明行（擦线后一起滑到 x=480） */}
+        {(() => {
+          const hubWidth = compactFit ? compactPillWidth(hub, 280, 620) : 152;
+          const hubHeight = compactFit ? 94 : 60;
+          return (
         <g className="scv-hub" transform={`translate(${cx} ${CONFIG.hubY}) scale(${hs})`} opacity={hubIn * exitK}>
-          <rect x={-76} y={-30} width={152} height={60} rx={30} /><text y={8}>{hub}</text>
+          <rect x={-hubWidth / 2} y={-hubHeight / 2} width={hubWidth} height={hubHeight} rx={hubHeight / 2} />
+          <text y={compactFit ? 16 : 8} style={compactFit ? {fontSize: compactFontSize(hub, hubWidth, 68), fontWeight: 950} : undefined}>{hub}</text>
         </g>
+          );
+        })()}
         <text className="scv-cap" x={cx} y={372} opacity={capIn * exitK}>{caption}</text>
       </svg>
     </AbsoluteFill>

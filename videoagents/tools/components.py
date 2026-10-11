@@ -14,8 +14,15 @@ from videoagents.default_config import PROJECT_ROOT
 MANIFEST_PATH = Path(__file__).resolve().parents[1] / "component-manifest.json"
 COMPONENT_PATHS_PATH = PROJECT_ROOT / "docs" / "component-paths.json"
 COMPONENT_USE_GUIDE_PATH = PROJECT_ROOT / "docs" / "component-use-guide.json"
+NATIVE_COMPONENT_CAPABILITIES_PATH = PROJECT_ROOT / "videoagents" / "native-component-capabilities.json"
 VALID_USAGES = {"personal", "commercial", "unspecified"}
 VALID_MATERIAL_CAPABILITIES = {"native_slots", "overlay"}
+VALID_NATIVE_CONSTRAINT_KEYS = {
+    "items_min", "numeric_first_item", "body_required",
+    "media_required", "image_only", "metric_required",
+    "replacement_required", "items_distinct", "keyword_required", "asset_forbidden",
+    "min_visible_frames", "selection_matches_item",
+}
 EXPECTED_ADAPTER_COUNT = 9
 EXPECTED_PRESET_COUNT = 187
 SCENE_PLAYBOOKS: tuple[dict[str, Any], ...] = (
@@ -235,6 +242,275 @@ def _json_hash(value: Any) -> str:
 
 def manifest_fingerprint() -> str:
     return hashlib.sha256(MANIFEST_PATH.read_bytes()).hexdigest()
+
+
+@cache
+def native_component_capabilities() -> dict[str, Any]:
+    path = NATIVE_COMPONENT_CAPABILITIES_PATH
+    if not path.is_file():
+        return {
+            "entries": [], "main_component_ids": frozenset(), "layer_roles": {},
+            "content_constraints": {}, "fingerprint": None,
+        }
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    entries: list[dict[str, Any]] = []
+    main_ids: set[str] = set()
+    role_map: dict[str, frozenset[str]] = {}
+    constraints_by_id: dict[str, dict[str, Any]] = {}
+    for item in payload.get("entries", []):
+        if type(item) is not dict:
+            continue
+        component_id = item.get("component_id")
+        roles = item.get("roles")
+        if component_id not in COMMUNITY_COMPONENT_ID_SET or not isinstance(roles, list):
+            continue
+        accepted_roles = {role for role in roles if role in {"main", "title", "emphasis"}}
+        if not accepted_roles:
+            continue
+        constraints = item.get("content_constraints")
+        normalized_constraints: dict[str, Any] = {}
+        if type(constraints) is dict:
+            normalized_constraints = {
+                key: value for key, value in constraints.items()
+                if key in VALID_NATIVE_CONSTRAINT_KEYS
+            }
+        normalized = {
+            "component_id": component_id,
+            "roles": sorted(accepted_roles),
+            "source": item.get("source", ""),
+            "renderer": item.get("renderer", ""),
+            "use_case": item.get("use_case", ""),
+            "content_constraints": normalized_constraints,
+        }
+        entries.append(normalized)
+        if "main" in accepted_roles:
+            main_ids.add(component_id)
+        layer_roles = accepted_roles & {"title", "emphasis"}
+        if layer_roles:
+            role_map[component_id] = frozenset(layer_roles)
+        if normalized_constraints:
+            constraints_by_id[component_id] = normalized_constraints
+    return {
+        "entries": entries,
+        "main_component_ids": frozenset(main_ids),
+        "layer_roles": role_map,
+        "content_constraints": constraints_by_id,
+        "fingerprint": hashlib.sha256(path.read_bytes()).hexdigest(),
+    }
+
+
+def native_library_component_ids(usage: str) -> frozenset[str]:
+    if usage not in VALID_USAGES:
+        raise ValueError(f"未知使用场景：{usage}")
+    allowed = set(available_component_ids(usage))
+    capabilities = native_component_capabilities()
+    ids = set(capabilities["main_component_ids"]) | set(capabilities["layer_roles"])
+    return frozenset(component_id for component_id in ids if component_id in allowed)
+
+
+def prompt_native_component_requirements(usage: str) -> str:
+    if usage not in VALID_USAGES:
+        raise ValueError(f"未知使用场景：{usage}")
+    allowed = set(available_component_ids(usage))
+    entries = [entry for entry in native_component_capabilities()["entries"] if entry["component_id"] in allowed]
+    if not entries:
+        return "原生能力清单未提供可计数组件；有最低数量要求时必须暂停，不能用 adapter 或 fallback ID 凑数。"
+    lines = [
+        "计数口径：只统计下列 native-component-capabilities entries；adapter 和基础语义组件不计数；同一 component_id 重复只计一次。",
+        "main 镜头只有 roles 含 main 才能作为主组件计数；layers 只有 role 为 title/emphasis 且该组件 roles 支持该 role 才能计数。",
+        "layers 字段形状：{component_id, role:title|emphasis, start_frame, end_frame, title, body, props, accent_color}；时间是所属镜头本地帧，持续至少 30 帧；每镜头最多 2 层。",
+        "layers 的意义是补充真实标题或重点强调，文字必须来自本期旁白/证据，不能为了凑数量填空泛文案。",
+        "需要 60 个不同组件时不要硬拆 60 个主镜头；建议约 36-50 个有内容主镜头加 title/emphasis 层补足，层时间要对应原 caption 语义。",
+    ]
+    for entry in entries:
+        lines.append(
+            f"- {entry['component_id']} | roles={','.join(entry['roles'])} | "
+            f"constraints={json.dumps(entry['content_constraints'], ensure_ascii=False, separators=(',', ':'))} | "
+            f"renderer={entry['renderer']} | source={entry['source']} | {entry['use_case']}"
+        )
+    return "\n".join(lines)
+
+
+def _native_text(value: Any) -> str:
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _native_props(value: Any) -> dict[str, Any]:
+    props = getattr(value, "props", {})
+    return props if isinstance(props, dict) else {}
+
+
+def _native_items(value: Any) -> list[str]:
+    items = _native_props(value).get("items")
+    if not isinstance(items, list):
+        return []
+    return [item.strip() for item in items if isinstance(item, str) and item.strip()]
+
+
+def _has_numeric_text(value: str) -> bool:
+    return bool(re.search(r"[0-9０-９一二三四五六七八九十百千万亿两]+", value))
+
+
+def _native_metric_present(value: Any) -> bool:
+    metric = _native_props(value).get("metric")
+    if not isinstance(metric, dict):
+        return False
+    label = _native_text(metric.get("label"))
+    metric_value = _native_text(metric.get("value"))
+    return bool(label and metric_value)
+
+
+def _native_asset_src(value: Any) -> str:
+    asset_src = getattr(value, "asset_src", None)
+    return asset_src.strip() if isinstance(asset_src, str) else ""
+
+
+def _native_content_issues(
+    component_id: str, value: Any, constraints: dict[str, Any], *, kind: str, visible_frames: int | None = None
+) -> list[str]:
+    issues: list[str] = []
+    min_visible_frames = constraints.get("min_visible_frames")
+    if isinstance(min_visible_frames, int) and min_visible_frames > 0:
+        actual = visible_frames if isinstance(visible_frames, int) else 0
+        if actual < min_visible_frames:
+            issues.append(f"{kind} {component_id} 可见 {actual} 帧，要求至少 {min_visible_frames} 帧")
+    if constraints.get("body_required") and not _native_text(getattr(value, "body", "")):
+        issues.append(f"{kind} {component_id} 需要非空 body")
+    items_min = constraints.get("items_min")
+    if isinstance(items_min, int) and len(_native_items(value)) < items_min:
+        issues.append(f"{kind} {component_id} 需要 props.items 至少 {items_min} 项")
+    if constraints.get("numeric_first_item"):
+        items = _native_items(value)
+        if not items or not _has_numeric_text(items[0]):
+            issues.append(f"{kind} {component_id} 需要 props.items[0] 含真实数字")
+    if constraints.get("items_distinct"):
+        items = _native_items(value)
+        if len(items) != len(set(items)):
+            issues.append(f"{kind} {component_id} 需要 props.items 不重复")
+    if constraints.get("selection_matches_item"):
+        props = _native_props(value)
+        target = (_native_text(props.get("keyword")) or _native_text(props.get("highlight"))
+                  or _native_text(props.get("title")) or _native_text(getattr(value, "title", "")))
+        normalized = re.sub(r"[\W_]+", "", target).lower()
+        matches = [item for item in _native_items(value)[:5]
+                   if re.sub(r"[\W_]+", "", item).lower() == normalized]
+        if not normalized or len(matches) != 1:
+            issues.append(f"{kind} {component_id} 的 title 或 props.highlight 必须精确匹配唯一选项")
+    if constraints.get("replacement_required"):
+        props = _native_props(value)
+        from_text = _native_text(props.get("from_text"))
+        to_text = _native_text(props.get("to_text"))
+        if not from_text or not to_text or from_text == to_text:
+            issues.append(f"{kind} {component_id} 需要不同的 props.from_text/to_text")
+    if constraints.get("metric_required") and not _native_metric_present(value):
+        issues.append(f"{kind} {component_id} 需要 props.metric.label/value")
+    if constraints.get("keyword_required"):
+        props = _native_props(value)
+        items = _native_items(value)
+        if not (_native_text(props.get("highlight")) or items):
+            issues.append(f"{kind} {component_id} 需要 props.highlight 或 props.items[0] 作为关键词")
+    asset_src = _native_asset_src(value)
+    if constraints.get("asset_forbidden") and asset_src:
+        issues.append(f"{kind} {component_id} 不允许 asset_src，不能挂素材路径冒充真实画面")
+    if constraints.get("media_required") and not asset_src:
+        issues.append(f"{kind} {component_id} 需要真实 asset_src 素材")
+    if constraints.get("image_only"):
+        if not asset_src or not re.search(r"\.(png|jpe?g|webp|gif|avif)$", asset_src, re.I):
+            issues.append(f"{kind} {component_id} 只允许真实图片 asset_src")
+    return issues
+
+
+def _component_requirement_analysis(timeline: Any, usage: str, required: int) -> tuple[dict[str, Any], list[str]]:
+    native_ids = native_library_component_ids(usage)
+    capabilities = native_component_capabilities()
+    roles = capabilities["layer_roles"]
+    main_allowed = capabilities["main_component_ids"]
+    constraints = capabilities["content_constraints"]
+    main_ids: set[str] = set()
+    layer_ids: set[str] = set()
+    issues: list[str] = []
+    set_fingerprint = None
+    for shot in timeline.shots:
+        if getattr(shot, "set_design", None) is not None:
+            from videoagents.tools.component_sets import (
+                allowed_component_set_templates,
+                component_set_fingerprint,
+                validate_component_set_layout,
+            )
+
+            try:
+                validate_component_set_layout(shot, fps=timeline.fps)
+                template = allowed_component_set_templates(usage)[shot.set_design.set_id]
+            except (KeyError, ValueError) as exc:
+                issues.append(f"组件套使用统计校验失败：{exc}")
+                continue
+            set_fingerprint = component_set_fingerprint()
+            # Count only fixed parts actually mounted by the production renderer.
+            # Semantic adapters remain outside native component counts.
+            for part in template["parts"]:
+                component_id = part["component_id"]
+                if component_id in native_ids:
+                    (main_ids if part["role"] == "main" else layer_ids).add(component_id)
+            continue
+        if shot.component_id in native_ids and shot.component_id in main_allowed:
+            shot_duration = shot.end_frame - shot.start_frame
+            shot_issues = []
+            if shot_duration < 30:
+                shot_issues.append(f"main {shot.component_id} 至少需要可见 30 帧")
+            if required:
+                shot_issues.extend(_native_content_issues(
+                    shot.component_id, shot, constraints.get(shot.component_id, {}),
+                    kind="main", visible_frames=shot_duration,
+                ))
+            if shot_issues:
+                issues.extend(shot_issues)
+            else:
+                main_ids.add(shot.component_id)
+        for layer in getattr(shot, "layers", []):
+            if layer.component_id not in native_ids or layer.role not in roles.get(layer.component_id, frozenset()):
+                continue
+            layer_issues = []
+            layer_duration = layer.end_frame - layer.start_frame
+            if layer_duration < 30:
+                layer_issues.append(f"layer {layer.component_id} 至少需要可见 30 帧")
+            layer_issues.extend(_native_content_issues(
+                layer.component_id, layer, constraints.get(layer.component_id, {}),
+                kind="layer", visible_frames=layer_duration,
+            ))
+            if layer_issues:
+                issues.extend(layer_issues)
+            else:
+                layer_ids.add(layer.component_id)
+    library_ids = sorted(main_ids | layer_ids)
+    usage_payload = {
+        "required": required,
+        "library_count": len(library_ids),
+        "library_ids": library_ids,
+        "main_count": len(main_ids),
+        "layer_count": len(layer_ids),
+        "native_manifest_fingerprint": native_component_capabilities()["fingerprint"],
+    }
+    if set_fingerprint:
+        usage_payload["component_set_fingerprint"] = set_fingerprint
+    return usage_payload, issues
+
+
+def component_requirement_usage(timeline: Any, usage: str, required: int = 0) -> dict[str, Any]:
+    return _component_requirement_analysis(timeline, usage, required)[0]
+
+
+def validate_component_requirements(timeline: Any, usage: str, required: int) -> dict[str, Any]:
+    usage_payload, issues = _component_requirement_analysis(timeline, usage, required)
+    if required and usage_payload["native_manifest_fingerprint"] is None:
+        raise ValueError("缺少原生组件能力清单，不能证明库组件真实可生产使用")
+    if issues:
+        raise ValueError("；".join(issues))
+    if required and usage_payload["library_count"] < required:
+        raise ValueError(
+            f"导演分镜只使用了 {usage_payload['library_count']} 个不同原生库组件，"
+            f"本片要求至少 {required} 个；基础语义组件和非原生组件不计数"
+        )
+    return usage_payload
 
 
 def _component_list_for_usage(component_ids: list[str], allowed: set[str]) -> list[str]:

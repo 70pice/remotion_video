@@ -119,7 +119,7 @@ const CSS = `
 }
 `;
 
-export default function ImpactOpenTitle({ hostSrc }: { hostSrc?: string }) {
+export default function ImpactOpenTitle({ hostSrc, prefix = "三秒抓住", keyword = "重点", subtitle = "接下来这三分钟，只讲清楚一件事" }: { hostSrc?: string; prefix?: string; keyword?: string; subtitle?: string }) {
   const t = useCurrentFrame() / FPS;
 
   // ① 整句砸出
@@ -165,14 +165,14 @@ export default function ImpactOpenTitle({ hostSrc }: { hostSrc?: string }) {
       ))}
 
       <div className="io-line" style={{ opacity: slamP, transform: `scale(${lineScale})` }}>
-        三秒抓住
+        {prefix}
         <span className="io-last" style={{ color: wordColor, transform: `scale(${wordScale})` }}>
-          重点
+          {keyword}
         </span>
       </div>
       <div className="io-sub" style={{
         opacity: subP, transform: `translateY(${lerp(CONFIG.subRise, 0, subP)}px)`,
-      }}>接下来这三分钟，只讲清楚一件事</div>
+      }}>{subtitle}</div>
     </AbsoluteFill>
   );
 }

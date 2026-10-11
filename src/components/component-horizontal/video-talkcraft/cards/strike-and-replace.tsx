@@ -95,7 +95,7 @@ const CSS = `
 }
 `;
 
-export default function StrikeAndReplace({ hostSrc }: { hostSrc?: string }) {
+export default function StrikeAndReplace({ hostSrc, prefix = "上下文窗口是", from = CONFIG.from, to = CONFIG.to, suffix = "，一年翻了八倍" }: { hostSrc?: string; prefix?: string; from?: string; to?: string; suffix?: string }) {
   const t = useCurrentFrame() / FPS;
 
   // ① 划线：一瞬间快斩到底（power3.out 冲出去收住）
@@ -109,7 +109,7 @@ export default function StrikeAndReplace({ hostSrc }: { hostSrc?: string }) {
   const strikeOpacity = CONFIG.keepStrike ? 1 : fromOpacity;
 
   // 尺子：from / to 里更长的那一串
-  const longer = CONFIG.from.length >= CONFIG.to.length ? CONFIG.from : CONFIG.to;
+  const longer = from.length >= to.length ? from : to;
 
   return (
     <AbsoluteFill style={{
@@ -119,13 +119,13 @@ export default function StrikeAndReplace({ hostSrc }: { hostSrc?: string }) {
       <style>{CSS}</style>
       <div className="host-wrap"><Host src={hostSrc} /></div>
       <div className="sr-line">
-        上下文窗口是
+        {prefix}
         <span className="slot">
           <span className="ruler">{longer}</span>
           <span className="word from" style={{
             opacity: fromOpacity, transform: "translateX(-50%)",
           }}>
-            {CONFIG.from}
+            {from}
             <span className="strike" style={{
               opacity: strikeOpacity,
               transform: `translateY(-50%) scaleX(${strikeX})`,
@@ -133,9 +133,9 @@ export default function StrikeAndReplace({ hostSrc }: { hostSrc?: string }) {
           </span>
           <span className="word to" style={{
             opacity: toP, transform: `translateX(-50%) translateY(${toY}px)`,
-          }}>{CONFIG.to}</span>
+          }}>{to}</span>
         </span>
-        ，一年翻了八倍
+        {suffix}
       </div>
     </AbsoluteFill>
   );

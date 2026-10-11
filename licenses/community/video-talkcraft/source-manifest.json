@@ -7,25 +7,33 @@
       "slug": "focus-dim-spotlight",
       "sourcePath": "template/cards/focus-dim-spotlight.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/focus-dim-spotlight.tsx",
-      "sha256": "d1d5e488a783639ccbd9078119b4ccba8a809603cdb1f8c63a331da527fd0d09"
+      "sha256": "d1d5e488a783639ccbd9078119b4ccba8a809603cdb1f8c63a331da527fd0d09",
+      "local_sha256": "0f3436152ec4869eca18c3912a9672585e7b55304e59aa98f508f4aa5fdd4ff3",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "hand-drawn-ellipse",
       "sourcePath": "template/cards/hand-drawn-ellipse.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/hand-drawn-ellipse.tsx",
-      "sha256": "31b3c51a9a2201795e0192ce7d8b5219cf59dbcf3d9134b006106c636721c961"
+      "sha256": "31b3c51a9a2201795e0192ce7d8b5219cf59dbcf3d9134b006106c636721c961",
+      "local_sha256": "7bf9c4813344c8feb3b37f1e869512db58f72593f98664dc9a7a601c94be6ffa",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "highlighter-sweep",
       "sourcePath": "template/cards/highlighter-sweep.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/highlighter-sweep.tsx",
-      "sha256": "f04a519c5c0167b1da4b54b5a7082893e89f10ccf526ea080732cadc769893b6"
+      "sha256": "f04a519c5c0167b1da4b54b5a7082893e89f10ccf526ea080732cadc769893b6",
+      "local_sha256": "38eea1a2b7bacc36a34d9411324db0d56f5752de09c003c2a84edad962db93f3",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "scribble-annotation",
       "sourcePath": "template/cards/scribble-annotation.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/scribble-annotation.tsx",
-      "sha256": "373f659948a7c7997590afa935a26a635fdbf195195633ed628992f536305786"
+      "sha256": "373f659948a7c7997590afa935a26a635fdbf195195633ed628992f536305786",
+      "local_sha256": "b2ee77ddc9737c51931ef1a2ef11c6dae53ca1904e3a719d706e8b9828db1adc",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "callout-line-label",
@@ -43,43 +51,59 @@
       "slug": "corner-bracket-frame",
       "sourcePath": "template/cards/corner-bracket-frame.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/corner-bracket-frame.tsx",
-      "sha256": "4c39c67354ce057edb7050891367d0300ab9b4e407e2c107ef67701bb3c6deb0"
+      "sha256": "4c39c67354ce057edb7050891367d0300ab9b4e407e2c107ef67701bb3c6deb0",
+      "local_sha256": "fc0340786fec77d9c1d47b6287cd5d039b93706c218f23fb7e42c43f83b32f6e",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "crash-zoom-punch",
       "sourcePath": "template/cards/crash-zoom-punch.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/crash-zoom-punch.tsx",
-      "sha256": "3e4bc7d7ad3eb4fcfe52de07a9e2976d90b69dc01de460eab82dae389ff05a69"
+      "sha256": "3e4bc7d7ad3eb4fcfe52de07a9e2976d90b69dc01de460eab82dae389ff05a69",
+      "local_sha256": "8c0ed7dc3fdd869c435fa2e0a8aebafdf4cafcb3f58a297648e4e645546019e4",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "ink-underline",
       "sourcePath": "template/cards/ink-underline.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/ink-underline.tsx",
-      "sha256": "e1d692b1fb5560ed64d97f31559650bc10c3f6daacca0e313fdb0769276e19a0"
+      "sha256": "e1d692b1fb5560ed64d97f31559650bc10c3f6daacca0e313fdb0769276e19a0",
+      "local_sha256": "8be5c23dbe48efabeee7f68b39bfa8199b8c9e76dfbdbf8ce1f16254316cd63a",
+      "adaptation": "Local production adaptation: Measures supplied text for ink marks while preserving original default boxes.",
+      "local_sha256_normalization": "lf"
     },
     {
       "slug": "magnifier-detail",
       "sourcePath": "template/cards/magnifier-detail.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/magnifier-detail.tsx",
-      "sha256": "59ca146586bf0f56826dd80e33edfb29c10a7da8cb31aa23a72bc28e49f1544b"
+      "sha256": "59ca146586bf0f56826dd80e33edfb29c10a7da8cb31aa23a72bc28e49f1544b",
+      "local_sha256": "6acb099f980bef98e096ff8f483f81d66bfb44d2789462baac9d1a472dcef563",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "quote-hold-arrow",
       "sourcePath": "template/cards/quote-hold-arrow.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/quote-hold-arrow.tsx",
-      "sha256": "9b3cbd6a29ec4580ac0d53b54d8ef82bfa5d7c00100562e370dee2f57b30daef"
+      "sha256": "9b3cbd6a29ec4580ac0d53b54d8ef82bfa5d7c00100562e370dee2f57b30daef",
+      "local_sha256": "826e2e0a7800c49f1d77705c33234556208130dfc3722a09e7ef5686c7b74cbc",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "scanline-annotate",
       "sourcePath": "template/cards/scanline-annotate.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/scanline-annotate.tsx",
-      "sha256": "d51fb08a3cb1ef8648e57cbcbac31a4e94a3518fa72736088c840915cbe6de94"
+      "sha256": "d51fb08a3cb1ef8648e57cbcbac31a4e94a3518fa72736088c840915cbe6de94",
+      "local_sha256": "3ea6aeaf37a05b73f40736e30239b7b341ed5aaa3cd85b94f6b1cc7c338e5d49",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "strike-and-replace",
       "sourcePath": "template/cards/strike-and-replace.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/strike-and-replace.tsx",
-      "sha256": "75e994e167cd94f6d118f4cd1ff2b1e794be443b4e705fbf01031a605013269d"
+      "sha256": "75e994e167cd94f6d118f4cd1ff2b1e794be443b4e705fbf01031a605013269d",
+      "local_sha256": "aad3aaa0cf69bd8971b925b2c249744d809ba95b11cfb7ea79cd18166f57e3e6",
+      "adaptation": "Local production adaptation: Renders supplied prefix, replaced words and suffix while preserving original defaults.",
+      "local_sha256_normalization": "lf"
     },
     {
       "slug": "reticle-lock-on",
@@ -229,7 +253,10 @@
       "slug": "source-converge",
       "sourcePath": "template/cards/source-converge.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/source-converge.tsx",
-      "sha256": "a00163db942ec12861a243ad46e6b980804e8dd245cdcf5359b9bf06c5260673"
+      "sha256": "a00163db942ec12861a243ad46e6b980804e8dd245cdcf5359b9bf06c5260673",
+      "local_sha256": "bf93d16aab19ae354e5f625dc255fb898b6401938e55cd2f665e1ba8c8d8f093",
+      "local_sha256_normalization": "lf",
+      "adaptation": "Local production adaptation: optional holdResult, speed and compactFit preserve the supplied result and fit motion, text and pills to production slots; standalone demo timing and exit remain the defaults."
     },
     {
       "slug": "bed-echo-blur",
@@ -253,19 +280,25 @@
       "slug": "evidence-scroll-tour",
       "sourcePath": "template/cards/evidence-scroll-tour.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/evidence-scroll-tour.tsx",
-      "sha256": "b29eac867833599bad85f43798f52cc98f9d1682f167ca8b7c2636d52fda34b2"
+      "sha256": "b29eac867833599bad85f43798f52cc98f9d1682f167ca8b7c2636d52fda34b2",
+      "local_sha256": "7c3715bf3f8f45854ac0d9700349144936c8132e035c071a171c7292d6b8f3b6",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "media-pop-in",
       "sourcePath": "template/cards/media-pop-in.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/media-pop-in.tsx",
-      "sha256": "7156764244dd7ac4840e19b12c15ccbe72f4c38e4d5d9b168882a9f577494552"
+      "sha256": "7156764244dd7ac4840e19b12c15ccbe72f4c38e4d5d9b168882a9f577494552",
+      "local_sha256": "8f648177ccea3fdbefc4813f42b27ea7e395aa1e6e7b0d3d867d7fe2e379b641",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "news-card-desk",
       "sourcePath": "template/cards/news-card-desk.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/news-card-desk.tsx",
-      "sha256": "76adedbbeb839241fee88d56f1eac188527fef918aa04837ede799644586a2b3"
+      "sha256": "76adedbbeb839241fee88d56f1eac188527fef918aa04837ede799644586a2b3",
+      "local_sha256": "70c88d81bef50a4a4261b522388c2c9152dddcd2b9ac7bff017cc610c4c3d222",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "split-compare-slider",
@@ -397,31 +430,41 @@
       "slug": "slow-pull-reveal",
       "sourcePath": "template/cards/slow-pull-reveal.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/slow-pull-reveal.tsx",
-      "sha256": "79438baa13340fb21800720cedd387ea4ec228620d0c87e4da2388c30c8fe263"
+      "sha256": "79438baa13340fb21800720cedd387ea4ec228620d0c87e4da2388c30c8fe263",
+      "local_sha256": "73017f991cc6f73485421baa141f9de5daea65b1e33502a6910d99115a1e771d",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "slow-push-in",
       "sourcePath": "template/cards/slow-push-in.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/slow-push-in.tsx",
-      "sha256": "ec3a24f96e52320e3036c8584d591d63c927e64b067e8843a80f0ba49579534e"
+      "sha256": "ec3a24f96e52320e3036c8584d591d63c927e64b067e8843a80f0ba49579534e",
+      "local_sha256": "0b7001de0087a0aa2d47a39f95017769d95498083b46e6d67c31ede34ab465fe",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "cursor-locked-zoom",
       "sourcePath": "template/cards/cursor-locked-zoom.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/cursor-locked-zoom.tsx",
-      "sha256": "0e4a042428cd14457c3de5475b82da27208e24a46cbf4eef4fe73fd74cf7a57d"
+      "sha256": "0e4a042428cd14457c3de5475b82da27208e24a46cbf4eef4fe73fd74cf7a57d",
+      "local_sha256": "df56ed294d18455b46fa0b2a13acb42d835c7f37796dd99802a2fc06749b8fff",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "orbit-drift",
       "sourcePath": "template/cards/orbit-drift.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/orbit-drift.tsx",
-      "sha256": "1039d20ad1d033d195be51cac7ae8e1c7dc07870d938da22e5ea7bedf2d89c7d"
+      "sha256": "1039d20ad1d033d195be51cac7ae8e1c7dc07870d938da22e5ea7bedf2d89c7d",
+      "local_sha256": "a94b2d942ff4e31e2bcb12e621b0392d39a72533a03e182f8bfc925a03259343",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "pip-zoom-box",
       "sourcePath": "template/cards/pip-zoom-box.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/pip-zoom-box.tsx",
-      "sha256": "3162d14b5c15e60fbf7cb2f13cd38151c089c1569c4adf59f433aa23c5ca1df2"
+      "sha256": "3162d14b5c15e60fbf7cb2f13cd38151c089c1569c4adf59f433aa23c5ca1df2",
+      "local_sha256": "00d7176c54746650732e73ecb975ad7d02f41ad03d7e826bb676f012e1764ffe",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "stage-keyframe-tour",
@@ -433,13 +476,18 @@
       "slug": "sway-parallax",
       "sourcePath": "template/cards/sway-parallax.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/sway-parallax.tsx",
-      "sha256": "4fa9cca75dd02ab13b7163b8a33bd7e0a7e5cb1ab2f703f501de2631d0c07231"
+      "sha256": "4fa9cca75dd02ab13b7163b8a33bd7e0a7e5cb1ab2f703f501de2631d0c07231",
+      "local_sha256": "4a3a9ad43bcfdc473da485227e346719486ffaa74dd5aa7631f4bbc1293c7c6b",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "tilt-3d-page",
       "sourcePath": "template/cards/tilt-3d-page.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/tilt-3d-page.tsx",
-      "sha256": "6abd2141e995365190923694201154d01adf0610482c20b1b868ef57f8343a6c"
+      "sha256": "6abd2141e995365190923694201154d01adf0610482c20b1b868ef57f8343a6c",
+      "local_sha256": "ee2846ed7d102babf07b9942d5d47aba4c9843aee857eb0680e2ef31f3d71f6d",
+      "adaptation": "Local production adaptation: renders supplied media and focus overlays in the same tilted page transform while preserving standalone demo defaults.",
+      "local_sha256_normalization": "lf"
     },
     {
       "slug": "black-slam-transition",
@@ -523,19 +571,25 @@
       "slug": "impact-open-title",
       "sourcePath": "template/cards/impact-open-title.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/impact-open-title.tsx",
-      "sha256": "127581f5a1cdccfbe9e332d271beb2ccb8168c29196c7a8533b0b968929e0084"
+      "sha256": "127581f5a1cdccfbe9e332d271beb2ccb8168c29196c7a8533b0b968929e0084",
+      "local_sha256": "a75ef1c3709f836409770cf5347c830ecf6bc460232061aa73ff0f3fbfa8fb06",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "keyword-pop-highlight",
       "sourcePath": "template/cards/keyword-pop-highlight.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/keyword-pop-highlight.tsx",
-      "sha256": "0ff812e4fef3dc1e9b91575063737ac61848eb47e818c4f969a611e3758b9306"
+      "sha256": "0ff812e4fef3dc1e9b91575063737ac61848eb47e818c4f969a611e3758b9306",
+      "local_sha256": "ea6f8316afb378831f8ab0fbd05475e18797c901df1e1db7ebfc78e539c6eb03",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "slab-punch-title",
       "sourcePath": "template/cards/slab-punch-title.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/slab-punch-title.tsx",
-      "sha256": "4c527c14b83de154076bc3a7d8a0fe84679754f572fe6b039df132456c9fee4d"
+      "sha256": "4c527c14b83de154076bc3a7d8a0fe84679754f572fe6b039df132456c9fee4d",
+      "local_sha256": "cc660086e37a80dd68d2a4d69201d86bc8da23e9a88dffb5979f00b59ee11101",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "title-demote-to-label",
@@ -547,7 +601,9 @@
       "slug": "type-contrast-emphasis",
       "sourcePath": "template/cards/type-contrast-emphasis.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/type-contrast-emphasis.tsx",
-      "sha256": "a32939c7f34212449ede31eab9e49a7e096b3f48231723b80043f65cc3bdcad6"
+      "sha256": "a32939c7f34212449ede31eab9e49a7e096b3f48231723b80043f65cc3bdcad6",
+      "local_sha256": "bea826d8057a1bfb7f0b06587715f1dbf88b0dab3e81974baa5a1076ccabad3b",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "word-slot-cycle",
@@ -559,19 +615,26 @@
       "slug": "alt-block-lines",
       "sourcePath": "template/cards/alt-block-lines.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/alt-block-lines.tsx",
-      "sha256": "9676728d2d7176abf7b3e214adec83a30ddb31ec78e962ee665355d291933265"
+      "sha256": "9676728d2d7176abf7b3e214adec83a30ddb31ec78e962ee665355d291933265",
+      "local_sha256": "b7437c30435d1891c0160dc6958dc2f7bdec4b3dbe2504d82900c983ca8287a8",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "count-badge-title",
       "sourcePath": "template/cards/count-badge-title.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/count-badge-title.tsx",
-      "sha256": "ba43d69ea8f2378cccd3aaa9587311928f9faf75a5a4a192294a6b82ccbf0836"
+      "sha256": "ba43d69ea8f2378cccd3aaa9587311928f9faf75a5a4a192294a6b82ccbf0836",
+      "local_sha256": "8206ec0b628832dc1390b5061835e18603df3b7a29900aad3fcf1b5943e5e3aa",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "error-retype",
       "sourcePath": "template/cards/error-retype.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/error-retype.tsx",
-      "sha256": "a1d8f1898808bb37c1978c834b186d0be231370318be99b22ac1b7c6d074bcfc"
+      "sha256": "a1d8f1898808bb37c1978c834b186d0be231370318be99b22ac1b7c6d074bcfc",
+      "local_sha256": "f9c99632d55fadba48d740da5e5e66e0611a7869e112799077fb2b4fffc4df80",
+      "local_sha256_normalization": "lf",
+      "adaptation": "Local production adaptation: optional holdResult preserves the completed supplied-copy result in a composition slot; standalone demo exit remains the default."
     },
     {
       "slug": "lead-word-zoom-assemble",
@@ -583,55 +646,74 @@
       "slug": "line-by-line-slide",
       "sourcePath": "template/cards/line-by-line-slide.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/line-by-line-slide.tsx",
-      "sha256": "41cf138ce7ba628dc5d83f00b891898dfb2726041e127b6f679d0ffec65c2aa3"
+      "sha256": "41cf138ce7ba628dc5d83f00b891898dfb2726041e127b6f679d0ffec65c2aa3",
+      "local_sha256": "dd18258e965fad4b4521e74932de32e2ae2cb345df8d3b243c7b709b5096d594",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "outline-box-title",
       "sourcePath": "template/cards/outline-box-title.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/outline-box-title.tsx",
-      "sha256": "4984e614edd2e10c58140f91f0771f2ab9cd08437e5f3db502ae9c35115a003c"
+      "sha256": "4984e614edd2e10c58140f91f0771f2ab9cd08437e5f3db502ae9c35115a003c",
+      "local_sha256": "46831f9fb32a3db2acc5aa089cdc21c3e0514b54ce991fb575f19d52877dfa49",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "per-character-rise",
       "sourcePath": "template/cards/per-character-rise.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/per-character-rise.tsx",
-      "sha256": "ddcdfd303810b22051f754295ff11034980a08219db88620279877a2ec19a027"
+      "sha256": "ddcdfd303810b22051f754295ff11034980a08219db88620279877a2ec19a027",
+      "local_sha256": "6bf33e502fff7ae0cca80ec4e60994092e5c6798eec122a5afb6a8168a312c86",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "quote-bracket-pull",
       "sourcePath": "template/cards/quote-bracket-pull.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/quote-bracket-pull.tsx",
-      "sha256": "5235dfe8b864fdb197fc6624ed5731084329c80b753b9e22170e96f672649e9c"
+      "sha256": "5235dfe8b864fdb197fc6624ed5731084329c80b753b9e22170e96f672649e9c",
+      "local_sha256": "d4e4c07a0bcfc4ca9593fd61c68f8c7944eae3bb2fe572eb4d4295bb43ae5a22",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "quote-card",
       "sourcePath": "template/cards/quote-card.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/quote-card.tsx",
-      "sha256": "3e8f1233c31453f4492eb4076fed680fc029be0056dd8c6eeb6914bdbcc0e18e"
+      "sha256": "3e8f1233c31453f4492eb4076fed680fc029be0056dd8c6eeb6914bdbcc0e18e",
+      "local_sha256": "170b1459c29884c5e01937b57a7b3a1e794403d605792ae5bb9636d30ca62078",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "soft-blur-in",
       "sourcePath": "template/cards/soft-blur-in.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/soft-blur-in.tsx",
-      "sha256": "72cfd018a6d1ce18226ae9b77a7fe5c0b08887d740bfdad4a9239332784ed307"
+      "sha256": "72cfd018a6d1ce18226ae9b77a7fe5c0b08887d740bfdad4a9239332784ed307",
+      "local_sha256": "7ee146eaa251058bd539804bf700ab8d24e25a414f1625d9795ccc0dc7154507",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "speed-slab-title",
       "sourcePath": "template/cards/speed-slab-title.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/speed-slab-title.tsx",
-      "sha256": "58c74373a2662539447665192ed45e695da4b85cac29639f43d8e4191f839290"
+      "sha256": "58c74373a2662539447665192ed45e695da4b85cac29639f43d8e4191f839290",
+      "local_sha256": "4d8b90859911621760b7a536454548e965829afce6b9cc45d7134a5e363feba1",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "tracking-in",
       "sourcePath": "template/cards/tracking-in.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/tracking-in.tsx",
-      "sha256": "b45ee0b45164a5286c31d9b75b1673a798cbc1f9fe75397eb2873094f073b21a"
+      "sha256": "b45ee0b45164a5286c31d9b75b1673a798cbc1f9fe75397eb2873094f073b21a",
+      "local_sha256": "f723b166a72747c9f03fc9b6b8ed867a4e71a8a7882e68461c6bcf6fd0849b88",
+      "adaptation": "Local production adaptation: adds optional production slot/host media styling hooks for VideoAgents native rendering while preserving standalone demo defaults."
     },
     {
       "slug": "typewriter-reveal",
       "sourcePath": "template/cards/typewriter-reveal.tsx",
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/typewriter-reveal.tsx",
-      "sha256": "778a4cbc833c2d52e852a3afffd535d9f94bd49f049b3fe7042fc56ce12c9dba"
+      "sha256": "778a4cbc833c2d52e852a3afffd535d9f94bd49f049b3fe7042fc56ce12c9dba",
+      "local_sha256": "2cff42cc1d4ae11974524c19761fdf246b55ad346c1f6aed61de005db6bb3b87",
+      "adaptation": "Local production adaptation: Derives typewriter timing from supplied copy while preserving original defaults.",
+      "local_sha256_normalization": "lf"
     },
     {
       "slug": "countdown-arc-scatter",
@@ -651,5 +733,12 @@
       "localPath": "src/components/component-horizontal/video-talkcraft/cards/split-text-stagger.tsx",
       "sha256": "9c9c4d9aaa1c001a0d69bd013cedd864431f9be175cbb70242e072f6b329072e"
     }
-  ]
+  ],
+  "localIntegrity": {
+    "original_sha256": "sha256 records the pinned upstream/imported LF source bytes and is never overwritten by local production adaptations.",
+    "local_sha256": "Present only when local source content intentionally differs from the original source bytes.",
+    "line_endings": "Files without local_sha256 are compared after CRLF-to-LF normalization so Windows checkout bytes do not mask source equality.",
+    "adapted_count": 36,
+    "crlf_only_count": 72
+  }
 }

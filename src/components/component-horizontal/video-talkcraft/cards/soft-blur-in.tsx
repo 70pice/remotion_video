@@ -82,11 +82,11 @@ const CSS = `
 }
 `;
 
-export default function SoftBlurIn(_props: { hostSrc?: string }) {
+export default function SoftBlurIn({ text = CONFIG.text }: { hostSrc?: string; text?: string }) {
   const t = useCurrentFrame() / FPS;
 
   // Array.from 按码点切字：中文即逐汉字（emoji/代理对也不会被切坏）
-  const chars = Array.from(CONFIG.text);
+  const chars = Array.from(text);
 
   return (
     <AbsoluteFill style={{

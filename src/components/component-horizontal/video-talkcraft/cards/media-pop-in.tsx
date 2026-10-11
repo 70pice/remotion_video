@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Loop, OffthreadVideo, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Img, Loop, OffthreadVideo, useCurrentFrame } from "remotion";
 
 // media-pop-in · 素材弹入堆叠 —— 自包含 Remotion 源码（与 demos/media-pop-in/index.html 同画面）
 // 复制本文件进你的工程即可用；主持人视频经 hostSrc prop 注入，不传则灰阶剪影占位。
@@ -84,7 +84,7 @@ const CSS = `
 // 三张假截图的落位旋转角（data-rot）
 const ROTS = [-7, 5, -4];
 
-export default function MediaPopIn({ hostSrc }: { hostSrc?: string }) {
+export default function MediaPopIn({ hostSrc, mediaSrc, mediaFit = "cover", mediaStyle, label }: { hostSrc?: string; mediaSrc?: string; mediaFit?: "cover" | "contain"; mediaStyle?: React.CSSProperties; label?: string }) {
   const t = useCurrentFrame() / FPS;
 
   // 单张弹入：透明度前半程完成，缩放/旋转带 back 回弹整程
@@ -109,6 +109,20 @@ export default function MediaPopIn({ hostSrc }: { hostSrc?: string }) {
     const p = cyc - k;
     const pp = k % 2 === 1 ? 1 - p : p;
     groupScale = 1 + CONFIG.breathe * sineInOut(pp);
+  }
+
+  if (mediaSrc) {
+    return (
+      <AbsoluteFill style={{background: "#ffffff", color: "#1d1d1f", overflow: "hidden", fontFamily: '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif'}}>
+        <style>{CSS}</style>
+        <div className="evidence" style={{transform: `scale(${groupScale})`, transformOrigin: "50% 50%"}}>
+          <div className="shot shot-browser" style={{...shotStyle(0), left: 210, top: 70, width: 540, height: 340}}>
+            <Img src={mediaSrc} style={{position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: mediaFit, ...mediaStyle}} />
+            <span>{label}</span>
+          </div>
+        </div>
+      </AbsoluteFill>
+    );
   }
 
   return (

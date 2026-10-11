@@ -25,16 +25,18 @@ export interface ComparisonChartProps {
   maxValue?: number;
   suffix?: string;
   layout?: "default" | "portrait";
+  compactBox?: boolean;
+  fontFamily?: string;
 }
 
 export default function ComparisonChart({
   title = "Performance Comparison", before = 34, after = 89,
-  beforeLabel = "Before", afterLabel = "After", maxValue = 100, suffix = "%", layout = "default",
+  beforeLabel = "Before", afterLabel = "After", maxValue = 100, suffix = "%", layout = "default", compactBox = false, fontFamily,
 }: ComparisonChartProps = {}) {
   const frame = useCurrentFrame();
   const portrait = layout === "portrait";
 
-  const maxBarHeight = portrait ? 620 : 280;
+  const maxBarHeight = compactBox ? 80 : portrait ? 620 : 280;
 
   // Before value animation
   const beforeValue = Math.round(
@@ -83,31 +85,33 @@ export default function ComparisonChart({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontFamily: "Inter, system-ui, sans-serif",
+        fontFamily: fontFamily || "Inter, system-ui, sans-serif",
         background: "linear-gradient(to bottom right, #111827, #1f2937)",
       }}
     >
       <div
         style={{
           position: "relative",
-          width: portrait ? "960px" : "700px",
-          height: portrait ? "1420px" : "480px",
+          width: compactBox ? "100%" : portrait ? "960px" : "700px",
+          height: compactBox ? "100%" : portrait ? "1420px" : "480px",
           backgroundColor: "rgba(0, 0, 0, 0.2)",
           borderRadius: "16px",
           boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
-          padding: "40px",
+          padding: compactBox ? "18px" : "40px",
+          boxSizing: compactBox ? "border-box" : undefined,
         }}
       >
         {/* Title */}
         <div
           style={{
-            fontSize: portrait ? "76px" : "28px",
+            fontSize: compactBox ? "32px" : portrait ? "76px" : "28px",
             fontWeight: "bold",
             color: "white",
             textShadow: "0 2px 4px rgba(0,0,0,0.3)",
             letterSpacing: "-0.5px",
             textAlign: "center",
-            marginBottom: "30px",
+            marginBottom: compactBox ? "8px" : "30px",
+            lineHeight: compactBox ? 1.1 : undefined,
           }}
         >
           {title}
@@ -117,10 +121,10 @@ export default function ComparisonChart({
         <div
           style={{
             display: "flex",
-            flexDirection: portrait ? "column" : "row",
+            flexDirection: compactBox ? "row" : portrait ? "column" : "row",
             alignItems: "flex-end",
             justifyContent: "center",
-            height: `${maxBarHeight + 80}px`,
+            height: compactBox ? "calc(100% - 52px)" : `${maxBarHeight + 80}px`,
             position: "relative",
           }}
         >
@@ -136,10 +140,11 @@ export default function ComparisonChart({
             {/* Value */}
             <div
               style={{
-                fontSize: portrait ? "126px" : "48px",
+                fontSize: compactBox ? "46px" : portrait ? "126px" : "48px",
                 fontWeight: "bold",
                 color: "#ef4444",
-                marginBottom: "15px",
+                marginBottom: compactBox ? "8px" : "15px",
+                lineHeight: compactBox ? 1.05 : undefined,
               }}
             >
               {beforeValue}{suffix}
@@ -148,7 +153,7 @@ export default function ComparisonChart({
             {/* Bar */}
             <div
               style={{
-                width: portrait ? "300px" : "120px",
+                width: compactBox ? "120px" : portrait ? "300px" : "120px",
                 height: `${beforeBarHeight}px`,
                 backgroundColor: "#ef4444",
                 borderRadius: "8px 8px 0 0",
@@ -159,10 +164,11 @@ export default function ComparisonChart({
             {/* Label */}
             <div
               style={{
-                fontSize: portrait ? "52px" : "20px",
+                fontSize: compactBox ? "28px" : portrait ? "52px" : "20px",
                 fontWeight: "600",
                 color: "rgba(255,255,255,0.8)",
-                marginTop: "15px",
+                marginTop: compactBox ? "8px" : "15px",
+                lineHeight: compactBox ? 1.1 : undefined,
               }}
             >
               {beforeLabel}
@@ -172,12 +178,12 @@ export default function ComparisonChart({
           {/* Divider */}
           <div
             style={{
-              width: portrait ? "70%" : "2px",
-              height: portrait ? "2px" : `${dividerHeight}px`,
+              width: compactBox ? "2px" : portrait ? "70%" : "2px",
+              height: compactBox ? "100%" : portrait ? "2px" : `${dividerHeight}px`,
               backgroundColor: "rgba(255,255,255,0.2)",
               opacity: dividerOpacity,
               alignSelf: "center",
-              margin: portrait ? "42px 0" : "0 30px",
+              margin: compactBox ? "0 22px" : portrait ? "42px 0" : "0 30px",
             }}
           />
 
@@ -193,10 +199,11 @@ export default function ComparisonChart({
             {/* Value */}
             <div
               style={{
-                fontSize: portrait ? "126px" : "48px",
+                fontSize: compactBox ? "46px" : portrait ? "126px" : "48px",
                 fontWeight: "bold",
                 color: "#4361ee",
-                marginBottom: "15px",
+                marginBottom: compactBox ? "8px" : "15px",
+                lineHeight: compactBox ? 1.05 : undefined,
               }}
             >
               {afterValue}{suffix}
@@ -205,7 +212,7 @@ export default function ComparisonChart({
             {/* Bar */}
             <div
               style={{
-                width: portrait ? "300px" : "120px",
+                width: compactBox ? "120px" : portrait ? "300px" : "120px",
                 height: `${afterBarHeight}px`,
                 backgroundColor: "#4361ee",
                 borderRadius: "8px 8px 0 0",
@@ -216,10 +223,11 @@ export default function ComparisonChart({
             {/* Label */}
             <div
               style={{
-                fontSize: portrait ? "52px" : "20px",
+                fontSize: compactBox ? "28px" : portrait ? "52px" : "20px",
                 fontWeight: "600",
                 color: "rgba(255,255,255,0.8)",
-                marginTop: "15px",
+                marginTop: compactBox ? "8px" : "15px",
+                lineHeight: compactBox ? 1.1 : undefined,
               }}
             >
               {afterLabel}

@@ -95,7 +95,7 @@ for (const entry of entries) {
 const content = JSON.stringify({schema_version: '1', entries}, null, 2) + '\n';
 if (process.argv.includes('--check')) {
   const current = await readFile(output, 'utf8').catch(() => '');
-  if (current !== content) {
+  if (current.replace(/\r\n/g, '\n') !== content) {
     console.error('videoagents/component-manifest.json is stale; run npm run generate:production-components');
     process.exitCode = 1;
   }

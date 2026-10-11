@@ -20,15 +20,21 @@ export interface ProgressStepsProps {
   title?: string;
   secondsPerStep?: number;
   layout?: "default" | "portrait";
+  productionCompact?: boolean;
+  largeCopy?: boolean;
+  fontFamily?: string;
+  compactBox?: boolean;
+  compactSpacing?: boolean;
 }
 
 export default function ProgressSteps({
   steps = ["Research", "Design", "Build", "Launch"],
-  title = "Project Timeline", secondsPerStep = 0.8, layout = "default",
+  title = "Project Timeline", secondsPerStep = 0.8, layout = "default", productionCompact = false, largeCopy = false, fontFamily, compactBox = false, compactSpacing = false,
 }: ProgressStepsProps = {}) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const portrait = layout === "portrait";
+  const compactPortrait = portrait && productionCompact;
 
   const framesPerStep = Math.max(1, Math.floor(fps * secondsPerStep));
 
@@ -43,18 +49,18 @@ export default function ProgressSteps({
         justifyContent: "center",
         alignItems: "center",
         overflow: "hidden",
-        fontFamily: "Inter, sans-serif",
+        fontFamily: fontFamily || "Inter, sans-serif",
       }}
     >
       <h2
         style={{
           color: "white",
-          fontSize: portrait ? "5.2rem" : "2rem",
+          fontSize: compactBox ? "2.4rem" : compactPortrait ? "3.2rem" : portrait ? "5.2rem" : "2rem",
           fontWeight: "bold",
-          marginBottom: portrait ? "80px" : "60px",
+          marginBottom: compactBox ? "18px" : compactPortrait ? "36px" : portrait ? "80px" : "60px",
           margin: 0,
           marginTop: 0,
-          paddingBottom: "60px",
+          paddingBottom: compactBox ? "14px" : compactPortrait ? "28px" : "60px",
         }}
       >
         {title}
@@ -68,6 +74,7 @@ export default function ProgressSteps({
           justifyContent: "center",
           gap: "0px",
           position: "relative",
+          width: compactBox ? "100%" : undefined,
         }}
       >
         {steps.map((label, i) => {
@@ -82,6 +89,7 @@ export default function ProgressSteps({
           const isActive =
             frame >= stepStart && frame < stepStart + framesPerStep;
           const isComplete = frame >= stepStart + framesPerStep * 0.6;
+          const highlighted = fillProgress > 0 || (compactBox && isActive);
 
           const pulse = isActive
             ? spring({
@@ -106,24 +114,27 @@ export default function ProgressSteps({
           return (
             <div
               key={i}
-              style={{ display: "flex", flexDirection: portrait ? "column" : "row", alignItems: "center" }}
+              style={{ display: "flex", flexDirection: portrait ? "column" : "row", alignItems: "center", width: compactBox ? "100%" : undefined }}
             >
               <div
                 style={{
                   display: "flex",
                   flexDirection: portrait ? "row" : "column",
                   alignItems: "center",
-                  width: portrait ? "280px" : "80px",
+                  width: compactBox ? "100%" : compactPortrait ? "720px" : portrait ? "280px" : "80px",
+                  padding: compactBox ? "0 26px" : undefined,
+                  boxSizing: compactBox ? "border-box" : undefined,
                 }}
               >
                 <div
                   style={{
-                    width: portrait ? "130px" : "48px",
-                    height: portrait ? "130px" : "48px",
+                    width: compactBox ? compactSpacing ? "60px" : "68px" : compactPortrait ? "86px" : portrait ? "130px" : "48px",
+                    height: compactBox ? compactSpacing ? "60px" : "68px" : compactPortrait ? "86px" : portrait ? "130px" : "48px",
+                    flexShrink: compactBox ? 0 : undefined,
                     borderRadius: "50%",
-                    border: `3px solid ${fillProgress > 0 ? "#3b82f6" : "#4b5563"}`,
+                    border: `3px solid ${highlighted ? "#3b82f6" : "#4b5563"}`,
                     background:
-                      fillProgress > 0
+                      highlighted
                         ? `linear-gradient(135deg, #3b82f6, #7209b7)`
                         : "transparent",
                     display: "flex",
@@ -134,8 +145,8 @@ export default function ProgressSteps({
                 >
                   <span
                     style={{
-                      color: fillProgress > 0 ? "white" : "#6b7280",
-                      fontSize: portrait ? "3.1rem" : "1rem",
+                      color: highlighted ? "white" : "#6b7280",
+                      fontSize: compactBox ? "2rem" : largeCopy ? "2.5rem" : compactPortrait ? "2rem" : portrait ? "3.1rem" : "1rem",
                       fontWeight: "bold",
                     }}
                   >
@@ -144,11 +155,17 @@ export default function ProgressSteps({
                 </div>
                 <span
                   style={{
-                    color: fillProgress > 0 ? "#93c5fd" : "#6b7280",
-                    fontSize: portrait ? "3rem" : "0.8rem",
+                    color: largeCopy ? "white" : fillProgress > 0 ? "#93c5fd" : "#6b7280",
+                    fontSize: compactBox ? "2.45rem" : largeCopy ? "3rem" : compactPortrait ? "2.1rem" : portrait ? "3rem" : "0.8rem",
                     fontWeight: "500",
-                    marginTop: "10px",
-                    whiteSpace: "nowrap",
+                    marginTop: compactPortrait ? 0 : "10px",
+                    marginLeft: compactBox ? "22px" : compactPortrait ? "28px" : undefined,
+                    maxWidth: compactBox ? undefined : compactPortrait ? "590px" : undefined,
+                    flex: compactBox ? 1 : undefined,
+                    minWidth: compactBox ? 0 : undefined,
+                    textWrap: compactBox ? "balance" : undefined,
+                    whiteSpace: compactBox || compactPortrait ? "normal" : "nowrap",
+                    textAlign: compactBox || compactPortrait ? "left" : undefined,
                   }}
                 >
                   {label}
@@ -159,7 +176,7 @@ export default function ProgressSteps({
                 <div
                   style={{
                     width: portrait ? "4px" : "80px",
-                    height: portrait ? "150px" : "3px",
+                    height: compactBox ? compactSpacing ? "22px" : "52px" : compactPortrait ? "62px" : portrait ? "150px" : "3px",
                     background: "#374151",
                     borderRadius: "2px",
                     position: "relative",

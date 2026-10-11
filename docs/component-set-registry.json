@@ -1,0 +1,5464 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-10-11",
+  "principles": [
+    "组件套按表达目的登记，不按随机组件堆叠登记。",
+    "has_material 表示需要外部素材 asset_id；no_material 表示由结构化内容生成画面，不传 asset_id。",
+    "A01-A12、B01-B18 共30套全部备案；registration_status=registered 与 review_status 分开，保留真实品鉴状态和历史回执。",
+    "白字暗底、素材在上、文字在下、无白色标题底板是当前可复用样片风格。",
+    "手绘圈、局部放大和素材坐标映射是生产适配器能力，不能登记成不存在的原生组件 ID。",
+    "B01-B06 增强版以文字、数字、图表或流程形成连续组合，已通过任务 API/Worker/Graph 生成并发送，仍待用户品鉴；旧 basic 版本保留回放兼容。",
+    "B07-B18 为扩展无素材表达套件，已按真实 Graph 输出、媒体回执和分支记录登记，全部待品鉴；演示数字不代表现实统计。",
+    "A07-A12 为有素材增强组合套：素材、结构化内容和7个实际原生组件连续表达，样片已通过Graph生成并发送，生产通过 Shot.set_design typed selection 复用同一套件能力。"
+  ],
+  "sets": [
+    {
+      "id": "A01",
+      "name": "人物处境",
+      "category": "has_material",
+      "registration_status": "registered",
+      "review_status": "approved",
+      "usable_scope": "用人物、家庭、现场照片先建立观众带入感，适合普通人与 AI、家庭学习、长辈防骗等故事开场。",
+      "when_to_use": [
+        "需要先让观众知道这件事发生在谁身上、和家里人有什么关系。",
+        "素材主体是人物或生活场景，不需要逐项阅读证据。"
+      ],
+      "not_for": [
+        "不适合解释复杂关系图、操作教程或需要圈选原文的证据阅读。",
+        "不适合素材里主体太小、人物与主题无关的图片。"
+      ],
+      "component_sample": {
+        "job_id": "321ff7f80522406b88e2f91a24144ef6",
+        "revision": 6,
+        "branch": "video/321ff7f80522406b88e2f91a24144ef6-component-set-a01",
+        "branch_head": "7ac1123b42eeba001ffc4101b4bec3e3ddbea634",
+        "asset_id": "760c127a290c41ff83beaf544d146928",
+        "asset_file": "A01-life.png",
+        "duration_seconds": 10,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/a01-compact-revision/A01-人物处境-紧凑文字版-R6.mp4",
+        "video_sha256": "f180e6ce4320d78a6a5814972ce0a784616fcf0a42e654cea7f6291ffac04c52",
+        "media_receipt": "om_x100b63909686a0a0b2a8d4acaed2823",
+        "approval_receipt": "om_x100b6390a54d8ca0b4a5234f658c10b",
+        "director_plan": "video/321ff7f80522406b88e2f91a24144ef6-component-set-a01:episodes/321ff7f80522406b88e2f91a24144ef6/revisions/6/director-plan.json",
+        "director_plan_artifact": {
+          "artifact_id": "0da2781ce6934e62a16f2f7cbc9188a2",
+          "url": "/api/artifacts/0da2781ce6934e62a16f2f7cbc9188a2",
+          "revision": 6,
+          "sha256": "b8db663b768bc2faca5758d123a4795b39149a2a7d6cc9ac03ebb2a8e64e8518"
+        },
+        "human_review_record": "video/321ff7f80522406b88e2f91a24144ef6-component-set-a01:episodes/321ff7f80522406b88e2f91a24144ef6/revisions/6/human-review.json"
+      },
+      "components": {
+        "native_ids": [
+          "Bits-KenBurns",
+          "Snapcn-TextHighlight",
+          "Talkcraft-corner-bracket-frame"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": []
+      },
+      "asset_requirements": {
+        "asset_id_required": true,
+        "accepted_media": [
+          "image"
+        ],
+        "requirements": "人物或生活图片主体清晰，最好有手机、家庭或真实场景信息。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "asset_id",
+          "duration_seconds"
+        ],
+        "set_id": "A01",
+        "optional": [],
+        "changeable": [
+          "asset_id",
+          "duration_seconds"
+        ],
+        "fixed_boundaries": [
+          "不能传任意 JSX/CSS/组件 props",
+          "不能绕过普通视频的人工审核节点"
+        ]
+      },
+      "style_notes": [
+        "生活图片轻微运动",
+        "标题与强调分时出现",
+        "不把生成图片当真实证据"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "先展示具体人物和生活现场",
+          "白字提出此人的处境",
+          "强调与本段问题有关的一条线索"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=A01，asset_src 绑定当前任务人物/生活图片，Shot.title/body 写本期人物处境，content 写线索和收束句；parts 使用模板固定 part_id，并按真实 captions 设置 start_frame/end_frame 与 caption-safe box。",
+        "content_constraints": [
+          "身份、地点、经历来自本期资料；情境示意要明确身份，不能当案件照片。",
+          "A01 样片接口只开放素材和时长，不能通过替换素材宣称已替换固定样片文案。",
+          "有素材生产必须提供当前 job 的 asset_src 与 source_label。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "A01",
+          "asset_src": "required_current_job_asset",
+          "source_label": "required_for_material",
+          "material_kind": "image",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Bits-KenBurns",
+            "Snapcn-TextReveal",
+            "Rve-QuoteCard",
+            "Rve-ProgressSteps",
+            "Snapcn-WordFlip",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "A02",
+      "name": "App对象",
+      "category": "has_material",
+      "registration_status": "registered",
+      "review_status": "registered_pending_review",
+      "usable_scope": "识别 App 或手机界面对象，说明界面身份、主要入口和本段要看的区域；生产不做逐步点击教学。",
+      "when_to_use": [
+        "需要先让观众认出这是哪个 App、页面或功能区域。",
+        "素材是手机界面图片或录屏，但本段只解释界面对象和入口职责，不演示连续操作。"
+      ],
+      "not_for": [
+        "不适合完整操作教程、逐步点击跟随或需要目标圈同步的录屏；这类生产镜头用 focus_supported=true 的 A03/A09。",
+        "不适合控件太小、界面身份不清或关键入口被遮挡的素材。"
+      ],
+      "component_sample": {
+        "job_id": "056a63b5d8224c918ef2790737ef40b7",
+        "revision": 7,
+        "branch": "video/056a63b5d8224c918ef2790737ef40b7-component-set-a02",
+        "branch_head": "c020b3e494d549e2d25f439ebd02a477d10f31b9",
+        "code_commit": "2ef8bf0eff34312c964f6fd9287fda3ce2ab9d71",
+        "asset_id": "090af8c9748a408aafdbef3d44d1808f",
+        "asset_file": ".runtime/videoagents/component-set-samples/a02-guided-tutorial/source.mp4",
+        "source_sha256": "c0e3e5602f4a8810a0e6d575e2c287ae961c7bfd1d067bbec31fbfda086e95da",
+        "duration_seconds": 12.366666666666667,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/remaining-focus-delivery/A02/A02-App对象-白字下置-R7.mp4",
+        "video_sha256": "281027d08f94334496e24c57fbb91d65cb4b76ee8397517a7538bd088892db4b",
+        "media_receipt": "om_x100b6392310298a0b3b2178776f2bd1",
+        "director_plan": ".runtime/videoagents/component-set-samples/remaining-focus-delivery/A02/director_plan.json"
+      },
+      "components": {
+        "native_ids": [
+          "Snapcn-PhoneFrame",
+          "Snapcn-TextReveal"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "tutorial_steps_to_orange_handdrawn_target_circle"
+        ]
+      },
+      "asset_requirements": {
+        "asset_id_required": true,
+        "accepted_media": [
+          "video"
+        ],
+        "requirements": "手机界面图片或录屏，页面身份和主要入口清楚；生产用于识别对象和入口职责，不要求连续点击过程。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "asset_id",
+          "duration_seconds",
+          "tutorial_steps"
+        ],
+        "set_id": "A02",
+        "optional": [],
+        "changeable": [
+          "asset_id",
+          "duration_seconds",
+          "tutorial_steps[].start_frame",
+          "tutorial_steps[].end_frame",
+          "tutorial_steps[].instruction",
+          "tutorial_steps[].target"
+        ],
+        "fixed_boundaries": [
+          "tutorial_steps 连续覆盖整段",
+          "每步至少 30 帧",
+          "instruction 最多 24 字",
+          "target 为素材原图归一化坐标",
+          "不能和 focus_steps 同时传"
+        ]
+      },
+      "style_notes": [
+        "手机框承载录屏",
+        "白字口令放在素材下方",
+        "橙色圈随口令切换",
+        "无进度条、无白色标题框"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "先展示 App 或手机页面整体",
+          "用白字说明界面身份和本段要看的入口",
+          "用列表/强调 part 解释入口职责或注意点"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=A02，asset_src/source_label 绑定当前任务 App 界面图片或录屏，content.items 写真实入口/功能；metadata.material_kind=image_or_video 且 focus_supported=false，生产不传 focus_steps/source_size，不承诺橙色目标圈或逐步点击同步，只用 parts 的 start_frame/end_frame 与 safe-area box 调整界面说明。",
+        "content_constraints": [
+          "App 名称、页面身份、入口职责必须来自当前素材或本期来源。",
+          "静态首页只能说明入口和功能位置，不能写成已经点击成功或完成操作。",
+          "完整操作教学、目标圈跟随和步骤结果需要另用 A03/A09 等 focus_supported=true 的套件。",
+          "component_sample 历史样片仍可使用 tutorial_steps；普通生产不传 tutorial_steps、focus_steps/source_size。",
+          "有素材生产必须提供当前 job 的 asset_src 与 source_label。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "A02",
+          "asset_src": "required_current_job_asset",
+          "source_label": "required_for_material",
+          "material_kind": "image_or_video",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-PhoneFrame",
+            "Snapcn-TextReveal",
+            "Rve-ProgressSteps",
+            "Snapcn-WordFlip",
+            "Talkcraft-source-converge",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "A03",
+      "name": "操作过程",
+      "category": "has_material",
+      "registration_status": "registered",
+      "review_status": "registered_pending_review",
+      "usable_scope": "展示一段真实或模拟操作的过程与结果，适合让观众看到动作先后顺序。",
+      "when_to_use": [
+        "素材是完整操作录屏，需要解释当前正在输入、点击或查看哪里。",
+        "旁白要强调动作过程，而不是只介绍 App 长什么样。"
+      ],
+      "not_for": [
+        "不适合静态证据资料或结果海报。",
+        "不适合动作与标题对不上的录屏。"
+      ],
+      "component_sample": {
+        "job_id": "134fcfaed09b41cb95d1180bdae529bb",
+        "revision": 9,
+        "branch": "video/134fcfaed09b41cb95d1180bdae529bb-component-set-a03",
+        "branch_head": "a177f3079f9998facb463ebd24f4250fa1091507",
+        "code_commit": "7e16aa9e0e661a668c25141706cc81c0965a1348",
+        "asset_id": "61b7d8236c104c9b8d0a1d4582eeccfb",
+        "asset_file": "A03-operation.mp4",
+        "duration_seconds": 9.666666666666666,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/remaining-focus-delivery/A03/A03-操作过程-白字下置-R9.mp4",
+        "video_sha256": "20be1a78c17d8a0c9eafa72a54a1ef962dddd6f9cbf40c84f16ab50bd00efb8d",
+        "media_receipt": "om_x100b6392ca4804a4b32bb105939f1ec",
+        "director_plan": ".runtime/videoagents/component-set-samples/remaining-focus-delivery/A03/director_plan.json"
+      },
+      "components": {
+        "native_ids": [
+          "Snapcn-TextReveal"
+        ],
+        "semantic_ids": [
+          "video"
+        ],
+        "adapter_capabilities": [
+          "focus_steps_to_orange_handdrawn_target_circle"
+        ]
+      },
+      "asset_requirements": {
+        "asset_id_required": true,
+        "accepted_media": [
+          "video"
+        ],
+        "requirements": "操作录屏须覆盖完整动作，并能按帧标出输入框、按钮、结果区域。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "asset_id",
+          "duration_seconds",
+          "focus_steps"
+        ],
+        "set_id": "A03",
+        "optional": [],
+        "changeable": [
+          "asset_id",
+          "duration_seconds",
+          "focus_steps[].start_frame",
+          "focus_steps[].end_frame",
+          "focus_steps[].instruction",
+          "focus_steps[].target"
+        ],
+        "fixed_boundaries": [
+          "focus_steps 连续覆盖整段",
+          "每步至少 30 帧",
+          "instruction 最多 24 字",
+          "target 为素材原图归一化坐标",
+          "不能和 tutorial_steps 同时传"
+        ]
+      },
+      "style_notes": [
+        "操作录屏完整 contain 展示",
+        "白字口令下置",
+        "只圈当前动作，不压主体"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "连续播放输入动作",
+          "按旁白指出点击动作",
+          "停留查看真实结果"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=A03，asset_src 绑定当前任务操作录屏，Shot.title/body 写本期操作说明，content 写真实操作口令；focus_steps 与 source_size 来自实测画面，part 本地时钟按每步 captions 重新展开。",
+        "content_constraints": [
+          "视频区间覆盖实际动作，不循环素材凑长度。",
+          "有素材生产必须提供当前 job 的 asset_src 与 source_label。",
+          "本套 metadata.focus_supported=true；focus_steps/source_size 只标当前素材中真实存在的位置或操作。"
+        ],
+        "production_set_design": {
+          "set_id": "A03",
+          "asset_src": "required_current_job_asset",
+          "source_label": "required_for_material",
+          "material_kind": "video",
+          "focus_supported": true,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "video",
+            "Snapcn-TextReveal",
+            "Rve-ProgressSteps",
+            "Snapcn-TextBuild",
+            "Snapcn-TextSwap",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "A04",
+      "name": "作品结果",
+      "category": "has_material",
+      "registration_status": "registered",
+      "review_status": "registered_pending_review",
+      "usable_scope": "展示一张作品、结果页、成品图或最终画面，让观众先看整体再看局部亮点。",
+      "when_to_use": [
+        "素材本身是一个完整结果，需要保持展示感。",
+        "旁白要从整体作品逐步指向某几个细节。"
+      ],
+      "not_for": [
+        "不适合需要逐步点击的教程录屏。",
+        "不适合小字密集证据资料，除非只看视觉结果。"
+      ],
+      "component_sample": {
+        "job_id": "047f66a5b78c4ea991038d23fd6951ad",
+        "revision": 7,
+        "branch": "video/047f66a5b78c4ea991038d23fd6951ad-component-set-a04",
+        "branch_head": "17f43216a78a3171eab7d31f1e58c5c764e27f82",
+        "code_commit": "e5d34667ba910c39ed44a1f550fc40652377dec5",
+        "asset_id": "41a2f6384e874257a67f92968c285706",
+        "asset_file": "A04-artwork.png",
+        "duration_seconds": 10,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/remaining-focus-delivery/A04/A04-作品结果-白字下置-R7.mp4",
+        "video_sha256": "b740e054a5cd68afa51210be27f31e811066462b4203de6c896d63a5780d81fa",
+        "media_receipt": "om_x100b6392c454b0a8b49253d679c1903",
+        "director_plan": ".runtime/videoagents/component-set-samples/remaining-focus-delivery/A04/director_plan.json"
+      },
+      "components": {
+        "native_ids": [
+          "Snapcn-TextReveal",
+          "Talkcraft-tilt-3d-page"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "focus_steps_to_orange_handdrawn_target_circle_inside_page_transform"
+        ]
+      },
+      "asset_requirements": {
+        "asset_id_required": true,
+        "accepted_media": [
+          "image"
+        ],
+        "requirements": "作品或结果图完整清晰，局部亮点能用归一化框定位。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "asset_id",
+          "duration_seconds",
+          "focus_steps"
+        ],
+        "set_id": "A04",
+        "optional": [],
+        "changeable": [
+          "asset_id",
+          "duration_seconds",
+          "focus_steps[].start_frame",
+          "focus_steps[].end_frame",
+          "focus_steps[].instruction",
+          "focus_steps[].target"
+        ],
+        "fixed_boundaries": [
+          "focus_steps 连续覆盖整段",
+          "圈注跟随 3D 页面变换",
+          "不能伪装作品为真实案例证据"
+        ]
+      },
+      "style_notes": [
+        "Tilt 3D Page 展示结果",
+        "白字下置",
+        "圈注贴在作品页面内部"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "先看完整作品",
+          "说明一个可见细节",
+          "回到作品整体与结果判断"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=A04，asset_src/source_label 绑定当前任务作品/结果图，Shot.title/body 写本期整体判断，content 写可见细节和收束句；metadata.focus_supported=false，生产不传 focus_steps/source_size，细节说明通过 parts 时序和 safe-area box 安排。",
+        "content_constraints": [
+          "完整作品、局部细节与旁白一致，不冒充已核实成果。",
+          "有素材生产必须提供当前 job 的 asset_src 与 source_label。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "A04",
+          "asset_src": "required_current_job_asset",
+          "source_label": "required_for_material",
+          "material_kind": "image",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Talkcraft-tilt-3d-page",
+            "Snapcn-TextReveal",
+            "Rve-QuoteCard",
+            "Talkcraft-ink-underline",
+            "Snapcn-WordFlip",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "A05",
+      "name": "原文证据",
+      "category": "has_material",
+      "registration_status": "registered",
+      "review_status": "registered_pending_review",
+      "usable_scope": "阅读报告、原文截图、政策或论文截图时，把观众视线带到当前证据句。",
+      "when_to_use": [
+        "素材是可读资料，需要解释资料身份、原文句子和关键词。",
+        "旁白必须对应原文，而不是只用截图当背景。"
+      ],
+      "not_for": [
+        "不适合不可读、来源身份不清或含播放器控件的截图。",
+        "不适合用论文截图硬凑画面节奏。"
+      ],
+      "component_sample": {
+        "job_id": "801368e7e70440c2b1e6670e2ee4baed",
+        "revision": 8,
+        "branch": "video/801368e7e70440c2b1e6670e2ee4baed-component-set-a05",
+        "branch_head": "23c19766abe2fb3cd7f98e422f0e9ee0932c369d",
+        "code_commit": "127f8e89ee4a51d0475b3c1c2dd30f9355e04870",
+        "asset_id": "48bfe5bde0c24a13b69641de912670ef",
+        "asset_file": "A05-document.png",
+        "duration_seconds": 10,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/remaining-focus-delivery/A05/A05-原文证据-白字下置-R8.mp4",
+        "video_sha256": "98ae1297663ae8051a67d27c78661895b6ec2b3547a5f7f16ab7483d166f2e7a",
+        "media_receipt": "om_x100b6392c15ad0a8b1643156ab8b401",
+        "director_plan": ".runtime/videoagents/component-set-samples/remaining-focus-delivery/A05/director_plan.json"
+      },
+      "components": {
+        "native_ids": [
+          "Snapcn-TextReveal"
+        ],
+        "semantic_ids": [
+          "evidence"
+        ],
+        "adapter_capabilities": [
+          "focus_steps_to_orange_handdrawn_target_circle",
+          "optional_detail_crop_when_space_allows"
+        ]
+      },
+      "asset_requirements": {
+        "asset_id_required": true,
+        "accepted_media": [
+          "image"
+        ],
+        "requirements": "原文截图或资料页需可读，有清楚来源身份；重点句和关键词可被定位。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "asset_id",
+          "duration_seconds",
+          "focus_steps"
+        ],
+        "set_id": "A05",
+        "optional": [],
+        "changeable": [
+          "asset_id",
+          "duration_seconds",
+          "focus_steps[].start_frame",
+          "focus_steps[].end_frame",
+          "focus_steps[].instruction",
+          "focus_steps[].target"
+        ],
+        "fixed_boundaries": [
+          "focus_steps 连续覆盖整段",
+          "不能把模拟资料写成真实资料",
+          "素材本身含遮挡时应换清洁素材"
+        ]
+      },
+      "style_notes": [
+        "文档完整展示",
+        "圈当前原文位置",
+        "白字说明当前证据点"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "先交代资料来源和身份",
+          "展示能支撑旁白的原文",
+          "突出关键词并解释边界"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=A05，asset_src/source_label 绑定当前任务原文截图；metadata.focus_supported=true 时可用 focus_steps/source_size 标本期截图中真实存在的句子、数字或来源身份。",
+        "content_constraints": [
+          "原文、否定词、数字单位都必须与当前旁白对应。",
+          "有素材生产必须提供当前 job 的 asset_src 与 source_label。",
+          "本套 metadata.focus_supported=true；focus_steps/source_size 只标当前素材中真实存在的位置或操作。"
+        ],
+        "production_set_design": {
+          "set_id": "A05",
+          "asset_src": "required_current_job_asset",
+          "source_label": "required_for_material",
+          "material_kind": "image",
+          "focus_supported": true,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "evidence",
+            "Snapcn-TextReveal",
+            "Talkcraft-source-converge",
+            "Rve-QuoteCard",
+            "Snapcn-TextBuild",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "A06",
+      "name": "关系图解",
+      "category": "has_material",
+      "registration_status": "registered",
+      "review_status": "registered_pending_review",
+      "usable_scope": "解释人、AI、平台、钱、结果之间的关系，适合流程图、关系图、因果图。",
+      "when_to_use": [
+        "素材已经是一张清楚的图解，需要按节点或箭头讲清关系。",
+        "旁白讲的是结构，而不是单个证据句。"
+      ],
+      "not_for": [
+        "不适合复杂到手机端看不清的图。",
+        "不适合没有明确节点、箭头或标签的普通图片。"
+      ],
+      "component_sample": {
+        "job_id": "d4d6fa0f46a54b5692eaf0e5eb9cf0c4",
+        "revision": 6,
+        "branch": "video/d4d6fa0f46a54b5692eaf0e5eb9cf0c4-component-set-a06",
+        "branch_head": "44ef592225805025491072bd16b5093428aaad56",
+        "code_commit": "c979cd9dab53cbfdf4dfbf7cac3fc3400fdb2d85",
+        "asset_id": "347d710a6aec45019745066103c95fcc",
+        "asset_file": "A06-diagram.png",
+        "duration_seconds": 10,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/remaining-focus-delivery/A06/A06-关系图解-白字下置-R6.mp4",
+        "video_sha256": "e8b926a657addf8d1b65c41e18081ccf2cddc1987fbfd47d4d42ec672f0b962c",
+        "media_receipt": "om_x100b6392d843e4a0b1b17a1e15602bf",
+        "director_plan": ".runtime/videoagents/component-set-samples/remaining-focus-delivery/A06/director_plan.json"
+      },
+      "components": {
+        "native_ids": [
+          "Snapcn-TextReveal"
+        ],
+        "semantic_ids": [
+          "image_focus"
+        ],
+        "adapter_capabilities": [
+          "focus_steps_to_orange_handdrawn_target_circle",
+          "optional_detail_crop_when_space_allows"
+        ]
+      },
+      "asset_requirements": {
+        "asset_id_required": true,
+        "accepted_media": [
+          "image"
+        ],
+        "requirements": "关系图需要节点和标签清楚，手机端可读；每个讲述点能用归一化框定位。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "asset_id",
+          "duration_seconds",
+          "focus_steps"
+        ],
+        "set_id": "A06",
+        "optional": [],
+        "changeable": [
+          "asset_id",
+          "duration_seconds",
+          "focus_steps[].start_frame",
+          "focus_steps[].end_frame",
+          "focus_steps[].instruction",
+          "focus_steps[].target"
+        ],
+        "fixed_boundaries": [
+          "focus_steps 连续覆盖整段",
+          "不裁掉关系图全貌",
+          "不能只换标题重复展示同一信息"
+        ]
+      },
+      "style_notes": [
+        "完整关系图 contain 展示",
+        "白字下置",
+        "圈节点或箭头来解释当前关系"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "保留图解全貌",
+          "按旁白解释节点职责",
+          "沿已有箭头讲清连接和结果"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=A06，asset_src/source_label 绑定当前任务关系图，content.items 写图中真实节点/连接；metadata.focus_supported=true 时可用 focus_steps/source_size 定位已有节点或箭头，不新增假关系。",
+        "content_constraints": [
+          "节点、箭头和标签必须真实存在，不能把并列项读成因果。",
+          "有素材生产必须提供当前 job 的 asset_src 与 source_label。",
+          "本套 metadata.focus_supported=true；focus_steps/source_size 只标当前素材中真实存在的位置或操作。"
+        ],
+        "production_set_design": {
+          "set_id": "A06",
+          "asset_src": "required_current_job_asset",
+          "source_label": "required_for_material",
+          "material_kind": "image",
+          "focus_supported": true,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "image_focus",
+            "Snapcn-TextReveal",
+            "Rve-ProgressSteps",
+            "Rve-SplitScreen",
+            "Talkcraft-source-converge",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B01",
+      "name": "问题开场",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "问题输入、疑问句、数字锚点和核对线索逐步展开，适合没有现场图片的开场。",
+      "when_to_use": [
+        "开头需要抛出一个和普通人有关的问题。",
+        "没有合适图片或视频，但需要快速建立悬念。"
+      ],
+      "not_for": [
+        "不适合当作证据画面。",
+        "不适合替代真实人物案例素材。"
+      ],
+      "components": {
+        "native_ids": [
+          "Rve-QuoteCard",
+          "Snapcn-SearchTyping",
+          "Snapcn-TextHighlight",
+          "Rve-StatCounter",
+          "Rve-ProgressSteps"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产必填 Shot.title、Shot.body 与 content.takeaway；component_sample 保留样片 content 标题字段。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B01",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "字段和数字口径必须符合组件套契约",
+          "不能传任意时间轴、JSX或组件props",
+          "生成样片不等于人工品鉴通过"
+        ],
+        "composition": "rich"
+      },
+      "component_sample": {
+        "job_id": "78f3751ddc314125b2b0a54c51035759",
+        "revision": 5,
+        "branch": "video/78f3751ddc314125b2b0a54c51035759-component-set-b01",
+        "branch_head": "532e122662e83081843e15ecebafb35b6a9e7c69",
+        "code_commit": "925b454486c9b2f8b34975f63394b0b01f6d2141",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 15,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B01/B01-问题开场-无素材增强版-R5.mp4",
+        "video_sha256": "7bc247f55c6c1ed3a61cdcd07aad8382df7fbb2a939f0f6a9447ea8c250d3ab0",
+        "media_receipt": "om_x100b639a4cb4e0a0b3d69e76c3cfeb8",
+        "director_plan": "video/78f3751ddc314125b2b0a54c51035759-component-set-b01:episodes/78f3751ddc314125b2b0a54c51035759/revisions/5/director-plan.json",
+        "production_record": "video/78f3751ddc314125b2b0a54c51035759-component-set-b01:episodes/78f3751ddc314125b2b0a54c51035759/revisions/5/production-record.json",
+        "verification": "video/78f3751ddc314125b2b0a54c51035759-component-set-b01:episodes/78f3751ddc314125b2b0a54c51035759/revisions/5/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "消息里的称呼",
+            "来电的身份",
+            "付款的理由"
+          ],
+          "metric": {
+            "label": "要核对的线索",
+            "value": "3项",
+            "detail": "演示拆解，不是风险统计"
+          }
+        },
+        "example": {
+          "title": "一句熟悉的话，够吗？",
+          "body": "对方会接话，也肯视频。你还需要核对什么？",
+          "takeaway": "先核实身份",
+          "items": [
+            "消息里的称呼",
+            "来电的身份",
+            "付款的理由"
+          ],
+          "metric": {
+            "label": "要核对的线索",
+            "value": "3项",
+            "detail": "演示拆解，不是风险统计"
+          }
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2汉字单位"
+        },
+        "basic_legacy_supported": true
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板",
+        "文字、数字与图表/流程相互解释，按阶段揭示",
+        "全程明示演示身份，原生默认文案不作为事实",
+        "旧basic样片保持可读，增强版待品鉴"
+      ],
+      "previous_component_samples": [
+        {
+          "job_id": "78f3751ddc314125b2b0a54c51035759",
+          "revision": 2,
+          "branch": "video/78f3751ddc314125b2b0a54c51035759-component-set-b01",
+          "branch_head": "58f49fb966f4ecdd74b362be2dc5e22605fe19db",
+          "code_commit": "f84a4c21cafe5af25185b647ec1a8f6c857bf502",
+          "asset_id": null,
+          "no_external_material": true,
+          "duration_seconds": 8,
+          "workflow": [
+            "component_demo",
+            "director_demo",
+            "end"
+          ],
+          "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B01/B01-问题开场-无素材-R2.mp4",
+          "video_sha256": "f4f7f16ee3f055567d102a783f7b5c9a062a9676bba049201c718c49dde28e32",
+          "media_receipt": "om_x100b6393685ed4a0b1214e15d67d59f",
+          "director_plan": "video/78f3751ddc314125b2b0a54c51035759-component-set-b01:episodes/78f3751ddc314125b2b0a54c51035759/revisions/2/director-plan.json",
+          "production_record": "video/78f3751ddc314125b2b0a54c51035759-component-set-b01:episodes/78f3751ddc314125b2b0a54c51035759/revisions/2/production-record.json",
+          "verification": "video/78f3751ddc314125b2b0a54c51035759-component-set-b01:episodes/78f3751ddc314125b2b0a54c51035759/revisions/2/verification.json",
+          "delivery_readback": "verified",
+          "review_status": "revision_requested"
+        }
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "提出普通人的具体问题",
+          "逐项揭示判断线索",
+          "落到本段需要回答的问题"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B01，不传 asset_src；content 写本期真实问题、判断线索和收束句，metric 只有有来源数字时填写，parts 按开场旁白而非固定秒数展开。",
+        "content_constraints": [
+          "问题来自本期，不能编聊天记录；items 是核对线索。",
+          "样片 metric 只是演示锚点，新视频无依据数字应省略，不能为填满模板编数字。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B01",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Rve-QuoteCard",
+            "Rve-ProgressSteps",
+            "Rve-StatCounter",
+            "Snapcn-WordFlip",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B02",
+      "name": "概念解释",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "改写容易混淆的说法，配合词语翻换、白话说明和数字锚点拆开判断。",
+      "when_to_use": [
+        "解释 AI 机制、平台规则或新词。",
+        "需要把术语转成生活语言。"
+      ],
+      "not_for": [
+        "不适合承载真实引用原文。",
+        "不适合一次塞多个概念。"
+      ],
+      "components": {
+        "native_ids": [
+          "Snapcn-TextRewrite",
+          "Snapcn-AnswerHighlight",
+          "Rve-StatCounter",
+          "Snapcn-WordFlip"
+        ],
+        "semantic_ids": [
+          "keyword"
+        ],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产必填 Shot.title、Shot.body 与 content.takeaway；component_sample 保留样片 content 标题字段。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B02",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "字段和数字口径必须符合组件套契约",
+          "不能传任意时间轴、JSX或组件props",
+          "生成样片不等于人工品鉴通过"
+        ],
+        "composition": "rich"
+      },
+      "component_sample": {
+        "job_id": "a0c74c1a18a9478cb8d8ee751e8f8bc5",
+        "revision": 5,
+        "branch": "video/a0c74c1a18a9478cb8d8ee751e8f8bc5-component-set-b02",
+        "branch_head": "b0ec39cf399fb9525b8b77c3b73bcd3e0c5811bc",
+        "code_commit": "80ded6a8fdf045be48aaa415d5b7f2f1ad71783d",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 16,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B02/B02-概念解释-无素材增强版-R5.mp4",
+        "video_sha256": "d2cda3b928db7e7ade3e0a92705dce879767cf82cb2a81a020e204fd3bacc03a",
+        "media_receipt": "om_x100b639a7f3328a8b4a8efc7b08d660",
+        "director_plan": "video/a0c74c1a18a9478cb8d8ee751e8f8bc5-component-set-b02:episodes/a0c74c1a18a9478cb8d8ee751e8f8bc5/revisions/5/director-plan.json",
+        "production_record": "video/a0c74c1a18a9478cb8d8ee751e8f8bc5-component-set-b02:episodes/a0c74c1a18a9478cb8d8ee751e8f8bc5/revisions/5/production-record.json",
+        "verification": "video/a0c74c1a18a9478cb8d8ee751e8f8bc5-component-set-b02:episodes/a0c74c1a18a9478cb8d8ee751e8f8bc5/revisions/5/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "能接话",
+            "能视频",
+            "身份可信"
+          ],
+          "metric": {
+            "label": "需要分开的判断",
+            "value": "3项",
+            "detail": "演示拆解，不是风险统计"
+          }
+        },
+        "example": {
+          "title": "会聊天＝真人？",
+          "body": "把能接话、能视频、身份可信分开看。",
+          "takeaway": "聊天能力≠身份凭证",
+          "items": [
+            "能接话",
+            "能视频",
+            "身份可信"
+          ],
+          "metric": {
+            "label": "需要分开的判断",
+            "value": "3项",
+            "detail": "演示拆解，不是风险统计"
+          }
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2汉字单位"
+        },
+        "basic_legacy_supported": true
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板",
+        "文字、数字与图表/流程相互解释，按阶段揭示",
+        "全程明示演示身份，原生默认文案不作为事实",
+        "旧basic样片保持可读，增强版待品鉴"
+      ],
+      "previous_component_samples": [
+        {
+          "job_id": "a0c74c1a18a9478cb8d8ee751e8f8bc5",
+          "revision": 1,
+          "branch": "video/a0c74c1a18a9478cb8d8ee751e8f8bc5-component-set-b02",
+          "branch_head": "7259f91e0440ea5f2e023b50518fcd0b465685a2",
+          "code_commit": "f84a4c21cafe5af25185b647ec1a8f6c857bf502",
+          "asset_id": null,
+          "no_external_material": true,
+          "duration_seconds": 8,
+          "workflow": [
+            "component_demo",
+            "director_demo",
+            "end"
+          ],
+          "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B02/B02-概念解释-无素材-R1.mp4",
+          "video_sha256": "bc13b6fcddc5faf2f51cae26b35231de2637dcf0678f9017c7f0603cfe6697c7",
+          "media_receipt": "om_x100b63936413e8a0b4c511f379c66ca",
+          "director_plan": "video/a0c74c1a18a9478cb8d8ee751e8f8bc5-component-set-b02:episodes/a0c74c1a18a9478cb8d8ee751e8f8bc5/revisions/1/director-plan.json",
+          "production_record": "video/a0c74c1a18a9478cb8d8ee751e8f8bc5-component-set-b02:episodes/a0c74c1a18a9478cb8d8ee751e8f8bc5/revisions/1/production-record.json",
+          "verification": "video/a0c74c1a18a9478cb8d8ee751e8f8bc5-component-set-b02:episodes/a0c74c1a18a9478cb8d8ee751e8f8bc5/revisions/1/verification.json",
+          "delivery_readback": "verified",
+          "review_status": "revision_requested"
+        }
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "先指出容易混淆的词",
+          "换成白话动作或结果",
+          "保留条件并给出准确解释"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B02，不传 asset_src；Shot.title/body 写本期概念说明，content 写改写前后说法，parts 按解释节奏调整，不用演示数字冒充模型能力。",
+        "content_constraints": [
+          "一段只解释一个概念；保留否定和条件。",
+          "演示次数不代表性能、风险或模型能力。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B02",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Snapcn-WordFlip",
+            "Rve-ProgressSteps",
+            "Rve-StatCounter",
+            "Talkcraft-word-slot-cycle",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B03",
+      "name": "两种情况对比",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "把两种做法的文字差别和同单位数字放在同一画面，不把动作数解释成安全概率。",
+      "when_to_use": [
+        "需要回答“为什么 A 和 B 不一样”。",
+        "需要让观众快速比较风险、成本或门槛。"
+      ],
+      "not_for": [
+        "不适合三项以上复杂比较。",
+        "不适合没有明确比较维度的情绪表达。"
+      ],
+      "components": {
+        "native_ids": [
+          "Rve-SplitScreen",
+          "Snapcn-TextSwap",
+          "Snapcn-TextHighlight",
+          "Rve-ComparisonChart",
+          "Snapcn-TextBuild"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产必填 Shot.title、Shot.body 与 content.takeaway；component_sample 保留样片 content 标题字段。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B03",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.numeric_items"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "字段和数字口径必须符合组件套契约",
+          "不能传任意时间轴、JSX或组件props",
+          "生成样片不等于人工品鉴通过"
+        ],
+        "composition": "rich"
+      },
+      "component_sample": {
+        "job_id": "9e02e93221ee43a5987a960f1b92f812",
+        "revision": 2,
+        "branch": "video/9e02e93221ee43a5987a960f1b92f812-component-set-b03",
+        "branch_head": "7b3f07138cfbce50c9ba154e827eeeb30c801245",
+        "code_commit": "44be3f23d15c2a25418b2d33e1d0f641a49772c4",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B03/B03-两种情况对比-无素材增强版-R2.mp4",
+        "video_sha256": "1760ef0bdba45e1eede7d82ab4d1cc621e244e049b159800337372a6293aad24",
+        "media_receipt": "om_x100b639a79ca10a4b3dc54b3c32c3d4",
+        "director_plan": "video/9e02e93221ee43a5987a960f1b92f812-component-set-b03:episodes/9e02e93221ee43a5987a960f1b92f812/revisions/2/director-plan.json",
+        "production_record": "video/9e02e93221ee43a5987a960f1b92f812-component-set-b03:episodes/9e02e93221ee43a5987a960f1b92f812/revisions/2/production-record.json",
+        "verification": "video/9e02e93221ee43a5987a960f1b92f812-component-set-b03:episodes/9e02e93221ee43a5987a960f1b92f812/revisions/2/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "只看消息：直接做决定",
+            "回拨核实：用已存号码"
+          ],
+          "numeric_items": [
+            "读一条消息:1步",
+            "读消息再回拨:2步"
+          ]
+        },
+        "example": {
+          "title": "多一步，看清一点",
+          "body": "动作多一步，并不等于绝对安全；它给你一个独立核对的机会。",
+          "takeaway": "先核对，再行动",
+          "items": [
+            "只看消息：直接做决定",
+            "回拨核实：用已存号码"
+          ],
+          "numeric_items": [
+            "读一条消息:1步",
+            "读消息再回拨:2步"
+          ]
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2汉字单位"
+        },
+        "basic_legacy_supported": true
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板",
+        "文字、数字与图表/流程相互解释，按阶段揭示",
+        "全程明示演示身份，原生默认文案不作为事实",
+        "旧basic样片保持可读，增强版待品鉴"
+      ],
+      "previous_component_samples": [
+        {
+          "job_id": "9e02e93221ee43a5987a960f1b92f812",
+          "revision": 1,
+          "branch": "video/9e02e93221ee43a5987a960f1b92f812-component-set-b03",
+          "branch_head": "fa385dad9d81866bfd680119472308dac9a3127d",
+          "code_commit": "f84a4c21cafe5af25185b647ec1a8f6c857bf502",
+          "asset_id": null,
+          "no_external_material": true,
+          "duration_seconds": 10,
+          "workflow": [
+            "component_demo",
+            "director_demo",
+            "end"
+          ],
+          "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B03/B03-两种情况对比-无素材-R1.mp4",
+          "video_sha256": "6d3fa69fa87de8e104ab763b7e00d3f02d99f2bd2b6fa1f5321a9f7b6e57c040",
+          "media_receipt": "om_x100b639360eddca0b367f9549cc7863",
+          "director_plan": "video/9e02e93221ee43a5987a960f1b92f812-component-set-b03:episodes/9e02e93221ee43a5987a960f1b92f812/revisions/1/director-plan.json",
+          "production_record": "video/9e02e93221ee43a5987a960f1b92f812-component-set-b03:episodes/9e02e93221ee43a5987a960f1b92f812/revisions/1/production-record.json",
+          "verification": "video/9e02e93221ee43a5987a960f1b92f812-component-set-b03:episodes/9e02e93221ee43a5987a960f1b92f812/revisions/1/verification.json",
+          "delivery_readback": "verified",
+          "review_status": "revision_requested"
+        }
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "明确比较的是哪两种情况",
+          "同维度展示差别",
+          "给出有条件的判断"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B03，不传 asset_src；content.items/numeric_items 使用同一比较维度和口径，parts 按左右对比和结论时刻重排。",
+        "content_constraints": [
+          "两侧比较对象、时间范围和单位一致。",
+          "动作数或示意数字不能被解释成安全概率。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B03",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Rve-SplitScreen",
+            "Rve-ComparisonChart",
+            "Snapcn-TextBuild",
+            "Snapcn-TextSwap",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B04",
+      "name": "数字账本",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "给出每笔金额、累计变化和总账；合计必须等于三笔输入之和。",
+      "when_to_use": [
+        "需要让观众看懂代价、收益或规模。",
+        "旁白里有少量关键数字需要被记住。"
+      ],
+      "not_for": [
+        "不适合没有口径来源的数字。",
+        "不适合密集表格或多页报表。"
+      ],
+      "components": {
+        "native_ids": [
+          "Rve-StatCounter",
+          "Snapcn-TextRewrite",
+          "Snapcn-TextHighlight",
+          "Rve-ChartAnimation",
+          "Snapcn-TextBuild"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产必填 Shot.title、Shot.body 与 content.takeaway；component_sample 保留样片 content 标题字段。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B04",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail",
+          "content.numeric_items"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "字段和数字口径必须符合组件套契约",
+          "不能传任意时间轴、JSX或组件props",
+          "生成样片不等于人工品鉴通过"
+        ],
+        "composition": "rich"
+      },
+      "component_sample": {
+        "job_id": "1a78f99564d34e1c8fd98cea6704d6d2",
+        "revision": 3,
+        "branch": "video/1a78f99564d34e1c8fd98cea6704d6d2-component-set-b04",
+        "branch_head": "caae82d5d4007733e175759e7ffa94b5ccd5c4a9",
+        "code_commit": "a7e6dd7c14d578e0be85a85acf39ecf7f0fa8725",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 16,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B04/B04-数字账本-无素材增强版-R3.mp4",
+        "video_sha256": "2cdf54c79c8ee5e276433a6bbcfd8b8075c1ca9af91fa81e3017ff511620234f",
+        "media_receipt": "om_x100b639a084e24a0b104acbdd1f8c1c",
+        "director_plan": "video/1a78f99564d34e1c8fd98cea6704d6d2-component-set-b04:episodes/1a78f99564d34e1c8fd98cea6704d6d2/revisions/3/director-plan.json",
+        "production_record": "video/1a78f99564d34e1c8fd98cea6704d6d2-component-set-b04:episodes/1a78f99564d34e1c8fd98cea6704d6d2/revisions/3/production-record.json",
+        "verification": "video/1a78f99564d34e1c8fd98cea6704d6d2-component-set-b04:episodes/1a78f99564d34e1c8fd98cea6704d6d2/revisions/3/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "metric": {
+            "label": "三次花费合计",
+            "value": "399元",
+            "detail": "133元×3次＝399元"
+          },
+          "numeric_items": [
+            "第1次:133元",
+            "第2次:133元",
+            "第3次:133元"
+          ]
+        },
+        "example": {
+          "title": "133元，付三次呢？",
+          "body": "只看每次的金额，容易忽略总共花了多少。",
+          "takeaway": "小额也要看总账",
+          "metric": {
+            "label": "三次花费合计",
+            "value": "399元",
+            "detail": "133元×3次＝399元"
+          },
+          "numeric_items": [
+            "第1次:133元",
+            "第2次:133元",
+            "第3次:133元"
+          ]
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2汉字单位"
+        },
+        "basic_legacy_supported": true
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板",
+        "文字、数字与图表/流程相互解释，按阶段揭示",
+        "全程明示演示身份，原生默认文案不作为事实",
+        "旧basic样片保持可读，增强版待品鉴"
+      ],
+      "previous_component_samples": [
+        {
+          "job_id": "1a78f99564d34e1c8fd98cea6704d6d2",
+          "revision": 1,
+          "branch": "video/1a78f99564d34e1c8fd98cea6704d6d2-component-set-b04",
+          "branch_head": "9e4b43b74f16d71b9623f171e9b858199ee9f438",
+          "code_commit": "f84a4c21cafe5af25185b647ec1a8f6c857bf502",
+          "asset_id": null,
+          "no_external_material": true,
+          "duration_seconds": 8,
+          "workflow": [
+            "component_demo",
+            "director_demo",
+            "end"
+          ],
+          "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B04/B04-数字账本-无素材-R1.mp4",
+          "video_sha256": "2a5cf1384f5537f251e3e980162ed9a72c9eab224757d80564b6f6bb9d0dc83d",
+          "media_receipt": "om_x100b63937e2b94a0b340d3c7f8929f8",
+          "director_plan": "video/1a78f99564d34e1c8fd98cea6704d6d2-component-set-b04:episodes/1a78f99564d34e1c8fd98cea6704d6d2/revisions/1/director-plan.json",
+          "production_record": "video/1a78f99564d34e1c8fd98cea6704d6d2-component-set-b04:episodes/1a78f99564d34e1c8fd98cea6704d6d2/revisions/1/production-record.json",
+          "verification": "video/1a78f99564d34e1c8fd98cea6704d6d2-component-set-b04:episodes/1a78f99564d34e1c8fd98cea6704d6d2/revisions/1/verification.json",
+          "delivery_readback": "verified",
+          "review_status": "revision_requested"
+        }
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "逐笔显示金额",
+          "说明每笔是什么",
+          "核对合计与累计"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B04，不传 asset_src；content.numeric_items 与 metric 使用同单位真实数字，parts 的计数、图表和条目揭示跟随本期 captions。",
+        "content_constraints": [
+          "样片三笔 numeric_items 同单位，metric 为三笔之和。",
+          "普通视频的金额、单位、营收/利润等口径必须有本期来源。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B04",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Rve-StatCounter",
+            "Snapcn-TextBuild",
+            "Rve-ChartAnimation",
+            "Rve-LineChart",
+            "Talkcraft-ink-underline"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B05",
+      "name": "步骤演示",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "动作流程、对应说明和总步数一起展开；适合没有录屏时解释步骤。",
+      "when_to_use": [
+        "讲“先做什么、再看什么、最后怎么判断”。",
+        "结尾给家人可执行的检查流程。"
+      ],
+      "not_for": [
+        "不适合冒充真实 App 操作。",
+        "不适合替代 A02/A03 真实录屏教程。"
+      ],
+      "components": {
+        "native_ids": [
+          "Rve-ProgressSteps",
+          "Snapcn-TextBuild",
+          "Snapcn-TextHighlight",
+          "Rve-StatCounter",
+          "Rve-QuoteCard"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产必填 Shot.title、Shot.body 与 content.takeaway；component_sample 保留样片 content 标题字段。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B05",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.supporting_items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "字段和数字口径必须符合组件套契约",
+          "不能传任意时间轴、JSX或组件props",
+          "生成样片不等于人工品鉴通过"
+        ],
+        "composition": "rich"
+      },
+      "component_sample": {
+        "job_id": "336f8b4c65f041d1ac783ee7e15205b5",
+        "revision": 3,
+        "branch": "video/336f8b4c65f041d1ac783ee7e15205b5-component-set-b05",
+        "branch_head": "d961aab4e5e043afb3503ebc6a36661c514f4881",
+        "code_commit": "dca09336585885956226e0525aa78ed9d3bb3fc2",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B05/B05-步骤演示-无素材增强版-R3.mp4",
+        "video_sha256": "a987bb7304a7cf3ace858617fc0b7cd80e36e01fd7f5a24b7300a0aa375cfa6d",
+        "media_receipt": "om_x100b639a10b738a0b3e019a741e14ef",
+        "director_plan": "video/336f8b4c65f041d1ac783ee7e15205b5-component-set-b05:episodes/336f8b4c65f041d1ac783ee7e15205b5/revisions/3/director-plan.json",
+        "production_record": "video/336f8b4c65f041d1ac783ee7e15205b5-component-set-b05:episodes/336f8b4c65f041d1ac783ee7e15205b5/revisions/3/production-record.json",
+        "verification": "video/336f8b4c65f041d1ac783ee7e15205b5-component-set-b05:episodes/336f8b4c65f041d1ac783ee7e15205b5/revisions/3/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "先停一下",
+            "回拨熟悉号码",
+            "和家人一起核对"
+          ],
+          "supporting_items": [
+            "先不急着付钱",
+            "只拨已存号码",
+            "让家人一起看"
+          ],
+          "metric": {
+            "label": "核对顺序",
+            "value": "3步",
+            "detail": "没有一步能单独保证安全"
+          }
+        },
+        "example": {
+          "title": "先把节奏慢下来",
+          "body": "把消息、身份、付款理由分开核对。",
+          "takeaway": "核对清楚，再做决定",
+          "items": [
+            "先停一下",
+            "回拨熟悉号码",
+            "和家人一起核对"
+          ],
+          "supporting_items": [
+            "先不急着付钱",
+            "只拨已存号码",
+            "让家人一起看"
+          ],
+          "metric": {
+            "label": "核对顺序",
+            "value": "3步",
+            "detail": "没有一步能单独保证安全"
+          }
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2汉字单位"
+        },
+        "basic_legacy_supported": true
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板",
+        "文字、数字与图表/流程相互解释，按阶段揭示",
+        "全程明示演示身份，原生默认文案不作为事实",
+        "旧basic样片保持可读，增强版待品鉴"
+      ],
+      "previous_component_samples": [
+        {
+          "job_id": "336f8b4c65f041d1ac783ee7e15205b5",
+          "revision": 1,
+          "branch": "video/336f8b4c65f041d1ac783ee7e15205b5-component-set-b05",
+          "branch_head": "66814ab5dd7742aa5c118e2f60aa65abc88eeb1e",
+          "code_commit": "f84a4c21cafe5af25185b647ec1a8f6c857bf502",
+          "asset_id": null,
+          "no_external_material": true,
+          "duration_seconds": 12,
+          "workflow": [
+            "component_demo",
+            "director_demo",
+            "end"
+          ],
+          "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B05/B05-步骤演示-无素材-R1.mp4",
+          "video_sha256": "83f032db330eee4c29ec0d5fea7af92cb1212d4b029bc935da6f5a27cf6e1405",
+          "media_receipt": "om_x100b63937bede8a4b037c2cca0b39bb",
+          "director_plan": "video/336f8b4c65f041d1ac783ee7e15205b5-component-set-b05:episodes/336f8b4c65f041d1ac783ee7e15205b5/revisions/1/director-plan.json",
+          "production_record": "video/336f8b4c65f041d1ac783ee7e15205b5-component-set-b05:episodes/336f8b4c65f041d1ac783ee7e15205b5/revisions/1/production-record.json",
+          "verification": "video/336f8b4c65f041d1ac783ee7e15205b5-component-set-b05:episodes/336f8b4c65f041d1ac783ee7e15205b5/revisions/1/verification.json",
+          "delivery_readback": "verified",
+          "review_status": "revision_requested"
+        }
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "显示第一步动作",
+          "下一步解释看什么",
+          "最后给出判断或确认动作"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B05，不传 asset_src；content.items/supporting_items 写本期真实步骤，metric 仅表示步骤数或有来源指标，parts 按步骤本地时钟展开。",
+        "content_constraints": [
+          "items 与 supporting_items 一一对应，metric 只表示步骤数。",
+          "无素材步骤图是说明，不得冒充 App 实录或操作成功。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B05",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Rve-ProgressSteps",
+            "Rve-StatCounter",
+            "Rve-QuoteCard",
+            "Snapcn-TextBuild",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B06",
+      "name": "结论行动",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "从明示模拟的聊天情景转到行动原则、数字锚点和行动清单。",
+      "when_to_use": [
+        "需要把前文判断落到观众能做的 2-4 件事。",
+        "适合防骗、工具使用、家庭沟通类结尾。"
+      ],
+      "not_for": [
+        "不适合空泛口号。",
+        "不适合引入未经解释的新观点。"
+      ],
+      "components": {
+        "native_ids": [
+          "Snapcn-TextReveal",
+          "Snapcn-AnswerHighlight",
+          "Bits-ChatConversation",
+          "Rve-StatCounter",
+          "Snapcn-TextBuild"
+        ],
+        "semantic_ids": [
+          "conclusion"
+        ],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产必填 Shot.title、Shot.body 与 content.takeaway；component_sample 保留样片 content 标题字段。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B06",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.supporting_items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "字段和数字口径必须符合组件套契约",
+          "不能传任意时间轴、JSX或组件props",
+          "生成样片不等于人工品鉴通过"
+        ],
+        "composition": "rich"
+      },
+      "component_sample": {
+        "job_id": "dd0eea7fa2434e82be39f2e0c1f1416c",
+        "revision": 3,
+        "branch": "video/dd0eea7fa2434e82be39f2e0c1f1416c-component-set-b06",
+        "branch_head": "3dbb082b3970b3564c69996246330a681b12c13e",
+        "code_commit": "28b3fac26c633bf80e4cde7bdc97395b404597c5",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 15,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B06/B06-结论行动-无素材增强版-R3.mp4",
+        "video_sha256": "7a374c1222380c310bff6e2d11b8d0acac48834814b9039a72e63fa1966f83ef",
+        "media_receipt": "om_x100b639a2babc8acb3def298c583885",
+        "director_plan": "video/dd0eea7fa2434e82be39f2e0c1f1416c-component-set-b06:episodes/dd0eea7fa2434e82be39f2e0c1f1416c/revisions/3/director-plan.json",
+        "production_record": "video/dd0eea7fa2434e82be39f2e0c1f1416c-component-set-b06:episodes/dd0eea7fa2434e82be39f2e0c1f1416c/revisions/3/production-record.json",
+        "verification": "video/dd0eea7fa2434e82be39f2e0c1f1416c-component-set-b06:episodes/dd0eea7fa2434e82be39f2e0c1f1416c/revisions/3/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "停下来",
+            "回拨核对",
+            "家人一起看"
+          ],
+          "supporting_items": [
+            "对方：先转点钱再聊吧",
+            "我：我先核对一下"
+          ],
+          "metric": {
+            "label": "一起练习的动作",
+            "value": "3步",
+            "detail": "机制示意，不是真实聊天"
+          }
+        },
+        "example": {
+          "title": "给家人留一套动作",
+          "body": "遇到催促付款的消息，先从这三件事做起。",
+          "takeaway": "先停，再核实",
+          "items": [
+            "停下来",
+            "回拨核对",
+            "家人一起看"
+          ],
+          "supporting_items": [
+            "对方：先转点钱再聊吧",
+            "我：我先核对一下"
+          ],
+          "metric": {
+            "label": "一起练习的动作",
+            "value": "3步",
+            "detail": "机制示意，不是真实聊天"
+          }
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2汉字单位"
+        },
+        "basic_legacy_supported": true
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板",
+        "文字、数字与图表/流程相互解释，按阶段揭示",
+        "全程明示演示身份，原生默认文案不作为事实",
+        "旧basic样片保持可读，增强版待品鉴"
+      ],
+      "previous_component_samples": [
+        {
+          "job_id": "dd0eea7fa2434e82be39f2e0c1f1416c",
+          "revision": 1,
+          "branch": "video/dd0eea7fa2434e82be39f2e0c1f1416c-component-set-b06",
+          "branch_head": "6ba409012daa7fdcf307c7e2bb069f4ac66b6518",
+          "code_commit": "f84a4c21cafe5af25185b647ec1a8f6c857bf502",
+          "asset_id": null,
+          "no_external_material": true,
+          "duration_seconds": 10,
+          "workflow": [
+            "component_demo",
+            "director_demo",
+            "end"
+          ],
+          "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B06/B06-结论行动-无素材-R1.mp4",
+          "video_sha256": "3afe6d54936600db529b2e189b060c1298cf414085a0eb979b401c3d60a81488",
+          "media_receipt": "om_x100b639377a7a0a0b2e721f7ed5c97a",
+          "director_plan": "video/dd0eea7fa2434e82be39f2e0c1f1416c-component-set-b06:episodes/dd0eea7fa2434e82be39f2e0c1f1416c/revisions/1/director-plan.json",
+          "production_record": "video/dd0eea7fa2434e82be39f2e0c1f1416c-component-set-b06:episodes/dd0eea7fa2434e82be39f2e0c1f1416c/revisions/1/production-record.json",
+          "verification": "video/dd0eea7fa2434e82be39f2e0c1f1416c-component-set-b06:episodes/dd0eea7fa2434e82be39f2e0c1f1416c/revisions/1/verification.json",
+          "delivery_readback": "verified",
+          "review_status": "revision_requested"
+        }
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "回应开头问题",
+          "展开观众能做的动作",
+          "用最后一句收束判断"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B06，不传 asset_src；Shot.title/body 写结论，content 写前文已经解释过的行动，parts 可按结尾旁白调整数量、间距和显隐时刻。",
+        "content_constraints": [
+          "行动来自前文已解释的结论，不引入新主张。",
+          "样片三项结构不限制新视频行动数，普通生产仍按字段上限和阅读时间。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B06",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Bits-ChatConversation",
+            "Rve-StatCounter",
+            "Snapcn-TextBuild",
+            "Rve-ProgressSteps",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B07",
+      "name": "时间分配",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "把核对动作拆成几个时间块，说明先看、再回拨、再记录的时间分配。",
+      "when_to_use": [
+        "旁白讲“先花几分钟分开做三件事”、解释时间分配或提醒观众先停一下再操作时使用。"
+      ],
+      "not_for": [
+        "没有实测来源却当作真实耗时统计。",
+        "声称示意时间分配能量化降低风险。"
+      ],
+      "components": {
+        "native_ids": [
+          "Rve-ChartAnimation",
+          "Talkcraft-typewriter-reveal",
+          "Snapcn-TextHighlight",
+          "Rve-QuoteCard",
+          "Rve-StatCounter",
+          "Rve-ProgressSteps",
+          "Snapcn-WordFlip"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产传入 Shot.title、Shot.body 与结构化 set_design.content。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B07",
+        "composition": "rich",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail",
+          "content.numeric_items"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "必须由任务 API / Worker / Graph 生成，不能手写 timeline 或 JSX 替代",
+          "字段和数字口径必须符合组件套契约",
+          "不能传 asset_id、tutorial_steps、focus_steps、任意时间轴或组件 props",
+          "生成和发送样片不等于人工品鉴通过"
+        ]
+      },
+      "component_sample": {
+        "job_id": "79d377e97adb47a0b941ab1e8bfdf4b7",
+        "revision": 2,
+        "branch": "video/79d377e97adb47a0b941ab1e8bfdf4b7-component-set-b07",
+        "branch_head": "28499ca038912214d1c799657a769db3f8811e08",
+        "code_commit": "a42627546d84743ee40b103963fa173eaf17e26c",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B07/B07-时间分配-无素材增强版-R2.mp4",
+        "video_sha256": "95670ddf1675032ab958ab3a584e21a3608f48d84f5009ca553aee014c447ec7",
+        "media_receipt": "om_x100b639ab17624a0b3c7ca54ca87d83",
+        "director_plan": "video/79d377e97adb47a0b941ab1e8bfdf4b7-component-set-b07:episodes/79d377e97adb47a0b941ab1e8bfdf4b7/revisions/2/director-plan.json",
+        "production_record": "video/79d377e97adb47a0b941ab1e8bfdf4b7-component-set-b07:episodes/79d377e97adb47a0b941ab1e8bfdf4b7/revisions/2/production-record.json",
+        "verification": "video/79d377e97adb47a0b941ab1e8bfdf4b7-component-set-b07:episodes/79d377e97adb47a0b941ab1e8bfdf4b7/revisions/2/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "看清消息",
+            "回拨核实",
+            "留下记录"
+          ],
+          "metric": {
+            "label": "演示分配合计",
+            "value": "6分钟",
+            "detail": "2分钟+3分钟+1分钟"
+          },
+          "numeric_items": [
+            "看消息:2分钟",
+            "回拨:3分钟",
+            "记录:1分钟"
+          ]
+        },
+        "example": {
+          "title": "6分钟，分三段做",
+          "body": "这里演示的是时间分配，不是风险规律。",
+          "takeaway": "分开核对",
+          "items": [
+            "看清消息",
+            "回拨核实",
+            "留下记录"
+          ],
+          "metric": {
+            "label": "演示分配合计",
+            "value": "6分钟",
+            "detail": "2分钟+3分钟+1分钟"
+          },
+          "numeric_items": [
+            "看消息:2分钟",
+            "回拨:3分钟",
+            "记录:1分钟"
+          ]
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2个汉字单位",
+          "numeric_items": "标签:ASCII整数+1–2个汉字单位；同一套内单位一致"
+        },
+        "numeric_semantics": "演示数字只表示分配、计数、步骤、预算、时长或算术关系；不能写成风险比例、证据权重、成功率、调查统计或真实价格。",
+        "derived_layer_copy": [
+          "标题层使用 title/body。",
+          "词语翻换和强调层只取 items 与 takeaway。",
+          "图表和计数器只呈现 metric 与 numeric_items 的演示分配。"
+        ],
+        "basic_legacy_supported": false
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板、无黄色标题条",
+        "画面用文字、图表、流程或模拟对话形成连续表达，不靠随机堆组件",
+        "数字、预算、时间、动作数都是演示口径，不充当现实证据或风险概率",
+        "背景、边框、连接线不登记为原生组件 ID"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "给出总时间或时间条件",
+          "分拆各动作的时间",
+          "说明先后与暂停点"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B07，不传 asset_src；content.numeric_items/metric 写同单位时间分配或明确示意，parts 按本期时间解释重排，不套用样片折线。",
+        "content_constraints": [
+          "示意分配须标注，不能当实测耗时或风险降低证据。",
+          "各项时间同单位；合计与 metric 一致。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B07",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Rve-ProgressSteps",
+            "Rve-StatCounter",
+            "Snapcn-WordFlip",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B08",
+      "name": "预算拆分",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "把一个演示预算拆成几类去向，让观众先看钱流向哪里。",
+      "when_to_use": [
+        "需要解释预算去向、分拆金额，或提醒付款前先看用途。"
+      ],
+      "not_for": [
+        "把示意预算写成真实收费标准、推荐价格或市场行情。"
+      ],
+      "components": {
+        "native_ids": [
+          "Rve-StatCounter",
+          "Snapcn-TextBuild",
+          "Snapcn-TextHighlight",
+          "Rve-ChartAnimation",
+          "Snapcn-WordFlip",
+          "Talkcraft-ink-underline"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产传入 Shot.title、Shot.body 与结构化 set_design.content。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B08",
+        "composition": "rich",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail",
+          "content.numeric_items"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "必须由任务 API / Worker / Graph 生成，不能手写 timeline 或 JSX 替代",
+          "字段和数字口径必须符合组件套契约",
+          "不能传 asset_id、tutorial_steps、focus_steps、任意时间轴或组件 props",
+          "生成和发送样片不等于人工品鉴通过"
+        ]
+      },
+      "component_sample": {
+        "job_id": "8fe2ced8db294852a47179261da1971a",
+        "revision": 2,
+        "branch": "video/8fe2ced8db294852a47179261da1971a-component-set-b08",
+        "branch_head": "029d992bce4ce05c0305efac858f434ed128b84a",
+        "code_commit": "6d8758af1054fa318f8baa9bb65f3e96cd20539f",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B08/B08-预算拆分-无素材增强版-R2.mp4",
+        "video_sha256": "d344c1756676270956ead7abd6a5b49bd35531e1f64f8bbab20f703b93e2cae0",
+        "media_receipt": "om_x100b639b44337c88b2c85bb7e6676f9",
+        "director_plan": "video/8fe2ced8db294852a47179261da1971a-component-set-b08:episodes/8fe2ced8db294852a47179261da1971a/revisions/2/director-plan.json",
+        "production_record": "video/8fe2ced8db294852a47179261da1971a-component-set-b08:episodes/8fe2ced8db294852a47179261da1971a/revisions/2/production-record.json",
+        "verification": "video/8fe2ced8db294852a47179261da1971a-component-set-b08:episodes/8fe2ced8db294852a47179261da1971a/revisions/2/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "沟通费用",
+            "核实成本",
+            "预留不付"
+          ],
+          "metric": {
+            "label": "演示预算合计",
+            "value": "100元",
+            "detail": "30元+20元+50元"
+          },
+          "numeric_items": [
+            "沟通:30元",
+            "核实:20元",
+            "预留:50元"
+          ]
+        },
+        "example": {
+          "title": "100元，先拆开看",
+          "body": "这只是演示预算，不代表实际收费。",
+          "takeaway": "先看去向",
+          "items": [
+            "沟通费用",
+            "核实成本",
+            "预留不付"
+          ],
+          "metric": {
+            "label": "演示预算合计",
+            "value": "100元",
+            "detail": "30元+20元+50元"
+          },
+          "numeric_items": [
+            "沟通:30元",
+            "核实:20元",
+            "预留:50元"
+          ]
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2个汉字单位",
+          "numeric_items": "标签:ASCII整数+1–2个汉字单位；同一套内单位一致"
+        },
+        "numeric_semantics": "演示数字只表示分配、计数、步骤、预算、时长或算术关系；不能写成风险比例、证据权重、成功率、调查统计或真实价格。",
+        "derived_layer_copy": [
+          "图表使用 numeric_items 拆分预算。",
+          "公式层展示 metric.detail 的算术关系。",
+          "强调层只收束 takeaway。"
+        ],
+        "basic_legacy_supported": false
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板、无黄色标题条",
+        "画面用文字、图表、流程或模拟对话形成连续表达，不靠随机堆组件",
+        "数字、预算、时间、动作数都是演示口径，不充当现实证据或风险概率",
+        "背景、边框、连接线不登记为原生组件 ID"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "先说明预算范围",
+          "分拆用途",
+          "核对总额并回到付款判断"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B08，不传 asset_src；content.numeric_items/metric 写本期预算去向和总额，parts 按付款判断时刻揭示，不把示例价当行情。",
+        "content_constraints": [
+          "示意预算不是市场价格或产品收费；真实报价需本期来源。",
+          "分项之和与 metric 总额一致。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B08",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Rve-StatCounter",
+            "Snapcn-TextBuild",
+            "Rve-ChartAnimation",
+            "Snapcn-WordFlip",
+            "Talkcraft-ink-underline"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B09",
+      "name": "数字差",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "比较两个选择多了哪一步动作，强调差别是操作数量，不是安全概率。",
+      "when_to_use": [
+        "旁白对比“直接照做”和“先回拨核实”等两种做法时使用。"
+      ],
+      "not_for": [
+        "不用于证明某个选择一定更安全。",
+        "不用于概率、胜率或风险分数。"
+      ],
+      "components": {
+        "native_ids": [
+          "Rve-ComparisonChart",
+          "Snapcn-TextSwap",
+          "Snapcn-TextHighlight",
+          "Rve-SplitScreen",
+          "Rve-StatCounter",
+          "Talkcraft-strike-and-replace"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产传入 Shot.title、Shot.body 与结构化 set_design.content。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B09",
+        "composition": "rich",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail",
+          "content.numeric_items"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "必须由任务 API / Worker / Graph 生成，不能手写 timeline 或 JSX 替代",
+          "字段和数字口径必须符合组件套契约",
+          "不能传 asset_id、tutorial_steps、focus_steps、任意时间轴或组件 props",
+          "生成和发送样片不等于人工品鉴通过"
+        ]
+      },
+      "component_sample": {
+        "job_id": "4968fc3e451f4b5a850f1a89f52fc17f",
+        "revision": 2,
+        "branch": "video/4968fc3e451f4b5a850f1a89f52fc17f-component-set-b09",
+        "branch_head": "06724cccd9710270a712ee1aa8a83bb49b527fb7",
+        "code_commit": "e884338ad08782f5fbfe5759338ce82b30fda7c0",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B09/B09-数字差-无素材增强版-R2.mp4",
+        "video_sha256": "21ef8c507130caff7abd709e44c26a8cbacdf1fb990f9469b718987e8e94eb66",
+        "media_receipt": "om_x100b639b5ad6b0b0b25b56d02624185",
+        "director_plan": "video/4968fc3e451f4b5a850f1a89f52fc17f-component-set-b09:episodes/4968fc3e451f4b5a850f1a89f52fc17f/revisions/2/director-plan.json",
+        "production_record": "video/4968fc3e451f4b5a850f1a89f52fc17f-component-set-b09:episodes/4968fc3e451f4b5a850f1a89f52fc17f/revisions/2/production-record.json",
+        "verification": "video/4968fc3e451f4b5a850f1a89f52fc17f-component-set-b09:episodes/4968fc3e451f4b5a850f1a89f52fc17f/revisions/2/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "直接判断：看完就做",
+            "回拨核实：再确认一次"
+          ],
+          "metric": {
+            "label": "多出的核对动作",
+            "value": "1步",
+            "detail": "2步-1步"
+          },
+          "numeric_items": [
+            "直接判断:1步",
+            "回拨核实:2步"
+          ]
+        },
+        "example": {
+          "title": "差的不是快慢",
+          "body": "这里比较的是动作数量，不评价结果概率。",
+          "takeaway": "多一步核对",
+          "items": [
+            "直接判断：看完就做",
+            "回拨核实：再确认一次"
+          ],
+          "metric": {
+            "label": "多出的核对动作",
+            "value": "1步",
+            "detail": "2步-1步"
+          },
+          "numeric_items": [
+            "直接判断:1步",
+            "回拨核实:2步"
+          ]
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2个汉字单位",
+          "numeric_items": "标签:ASCII整数+1–2个汉字单位；同一套内单位一致"
+        },
+        "numeric_semantics": "演示数字只表示分配、计数、步骤、预算、时长或算术关系；不能写成风险比例、证据权重、成功率、调查统计或真实价格。",
+        "derived_layer_copy": [
+          "分屏层使用 items 两项。",
+          "对比图只使用 numeric_items 的同单位动作数。",
+          "替换层从 items 派生前后说法。"
+        ],
+        "basic_legacy_supported": false
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板、无黄色标题条",
+        "画面用文字、图表、流程或模拟对话形成连续表达，不靠随机堆组件",
+        "数字、预算、时间、动作数都是演示口径，不充当现实证据或风险概率",
+        "背景、边框、连接线不登记为原生组件 ID"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "展示两种做法",
+          "明确同维度数字",
+          "显示差值及其含义"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B09，不传 asset_src；Shot.title/body 写对比主题，content 写两种做法、同口径数字和差值，parts 按对比到差值再解释含义的 captions 展开。",
+        "content_constraints": [
+          "差值按输入真实计算，单位和比较口径一致。",
+          "步骤差不是风险分、胜率或更安全的量化证明。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B09",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Rve-ComparisonChart",
+            "Rve-StatCounter",
+            "Snapcn-TextSwap",
+            "Talkcraft-strike-and-replace",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B10",
+      "name": "累计账本",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "把多次小额或重复动作加成总账，提醒观众看累计口径。",
+      "when_to_use": [
+        "旁白讲“单次看不大，但合起来要算总账”时使用。"
+      ],
+      "not_for": [
+        "把示意累计当作真实账单或消费记录。",
+        "没有逐笔口径的冲击性大数字。"
+      ],
+      "components": {
+        "native_ids": [
+          "Rve-ChartAnimation",
+          "Snapcn-TextBuild",
+          "Snapcn-TextHighlight",
+          "Rve-StatCounter",
+          "Rve-LineChart",
+          "Talkcraft-ink-underline"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产传入 Shot.title、Shot.body 与结构化 set_design.content。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B10",
+        "composition": "rich",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail",
+          "content.numeric_items"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "必须由任务 API / Worker / Graph 生成，不能手写 timeline 或 JSX 替代",
+          "字段和数字口径必须符合组件套契约",
+          "不能传 asset_id、tutorial_steps、focus_steps、任意时间轴或组件 props",
+          "生成和发送样片不等于人工品鉴通过"
+        ]
+      },
+      "component_sample": {
+        "job_id": "4d8ab6d506e7402188d555d3c8d2d119",
+        "revision": 2,
+        "branch": "video/4d8ab6d506e7402188d555d3c8d2d119-component-set-b10",
+        "branch_head": "ba9f76b8140a7e8fff6496a670972578190c1753",
+        "code_commit": "1c25d2b530f613500728c7516ba65568a5a0f737",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B10/B10-累计账本-无素材增强版-R2.mp4",
+        "video_sha256": "228cc668d5165d7959403cf1a4d7fb0e3d219df3170c98c1a5c7121eb65f1b2a",
+        "media_receipt": "om_x100b639b6b3e84a0b1df30c5512e998",
+        "director_plan": "video/4d8ab6d506e7402188d555d3c8d2d119-component-set-b10:episodes/4d8ab6d506e7402188d555d3c8d2d119/revisions/2/director-plan.json",
+        "production_record": "video/4d8ab6d506e7402188d555d3c8d2d119-component-set-b10:episodes/4d8ab6d506e7402188d555d3c8d2d119/revisions/2/production-record.json",
+        "verification": "video/4d8ab6d506e7402188d555d3c8d2d119-component-set-b10:episodes/4d8ab6d506e7402188d555d3c8d2d119/revisions/2/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "第1次",
+            "第2次",
+            "第3次"
+          ],
+          "metric": {
+            "label": "三次合计",
+            "value": "399元",
+            "detail": "133元+133元+133元"
+          },
+          "numeric_items": [
+            "第1次:133元",
+            "第2次:133元",
+            "第3次:133元"
+          ]
+        },
+        "example": {
+          "title": "三次小额，合起来看",
+          "body": "这是算账演示，不代表真实消费记录。",
+          "takeaway": "看总账",
+          "items": [
+            "第1次",
+            "第2次",
+            "第3次"
+          ],
+          "metric": {
+            "label": "三次合计",
+            "value": "399元",
+            "detail": "133元+133元+133元"
+          },
+          "numeric_items": [
+            "第1次:133元",
+            "第2次:133元",
+            "第3次:133元"
+          ]
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2个汉字单位",
+          "numeric_items": "标签:ASCII整数+1–2个汉字单位；同一套内单位一致"
+        },
+        "numeric_semantics": "演示数字只表示分配、计数、步骤、预算、时长或算术关系；不能写成风险比例、证据权重、成功率、调查统计或真实价格。",
+        "derived_layer_copy": [
+          "计数器显示 metric 合计。",
+          "items 三项提供账本标签。",
+          "柱状和折线只展示 numeric_items 的逐笔累计。",
+          "公式层从三笔输入派生总账。"
+        ],
+        "basic_legacy_supported": false
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板、无黄色标题条",
+        "画面用文字、图表、流程或模拟对话形成连续表达，不靠随机堆组件",
+        "数字、预算、时间、动作数都是演示口径，不充当现实证据或风险概率",
+        "背景、边框、连接线不登记为原生组件 ID"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "先展示单次金额或数量",
+          "逐项展开累计",
+          "核对总账并解释口径"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B10，不传 asset_src；content.numeric_items/metric 写本期累计口径，parts 的累计、统计和趋势线按真实数据与旁白展开。",
+        "content_constraints": [
+          "示意账本不是真实消费记录；真实账单需要实际来源。",
+          "累计严格来自逐笔数据，不能凭冲击力造大数字。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B10",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Rve-ChartAnimation",
+            "Rve-LineChart",
+            "Snapcn-TextBuild",
+            "Rve-StatCounter",
+            "Talkcraft-ink-underline"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B11",
+      "name": "条件分支",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "把条件和对应动作配对，形成 if/then 的操作分支。",
+      "when_to_use": [
+        "旁白需要讲“如果出现这种条件，就做这个动作”的流程判断时使用。"
+      ],
+      "not_for": [
+        "不用于自动判定结果。",
+        "不用于替代真实产品流程图或真实规则。"
+      ],
+      "components": {
+        "native_ids": [
+          "Rve-ProgressSteps",
+          "Snapcn-TextBuild",
+          "Snapcn-AnswerHighlight",
+          "Rve-SplitScreen",
+          "Rve-StatCounter",
+          "Talkcraft-word-slot-cycle"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产传入 Shot.title、Shot.body 与结构化 set_design.content。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B11",
+        "composition": "rich",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.supporting_items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "必须由任务 API / Worker / Graph 生成，不能手写 timeline 或 JSX 替代",
+          "字段和数字口径必须符合组件套契约",
+          "不能传 asset_id、tutorial_steps、focus_steps、任意时间轴或组件 props",
+          "生成和发送样片不等于人工品鉴通过"
+        ]
+      },
+      "component_sample": {
+        "job_id": "96a2e74bbfbb476faac9893081a83bb6",
+        "revision": 1,
+        "branch": "video/96a2e74bbfbb476faac9893081a83bb6-component-set-b11",
+        "branch_head": "f2a22e6ba39df2030ac56652c53ba98197fa42fc",
+        "code_commit": "1c25d2b530f613500728c7516ba65568a5a0f737",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B11/B11-条件分支-无素材增强版-R1.mp4",
+        "video_sha256": "0aabe1ee17fac8cf8ce49793f7b2a98f0690c6e9f1d4d4386c25cefbbe357137",
+        "media_receipt": "om_x100b639b67687ca0b12e0c7d99b4572",
+        "director_plan": "video/96a2e74bbfbb476faac9893081a83bb6-component-set-b11:episodes/96a2e74bbfbb476faac9893081a83bb6/revisions/1/director-plan.json",
+        "production_record": "video/96a2e74bbfbb476faac9893081a83bb6-component-set-b11:episodes/96a2e74bbfbb476faac9893081a83bb6/revisions/1/production-record.json",
+        "verification": "video/96a2e74bbfbb476faac9893081a83bb6-component-set-b11:episodes/96a2e74bbfbb476faac9893081a83bb6/revisions/1/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "能公开核对",
+            "只催私下付款",
+            "说法前后不一"
+          ],
+          "supporting_items": [
+            "回拨确认",
+            "暂停付款",
+            "截图留存"
+          ],
+          "metric": {
+            "label": "演示分支",
+            "value": "3项",
+            "detail": "三个条件对应三个动作"
+          }
+        },
+        "example": {
+          "title": "先看条件，再做动作",
+          "body": "条件分支只是演示流程，不代表自动判断。",
+          "takeaway": "按条件走",
+          "items": [
+            "能公开核对",
+            "只催私下付款",
+            "说法前后不一"
+          ],
+          "supporting_items": [
+            "回拨确认",
+            "暂停付款",
+            "截图留存"
+          ],
+          "metric": {
+            "label": "演示分支",
+            "value": "3项",
+            "detail": "三个条件对应三个动作"
+          }
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2个汉字单位",
+          "numeric_items": "标签:ASCII整数+1–2个汉字单位；同一套内单位一致"
+        },
+        "numeric_semantics": "演示数字只表示分配、计数、步骤、预算、时长或算术关系；不能写成风险比例、证据权重、成功率、调查统计或真实价格。",
+        "derived_layer_copy": [
+          "条件来自 items。",
+          "对应动作来自 supporting_items。",
+          "计数器只显示分支数量。"
+        ],
+        "basic_legacy_supported": false
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板、无黄色标题条",
+        "画面用文字、图表、流程或模拟对话形成连续表达，不靠随机堆组件",
+        "数字、预算、时间、动作数都是演示口径，不充当现实证据或风险概率",
+        "背景、边框、连接线不登记为原生组件 ID"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "说明触发条件",
+          "对应给出动作",
+          "保留未满足条件的另一结果"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B11，不传 asset_src；content.items 写条件分支，保留“如果/否则/前提”等限定，parts 按分支说明时刻调整。",
+        "content_constraints": [
+          "items 是条件，supporting_items 是对应动作。",
+          "流程图只解释本期规则，不声称系统已自动判定或执行。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B11",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Rve-ProgressSteps",
+            "Rve-StatCounter",
+            "Snapcn-TextBuild",
+            "Talkcraft-word-slot-cycle",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B12",
+      "name": "关系链",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "把多个角色或环节画成关系链，帮助观众分清谁在聊天、谁在接管、钱到哪里。",
+      "when_to_use": [
+        "旁白解释 AI文字、真人视频、付款入口等链路关系时使用。"
+      ],
+      "not_for": [
+        "不用于认定真实案件事实。",
+        "不用于替代有来源的关系图证据。"
+      ],
+      "components": {
+        "native_ids": [
+          "Rve-QuoteCard",
+          "Snapcn-WordFlip",
+          "Snapcn-TextHighlight",
+          "Talkcraft-source-converge",
+          "Rve-StatCounter",
+          "Rve-ProgressSteps"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产传入 Shot.title、Shot.body 与结构化 set_design.content。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B12",
+        "composition": "rich",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.supporting_items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "必须由任务 API / Worker / Graph 生成，不能手写 timeline 或 JSX 替代",
+          "字段和数字口径必须符合组件套契约",
+          "不能传 asset_id、tutorial_steps、focus_steps、任意时间轴或组件 props",
+          "生成和发送样片不等于人工品鉴通过"
+        ]
+      },
+      "component_sample": {
+        "job_id": "cdcc40d383f44cecaee60c80cf07c085",
+        "revision": 2,
+        "branch": "video/cdcc40d383f44cecaee60c80cf07c085-component-set-b12",
+        "branch_head": "1aebbbe543edf92881f8e8e4c60ba03da6b39005",
+        "code_commit": "7e88b2c200a52249f7ad674757349522db56296c",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B12/B12-关系链-无素材增强版-R2.mp4",
+        "video_sha256": "d574169adde19784c2c49b692d90c1c6aa996219147920101ba786e2e9ff0386",
+        "media_receipt": "om_x100b639b7b1188a4b2afb079d40327f",
+        "director_plan": "video/cdcc40d383f44cecaee60c80cf07c085-component-set-b12:episodes/cdcc40d383f44cecaee60c80cf07c085/revisions/2/director-plan.json",
+        "production_record": "video/cdcc40d383f44cecaee60c80cf07c085-component-set-b12:episodes/cdcc40d383f44cecaee60c80cf07c085/revisions/2/production-record.json",
+        "verification": "video/cdcc40d383f44cecaee60c80cf07c085-component-set-b12:episodes/cdcc40d383f44cecaee60c80cf07c085/revisions/2/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "AI文字",
+            "真人视频",
+            "付款入口"
+          ],
+          "supporting_items": [
+            "谁在聊天",
+            "谁在接管",
+            "钱到哪里"
+          ],
+          "metric": {
+            "label": "链路节点",
+            "value": "3个",
+            "detail": "演示关系，不是案件事实"
+          }
+        },
+        "example": {
+          "title": "先把关系链画出来",
+          "body": "这是一张角色关系示意，不是事实认定。",
+          "takeaway": "分清角色",
+          "items": [
+            "AI文字",
+            "真人视频",
+            "付款入口"
+          ],
+          "supporting_items": [
+            "谁在聊天",
+            "谁在接管",
+            "钱到哪里"
+          ],
+          "metric": {
+            "label": "链路节点",
+            "value": "3个",
+            "detail": "演示关系，不是案件事实"
+          }
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2个汉字单位",
+          "numeric_items": "标签:ASCII整数+1–2个汉字单位；同一套内单位一致"
+        },
+        "numeric_semantics": "演示数字只表示分配、计数、步骤、预算、时长或算术关系；不能写成风险比例、证据权重、成功率、调查统计或真实价格。",
+        "derived_layer_copy": [
+          "节点来自 items。",
+          "追问来自 supporting_items。",
+          "数字只表示链路节点数。"
+        ],
+        "basic_legacy_supported": false
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板、无黄色标题条",
+        "画面用文字、图表、流程或模拟对话形成连续表达，不靠随机堆组件",
+        "数字、预算、时间、动作数都是演示口径，不充当现实证据或风险概率",
+        "背景、边框、连接线不登记为原生组件 ID"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "列出不同参与者或环节",
+          "解释每个职责",
+          "讲清连接方向与结果"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B12，不传 asset_src；content.items/supporting_items 写来源支持的角色和连接，parts 按关系链顺序展开，不把并列关系写成因果。",
+        "content_constraints": [
+          "AI 文字、真人视频、付款入口等具体事实需要本期证据。",
+          "图形解释不是真实关系图证据；不把示意数量当真实规模。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B12",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Rve-QuoteCard",
+            "Talkcraft-source-converge",
+            "Rve-ProgressSteps",
+            "Snapcn-WordFlip",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B13",
+      "name": "误区纠正",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "把一句常见误区改写成更准确的判断方式。",
+      "when_to_use": [
+        "旁白纠正“会聊天就可信”“能视频就是真人”等捷径判断时使用。"
+      ],
+      "not_for": [
+        "不用于给具体对象下结论。",
+        "不用于没有替代表述的空泛反驳。"
+      ],
+      "components": {
+        "native_ids": [
+          "Rve-SplitScreen",
+          "Snapcn-TextRewrite",
+          "Snapcn-TextHighlight",
+          "Snapcn-TextSwap",
+          "Rve-StatCounter",
+          "Talkcraft-error-retype",
+          "Rve-QuoteCard",
+          "Talkcraft-strike-and-replace"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产传入 Shot.title、Shot.body 与结构化 set_design.content。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B13",
+        "composition": "rich",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.supporting_items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "必须由任务 API / Worker / Graph 生成，不能手写 timeline 或 JSX 替代",
+          "字段和数字口径必须符合组件套契约",
+          "不能传 asset_id、tutorial_steps、focus_steps、任意时间轴或组件 props",
+          "生成和发送样片不等于人工品鉴通过"
+        ]
+      },
+      "component_sample": {
+        "job_id": "58ea685395964c5299ccd480791a20b8",
+        "revision": 1,
+        "branch": "video/58ea685395964c5299ccd480791a20b8-component-set-b13",
+        "branch_head": "b9fe7e81906235b0a9abe3d45e1bb6c70b85f06b",
+        "code_commit": "7e88b2c200a52249f7ad674757349522db56296c",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B13/B13-误区纠正-无素材增强版-R1.mp4",
+        "video_sha256": "7251c1aaf18fe165f3c2201b226fd0225d3ee8d17eaee19123866a31e1b7a638",
+        "media_receipt": "om_x100b639b774f74a0b3092107fefecc2",
+        "director_plan": "video/58ea685395964c5299ccd480791a20b8-component-set-b13:episodes/58ea685395964c5299ccd480791a20b8/revisions/1/director-plan.json",
+        "production_record": "video/58ea685395964c5299ccd480791a20b8-component-set-b13:episodes/58ea685395964c5299ccd480791a20b8/revisions/1/production-record.json",
+        "verification": "video/58ea685395964c5299ccd480791a20b8-component-set-b13:episodes/58ea685395964c5299ccd480791a20b8/revisions/1/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "会聊天＝真人",
+            "会聊天≠可信"
+          ],
+          "supporting_items": [
+            "能接话",
+            "能视频",
+            "能核实"
+          ],
+          "metric": {
+            "label": "纠正点",
+            "value": "3条",
+            "detail": "三条是表达拆解"
+          }
+        },
+        "example": {
+          "title": "会聊天不等于可信",
+          "body": "纠正的是一句判断方式，不是给某个对象下结论。",
+          "takeaway": "先核实身份",
+          "items": [
+            "会聊天＝真人",
+            "会聊天≠可信"
+          ],
+          "supporting_items": [
+            "能接话",
+            "能视频",
+            "能核实"
+          ],
+          "metric": {
+            "label": "纠正点",
+            "value": "3条",
+            "detail": "三条是表达拆解"
+          }
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2个汉字单位",
+          "numeric_items": "标签:ASCII整数+1–2个汉字单位；同一套内单位一致"
+        },
+        "numeric_semantics": "演示数字只表示分配、计数、步骤、预算、时长或算术关系；不能写成风险比例、证据权重、成功率、调查统计或真实价格。",
+        "derived_layer_copy": [
+          "改写层从 items[0] 到 items[1]。",
+          "解释层使用 supporting_items。",
+          "metric 只表示拆解条数。"
+        ],
+        "basic_legacy_supported": false
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板、无黄色标题条",
+        "画面用文字、图表、流程或模拟对话形成连续表达，不靠随机堆组件",
+        "数字、预算、时间、动作数都是演示口径，不充当现实证据或风险概率",
+        "背景、边框、连接线不登记为原生组件 ID"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "显示被纠正的说法",
+          "保留否定并替换准确说法",
+          "给出能执行的判断依据"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B13，不传 asset_src；Shot.title/body 写误区主题，content 写错误说法、纠正说法和必要否定，parts 按误区出现、划掉、改写和收束的本地时钟展开。",
+        "content_constraints": [
+          "纠正具体判断依据，不能据此给具体人或平台定罪。",
+          "替代表述须有依据；数字只作明确的条目计数。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B13",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Rve-SplitScreen",
+            "Talkcraft-error-retype",
+            "Rve-QuoteCard",
+            "Talkcraft-strike-and-replace",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B14",
+      "name": "提问回答",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "把一个观众问题变成模拟问答，再落到几项可执行核实点。",
+      "when_to_use": [
+        "旁白采用问答结构，例如“视频通话就可信吗？”时使用。"
+      ],
+      "not_for": [
+        "不用于真实聊天记录。",
+        "不用于冒充平台客服、警方或当事人对话。"
+      ],
+      "components": {
+        "native_ids": [
+          "Snapcn-AnswerStream",
+          "Snapcn-SearchTyping",
+          "Snapcn-AnswerHighlight",
+          "Bits-ChatConversation",
+          "Snapcn-TextBuild",
+          "Rve-StatCounter"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产传入 Shot.title、Shot.body 与结构化 set_design.content。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B14",
+        "composition": "rich",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.supporting_items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "必须由任务 API / Worker / Graph 生成，不能手写 timeline 或 JSX 替代",
+          "字段和数字口径必须符合组件套契约",
+          "不能传 asset_id、tutorial_steps、focus_steps、任意时间轴或组件 props",
+          "生成和发送样片不等于人工品鉴通过"
+        ]
+      },
+      "component_sample": {
+        "job_id": "b0245efd3db34046b15a52e9e6bea464",
+        "revision": 1,
+        "branch": "video/b0245efd3db34046b15a52e9e6bea464-component-set-b14",
+        "branch_head": "299046611b13b9cdc17ac314ee75dd0c086e6323",
+        "code_commit": "7e88b2c200a52249f7ad674757349522db56296c",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B14/B14-提问回答-无素材增强版-R1.mp4",
+        "video_sha256": "b61923c9fbbcf66ce56a471f42254f5557fad639b591bb9edac964904e7ac989",
+        "media_receipt": "om_x100b639b70c76cacb48d34117014e75",
+        "director_plan": "video/b0245efd3db34046b15a52e9e6bea464-component-set-b14:episodes/b0245efd3db34046b15a52e9e6bea464/revisions/1/director-plan.json",
+        "production_record": "video/b0245efd3db34046b15a52e9e6bea464-component-set-b14:episodes/b0245efd3db34046b15a52e9e6bea464/revisions/1/production-record.json",
+        "verification": "video/b0245efd3db34046b15a52e9e6bea464-component-set-b14:episodes/b0245efd3db34046b15a52e9e6bea464/revisions/1/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "看号码",
+            "问来源",
+            "停付款"
+          ],
+          "supporting_items": [
+            "对方：我可以视频",
+            "我：先核对号码"
+          ],
+          "metric": {
+            "label": "核实点",
+            "value": "3项",
+            "detail": "演示问答，不是判断结论"
+          }
+        },
+        "example": {
+          "title": "视频通话就可信吗？",
+          "body": "回答是机制示意，不是真实对话记录。",
+          "takeaway": "视频也要核实",
+          "items": [
+            "看号码",
+            "问来源",
+            "停付款"
+          ],
+          "supporting_items": [
+            "对方：我可以视频",
+            "我：先核对号码"
+          ],
+          "metric": {
+            "label": "核实点",
+            "value": "3项",
+            "detail": "演示问答，不是判断结论"
+          }
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2个汉字单位",
+          "numeric_items": "标签:ASCII整数+1–2个汉字单位；同一套内单位一致"
+        },
+        "numeric_semantics": "演示数字只表示分配、计数、步骤、预算、时长或算术关系；不能写成风险比例、证据权重、成功率、调查统计或真实价格。",
+        "derived_layer_copy": [
+          "搜索标题来自 title。",
+          "模拟对话来自 supporting_items。",
+          "行动点来自 items。"
+        ],
+        "basic_legacy_supported": false
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板、无黄色标题条",
+        "画面用文字、图表、流程或模拟对话形成连续表达，不靠随机堆组件",
+        "数字、预算、时间、动作数都是演示口径，不充当现实证据或风险概率",
+        "背景、边框、连接线不登记为原生组件 ID"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "提出观众会问的问题",
+          "按口播回答",
+          "补充条件与下一步"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B14，不传 asset_src；Shot.title/body 写本期真实提问，content 写回答要点，parts 按问答流展开，不伪造聊天头像或平台对话。",
+        "content_constraints": [
+          "问答是说明，不能冒充客服、警方或当事人聊天记录。",
+          "回答保留条件，条目数字不表示可信度评分。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B14",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Snapcn-AnswerStream",
+            "Bits-ChatConversation",
+            "Snapcn-TextBuild",
+            "Rve-StatCounter",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B15",
+      "name": "核实状态分类",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "把说法分成自述、有来源、待核三类，提醒观众标出待核状态。",
+      "when_to_use": [
+        "旁白需要区分“有人这么说”“有出处”“还没确认”时使用。"
+      ],
+      "not_for": [
+        "不用于证据等级排序。",
+        "不用于暗示某类信息一定真或一定假。"
+      ],
+      "components": {
+        "native_ids": [
+          "Rve-QuoteCard",
+          "Talkcraft-title-demote-to-label",
+          "Snapcn-TextHighlight",
+          "Rve-ProgressSteps",
+          "Rve-StatCounter",
+          "Rve-ChartAnimation",
+          "Snapcn-TextBuild"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产传入 Shot.title、Shot.body 与结构化 set_design.content。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B15",
+        "composition": "rich",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.supporting_items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail",
+          "content.numeric_items"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "必须由任务 API / Worker / Graph 生成，不能手写 timeline 或 JSX 替代",
+          "字段和数字口径必须符合组件套契约",
+          "不能传 asset_id、tutorial_steps、focus_steps、任意时间轴或组件 props",
+          "生成和发送样片不等于人工品鉴通过"
+        ]
+      },
+      "component_sample": {
+        "job_id": "72daf450e6084d4a87bdba26db3ae75c",
+        "revision": 2,
+        "branch": "video/72daf450e6084d4a87bdba26db3ae75c-component-set-b15",
+        "branch_head": "3750f8d92e64c0ef87d523591fb6da64c7d2b43a",
+        "code_commit": "a09e1fe14b5f717ed20363a6f614fe7c0ed97d54",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B15/B15-核实状态分类-无素材增强版-R2.mp4",
+        "video_sha256": "591f651fd59d4fc5846641bb1b1a5305f6a1eeb470cad3963824b8ae359fda98",
+        "media_receipt": "om_x100b639b09dc18a8b16922f81a286bd",
+        "director_plan": "video/72daf450e6084d4a87bdba26db3ae75c-component-set-b15:episodes/72daf450e6084d4a87bdba26db3ae75c/revisions/2/director-plan.json",
+        "production_record": "video/72daf450e6084d4a87bdba26db3ae75c-component-set-b15:episodes/72daf450e6084d4a87bdba26db3ae75c/revisions/2/production-record.json",
+        "verification": "video/72daf450e6084d4a87bdba26db3ae75c-component-set-b15:episodes/72daf450e6084d4a87bdba26db3ae75c/revisions/2/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "自述",
+            "有来源",
+            "待核"
+          ],
+          "supporting_items": [
+            "自己说的",
+            "能找到出处",
+            "还没确认"
+          ],
+          "metric": {
+            "label": "核实状态",
+            "value": "3类",
+            "detail": "分类演示，不是证据等级"
+          },
+          "numeric_items": [
+            "自述:1类",
+            "有来源:1类",
+            "待核:1类"
+          ]
+        },
+        "example": {
+          "title": "先分三类状态",
+          "body": "分类只是帮助整理，不代表证据权重。",
+          "takeaway": "待核要标出来",
+          "items": [
+            "自述",
+            "有来源",
+            "待核"
+          ],
+          "supporting_items": [
+            "自己说的",
+            "能找到出处",
+            "还没确认"
+          ],
+          "metric": {
+            "label": "核实状态",
+            "value": "3类",
+            "detail": "分类演示，不是证据等级"
+          },
+          "numeric_items": [
+            "自述:1类",
+            "有来源:1类",
+            "待核:1类"
+          ]
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2个汉字单位",
+          "numeric_items": "标签:ASCII整数+1–2个汉字单位；同一套内单位一致"
+        },
+        "numeric_semantics": "演示数字只表示分配、计数、步骤、预算、时长或算术关系；不能写成风险比例、证据权重、成功率、调查统计或真实价格。",
+        "derived_layer_copy": [
+          "分类来自 items。",
+          "解释来自 supporting_items。",
+          "numeric_items 只表示分类计数，不表示权重。"
+        ],
+        "basic_legacy_supported": false
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板、无黄色标题条",
+        "画面用文字、图表、流程或模拟对话形成连续表达，不靠随机堆组件",
+        "数字、预算、时间、动作数都是演示口径，不充当现实证据或风险概率",
+        "背景、边框、连接线不登记为原生组件 ID"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "列出本期说法",
+          "区分自述、有出处、未确认",
+          "说明每类还需怎样核对"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B15，不传 asset_src；content.items/supporting_items 写每条说法及核实状态，parts 按分类和状态揭示时刻调整。",
+        "content_constraints": [
+          "状态分类不是证据等级、真实性概率或权重。",
+          "每条状态依据本期来源；不能因为归类就认定必真或必假。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B15",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Rve-QuoteCard",
+            "Rve-ChartAnimation",
+            "Rve-ProgressSteps",
+            "Snapcn-TextBuild",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B16",
+      "name": "优先级排序",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "把检查动作排成先后顺序，告诉观众先看什么、再看什么。",
+      "when_to_use": [
+        "旁白讲“先看A，再看B，最后看C”的操作建议时使用。"
+      ],
+      "not_for": [
+        "不用于风险严重度排序。",
+        "不用于没有顺序关系的并列信息。"
+      ],
+      "components": {
+        "native_ids": [
+          "Rve-ProgressSteps",
+          "Talkcraft-title-demote-to-label",
+          "Talkcraft-keyword-pop-highlight",
+          "Rve-StatCounter",
+          "Snapcn-WordFlip",
+          "Rve-QuoteCard",
+          "Snapcn-TextHighlight"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产传入 Shot.title、Shot.body 与结构化 set_design.content。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B16",
+        "composition": "rich",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.supporting_items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "必须由任务 API / Worker / Graph 生成，不能手写 timeline 或 JSX 替代",
+          "字段和数字口径必须符合组件套契约",
+          "不能传 asset_id、tutorial_steps、focus_steps、任意时间轴或组件 props",
+          "生成和发送样片不等于人工品鉴通过"
+        ]
+      },
+      "component_sample": {
+        "job_id": "771fd77fc49a4c008127170d54c904a8",
+        "revision": 1,
+        "branch": "video/771fd77fc49a4c008127170d54c904a8-component-set-b16",
+        "branch_head": "6578bfaf3682d5ab3a256414773be5f415b7ef95",
+        "code_commit": "a09e1fe14b5f717ed20363a6f614fe7c0ed97d54",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B16/B16-优先级排序-无素材增强版-R1.mp4",
+        "video_sha256": "da6476600de75b3534ecb98fcf88c5a25597f415998890e7a4f678dcc23f56ba",
+        "media_receipt": "om_x100b639b046c28a0b1cb01f3f44fa9a",
+        "director_plan": "video/771fd77fc49a4c008127170d54c904a8-component-set-b16:episodes/771fd77fc49a4c008127170d54c904a8/revisions/1/director-plan.json",
+        "production_record": "video/771fd77fc49a4c008127170d54c904a8-component-set-b16:episodes/771fd77fc49a4c008127170d54c904a8/revisions/1/production-record.json",
+        "verification": "video/771fd77fc49a4c008127170d54c904a8-component-set-b16:episodes/771fd77fc49a4c008127170d54c904a8/revisions/1/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "付款动作",
+            "身份来源",
+            "联系号码"
+          ],
+          "supporting_items": [
+            "是否让你转钱",
+            "身份能否回查",
+            "号码是否熟悉"
+          ],
+          "metric": {
+            "label": "优先检查",
+            "value": "3项",
+            "detail": "操作顺序演示"
+          }
+        },
+        "example": {
+          "title": "先看哪三件事",
+          "body": "顺序是操作建议，不是风险排序。",
+          "takeaway": "先看付款动作",
+          "items": [
+            "付款动作",
+            "身份来源",
+            "联系号码"
+          ],
+          "supporting_items": [
+            "是否让你转钱",
+            "身份能否回查",
+            "号码是否熟悉"
+          ],
+          "metric": {
+            "label": "优先检查",
+            "value": "3项",
+            "detail": "操作顺序演示"
+          }
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2个汉字单位",
+          "numeric_items": "标签:ASCII整数+1–2个汉字单位；同一套内单位一致"
+        },
+        "numeric_semantics": "演示数字只表示分配、计数、步骤、预算、时长或算术关系；不能写成风险比例、证据权重、成功率、调查统计或真实价格。",
+        "derived_layer_copy": [
+          "优先项来自 items。",
+          "解释来自 supporting_items。",
+          "关键词强调只突出第一检查项。"
+        ],
+        "basic_legacy_supported": false
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板、无黄色标题条",
+        "画面用文字、图表、流程或模拟对话形成连续表达，不靠随机堆组件",
+        "数字、预算、时间、动作数都是演示口径，不充当现实证据或风险概率",
+        "背景、边框、连接线不登记为原生组件 ID"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "说明优先处理的动作",
+          "再显示后续动作",
+          "保留顺序理由"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B16，不传 asset_src；content.items 写本期优先级和理由，parts 按排序说明逐项展开，不用排名视觉替代论证。",
+        "content_constraints": [
+          "排序是操作顺序，不是风险严重度评分。",
+          "没有先后关系的并列信息不套排序。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B16",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Rve-ProgressSteps",
+            "Rve-StatCounter",
+            "Snapcn-WordFlip",
+            "Rve-QuoteCard",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B17",
+      "name": "倒数检查",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "用倒数三问制造停顿，让观众在转账、付款或行动前先自检。",
+      "when_to_use": [
+        "旁白提醒“转账前先问自己三件事”“先暂停一下”时使用。"
+      ],
+      "not_for": [
+        "不用于真实聊天判断。",
+        "不用于已经完成付款后的证据展示。"
+      ],
+      "components": {
+        "native_ids": [
+          "Bits-ChatConversation",
+          "Talkcraft-line-by-line-slide",
+          "Snapcn-AnswerHighlight",
+          "Rve-ProgressSteps",
+          "Rve-StatCounter",
+          "Snapcn-TextBuild"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产传入 Shot.title、Shot.body 与结构化 set_design.content。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B17",
+        "composition": "rich",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.supporting_items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "必须由任务 API / Worker / Graph 生成，不能手写 timeline 或 JSX 替代",
+          "字段和数字口径必须符合组件套契约",
+          "不能传 asset_id、tutorial_steps、focus_steps、任意时间轴或组件 props",
+          "生成和发送样片不等于人工品鉴通过"
+        ]
+      },
+      "component_sample": {
+        "job_id": "62d2f3fd1e8540e2b4240087b7158bde",
+        "revision": 1,
+        "branch": "video/62d2f3fd1e8540e2b4240087b7158bde-component-set-b17",
+        "branch_head": "1212817341c908e116e4ff8f995afefc8c46917f",
+        "code_commit": "a09e1fe14b5f717ed20363a6f614fe7c0ed97d54",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B17/B17-倒数检查-无素材增强版-R1.mp4",
+        "video_sha256": "53f0bd54988270c0fc4a28e7a3755f1dbb0407ecd11173bfe4e3e0ede5ae6a56",
+        "media_receipt": "om_x100b639b1b7b7cacb11a08af355fdc7",
+        "director_plan": "video/62d2f3fd1e8540e2b4240087b7158bde-component-set-b17:episodes/62d2f3fd1e8540e2b4240087b7158bde/revisions/1/director-plan.json",
+        "production_record": "video/62d2f3fd1e8540e2b4240087b7158bde-component-set-b17:episodes/62d2f3fd1e8540e2b4240087b7158bde/revisions/1/production-record.json",
+        "verification": "video/62d2f3fd1e8540e2b4240087b7158bde-component-set-b17:episodes/62d2f3fd1e8540e2b4240087b7158bde/revisions/1/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "谁让我付",
+            "钱到哪里",
+            "能否回拨"
+          ],
+          "supporting_items": [
+            "对方：先转一点",
+            "我：先过三问"
+          ],
+          "metric": {
+            "label": "倒数检查",
+            "value": "3问",
+            "detail": "操作前自检"
+          }
+        },
+        "example": {
+          "title": "转账前倒数三问",
+          "body": "这是停顿检查，不是真实聊天判断。",
+          "takeaway": "三问不过不付",
+          "items": [
+            "谁让我付",
+            "钱到哪里",
+            "能否回拨"
+          ],
+          "supporting_items": [
+            "对方：先转一点",
+            "我：先过三问"
+          ],
+          "metric": {
+            "label": "倒数检查",
+            "value": "3问",
+            "detail": "操作前自检"
+          }
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2个汉字单位",
+          "numeric_items": "标签:ASCII整数+1–2个汉字单位；同一套内单位一致"
+        },
+        "numeric_semantics": "演示数字只表示分配、计数、步骤、预算、时长或算术关系；不能写成风险比例、证据权重、成功率、调查统计或真实价格。",
+        "derived_layer_copy": [
+          "三问来自 items。",
+          "模拟压力对话来自 supporting_items。",
+          "metric 只表示问题数量。"
+        ],
+        "basic_legacy_supported": false
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板、无黄色标题条",
+        "画面用文字、图表、流程或模拟对话形成连续表达，不靠随机堆组件",
+        "数字、预算、时间、动作数都是演示口径，不充当现实证据或风险概率",
+        "背景、边框、连接线不登记为原生组件 ID"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "在关键动作前提醒暂停",
+          "逐条提出检查问题",
+          "确认后再进入下一动作"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B17，不传 asset_src；content.items 写本期倒数检查问题，parts 按检查节奏展开，倒数只表示条目进度，不改音频。",
+        "content_constraints": [
+          "计数与真实检查项一致，不能宣称检查后绝对安全。",
+          "适用于动作前提醒，不伪装为已发生交易的证据。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B17",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Bits-ChatConversation",
+            "Rve-ProgressSteps",
+            "Rve-StatCounter",
+            "Snapcn-TextBuild",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "B18",
+      "name": "操作步骤前后",
+      "category": "no_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "对比旧做法和新做法，把原来一步拆成更清楚的几步。",
+      "when_to_use": [
+        "旁白讲“以前只做一步，现在拆成三步”或解释操作改造前后时使用。"
+      ],
+      "not_for": [
+        "不用于声称新做法一定提升效果。",
+        "不用于没有前后变化的普通步骤说明。"
+      ],
+      "components": {
+        "native_ids": [
+          "Rve-ComparisonChart",
+          "Snapcn-TextSwap",
+          "Snapcn-TextHighlight",
+          "Rve-SplitScreen",
+          "Rve-ProgressSteps",
+          "Talkcraft-strike-and-replace"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_composition_safe_slots",
+          "relative_frame_reveals"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": false,
+        "accepted_media": [],
+        "requirements": "不传图片或视频；普通生产传入 Shot.title、Shot.body 与结构化 set_design.content。"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "B18",
+        "composition": "rich",
+        "forbidden": [
+          "asset_id",
+          "tutorial_steps",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.supporting_items",
+          "content.metric.label",
+          "content.metric.value",
+          "content.metric.detail",
+          "content.numeric_items"
+        ],
+        "fixed_boundaries": [
+          "只在独立空素材草稿提交样片",
+          "必须由任务 API / Worker / Graph 生成，不能手写 timeline 或 JSX 替代",
+          "字段和数字口径必须符合组件套契约",
+          "不能传 asset_id、tutorial_steps、focus_steps、任意时间轴或组件 props",
+          "生成和发送样片不等于人工品鉴通过"
+        ]
+      },
+      "component_sample": {
+        "job_id": "ba3755ea92ba4df884e747ca2b8b7f2f",
+        "revision": 1,
+        "branch": "video/ba3755ea92ba4df884e747ca2b8b7f2f-component-set-b18",
+        "branch_head": "f8e0867945e44a4e85ccad0876d3a4dd6dab2156",
+        "code_commit": "a09e1fe14b5f717ed20363a6f614fe7c0ed97d54",
+        "asset_id": null,
+        "no_external_material": true,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/no-material-delivery/B18/B18-操作步骤前后-无素材增强版-R1.mp4",
+        "video_sha256": "feb238525d52f4c4eda004d586a94d64dd6f9fc5d2897ed936739f94e38d96af",
+        "media_receipt": "om_x100b639b178c8cbcb2995bfb87cb478",
+        "director_plan": "video/ba3755ea92ba4df884e747ca2b8b7f2f-component-set-b18:episodes/ba3755ea92ba4df884e747ca2b8b7f2f/revisions/1/director-plan.json",
+        "production_record": "video/ba3755ea92ba4df884e747ca2b8b7f2f-component-set-b18:episodes/ba3755ea92ba4df884e747ca2b8b7f2f/revisions/1/production-record.json",
+        "verification": "video/ba3755ea92ba4df884e747ca2b8b7f2f-component-set-b18:episodes/ba3755ea92ba4df884e747ca2b8b7f2f/revisions/1/verification.json",
+        "delivery_readback": "verified"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "specific": {
+          "items": [
+            "以前：看完就回复",
+            "现在：看清再核对"
+          ],
+          "supporting_items": [
+            "看消息",
+            "回拨核实",
+            "记录结果"
+          ],
+          "metric": {
+            "label": "现在步骤",
+            "value": "3步",
+            "detail": "操作拆分演示"
+          },
+          "numeric_items": [
+            "以前:1步",
+            "现在:3步"
+          ]
+        },
+        "example": {
+          "title": "以前一步，现在三步",
+          "body": "这里只比较操作步骤，不声称效果提升。",
+          "takeaway": "把动作拆开",
+          "items": [
+            "以前：看完就回复",
+            "现在：看清再核对"
+          ],
+          "supporting_items": [
+            "看消息",
+            "回拨核实",
+            "记录结果"
+          ],
+          "metric": {
+            "label": "现在步骤",
+            "value": "3步",
+            "detail": "操作拆分演示"
+          },
+          "numeric_items": [
+            "以前:1步",
+            "现在:3步"
+          ]
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18,
+          "item_text": 24,
+          "items_total": 64,
+          "metric_value": "ASCII整数0..99999加1–2个汉字单位",
+          "numeric_items": "标签:ASCII整数+1–2个汉字单位；同一套内单位一致"
+        },
+        "numeric_semantics": "演示数字只表示分配、计数、步骤、预算、时长或算术关系；不能写成风险比例、证据权重、成功率、调查统计或真实价格。",
+        "derived_layer_copy": [
+          "前后对比来自 items 两项。",
+          "新步骤来自 supporting_items。",
+          "numeric_items 只表示步骤数差异。"
+        ],
+        "basic_legacy_supported": false
+      },
+      "style_notes": [
+        "白字深色底，无白色标题底板、无黄色标题条",
+        "画面用文字、图表、流程或模拟对话形成连续表达，不靠随机堆组件",
+        "数字、预算、时间、动作数都是演示口径，不充当现实证据或风险概率",
+        "背景、边框、连接线不登记为原生组件 ID"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "显示原来的操作方式",
+          "展开改造后的步骤",
+          "核对具体新增动作"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=B18，不传 asset_src；Shot.title/body 写前后对比主题，content 写动作差别和新增步骤，parts 按前后对比与步骤补充时刻展开。",
+        "content_constraints": [
+          "前后动作与来源或明确建议一致，不能虚构亲测。",
+          "步骤变多不等于效果提升，不展示没有依据的提升率。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "B18",
+          "asset_src": "none",
+          "source_label": "not_required",
+          "material_kind": "none",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-TextReveal",
+            "Rve-ComparisonChart",
+            "Rve-SplitScreen",
+            "Rve-ProgressSteps",
+            "Talkcraft-strike-and-replace",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      }
+    },
+    {
+      "id": "A07",
+      "name": "人物线索",
+      "category": "has_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "人物、家庭或生活现场图片，需要把注意力落到具体线索和行动。",
+      "when_to_use": [
+        "人物、家庭或生活现场图片，需要把注意力落到具体线索和行动。"
+      ],
+      "components": {
+        "native_ids": [
+          "Talkcraft-slow-push-in",
+          "Snapcn-TextReveal",
+          "Snapcn-TextHighlight",
+          "Rve-QuoteCard",
+          "Rve-ProgressSteps",
+          "Snapcn-WordFlip",
+          "Talkcraft-source-converge"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_material_safe_slots"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": true,
+        "accepted_media": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "requirements": "显式导入当前任务的对应素材；演示素材注明身份。",
+        "example_file": "素材/A07.png"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "asset_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "A07",
+        "composition": "rich",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "asset_id",
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.supporting_items"
+        ],
+        "status": "demo_delivered_pending_review",
+        "forbidden": [
+          "tutorial_steps",
+          "focus_steps"
+        ]
+      },
+      "component_sample": {
+        "job_id": "88699705e1784fb5adffe8452ff8c676",
+        "revision": 3,
+        "branch": "video/88699705e1784fb5adffe8452ff8c676-component-set-a07",
+        "branch_head": "54554a2c176dc384994776975c2bcf137a93b2ba",
+        "code_commit": "0a246d4fb7aa107a3c3c3486f6850f2eaf30625c",
+        "asset_id": "bfd0f40e02084907bb8113fff0dc4e3b",
+        "source_sha256": "643fe66b9af817de6feb97d3bc146ada97bfa8ad36d18cfff8ef860f4b31b3e9",
+        "no_external_material": false,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/material-rich-delivery/A07/A07-人物线索-有素材增强版-R3.mp4",
+        "video_sha256": "f71826cf98adcee91ff518831a9fde7a416d52ff0ed20b99ab81893413607a30",
+        "media_receipt": "om_x100b6384510c70a0b4aa4c8c02faff6",
+        "delivery_readback": "verified",
+        "director_plan": "video/88699705e1784fb5adffe8452ff8c676-component-set-a07:episodes/88699705e1784fb5adffe8452ff8c676/revisions/3/director-plan.json",
+        "production_record": "video/88699705e1784fb5adffe8452ff8c676-component-set-a07:episodes/88699705e1784fb5adffe8452ff8c676/revisions/3/production-record.json",
+        "verification": "video/88699705e1784fb5adffe8452ff8c676-component-set-a07:episodes/88699705e1784fb5adffe8452ff8c676/revisions/3/verification.json"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "example": {
+          "title": "先看人，再看动作",
+          "body": "手机、家人、停顿，把生活场景里的线索拆开。",
+          "takeaway": "一起核对再决定",
+          "items": [
+            "看手机",
+            "找家人",
+            "停一下"
+          ],
+          "supporting_items": [
+            "看清当前消息",
+            "一起核对信息",
+            "决定之前先暂停"
+          ]
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18
+        },
+        "rules": "A09三步口令与实测focus_steps逐项一致，metric=3步；A10三笔同单位数字与合计一致；其他套三项及三条解释，不接受闲置数字字段。"
+      },
+      "style_notes": [
+        "素材在上、白字在下、深色底",
+        "无白色标题底板",
+        "背景、边框、圈注不计入原生组件数量"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "人物现场先建立代入",
+          "逐项解释可见线索",
+          "落到当事人的动作或处境"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=A07，asset_src 绑定当前任务人物线索图片，Shot.title/body 写本期标题正文，content 写真实 takeaway、items 与 supporting_items；parts 对应模板固定组件，逐项按 captions 调整本地起止和布局。",
+        "content_constraints": [
+          "线索能在图片或本期来源中定位，不能为人物编对白。",
+          "样片 items 与 supporting_items 各三项、一一对应；普通生产按 set_design 展开固定parts并映射真实原生组件。",
+          "有素材生产必须提供当前 job 的 asset_src 与 source_label。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "A07",
+          "asset_src": "required_current_job_asset",
+          "source_label": "required_for_material",
+          "material_kind": "image",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Talkcraft-slow-push-in",
+            "Snapcn-TextReveal",
+            "Rve-QuoteCard",
+            "Rve-ProgressSteps",
+            "Snapcn-WordFlip",
+            "Talkcraft-source-converge",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      },
+      "not_for": [
+        "原文证据逐句阅读、完整操作教学或没有可说明线索的人物图片。"
+      ]
+    },
+    {
+      "id": "A08",
+      "name": "界面功能拆解",
+      "category": "has_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "介绍App首页不同入口的职责，让观众先认出界面再操作。",
+      "when_to_use": [
+        "介绍App首页不同入口的职责，让观众先认出界面再操作。"
+      ],
+      "components": {
+        "native_ids": [
+          "Snapcn-PhoneFrame",
+          "Snapcn-TextReveal",
+          "Snapcn-TextHighlight",
+          "Rve-ProgressSteps",
+          "Rve-SplitScreen",
+          "Snapcn-WordFlip",
+          "Talkcraft-source-converge"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_material_safe_slots"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": true,
+        "accepted_media": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "requirements": "显式导入当前任务的对应素材；演示素材注明身份。",
+        "example_file": "素材/A08.png"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "asset_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "A08",
+        "composition": "rich",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "asset_id",
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.supporting_items"
+        ],
+        "status": "demo_delivered_pending_review",
+        "forbidden": [
+          "tutorial_steps",
+          "focus_steps"
+        ]
+      },
+      "component_sample": {
+        "job_id": "3851a63f29b247fcb1aebfce1804acac",
+        "revision": 3,
+        "branch": "video/3851a63f29b247fcb1aebfce1804acac-component-set-a08",
+        "branch_head": "ee5b94abc47beae23ac533d8cd13dec72977f145",
+        "code_commit": "94fb2077e5fb160cdc5c76420a0bf31cf92df499",
+        "asset_id": "53dd393f15e14b63bb157999bd8db394",
+        "source_sha256": "16d11aef080cf339e272bbee14eec9d3c954e547c3cd6314fcc84cc73d906b69",
+        "no_external_material": false,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/material-rich-delivery/A08/A08-界面功能拆解-有素材增强版-R3.mp4",
+        "video_sha256": "d5fa92ded3452cce79ca9143d72eac54b94180553eafad0bd4496cdbfaa2033a",
+        "media_receipt": "om_x100b638466a53ca0b2cf2a495d8dd12",
+        "delivery_readback": "verified",
+        "director_plan": "video/3851a63f29b247fcb1aebfce1804acac-component-set-a08:episodes/3851a63f29b247fcb1aebfce1804acac/revisions/3/director-plan.json",
+        "production_record": "video/3851a63f29b247fcb1aebfce1804acac-component-set-a08:episodes/3851a63f29b247fcb1aebfce1804acac/revisions/3/production-record.json",
+        "verification": "video/3851a63f29b247fcb1aebfce1804acac-component-set-a08:episodes/3851a63f29b247fcb1aebfce1804acac/revisions/3/verification.json"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "example": {
+          "title": "一屏里，三个入口",
+          "body": "提醒、问答、共享，各自解决不同的小事。",
+          "takeaway": "先认入口再操作",
+          "items": [
+            "待办提醒",
+            "生活问答",
+            "家人共享"
+          ],
+          "supporting_items": [
+            "把重要的小事记下来",
+            "先看建议再核对",
+            "把安排告诉家里人"
+          ]
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18
+        },
+        "rules": "A09三步口令与实测focus_steps逐项一致，metric=3步；A10三笔同单位数字与合计一致；其他套三项及三条解释，不接受闲置数字字段。"
+      },
+      "style_notes": [
+        "素材在上、白字在下、深色底",
+        "无白色标题底板",
+        "背景、边框、圈注不计入原生组件数量"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "先认出 App 界面",
+          "按入口拆解职责",
+          "区分功能入口与使用结果"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=A08，asset_src 绑定当前任务界面图片，content.items 写真实入口职责；parts 可调入口出现时刻、字号和间距，不能把图片外不存在的功能结果写成事实。",
+        "content_constraints": [
+          "样片 items 与 supporting_items 各三项，必须与界面入口对应。",
+          "首页图片仅能说明入口；真实操作和结果需另有连续录屏。",
+          "有素材生产必须提供当前 job 的 asset_src 与 source_label。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "A08",
+          "asset_src": "required_current_job_asset",
+          "source_label": "required_for_material",
+          "material_kind": "image_or_video",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-PhoneFrame",
+            "Snapcn-TextReveal",
+            "Rve-ProgressSteps",
+            "Rve-SplitScreen",
+            "Snapcn-WordFlip",
+            "Talkcraft-source-converge",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      },
+      "not_for": [
+        "静态首页无法支持完整点击过程或操作成功结果。"
+      ]
+    },
+    {
+      "id": "A09",
+      "name": "操作跟随",
+      "category": "has_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "连续操作录屏教学，口令、目标圈和操作步骤需要同步。",
+      "when_to_use": [
+        "连续操作录屏教学，口令、目标圈和操作步骤需要同步。"
+      ],
+      "components": {
+        "native_ids": [
+          "Snapcn-PhoneFrame",
+          "Snapcn-TextReveal",
+          "Snapcn-TextHighlight",
+          "Rve-ProgressSteps",
+          "Rve-StatCounter",
+          "Snapcn-TextBuild",
+          "Snapcn-TextSwap"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_material_safe_slots",
+          "measured_focus_crop_and_sync"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": true,
+        "accepted_media": [
+          "video/mp4"
+        ],
+        "requirements": "显式导入当前任务的对应素材；演示素材注明身份。",
+        "example_file": "素材/A09.mp4"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "asset_id",
+          "composition",
+          "content",
+          "focus_steps"
+        ],
+        "set_id": "A09",
+        "composition": "rich",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "asset_id",
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.supporting_items",
+          "content.metric",
+          "focus_steps"
+        ],
+        "status": "demo_delivered_pending_review",
+        "forbidden": [
+          "tutorial_steps"
+        ]
+      },
+      "component_sample": {
+        "job_id": "d7b2fe4a7fe14bafb3e6f7993017dc1f",
+        "revision": 3,
+        "branch": "video/d7b2fe4a7fe14bafb3e6f7993017dc1f-component-set-a09",
+        "branch_head": "4551da817a0635b1c3b026d663ded9849c0fca7b",
+        "code_commit": "997f0bc9ed7df2a91972665cd617b565bfbb78b1",
+        "asset_id": "e0915f047beb464382db105aa9836270",
+        "source_sha256": "c0e3e5602f4a8810a0e6d575e2c287ae961c7bfd1d067bbec31fbfda086e95da",
+        "no_external_material": false,
+        "composition": "rich",
+        "duration_seconds": 12.366666666666667,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/material-rich-delivery/A09/A09-操作跟随-有素材增强版-R3.mp4",
+        "video_sha256": "fb6d7a5875300c8a7ee552ae134fd59086671250d79d8d14e54b177435221e24",
+        "media_receipt": "om_x100b63847782e8a4b27e3725b19ae6d",
+        "delivery_readback": "verified",
+        "director_plan": "video/d7b2fe4a7fe14bafb3e6f7993017dc1f-component-set-a09:episodes/d7b2fe4a7fe14bafb3e6f7993017dc1f/revisions/3/director-plan.json",
+        "production_record": "video/d7b2fe4a7fe14bafb3e6f7993017dc1f-component-set-a09:episodes/d7b2fe4a7fe14bafb3e6f7993017dc1f/revisions/3/production-record.json",
+        "verification": "video/d7b2fe4a7fe14bafb3e6f7993017dc1f-component-set-a09:episodes/d7b2fe4a7fe14bafb3e6f7993017dc1f/revisions/3/verification.json"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "example": {
+          "title": "输入、保存、查看列表",
+          "body": "写下事项，再点保存，最后确认提醒出现在列表。",
+          "takeaway": "看到结果才算完成",
+          "items": [
+            "输入事项",
+            "点保存",
+            "查看列表"
+          ],
+          "supporting_items": [
+            "写清要提醒的事项",
+            "输入完成后保存",
+            "确认新提醒已出现"
+          ],
+          "metric": {
+            "label": "操作步骤",
+            "value": "3步",
+            "detail": "输入→保存→列表"
+          }
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18
+        },
+        "rules": "A09三步口令与实测focus_steps逐项一致，metric=3步；A10三笔同单位数字与合计一致；其他套三项及三条解释，不接受闲置数字字段。"
+      },
+      "style_notes": [
+        "素材在上、白字在下、深色底",
+        "无白色标题底板",
+        "背景、边框、圈注不计入原生组件数量"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "口令出现时圈住实际输入区域",
+          "保存动作与目标圈同步",
+          "列表结果出现后核对完成状态"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=A09，asset_src/source_label 绑定当前任务 MP4；metadata.focus_supported=true，content.items 必须与 focus_steps.instruction 对齐，focus_steps 连续覆盖真实操作区间，source_size 使用实测素材尺寸。",
+        "content_constraints": [
+          "有素材生产必须提供当前 job 的 asset_src 与 source_label。",
+          "本套 metadata.focus_supported=true；focus_steps/source_size 只标当前素材中真实存在的位置或操作。"
+        ],
+        "production_set_design": {
+          "set_id": "A09",
+          "asset_src": "required_current_job_asset",
+          "source_label": "required_for_material",
+          "material_kind": "video",
+          "focus_supported": true,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Snapcn-PhoneFrame",
+            "Snapcn-TextReveal",
+            "Rve-ProgressSteps",
+            "Rve-StatCounter",
+            "Snapcn-TextBuild",
+            "Snapcn-TextSwap",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      },
+      "not_for": [
+        "没有连续动作的静态图片、按钮不可读或口令与画面不符的录屏。"
+      ]
+    },
+    {
+      "id": "A10",
+      "name": "账单核算",
+      "category": "has_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "账单或费用图片，需要逐笔核对再看合计和累计口径。",
+      "when_to_use": [
+        "账单或费用图片，需要逐笔核对再看合计和累计口径。"
+      ],
+      "components": {
+        "native_ids": [
+          "Talkcraft-scanline-annotate",
+          "Snapcn-TextReveal",
+          "Talkcraft-ink-underline",
+          "Rve-ChartAnimation",
+          "Rve-StatCounter",
+          "Snapcn-TextBuild",
+          "Rve-LineChart"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_material_safe_slots"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": true,
+        "accepted_media": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "requirements": "显式导入当前任务的对应素材；演示素材注明身份。 扫描框对应样例三笔明细行与合计行位置，替换图片须保持同版式；不自动识别金额区域。",
+        "example_file": "素材/A10.png"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "asset_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "A10",
+        "composition": "rich",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "asset_id",
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.metric",
+          "content.numeric_items"
+        ],
+        "status": "demo_delivered_pending_review",
+        "forbidden": [
+          "tutorial_steps",
+          "focus_steps"
+        ]
+      },
+      "component_sample": {
+        "job_id": "fac8ff86018a4981995ee8c43e51c64b",
+        "revision": 3,
+        "branch": "video/fac8ff86018a4981995ee8c43e51c64b-component-set-a10",
+        "branch_head": "a0f0754077021489b1c2247af3d5931c308ed5bf",
+        "code_commit": "b08c5ea39b20056f73665ce5f974eebbe9725976",
+        "asset_id": "1f747859a25c484c87e4ea41fb316f28",
+        "source_sha256": "92c4ec94fefa90b5186ff6e3a33d623eb1360e9c8e97027509944ace71377b4d",
+        "no_external_material": false,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/material-rich-delivery/A10/A10-账单核算-有素材增强版-R3.mp4",
+        "video_sha256": "611ac6029f6619d05f47e1d2e3dbe3012325446e13ff607c220363afab52a068",
+        "media_receipt": "om_x100b6384064a90a0b392cd842bd90d0",
+        "delivery_readback": "verified",
+        "director_plan": "video/fac8ff86018a4981995ee8c43e51c64b-component-set-a10:episodes/fac8ff86018a4981995ee8c43e51c64b/revisions/3/director-plan.json",
+        "production_record": "video/fac8ff86018a4981995ee8c43e51c64b-component-set-a10:episodes/fac8ff86018a4981995ee8c43e51c64b/revisions/3/production-record.json",
+        "verification": "video/fac8ff86018a4981995ee8c43e51c64b-component-set-a10:episodes/fac8ff86018a4981995ee8c43e51c64b/revisions/3/verification.json"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "example": {
+          "title": "三笔账，看清总额",
+          "body": "133元、133元、133元，合起来是399元。",
+          "takeaway": "逐笔对上再看合计",
+          "items": [
+            "第1笔",
+            "第2笔",
+            "第3笔"
+          ],
+          "metric": {
+            "label": "三笔合计",
+            "value": "399元",
+            "detail": "133元+133元+133元"
+          },
+          "numeric_items": [
+            "第1笔:133元",
+            "第2笔:133元",
+            "第3笔:133元"
+          ]
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18
+        },
+        "rules": "A09三步口令与实测focus_steps逐项一致，metric=3步；A10三笔同单位数字与合计一致；其他套三项及三条解释，不接受闲置数字字段。"
+      },
+      "style_notes": [
+        "素材在上、白字在下、深色底",
+        "无白色标题底板",
+        "背景、边框、圈注不计入原生组件数量"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "在账单上逐笔核对",
+          "同步列出同单位金额",
+          "核算合计并解释累计口径"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=A10，asset_src 绑定当前任务账单图，content.numeric_items 写同单位真实金额，metric.value 等于合计；parts 的扫描、下划线、统计和图表按本期账单位置与 captions 重排。",
+        "content_constraints": [
+          "三笔 numeric_items 使用同单位，metric 合计必须等于三笔之和；金额来自当前账单。",
+          "样片扫描位置固定对应原样例三行明细和合计；替换图片须保持同版式，不自动识别新账单。",
+          "普通生产不得复制样片固定扫描位置或任何演示金额。",
+          "有素材生产必须提供当前 job 的 asset_src 与 source_label。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "A10",
+          "asset_src": "required_current_job_asset",
+          "source_label": "required_for_material",
+          "material_kind": "image",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Talkcraft-scanline-annotate",
+            "Snapcn-TextReveal",
+            "Rve-ChartAnimation",
+            "Rve-StatCounter",
+            "Snapcn-TextBuild",
+            "Rve-LineChart",
+            "Talkcraft-ink-underline"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      },
+      "not_for": [
+        "与样片明细位置不匹配却直接替换的账单、没有真实金额口径的账单。"
+      ]
+    },
+    {
+      "id": "A11",
+      "name": "作品细节",
+      "category": "has_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "作品、插画或海报展示，需要拆出几个构图细节。",
+      "when_to_use": [
+        "作品、插画或海报展示，需要拆出几个构图细节。"
+      ],
+      "components": {
+        "native_ids": [
+          "Talkcraft-tilt-3d-page",
+          "Snapcn-TextReveal",
+          "Snapcn-TextHighlight",
+          "Rve-QuoteCard",
+          "Snapcn-WordFlip",
+          "Talkcraft-source-converge",
+          "Talkcraft-ink-underline"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_material_safe_slots"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": true,
+        "accepted_media": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "requirements": "显式导入当前任务的对应素材；演示素材注明身份。",
+        "example_file": "素材/A11.png"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "asset_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "A11",
+        "composition": "rich",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "asset_id",
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.supporting_items"
+        ],
+        "status": "demo_delivered_pending_review",
+        "forbidden": [
+          "tutorial_steps",
+          "focus_steps"
+        ]
+      },
+      "component_sample": {
+        "job_id": "78592f4580164ae3938611648e9c1cce",
+        "revision": 3,
+        "branch": "video/78592f4580164ae3938611648e9c1cce-component-set-a11",
+        "branch_head": "f42c31b369612b01bd5317d92dfb293fd493af66",
+        "code_commit": "56f2d3ebd983b03047e4a5790de72709d65a8464",
+        "asset_id": "9b2c4de2670d40f7939510ad22154929",
+        "source_sha256": "518087c0b448bd6b833933f4b770f5d1aab30881349edc127db16ff2cc41581c",
+        "no_external_material": false,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/material-rich-delivery/A11/A11-作品细节-有素材增强版-R3.mp4",
+        "video_sha256": "3c51852841f2a8d9055f2d822da25a366e1698348f92a30f6d486020f2e32f02",
+        "media_receipt": "om_x100b63841b00b4a4b1c8fd891dc47b2",
+        "delivery_readback": "verified",
+        "director_plan": "video/78592f4580164ae3938611648e9c1cce-component-set-a11:episodes/78592f4580164ae3938611648e9c1cce/revisions/3/director-plan.json",
+        "production_record": "video/78592f4580164ae3938611648e9c1cce-component-set-a11:episodes/78592f4580164ae3938611648e9c1cce/revisions/3/production-record.json",
+        "verification": "video/78592f4580164ae3938611648e9c1cce-component-set-a11:episodes/78592f4580164ae3938611648e9c1cce/revisions/3/verification.json"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "example": {
+          "title": "一张作品，三处重点",
+          "body": "人物、手机、AI形象，按顺序看它们怎样组成画面。",
+          "takeaway": "细节共同回应主题",
+          "items": [
+            "人物",
+            "手机",
+            "AI形象"
+          ],
+          "supporting_items": [
+            "故事从普通人开始",
+            "手机连接生活场景",
+            "AI形象回应主题"
+          ]
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18
+        },
+        "rules": "A09三步口令与实测focus_steps逐项一致，metric=3步；A10三笔同单位数字与合计一致；其他套三项及三条解释，不接受闲置数字字段。"
+      },
+      "style_notes": [
+        "素材在上、白字在下、深色底",
+        "无白色标题底板",
+        "背景、边框、圈注不计入原生组件数量"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "先看完整作品构图",
+          "拆出对应的几个细节",
+          "把细节汇合为作品判断"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=A11，asset_src 绑定当前任务作品图，content.items/supporting_items 写可见细节；parts 可调整页面透视、引用、汇合和墨线的起止，但不能裁掉关键构图。",
+        "content_constraints": [
+          "样片 items 与 supporting_items 各三项，文字对应可见细节。",
+          "生产parts可调本地时钟和安全区布局，但不开放任意坐标或自由源码；不能裁掉重要构图。",
+          "有素材生产必须提供当前 job 的 asset_src 与 source_label。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "A11",
+          "asset_src": "required_current_job_asset",
+          "source_label": "required_for_material",
+          "material_kind": "image",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Talkcraft-tilt-3d-page",
+            "Snapcn-TextReveal",
+            "Rve-QuoteCard",
+            "Snapcn-WordFlip",
+            "Talkcraft-source-converge",
+            "Talkcraft-ink-underline",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      },
+      "not_for": [
+        "小字密集的报告证据、需要逐步点击的教程。"
+      ]
+    },
+    {
+      "id": "A12",
+      "name": "图解关系",
+      "category": "has_material",
+      "registration_status": "registered",
+      "review_status": "pending",
+      "usable_scope": "流程或关系图片，需要说明每个环节的职责和连接。",
+      "when_to_use": [
+        "流程或关系图片，需要说明每个环节的职责和连接。"
+      ],
+      "components": {
+        "native_ids": [
+          "Talkcraft-slow-pull-reveal",
+          "Snapcn-TextReveal",
+          "Snapcn-TextHighlight",
+          "Rve-SplitScreen",
+          "Rve-ProgressSteps",
+          "Talkcraft-source-converge",
+          "Snapcn-WordFlip"
+        ],
+        "semantic_ids": [],
+        "adapter_capabilities": [
+          "rich_material_safe_slots"
+        ],
+        "actual_ids_source": "actual_director_plan_and_rich_renderer"
+      },
+      "asset_requirements": {
+        "asset_id_required": true,
+        "accepted_media": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ],
+        "requirements": "显式导入当前任务的对应素材；演示素材注明身份。",
+        "example_file": "素材/A12.png"
+      },
+      "component_demo_request": {
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id",
+          "asset_id",
+          "composition",
+          "content"
+        ],
+        "set_id": "A12",
+        "composition": "rich",
+        "optional": [
+          "duration_seconds"
+        ],
+        "duration_seconds": {
+          "min": 12,
+          "max": 20
+        },
+        "changeable": [
+          "asset_id",
+          "duration_seconds",
+          "content.title",
+          "content.body",
+          "content.takeaway",
+          "content.items",
+          "content.supporting_items"
+        ],
+        "status": "demo_delivered_pending_review",
+        "forbidden": [
+          "tutorial_steps",
+          "focus_steps"
+        ]
+      },
+      "component_sample": {
+        "job_id": "e962e518df924294a1f451a751ce6672",
+        "revision": 2,
+        "branch": "video/e962e518df924294a1f451a751ce6672-component-set-a12",
+        "branch_head": "1f999b6e8478c2ea9ec4c3ad4f8a819477b27323",
+        "code_commit": "56f2d3ebd983b03047e4a5790de72709d65a8464",
+        "asset_id": "0201c9a89dfa40998b6d80c2bd40c21c",
+        "source_sha256": "48abf5d24e93085a11b6cd89a7e05ece1e1ea5db6bdabcb4dd34c2ebc888c9c1",
+        "no_external_material": false,
+        "composition": "rich",
+        "duration_seconds": 18,
+        "workflow": [
+          "component_demo",
+          "director_demo",
+          "end"
+        ],
+        "video_file": ".runtime/videoagents/component-set-samples/material-rich-delivery/A12/A12-图解关系-有素材增强版-R2.mp4",
+        "video_sha256": "e84cf017382468593aaa10720d7d6f36959c0b03cc752b72bae9c9574d4af52e",
+        "media_receipt": "om_x100b6384143694a8b1b01cb11b3de04",
+        "delivery_readback": "verified",
+        "director_plan": "video/e962e518df924294a1f451a751ce6672-component-set-a12:episodes/e962e518df924294a1f451a751ce6672/revisions/2/director-plan.json",
+        "production_record": "video/e962e518df924294a1f451a751ce6672-component-set-a12:episodes/e962e518df924294a1f451a751ce6672/revisions/2/production-record.json",
+        "verification": "video/e962e518df924294a1f451a751ce6672-component-set-a12:episodes/e962e518df924294a1f451a751ce6672/revisions/2/verification.json"
+      },
+      "content_input": {
+        "common": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "example": {
+          "title": "关系图，先拆三个环节",
+          "body": "人提问，AI整理，人核对；确认后再采用合适结果。",
+          "takeaway": "核对之后再采用",
+          "items": [
+            "人提出问题",
+            "AI整理建议",
+            "人核对信息"
+          ],
+          "supporting_items": [
+            "说清具体要解决什么",
+            "提供可以检查的内容",
+            "结合实际情况判断"
+          ]
+        },
+        "limits": {
+          "title": 18,
+          "body": 60,
+          "takeaway": 18
+        },
+        "rules": "A09三步口令与实测focus_steps逐项一致，metric=3步；A10三笔同单位数字与合计一致；其他套三项及三条解释，不接受闲置数字字段。"
+      },
+      "style_notes": [
+        "素材在上、白字在下、深色底",
+        "无白色标题底板",
+        "背景、边框、圈注不计入原生组件数量"
+      ],
+      "director_guidance": {
+        "visual_sequence": [
+          "先看关系全貌",
+          "逐项解释环节职责",
+          "说明连接方向和结果"
+        ],
+        "production_adaptation": "普通生产直接选择 set_design.set_id=A12，asset_src 绑定当前任务图解，content.items/supporting_items 写真实节点、职责和连接；parts 按关系讲述顺序展开，布局下沿保持在字幕安全线以上。",
+        "content_constraints": [
+          "样片 items 与 supporting_items 各三项，与图中节点一一对应。",
+          "只说明来源支持的关系，不能把假设链路当案件结论；图中关键连接要保留。",
+          "有素材生产必须提供当前 job 的 asset_src 与 source_label。",
+          "本套 metadata.focus_supported=false；普通生产不传 focus_steps/source_size，通过 parts 时序和 safe-area box 调整表达。"
+        ],
+        "production_set_design": {
+          "set_id": "A12",
+          "asset_src": "required_current_job_asset",
+          "source_label": "required_for_material",
+          "material_kind": "image",
+          "focus_supported": false,
+          "content_source": "current_job_script_assets_and_source_refs",
+          "native_component_mapping_source": "videoagents/component-set-capabilities.json sets[].parts[].component_id",
+          "native_component_mapping": [
+            "Talkcraft-slow-pull-reveal",
+            "Snapcn-TextReveal",
+            "Rve-SplitScreen",
+            "Rve-ProgressSteps",
+            "Talkcraft-source-converge",
+            "Snapcn-WordFlip",
+            "Snapcn-TextHighlight"
+          ],
+          "part_ids_source": "videoagents/component-set-capabilities.json parts[].part_id",
+          "timing": "parts use start_frame/end_frame inside the shot; defaults expand from metadata start_ratio/end_ratio before validation",
+          "layout": "box is normalized within safe_area {x:64,y:96,width:952,height:1304}; converted canvas bottom <= y1400"
+        }
+      },
+      "not_for": [
+        "手机端不可读的复杂图、没有明确节点连接的图片。"
+      ]
+    }
+  ],
+  "production_contract": {
+    "mode": "typed_production_selection",
+    "shot_field": "set_design",
+    "whole_set_rendering": "production_and_component_sample",
+    "registration_is_review_approval": false,
+    "shared_metadata": {
+      "source": "videoagents/component-set-capabilities.json",
+      "status": "available_version_1",
+      "sets": 30,
+      "safe_area": {
+        "x": 64,
+        "y": 96,
+        "width": 952,
+        "height": 1304
+      },
+      "purpose": "为前端/渲染器提供30套生产实际 main_component_id、fixed parts、默认box、默认start/end ratio、material_kind 与 focus_supported；生产实际原生组件ID以该文件 parts.component_id 展开结果为准，component-demo 样片组合可不同。"
+    },
+    "production_inputs": [
+      "component_id",
+      "asset_src",
+      "title",
+      "body",
+      "source_label",
+      "set_design",
+      "props",
+      "layers"
+    ],
+    "set_design_schema": {
+      "set_id": "A01-A12 或 B01-B18",
+      "content": {
+        "takeaway": "本期收束句，公开上限18字；title/body 属于 Shot 字段，不放入 content",
+        "items": "本期真实条目；数量按套件固定模板，不随机凑数",
+        "supporting_items": "对 items 的本期真实补充；需要一一对应的套件必须等长",
+        "metric": "{label,value,detail}，只填有来源或模板规则可计算的指标",
+        "numeric_items": "同单位数字项；有合计规则的套件必须与 metric.value 对齐",
+        "source_refs": "支撑本镜头事实的来源引用或当前素材引用"
+      },
+      "parts": {
+        "part_id": "来自共享metadata的固定模板part id，不能临时发明",
+        "start_frame": "该part在本shot内的起始帧，本地时钟从这里开始",
+        "end_frame": "该part在本shot内的结束帧，必须晚于起始帧并不超过shot长度",
+        "box": "box {x,y,width,height}，在 safe_area {x:64,y:96,width:952,height:1304} 内归一化；换算到1080x1920画布后下沿不超过 y=1400"
+      },
+      "focus_steps": "仅 metadata.focus_supported=true 时允许；instruction 对齐本段旁白或 content.items，target 为 source_size 坐标系下归一化框。",
+      "source_size": "focus_steps 存在时必填，来自真实素材探测宽高。",
+      "duration_and_layout_overrides": "允许按真实captions、阅读时间、素材可读性调整parts起止、大小、间距和安全区"
+    },
+    "forbidden_sample_props": [
+      "component_set",
+      "composition",
+      "rich_content",
+      "component_demo_recipe",
+      "sample_marker",
+      "arbitrary_jsx",
+      "arbitrary_css"
+    ],
+    "defaults": "导演输出 set_design 后，生产适配器先按 shared metadata 展开默认 parts、布局、时序和原生组件映射，再做字段校验、素材校验、字幕安全区校验和组件计数。",
+    "component_mapping": "实际生产 native IDs 以 videoagents/component-set-capabilities.json 的 sets[].parts[].component_id 去重结果为准；docs/component-set-registry.json 的 component_sample/历史 components 只记录样片或历史组合，不能当生产计数依据。",
+    "selection": "导演按场景目的、素材类型、可支持的本期内容和旁白段选择 set_design.set_id；有素材套必须绑定当前任务 asset_src/source_label，无素材套不得伪造素材。",
+    "timing": "时长与揭示时刻依据本期实测 captions、阅读时间和素材可读性；不机械沿用样片12-20秒，不强制2-3秒切套或随机凑数量。",
+    "layout": "默认上方素材、下方深色底白字；所有 part 的 box 在 safe_area {x:64,y:96,width:952,height:1304} 内归一化，换算到画布后下沿不超过 y=1400，标题/正文/字幕/素材互不遮挡。",
+    "director_record": "component_reason 记录选择的 set_id、场景理由、素材与内容依据；visual_action 写本期内容、duration/layout overrides、part本地时钟和需要人工品鉴的Demo范围。",
+    "workflow": [
+      "task_api",
+      "worker",
+      "VideoProductionGraph",
+      "director",
+      "director_demo",
+      "director_human_gate",
+      "after_director_demo_review",
+      "editing"
+    ],
+    "max_demo_seconds": 30,
+    "focus_boundary": "后端只在 metadata.focus_supported=true 的套件接受 set_design.focus_steps/source_size；当前为 A03, A05, A06, A09。其他套件即使有素材，也只能通过 asset_src/source_label、content 和 parts box/timing 调整表达，不传 focus_steps。",
+    "material_boundary": "有素材套必须提供当前 job 的 asset_src 与 source_label；无素材套 material_kind=none，不伪造素材。",
+    "delivery_boundary": "本阶段交付是正常 Graph 生成的 <=30秒 director Demo MP4，并停在 director_human_gate 待人工 review；人工 confirm 后才进入 editing，不提前声称完整成片已渲染。"
+  }
+}

@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Img, useCurrentFrame } from "remotion";
 
 // sway-parallax · 左右摇移 —— 自包含 Remotion 源码（与 demos/sway-parallax/index.html 同画面）
 // 复制本文件进你的工程即可用。镜头在宽页面前横向平移扫过，极轻 rotateY 跟随。
@@ -129,7 +129,7 @@ const Arrow = () => (
   </div>
 );
 
-export default function SwayParallax(_props: { hostSrc?: string }) {
+export default function SwayParallax({ mediaSrc, mediaFit = "cover", mediaStyle }: { hostSrc?: string; mediaSrc?: string; mediaFit?: "cover" | "contain"; mediaStyle?: React.CSSProperties }) {
   const t = useCurrentFrame() / FPS;
   const C = CONFIG;
 
@@ -161,6 +161,22 @@ export default function SwayParallax(_props: { hostSrc?: string }) {
     x = lerp(C.xTo, C.xTo + dir * holdRate * C.holdDur, p);
     ry = lerp(C.swayDeg * dir * -1, C.swayDeg * dir * -0.82, p);
     z = C.zLift;
+  }
+
+  if (mediaSrc) {
+    return (
+      <AbsoluteFill style={{background: "#ffffff", overflow: "hidden"}}>
+        <div className="world">
+          <div className="camera" style={{
+            transform: `translate3d(${x}px, 0px, ${z}px) rotateY(${ry}deg)`,
+          }}>
+            <div className="page">
+              <Img src={mediaSrc} style={{position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: mediaFit, ...mediaStyle}} />
+            </div>
+          </div>
+        </div>
+      </AbsoluteFill>
+    );
   }
 
   return (

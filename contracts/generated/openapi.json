@@ -272,6 +272,104 @@
         }
       }
     },
+    "/api/jobs/{job_id}/retry-failed-run": {
+      "post": {
+        "summary": "Retry Failed Run",
+        "operationId": "retry_failed_run_api_jobs__job_id__retry_failed_run_post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetryFailedRunRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/jobs/{job_id}/component-demo": {
+      "post": {
+        "summary": "Component Demo",
+        "operationId": "component_demo_api_jobs__job_id__component_demo_post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComponentDemoRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/jobs/{job_id}/cancel": {
       "post": {
         "summary": "Cancel",
@@ -1012,6 +1110,640 @@
         ],
         "title": "Caption"
       },
+      "ComponentDemoContent": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 24,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 90,
+            "minLength": 1,
+            "title": "Body"
+          },
+          "takeaway": {
+            "type": "string",
+            "maxLength": 24,
+            "minLength": 1,
+            "title": "Takeaway"
+          },
+          "items": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 4,
+                "minItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Items"
+          },
+          "metric": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComponentDemoMetric"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "numeric_items": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 4,
+                "minItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numeric Items"
+          },
+          "supporting_items": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 4,
+                "minItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supporting Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "body",
+          "takeaway"
+        ],
+        "title": "ComponentDemoContent"
+      },
+      "ComponentDemoMetric": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 24,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Value"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "label",
+          "value"
+        ],
+        "title": "ComponentDemoMetric"
+      },
+      "ComponentDemoRequest": {
+        "properties": {
+          "base_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Base Revision"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 8,
+            "title": "Idempotency Key"
+          },
+          "set_id": {
+            "type": "string",
+            "enum": [
+              "A01",
+              "A02",
+              "A03",
+              "A04",
+              "A05",
+              "A06",
+              "A07",
+              "A08",
+              "A09",
+              "A10",
+              "A11",
+              "A12",
+              "B01",
+              "B02",
+              "B03",
+              "B04",
+              "B05",
+              "B06",
+              "B07",
+              "B08",
+              "B09",
+              "B10",
+              "B11",
+              "B12",
+              "B13",
+              "B14",
+              "B15",
+              "B16",
+              "B17",
+              "B18"
+            ],
+            "title": "Set Id"
+          },
+          "asset_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asset Id"
+          },
+          "duration_seconds": {
+            "type": "number",
+            "maximum": 20.0,
+            "minimum": 6.0,
+            "title": "Duration Seconds",
+            "default": 10
+          },
+          "composition": {
+            "type": "string",
+            "enum": [
+              "basic",
+              "rich"
+            ],
+            "title": "Composition",
+            "default": "basic"
+          },
+          "tutorial_steps": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ComponentDemoTutorialStep"
+                },
+                "type": "array",
+                "maxItems": 8,
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tutorial Steps"
+          },
+          "focus_steps": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ComponentDemoTutorialStep"
+                },
+                "type": "array",
+                "maxItems": 8,
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Focus Steps"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComponentDemoContent"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "base_revision",
+          "idempotency_key",
+          "set_id"
+        ],
+        "title": "ComponentDemoRequest"
+      },
+      "ComponentDemoTutorialStep": {
+        "properties": {
+          "start_frame": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Start Frame"
+          },
+          "end_frame": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "End Frame"
+          },
+          "instruction": {
+            "type": "string",
+            "maxLength": 24,
+            "minLength": 1,
+            "title": "Instruction"
+          },
+          "target": {
+            "$ref": "#/components/schemas/ComponentDemoTutorialTarget"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "start_frame",
+          "end_frame",
+          "instruction",
+          "target"
+        ],
+        "title": "ComponentDemoTutorialStep"
+      },
+      "ComponentDemoTutorialTarget": {
+        "properties": {
+          "x": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "X"
+          },
+          "y": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Y"
+          },
+          "width": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Width"
+          },
+          "height": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Height"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "x",
+          "y",
+          "width",
+          "height"
+        ],
+        "title": "ComponentDemoTutorialTarget"
+      },
+      "ComponentSetBox": {
+        "properties": {
+          "x": {
+            "type": "number",
+            "exclusiveMaximum": 1.0,
+            "minimum": 0.0,
+            "title": "X"
+          },
+          "y": {
+            "type": "number",
+            "exclusiveMaximum": 1.0,
+            "minimum": 0.0,
+            "title": "Y"
+          },
+          "width": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Width"
+          },
+          "height": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Height"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "x",
+          "y",
+          "width",
+          "height"
+        ],
+        "title": "ComponentSetBox",
+        "description": "Normalized rectangle inside the production content area, never the captions."
+      },
+      "ComponentSetContent": {
+        "properties": {
+          "takeaway": {
+            "type": "string",
+            "maxLength": 96,
+            "minLength": 1,
+            "title": "Takeaway"
+          },
+          "items": {
+            "items": {
+              "type": "string",
+              "maxLength": 96,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 6,
+            "title": "Items"
+          },
+          "supporting_items": {
+            "items": {
+              "type": "string",
+              "maxLength": 96,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 6,
+            "title": "Supporting Items"
+          },
+          "metric": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComponentSetMetric"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "numeric_items": {
+            "items": {
+              "type": "string",
+              "maxLength": 96,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 6,
+            "title": "Numeric Items"
+          },
+          "source_refs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Source Refs"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "takeaway"
+        ],
+        "title": "ComponentSetContent",
+        "description": "Current job's meaning; layout overrides cannot introduce additional facts."
+      },
+      "ComponentSetDesign": {
+        "properties": {
+          "set_id": {
+            "type": "string",
+            "enum": [
+              "A01",
+              "A02",
+              "A03",
+              "A04",
+              "A05",
+              "A06",
+              "A07",
+              "A08",
+              "A09",
+              "A10",
+              "A11",
+              "A12",
+              "B01",
+              "B02",
+              "B03",
+              "B04",
+              "B05",
+              "B06",
+              "B07",
+              "B08",
+              "B09",
+              "B10",
+              "B11",
+              "B12",
+              "B13",
+              "B14",
+              "B15",
+              "B16",
+              "B17",
+              "B18"
+            ],
+            "title": "Set Id"
+          },
+          "content": {
+            "$ref": "#/components/schemas/ComponentSetContent"
+          },
+          "parts": {
+            "items": {
+              "$ref": "#/components/schemas/ComponentSetPart"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Parts"
+          },
+          "focus_steps": {
+            "items": {
+              "$ref": "#/components/schemas/ComponentSetFocusStep"
+            },
+            "type": "array",
+            "maxItems": 6,
+            "title": "Focus Steps"
+          },
+          "source_size": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComponentSetSourceSize"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "set_id",
+          "content"
+        ],
+        "title": "ComponentSetDesign"
+      },
+      "ComponentSetFocusStep": {
+        "properties": {
+          "instruction": {
+            "type": "string",
+            "maxLength": 96,
+            "minLength": 1,
+            "title": "Instruction"
+          },
+          "start_frame": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Start Frame"
+          },
+          "end_frame": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "End Frame"
+          },
+          "target": {
+            "$ref": "#/components/schemas/ComponentSetBox"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "instruction",
+          "start_frame",
+          "end_frame",
+          "target"
+        ],
+        "title": "ComponentSetFocusStep"
+      },
+      "ComponentSetMetric": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 96,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 24,
+            "minLength": 1,
+            "title": "Value"
+          },
+          "detail": {
+            "type": "string",
+            "maxLength": 96,
+            "title": "Detail",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "label",
+          "value"
+        ],
+        "title": "ComponentSetMetric"
+      },
+      "ComponentSetPart": {
+        "properties": {
+          "part_id": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Part Id"
+          },
+          "start_frame": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Start Frame"
+          },
+          "end_frame": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "End Frame"
+          },
+          "box": {
+            "$ref": "#/components/schemas/ComponentSetBox"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "part_id",
+          "start_frame",
+          "end_frame",
+          "box"
+        ],
+        "title": "ComponentSetPart"
+      },
+      "ComponentSetSourceSize": {
+        "properties": {
+          "width": {
+            "type": "integer",
+            "maximum": 16384.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "maximum": 16384.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Height"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "width",
+          "height"
+        ],
+        "title": "ComponentSetSourceSize"
+      },
+      "DirectorRequirements": {
+        "properties": {
+          "min_library_components": {
+            "type": "integer",
+            "maximum": 187.0,
+            "minimum": 0.0,
+            "title": "Min Library Components",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DirectorRequirements"
+      },
       "DraftRequest": {
         "properties": {
           "base_revision": {
@@ -1200,6 +1932,16 @@
           },
           "brief": {
             "$ref": "#/components/schemas/Brief"
+          },
+          "director_requirements": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DirectorRequirements"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "script": {
             "anyOf": [
@@ -1419,6 +2161,16 @@
               }
             ],
             "title": "Stop After"
+          },
+          "director_requirements": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DirectorRequirements"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -1430,6 +2182,36 @@
           "pending_token"
         ],
         "title": "ResumeRequest"
+      },
+      "RetryFailedRunRequest": {
+        "properties": {
+          "base_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Base Revision"
+          },
+          "retry_command_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[a-f0-9]{32}$",
+            "title": "Retry Command Id"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 8,
+            "title": "Idempotency Key"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "base_revision",
+          "retry_command_id",
+          "idempotency_key"
+        ],
+        "title": "RetryFailedRunRequest"
       },
       "Review": {
         "properties": {
@@ -2298,6 +3080,16 @@
             "title": "Source Label",
             "default": ""
           },
+          "media_usage": {
+            "type": "string",
+            "enum": [
+              "source_evidence",
+              "context_example"
+            ],
+            "title": "Media Usage",
+            "description": "source_evidence means the media supports the current narrated claim; context_example means a real same-topic imported asset from another case, which must be labeled as 另案示例 with the source hostname and must not use the evidence component.",
+            "default": "source_evidence"
+          },
           "accent_color": {
             "type": "string",
             "pattern": "^#[0-9a-fA-F]{6}$",
@@ -2308,6 +3100,24 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Props"
+          },
+          "layers": {
+            "items": {
+              "$ref": "#/components/schemas/ShotLayer"
+            },
+            "type": "array",
+            "maxItems": 2,
+            "title": "Layers"
+          },
+          "set_design": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComponentSetDesign"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -2319,6 +3129,69 @@
           "component_id"
         ],
         "title": "Shot"
+      },
+      "ShotLayer": {
+        "properties": {
+          "component_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Component Id"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "title",
+              "emphasis"
+            ],
+            "title": "Role"
+          },
+          "start_frame": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Start Frame"
+          },
+          "end_frame": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "End Frame"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Body",
+            "default": ""
+          },
+          "accent_color": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "title": "Accent Color",
+            "default": "#38BDF8"
+          },
+          "props": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Props"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "component_id",
+          "role",
+          "start_frame",
+          "end_frame",
+          "title"
+        ],
+        "title": "ShotLayer",
+        "description": "A real library title/emphasis, timed locally over one continuous shot."
       },
       "Timeline": {
         "properties": {
@@ -2361,6 +3234,15 @@
             "maximum": 108000.0,
             "exclusiveMinimum": 0.0,
             "title": "Duration In Frames"
+          },
+          "presentation": {
+            "type": "string",
+            "enum": [
+              "production",
+              "component_sample"
+            ],
+            "title": "Presentation",
+            "default": "production"
           },
           "audio_src": {
             "anyOf": [

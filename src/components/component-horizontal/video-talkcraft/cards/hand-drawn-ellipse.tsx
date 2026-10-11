@@ -90,7 +90,7 @@ const CSS = `
 #inkLayer path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
 `;
 
-export default function HandDrawnEllipse({ hostSrc }: { hostSrc?: string }) {
+export default function HandDrawnEllipse({ hostSrc, lead = "要求可以再高一点，但对自己", emphasis = "更松弛一点" }: { hostSrc?: string; lead?: string; emphasis?: string }) {
   const t = useCurrentFrame() / FPS;
 
   // ④ 一笔：单条 path、恒定线宽，dasharray 描画（起笔快收笔缓）
@@ -110,11 +110,11 @@ export default function HandDrawnEllipse({ hostSrc }: { hostSrc?: string }) {
     }}>
       <style>{CSS}</style>
       <div className="say">
-        <div className="say-line lead">要求可以再高一点，但对自己</div>
+        <div className="say-line lead">{lead}</div>
         <div className="say-line">
           <span className="ring-word" style={{
             transform: `scale(${scale})`, transformOrigin: "50% 55%",
-          }}>更松弛一点</span>
+          }}>{emphasis}</span>
         </div>
       </div>
       <div className="host-wrap"><Host src={hostSrc} /></div>

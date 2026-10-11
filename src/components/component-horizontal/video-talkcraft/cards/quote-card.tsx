@@ -87,7 +87,7 @@ const CSS = `
 }
 `;
 
-export default function QuoteCard({ hostSrc }: { hostSrc?: string }) {
+export default function QuoteCard({ hostSrc, lines = ["赚钱这件事", "从来不靠努力", "靠的是认知", "和你敢不敢选"], source = "—— 口播金句 · 第 47 期", highlight }: { hostSrc?: string; lines?: string[]; source?: string; highlight?: string }) {
   const t = useCurrentFrame() / FPS;
 
   // 底板：淡入 → hold → 整卡下滑淡出
@@ -104,6 +104,10 @@ export default function QuoteCard({ hostSrc }: { hostSrc?: string }) {
     return { opacity: p, transform: `translateY(${lerp(CONFIG.lineRise, 0, p)}px)` };
   };
   const srcOpacity = tw(t, 1.10, 0.3, power2Out);
+  const quoteLines = [...lines, "", "", ""].slice(0, 4);
+  const renderLine = (line: string) => highlight && line.includes(highlight)
+    ? <>{line.split(highlight)[0]}<span className="kw">{highlight}</span>{line.split(highlight).slice(1).join(highlight)}</>
+    : line;
 
   return (
     <AbsoluteFill style={{
@@ -115,11 +119,8 @@ export default function QuoteCard({ hostSrc }: { hostSrc?: string }) {
       <div className="quote-panel" style={{
         opacity: panelOpacity, transform: `translateY(${panelY}px)`,
       }}>
-        <div className="quote-line" style={lineStyle(0)}>赚钱这件事</div>
-        <div className="quote-line" style={lineStyle(1)}>从来不靠<span className="kw">努力</span></div>
-        <div className="quote-line" style={lineStyle(2)}>靠的是<span className="kw">认知</span></div>
-        <div className="quote-line" style={lineStyle(3)}>和你敢不敢选</div>
-        <div className="quote-src" style={{ opacity: srcOpacity }}>—— 口播金句 · 第 47 期</div>
+        {quoteLines.map((line, index) => <div key={index} className="quote-line" style={lineStyle(index)}>{renderLine(line)}</div>)}
+        <div className="quote-src" style={{ opacity: srcOpacity }}>{source}</div>
       </div>
     </AbsoluteFill>
   );

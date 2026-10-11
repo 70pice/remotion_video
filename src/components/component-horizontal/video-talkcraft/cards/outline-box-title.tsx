@@ -100,7 +100,7 @@ const CSS = `
 }
 `;
 
-export default function OutlineBoxTitle({ hostSrc }: { hostSrc?: string }) {
+export default function OutlineBoxTitle({ hostSrc, title = "核心观点", label = "在这里" }: { hostSrc?: string; title?: string; label?: string }) {
   const t = useCurrentFrame() / FPS;
 
   const t0 = CONFIG.lead;
@@ -126,7 +126,7 @@ export default function OutlineBoxTitle({ hostSrc }: { hostSrc?: string }) {
 
       <div className="ob-group">
         <div className="ob-row1">
-          <div className="txt">核心观点</div>
+          <div className="txt">{title}</div>
           {/* 描边框：从左上顺时针一圈的圆角矩形路径（起点在上边中偏左，一笔精确闭合） */}
           <svg id="obBox" viewBox="0 0 356 104">
             <path
@@ -140,7 +140,7 @@ export default function OutlineBoxTitle({ hostSrc }: { hostSrc?: string }) {
 
         <div className="ob-row2">
           <div className="ob-chip" style={{ transform: `scaleX(${chipScaleX})` }} />
-          <div className="ob-chip-txt" style={{ opacity: chipTxtOpacity }}>在这里</div>
+          <div className="ob-chip-txt" style={{ opacity: chipTxtOpacity }}>{label}</div>
         </div>
       </div>
 

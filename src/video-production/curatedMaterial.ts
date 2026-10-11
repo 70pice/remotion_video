@@ -58,12 +58,15 @@ export type NativeCuratedMaterial = {
 };
 
 export type MaterializedCuratedSceneProps = {
+  productionLayers?: {title: boolean; emphasis: boolean};
   variant: CuratedVariant;
   layout: 'landscape' | 'portrait';
   title: string;
   kicker: string;
   accent: string;
   secondary?: string;
+  items: string[];
+  metric?: {label: string; value: string; detail?: string};
   material?: NativeCuratedMaterial;
 };
 
@@ -136,6 +139,14 @@ const suppliedSecondary = (shot: TimelineShot): string | undefined => {
   return undefined;
 };
 
+const suppliedItems = (shot: TimelineShot): string[] => {
+  const props = shot.props as Record<string, unknown>;
+  if (!Array.isArray(props.items)) return [];
+  return props.items
+    .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    .map((item) => item.trim());
+};
+
 const materialForShot = (shot: TimelineShot): NativeCuratedMaterial | undefined => {
   if (!shot.asset_src) return undefined;
   const props = shot.props as Record<string, unknown>;
@@ -159,6 +170,14 @@ export const curatedScenePropsForShot = (
   if (!definition) {
     throw new Error(`Component is not a materialized curated preset: ${shot.component_id}`);
   }
+  const suppliedMetric = (shot.props as Record<string, unknown>).metric;
+  const metric = suppliedMetric && typeof suppliedMetric === 'object'
+    && 'label' in suppliedMetric && typeof suppliedMetric.label === 'string'
+    && 'value' in suppliedMetric && typeof suppliedMetric.value === 'string'
+    ? {label: suppliedMetric.label, value: suppliedMetric.value,
+      ...('detail' in suppliedMetric && typeof suppliedMetric.detail === 'string'
+        ? {detail: suppliedMetric.detail} : {})}
+    : undefined;
   return {
     variant: definition.variant,
     layout: portrait ? 'portrait' : 'landscape',
@@ -166,6 +185,12 @@ export const curatedScenePropsForShot = (
     kicker: shot.source_label || definition.kicker,
     accent: shot.accent_color || definition.accent,
     secondary: suppliedSecondary(shot) || definition.secondary,
+    items: suppliedItems(shot),
+    ...(shot.layers?.length ? {productionLayers: {
+      title: shot.layers.some((layer) => layer.role === 'title'),
+      emphasis: shot.layers.some((layer) => layer.role === 'emphasis'),
+    }} : {}),
+    ...(metric ? {metric} : {}),
     material: materialForShot(shot),
   };
 };

@@ -95,8 +95,10 @@ const CSS = `
 .ab-row.b .ab-t  { color: #1d1d1f; }
 `;
 
-export default function AltBlockLines({ hostSrc }: { hostSrc?: string }) {
+export default function AltBlockLines({ hostSrc, rows = ROWS.map((row) => row.text) }: { hostSrc?: string; rows?: string[] }) {
   const t = useCurrentFrame() / FPS;
+
+  const displayRows = rows.length ? rows.slice(0, 2) : ROWS.map((row) => row.text);
 
   return (
     <AbsoluteFill style={{
@@ -106,7 +108,8 @@ export default function AltBlockLines({ hostSrc }: { hostSrc?: string }) {
       <style>{CSS}</style>
       <div className="host-wrap"><Host src={hostSrc} /></div>
       <div className="ab-stack">
-        {ROWS.map((r, i) => {
+        {displayRows.map((text, i) => {
+          const r = ROWS[i] ?? ROWS[0];
           const at = CONFIG.lead + i * CONFIG.rowStagger;
           // ① 色块从左展开
           const bgP = tw(t, at, CONFIG.dur, power3Out);
@@ -116,7 +119,7 @@ export default function AltBlockLines({ hostSrc }: { hostSrc?: string }) {
             <span key={i} className={`ab-row ${r.cls}`}>
               <span className="ab-bg" style={{ transform: `scaleX(${bgP})` }} />
               <span className="ab-t" style={{ clipPath: `inset(0 ${(1 - txtP) * 100}% 0 0)` }}>
-                {r.text}
+                {text}
               </span>
             </span>
           );

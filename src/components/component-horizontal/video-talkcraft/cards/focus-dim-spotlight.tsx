@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Loop, OffthreadVideo, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Img, Loop, OffthreadVideo, useCurrentFrame } from "remotion";
 
 // focus-dim-spotlight · 聚焦压暗切换 —— 自包含 Remotion 源码（与 demos/focus-dim-spotlight/index.html 同画面）
 // 复制本文件进你的工程即可用；主持人视频经 hostSrc prop 注入，不传则灰阶剪影占位。
@@ -167,7 +167,7 @@ const CSS = `
 }
 `;
 
-export default function FocusDimSpotlight({ hostSrc }: { hostSrc?: string }) {
+export default function FocusDimSpotlight({ hostSrc, mediaSrc, mediaFit = "cover", mediaStyle }: { hostSrc?: string; mediaSrc?: string; mediaFit?: "cover" | "contain"; mediaStyle?: React.CSSProperties }) {
   const t = useCurrentFrame() / FPS;
   const C = CONFIG;
 
@@ -217,6 +217,26 @@ export default function FocusDimSpotlight({ hostSrc }: { hostSrc?: string }) {
   // —— 演示注记（不属于动效）：标出当前用的是哪条通道 ——
   const chA = t < tWide ? tw(t, at[0], 0.3, power2Out) : 1 - tw(t, tWide, 0.2, power2Out);
   const chB = t < tRestore ? tw(t, tWide + 0.12, 0.3, power2Out) : 1 - tw(t, tRestore, 0.3, power2Out);
+
+  if (mediaSrc) {
+    return (
+      <AbsoluteFill style={{background: "#ffffff", color: "#1d1d1f", overflow: "hidden", fontFamily: '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif'}}>
+        <style>{CSS}</style>
+        <Img src={mediaSrc} style={{position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: mediaFit, ...mediaStyle}} />
+        <div className="spot" style={{
+          opacity: spotOpacity, width: spotGeo.w, height: spotGeo.h,
+          transform: `translate(${spotGeo.x}px, ${spotGeo.y}px)`,
+        }} />
+        <div className="ring" style={{
+          opacity: ringOpacity, width: ringGeo.w, height: ringGeo.h,
+          transform: `translate(${ringGeo.x}px, ${ringGeo.y}px) scale(${ringScale})`,
+          transformOrigin: "50% 50%",
+        }}>
+          <div className="ring-glow" style={{ opacity: glowOpacity }} />
+        </div>
+      </AbsoluteFill>
+    );
+  }
 
   return (
     <AbsoluteFill style={{

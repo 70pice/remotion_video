@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Img, useCurrentFrame } from "remotion";
 
 // tilt-3d-page · 3D 立面展示 —— 自包含 Remotion 源码（与 demos/tilt-3d-page/index.html 同画面）
 // 复制本文件进你的工程即可用。静态页面从正视平面「立起来」成 3D 立面，hold 期保持微透视慢漂。
@@ -131,7 +131,7 @@ const CSS = `
 .price .pill { margin-left: auto; width: 96px; height: 28px; border-radius: 999px; border: 1px solid #d2d2d7; }
 `;
 
-export default function Tilt3dPage(_props: { hostSrc?: string }) {
+export default function Tilt3dPage({ mediaSrc, mediaFit = "cover", mediaStyle, mediaOverlay, transparentStage = false }: { hostSrc?: string; mediaSrc?: string; mediaFit?: "cover" | "contain"; mediaStyle?: React.CSSProperties; mediaOverlay?: React.ReactNode; transparentStage?: boolean }) {
   const t = useCurrentFrame() / FPS;
   const C = CONFIG;
   const tTilt = C.startHold;             // 0.5
@@ -157,6 +157,24 @@ export default function Tilt3dPage(_props: { hostSrc?: string }) {
     shOp = C.shadowTo;
     shX = lerp(26, 33, p);
     shY = lerp(15, 12, p);
+  }
+
+  if (mediaSrc) {
+    return (
+      <AbsoluteFill style={{background: transparentStage ? "transparent" : "#ffffff", overflow: "hidden"}}>
+        <div className="world">
+          <div className="camera" style={{
+            transform: `rotateY(${rotY}deg) rotateX(${rotX}deg) scale(${scale})`,
+          }}>
+            <div className="shadow" style={{opacity: shOp, transform: `translate3d(${shX}px, ${shY}px, -34px)`}} />
+            <div className="page">
+              <Img src={mediaSrc} style={{position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: mediaFit, ...mediaStyle}} />
+              {mediaOverlay}
+            </div>
+          </div>
+        </div>
+      </AbsoluteFill>
+    );
   }
 
   return (

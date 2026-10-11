@@ -60,6 +60,48 @@ export interface Caption {
   end_ms: number;
 }
 
+export interface ComponentDemoContent {
+  title: string;
+  body: string;
+  takeaway: string;
+  items: Array<string> | null;
+  metric: ComponentDemoMetric | null;
+  numeric_items: Array<string> | null;
+  supporting_items: Array<string> | null;
+}
+
+export interface ComponentDemoMetric {
+  label: string;
+  value: string;
+  detail: string | null;
+}
+
+export interface ComponentDemoRequest {
+  base_revision: number;
+  idempotency_key: string;
+  set_id: "A01" | "A02" | "A03" | "A04" | "A05" | "A06" | "A07" | "A08" | "A09" | "A10" | "A11" | "A12" | "B01" | "B02" | "B03" | "B04" | "B05" | "B06" | "B07" | "B08" | "B09" | "B10" | "B11" | "B12" | "B13" | "B14" | "B15" | "B16" | "B17" | "B18";
+  asset_id?: string | null;
+  duration_seconds?: number;
+  composition?: "basic" | "rich";
+  tutorial_steps?: Array<ComponentDemoTutorialStep> | null;
+  focus_steps?: Array<ComponentDemoTutorialStep> | null;
+  content?: ComponentDemoContent | null;
+}
+
+export interface ComponentDemoTutorialStep {
+  start_frame: number;
+  end_frame: number;
+  instruction: string;
+  target: ComponentDemoTutorialTarget;
+}
+
+export interface ComponentDemoTutorialTarget {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface ComponentEntry {
   component_id: string;
   name: string;
@@ -77,8 +119,61 @@ export interface ComponentEntry {
   preview_url: string | null;
 }
 
+export interface ComponentSetBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface ComponentSetContent {
+  takeaway: string;
+  items?: Array<string>;
+  supporting_items?: Array<string>;
+  metric?: ComponentSetMetric | null;
+  numeric_items?: Array<string>;
+  source_refs?: Array<string>;
+}
+
+export interface ComponentSetDesign {
+  set_id: "A01" | "A02" | "A03" | "A04" | "A05" | "A06" | "A07" | "A08" | "A09" | "A10" | "A11" | "A12" | "B01" | "B02" | "B03" | "B04" | "B05" | "B06" | "B07" | "B08" | "B09" | "B10" | "B11" | "B12" | "B13" | "B14" | "B15" | "B16" | "B17" | "B18";
+  content: ComponentSetContent;
+  parts: Array<ComponentSetPart>;
+  focus_steps?: Array<ComponentSetFocusStep>;
+  source_size?: ComponentSetSourceSize | null;
+}
+
+export interface ComponentSetFocusStep {
+  instruction: string;
+  start_frame: number;
+  end_frame: number;
+  target: ComponentSetBox;
+}
+
+export interface ComponentSetMetric {
+  label: string;
+  value: string;
+  detail: string;
+}
+
+export interface ComponentSetPart {
+  part_id: string;
+  start_frame: number;
+  end_frame: number;
+  box: ComponentSetBox;
+}
+
+export interface ComponentSetSourceSize {
+  width: number;
+  height: number;
+}
+
 export interface ContentReviewAdvice {
   findings: Array<ModelFinding>;
+}
+
+export interface DirectorRequirements {
+  min_library_components: number;
 }
 
 export interface DraftRequest {
@@ -122,6 +217,7 @@ export interface Job {
   created_at: string;
   updated_at: string;
   brief: Brief;
+  director_requirements?: DirectorRequirements | null;
   script: Script | null;
   script_discussion: ScriptDiscussion | null;
   timeline: Timeline | null;
@@ -186,6 +282,13 @@ export interface ResumeRequest {
   idempotency_key: string;
   pending_token: string;
   stop_after?: "voice" | null;
+  director_requirements?: DirectorRequirements | null;
+}
+
+export interface RetryFailedRunRequest {
+  base_revision: number;
+  retry_command_id: string;
+  idempotency_key: string;
 }
 
 export interface Review {
@@ -318,6 +421,20 @@ export interface Shot {
   body: string;
   asset_src: string | null;
   source_label: string;
+  media_usage?: "source_evidence" | "context_example";
+  accent_color: string;
+  props: Record<string, unknown>;
+  layers?: Array<ShotLayer>;
+  set_design?: ComponentSetDesign | null;
+}
+
+export interface ShotLayer {
+  component_id: string;
+  role: "title" | "emphasis";
+  start_frame: number;
+  end_frame: number;
+  title: string;
+  body: string;
   accent_color: string;
   props: Record<string, unknown>;
 }
@@ -330,6 +447,7 @@ export interface Timeline {
   height: number;
   fps: number;
   duration_in_frames: number;
+  presentation?: "production" | "component_sample";
   audio_src: string | null;
   shots: Array<Shot>;
   captions: Array<Caption>;

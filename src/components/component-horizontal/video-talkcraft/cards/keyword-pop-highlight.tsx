@@ -89,7 +89,7 @@ const CSS = `
 }
 `;
 
-export default function KeywordPopHighlight({ hostSrc }: { hostSrc?: string }) {
+export default function KeywordPopHighlight({ hostSrc, prefix = "这家公司一年烧掉", keyword = "300个亿", suffix = "，还在疯狂扩张" }: { hostSrc?: string; prefix?: string; keyword?: string; suffix?: string }) {
   const t = useCurrentFrame() / FPS;
 
   // ① 弹出：scale 0→1.65（power4.out）；0.73–0.79 停在 1.65，之后回落
@@ -124,12 +124,12 @@ export default function KeywordPopHighlight({ hostSrc }: { hostSrc?: string }) {
         <Host src={hostSrc} />
         <div className="caption-zone">
           <div className="caption">
-            这家公司一年烧掉
+            {prefix}
             <span className="kw" style={{
               opacity,
               transform: `rotate(${rotate}deg) scale(${scale})`,
-            }}>300个亿</span>
-            ，还在疯狂扩张
+            }}>{keyword}</span>
+            {suffix}
           </div>
         </div>
       </AbsoluteFill>

@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Img, useCurrentFrame } from "remotion";
 
 // magnifier-detail · 局部放大镜 —— 自包含 Remotion 源码（与 demos/magnifier-detail/index.html 同画面）
 // 复制本文件进你的工程即可用。目标框 + 连接线 + 圆形放大镜（镜内轻微扫视防死）。
@@ -99,7 +99,7 @@ const ShotContent = () => (
   </>
 );
 
-export default function MagnifierDetail(_props: { hostSrc?: string }) {
+export default function MagnifierDetail({ mediaSrc, mediaFit = "cover", mediaStyle }: { hostSrc?: string; mediaSrc?: string; mediaFit?: "cover" | "contain"; mediaStyle?: React.CSSProperties }) {
   const t = useCurrentFrame() / FPS;
   const C = CONFIG;
 
@@ -140,6 +140,25 @@ export default function MagnifierDetail(_props: { hostSrc?: string }) {
 
   // 目标点细描边框几何
   const boxL = px - TARGET.w / 2 - 8, boxT = py - 16, boxW = TARGET.w + 16;
+
+  if (mediaSrc) {
+    const media = <Img src={mediaSrc} style={{position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: mediaFit, ...mediaStyle}} />;
+    return (
+      <AbsoluteFill style={{background: "#ffffff", overflow: "hidden"}}>
+        <div className="shot" style={{filter: `brightness(${dim})`}}>{media}</div>
+        <div id="magnifier" style={{
+          opacity: magOpacity,
+          transform: `translate(${magX - C.magSize / 2}px, ${magY - C.magSize / 2}px) scale(${magScale})`,
+        }}>
+          <div className="mag-inner" style={{
+            transform: `translate(${innerX}px, ${innerY}px) scale(${CONFIG.zoom})`,
+          }}>
+            <div className="shot">{media}</div>
+          </div>
+        </div>
+      </AbsoluteFill>
+    );
+  }
 
   return (
     <AbsoluteFill style={{

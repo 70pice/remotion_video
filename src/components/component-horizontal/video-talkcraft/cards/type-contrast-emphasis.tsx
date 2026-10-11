@@ -111,7 +111,7 @@ const CSS = `
 }
 `;
 
-export default function TypeContrastEmphasis({ hostSrc }: { hostSrc?: string }) {
+export default function TypeContrastEmphasis({ hostSrc, words = CONFIG.words }: { hostSrc?: string; words?: Array<{ w: string; beat?: number; emph?: "serif" | "color" }> }) {
   const t = useCurrentFrame() / FPS;
 
   return (
@@ -123,7 +123,8 @@ export default function TypeContrastEmphasis({ hostSrc }: { hostSrc?: string }) 
       <div className="host-wrap"><Host src={hostSrc} /></div>
       <div className="tc-captions">
         <div className="tc-line">
-          {CONFIG.words.map((item, i) => {
+          {words.map((raw, i) => {
+            const item = {...raw, beat: raw.beat ?? i * 0.34};
             const at = CONFIG.startDelay + item.beat;   // 该词的语音时刻
             let style: React.CSSProperties;
             if (!item.emph) {

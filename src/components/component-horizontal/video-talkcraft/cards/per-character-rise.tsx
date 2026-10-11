@@ -75,11 +75,11 @@ const CSS = `
 }
 `;
 
-export default function PerCharacterRise() {
+export default function PerCharacterRise({ text = CONFIG.text }: { text?: string }) {
   const t = useCurrentFrame() / FPS;
 
   // Array.from 按码点切字：中文即逐汉字（标点也算一个字，跟着升起是对的）
-  const chars = Array.from(CONFIG.text);
+  const chars = Array.from(text);
 
   return (
     <AbsoluteFill style={{

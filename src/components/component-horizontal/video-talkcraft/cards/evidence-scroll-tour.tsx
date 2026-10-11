@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Loop, OffthreadVideo, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Img, Loop, OffthreadVideo, useCurrentFrame } from "remotion";
 
 // evidence-scroll-tour · 证据长页慢滚 —— 自包含 Remotion 源码（与 demos/evidence-scroll-tour/index.html 同画面）
 // 复制本文件进你的工程即可用；主持人视频经 hostSrc prop 注入，不传则灰阶剪影占位。
@@ -134,7 +134,7 @@ const CSS = `
 }
 `;
 
-export default function EvidenceScrollTour({ hostSrc }: { hostSrc?: string }) {
+export default function EvidenceScrollTour({ hostSrc, mediaSrc, mediaFit = "cover", mediaStyle, label }: { hostSrc?: string; mediaSrc?: string; mediaFit?: "cover" | "contain"; mediaStyle?: React.CSSProperties; label?: string }) {
   const t = useCurrentFrame() / FPS;
   const C = CONFIG;
 
@@ -174,6 +174,22 @@ export default function EvidenceScrollTour({ hostSrc }: { hostSrc?: string }) {
     const cyc = (t - a3) / half;
     const p = cyc < 1 ? cyc : 2 - cyc;
     boxScale = lerp(1, C.breathScale, sineInOut(clamp01(p)));
+  }
+
+  if (mediaSrc) {
+    return (
+      <AbsoluteFill style={{background: "#ffffff", color: "#1d1d1f", overflow: "hidden", fontFamily: '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif'}}>
+        <style>{CSS}</style>
+        <div className="doc-window">
+          <div className="doc-titlebar"><i /><i /><i /><span className="fname">{label}</span></div>
+          <div className="doc-viewport">
+            <div className="doc-page" style={{padding: 0, height: GEO.pageH, transform: `translateY(${y}px)`}}>
+              <Img src={mediaSrc} style={{position: "absolute", left: 0, top: 0, width: "100%", height: "100%", objectFit: mediaFit, ...mediaStyle}} />
+            </div>
+          </div>
+        </div>
+      </AbsoluteFill>
+    );
   }
 
   return (

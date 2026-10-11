@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Img, useCurrentFrame } from "remotion";
 
 // slow-push-in · 缓推特写 —— 自包含 Remotion 源码（与 demos/slow-push-in/index.html 同画面）
 // 复制本文件进你的工程即可用。静态页面上的一条推镜曲线，推向兴趣点、且永不停死。
@@ -105,7 +105,7 @@ const CSS = `
 .side .stat div span { font-size: 10px; color: #8a8a8a; }
 `;
 
-export default function SlowPushIn(_props: { hostSrc?: string }) {
+export default function SlowPushIn({ mediaSrc, mediaFit = "cover", mediaStyle }: { hostSrc?: string; mediaSrc?: string; mediaFit?: "cover" | "contain"; mediaStyle?: React.CSSProperties }) {
   const t = useCurrentFrame() / FPS;
 
   // hold 期沿用主推的末速继续推（速度连续 ⇒ 看不出"段落切换"）
@@ -126,6 +126,19 @@ export default function SlowPushIn(_props: { hostSrc?: string }) {
     scale = lerp(CONFIG.zoomTo, holdZoom, p);
     x = lerp(CONFIG.driftX, CONFIG.driftX * kd, p);
     y = lerp(CONFIG.driftY, CONFIG.driftY * kd, p);
+  }
+
+  if (mediaSrc) {
+    return (
+      <AbsoluteFill style={{background: "#ffffff", overflow: "hidden"}}>
+        <div className="camera" style={{
+          transformOrigin: `${ORIGIN.x}px ${ORIGIN.y}px`,
+          transform: `translate(${x}px, ${y}px) scale(${scale})`,
+        }}>
+          <Img src={mediaSrc} style={{position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: mediaFit, ...mediaStyle}} />
+        </div>
+      </AbsoluteFill>
+    );
   }
 
   return (

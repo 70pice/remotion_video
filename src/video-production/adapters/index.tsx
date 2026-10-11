@@ -6,6 +6,7 @@ import {Body, Card, CuedMotion, FittedText, Motion, SceneHeader, clamp, contrast
 import type {AdapterProps} from './layout';
 import {resolveVideoCropGeometry} from './videoGeometry';
 import type {NormalizedCrop} from './videoGeometry';
+import {noMaterialSetGeometry} from '../noMaterialSetGeometry';
 
 export const TitleAdapter = ({shot}: AdapterProps) => {
   const {unit, contentWidth, contentHeight} = useLayout();
@@ -29,6 +30,13 @@ export const KeywordAdapter = ({shot}: AdapterProps) => {
   const {unit, contentWidth, contentHeight, vertical, durationInFrames} = useLayout();
   const keyword = (shot.props.keyword as string | undefined) ?? shot.title;
   const reveal = interpolate(frame, [0, Math.max(1, Math.min(14, durationInFrames * 0.25))], [0, 1], clamp);
+  if (shot.props.component_set === 'B02') return <Motion style={{height: noMaterialSetGeometry.main.height * unit,
+    display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+    <FittedText text={shot.body} width={noMaterialSetGeometry.main.width * unit} height={420 * unit}
+      fontSize={76 * unit} minFontSize={42 * unit} style={{color: white, textAlign: 'center'}} />
+    <div style={{alignSelf: 'center', width: 160 * unit * reveal, height: 6 * unit, background: shot.accent_color,
+      marginTop: 18 * unit}} />
+  </Motion>;
   const contextHeight = (vertical ? 80 : 60) * unit;
   const textBudget = contentHeight - contextHeight - 156 * unit;
   return <div style={{height: contentHeight, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
@@ -84,8 +92,8 @@ const useImageDimensions = (src: string | null, enabled: boolean): ImageDimensio
 
 const ImageCard = ({shot, focus, durationInFrames}: AdapterProps & {focus: boolean}) => {
   const frame = useCurrentFrame();
-  const {unit, contentWidth, contentHeight, headerHeight, bodyHeight} = useLayout();
-  const mediaHeight = contentHeight - headerHeight - bodyHeight - 58 * unit;
+  const {unit, contentWidth, contentHeight, headerHeight, bodyHeight, componentSample} = useLayout();
+  const mediaHeight = componentSample ? 850 * unit : contentHeight - headerHeight - bodyHeight - 58 * unit;
   const highlight = shot.props.highlight as Highlight | undefined;
   const focalX = (shot.props.focal_x as number | undefined) ?? 0.5;
   const focalY = (shot.props.focal_y as number | undefined) ?? 0.5;
@@ -100,7 +108,7 @@ const ImageCard = ({shot, focus, durationInFrames}: AdapterProps & {focus: boole
     fit: 'contain',
   }) : null;
   return <>
-    <SceneHeader shot={shot} />
+    {!componentSample ? <SceneHeader shot={shot} /> : null}
     <Motion delay={4}>
       <Card accent={shot.accent_color} style={{padding: 14 * unit, overflow: 'hidden'}}>
         <div style={{position: 'relative', height: mediaHeight, overflow: 'hidden', borderRadius: 16 * unit,
@@ -124,7 +132,7 @@ const ImageCard = ({shot, focus, durationInFrames}: AdapterProps & {focus: boole
         </div>
       </Card>
     </Motion>
-    <Motion delay={7} style={{marginTop: 24 * unit}}><Body text={shot.body} height={bodyHeight} /></Motion>
+    {!componentSample ? <Motion delay={7} style={{marginTop: 24 * unit}}><Body text={shot.body} height={bodyHeight} /></Motion> : null}
   </>;
 };
 
@@ -135,7 +143,7 @@ type VideoCrop = {x: number; y: number; width: number; height: number};
 
 export const VideoAdapter = ({shot, videoMetadata}: AdapterProps) => {
   const {fps} = useVideoConfig();
-  const {unit, contentWidth, contentHeight, headerHeight, bodyHeight, vertical} = useLayout();
+  const {unit, contentWidth, contentHeight, headerHeight, bodyHeight, vertical, componentSample} = useLayout();
   const metadata = shot.asset_src ? videoMetadata?.[shot.asset_src] : undefined;
   if (!metadata) throw new Error(`Missing video metadata for ${shot.asset_src ?? 'video asset'}`);
   const fit = (shot.props.fit as 'contain' | 'cover' | undefined) ?? 'contain';
@@ -144,7 +152,7 @@ export const VideoAdapter = ({shot, videoMetadata}: AdapterProps) => {
   const end = shot.props.end_seconds as number | undefined;
   const titleHeight = vertical ? Math.min(headerHeight, 200 * unit) : headerHeight;
   const textHeight = shot.body ? Math.min(bodyHeight, (vertical ? 130 : 95) * unit) : 0;
-  const mediaHeight = contentHeight - titleHeight - textHeight - (shot.body ? 42 : 30) * unit;
+  const mediaHeight = componentSample ? 850 * unit : contentHeight - titleHeight - textHeight - (shot.body ? 42 : 30) * unit;
   const frameWidth = contentWidth - 28 * unit;
   const frameHeight = mediaHeight;
   const geometry = resolveVideoCropGeometry({
@@ -157,11 +165,11 @@ export const VideoAdapter = ({shot, videoMetadata}: AdapterProps) => {
   const trimBefore = Math.round(start * fps);
   const trimAfter = end === undefined ? undefined : Math.round(end * fps);
   return <>
-    <Motion style={{height: titleHeight, flexShrink: 0}}>
+    {!componentSample ? <Motion style={{height: titleHeight, flexShrink: 0}}>
       <div style={{height: 6 * unit, width: 72 * unit, background: shot.accent_color, marginBottom: 18 * unit}} />
       <FittedText text={shot.title} width={contentWidth} height={titleHeight - 46 * unit}
         fontSize={(vertical ? 74 : 70) * unit} minFontSize={32 * unit} />
-    </Motion>
+    </Motion> : null}
     <Motion delay={4}>
       <Card accent={shot.accent_color} style={{padding: 14 * unit, overflow: 'hidden'}}>
         <div style={{position: 'relative', height: mediaHeight, overflow: 'hidden', borderRadius: 16 * unit,
@@ -181,7 +189,7 @@ export const VideoAdapter = ({shot, videoMetadata}: AdapterProps) => {
         </div>
       </Card>
     </Motion>
-    {shot.body ? <Motion delay={7} style={{marginTop: 18 * unit}}><Body text={shot.body} height={textHeight} /></Motion> : null}
+    {!componentSample && shot.body ? <Motion delay={7} style={{marginTop: 18 * unit}}><Body text={shot.body} height={textHeight} /></Motion> : null}
   </>;
 };
 
@@ -276,6 +284,13 @@ export const StepsAdapter = ({shot}: AdapterProps) => {
 export const ConclusionAdapter = ({shot}: AdapterProps) => {
   const {unit, contentWidth, contentHeight, vertical} = useLayout();
   const callToAction = shot.props.call_to_action as string | undefined;
+  if (shot.props.component_set === 'B06') return <Motion style={{height: noMaterialSetGeometry.main.height * unit,
+    display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+    <FittedText text={callToAction || shot.title} width={noMaterialSetGeometry.main.width * unit} height={360 * unit}
+      fontSize={110 * unit} minFontSize={42 * unit} style={{textAlign: 'center', color: white}} />
+    <div style={{alignSelf: 'center', width: 120 * unit, height: 6 * unit, marginTop: 24 * unit,
+      background: shot.accent_color}} />
+  </Motion>;
   const actionHeight = (vertical ? 150 : 80) * unit;
   const cardHeight = contentHeight - 70 * unit - (callToAction ? actionHeight + 40 * unit : 0);
   const textHeight = cardHeight - 161 * unit;

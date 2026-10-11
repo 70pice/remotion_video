@@ -36,17 +36,25 @@ export interface LineChartProps {
   title?: string;
   maxValue?: number;
   layout?: "default" | "portrait";
+  compactBox?: boolean;
+  unit?: string;
+  subtitle?: string;
+  accentColor?: string;
 }
 
-export default function LineChart({ data = defaultData, title = "Revenue Growth", maxValue = 100, layout = "default" }: LineChartProps = {}) {
+export default function LineChart(props: LineChartProps = {}) {
+  const {layout = "default", compactBox = false, unit = "", subtitle, accentColor = "#4361ee"} = props;
+  const data = compactBox ? (props.data ?? []) : (props.data ?? defaultData);
+  const title = props.title ?? (compactBox ? "" : "Revenue Growth");
+  const maxValue = props.maxValue ?? (compactBox ? Math.max(1, ...data.map((point) => point.y)) : 100);
   const frame = useCurrentFrame();
   const portrait = layout === "portrait";
 
 
 
-  const chartWidth = portrait ? 960 : 900;
-  const chartHeight = portrait ? 1380 : 500;
-  const padding = portrait ? 125 : 70;
+  const chartWidth = compactBox ? 760 : portrait ? 960 : 900;
+  const chartHeight = compactBox ? 420 : portrait ? 1380 : 500;
+  const padding = compactBox ? 64 : portrait ? 125 : 70;
 
   const xScale = (x: number) =>
     (x / (Math.max(1, data.length - 1))) * (chartWidth - padding * 2) + padding;
@@ -82,7 +90,7 @@ export default function LineChart({ data = defaultData, title = "Revenue Growth"
         alignItems: "center",
         justifyContent: "center",
         fontFamily: "Inter, system-ui, sans-serif",
-        background: "linear-gradient(to bottom right, #111827, #1f2937)",
+        background: compactBox ? "transparent" : "linear-gradient(to bottom right, #111827, #1f2937)",
       }}
     >
       <div
@@ -90,11 +98,12 @@ export default function LineChart({ data = defaultData, title = "Revenue Growth"
           position: "relative",
           width: `${chartWidth}px`,
           height: `${chartHeight}px`,
-          backgroundColor: "rgba(0, 0, 0, 0.2)",
-          borderRadius: "16px",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
+          backgroundColor: compactBox ? "rgba(15, 23, 42, 0.58)" : "rgba(0, 0, 0, 0.2)",
+          border: compactBox ? "1px solid rgba(148, 163, 184, 0.24)" : undefined,
+          borderRadius: compactBox ? "28px" : "16px",
+          boxShadow: compactBox ? "0 18px 48px rgba(0, 0, 0, 0.22)" : "0 10px 30px rgba(0, 0, 0, 0.3)",
           overflow: "hidden",
-          padding: "20px",
+          padding: compactBox ? "0" : "20px",
         }}
       >
         <svg width={chartWidth} height={chartHeight}>
@@ -119,9 +128,9 @@ export default function LineChart({ data = defaultData, title = "Revenue Growth"
               y={yScale(val) + 5}
               textAnchor="end"
               fill="rgba(255,255,255,0.6)"
-              fontSize={portrait ? "38" : "12"}
+              fontSize={compactBox ? "24" : portrait ? "38" : "12"}
             >
-              {val}
+              {`${Math.round(val)}${unit}`}
             </text>
           ))}
 
@@ -153,7 +162,7 @@ export default function LineChart({ data = defaultData, title = "Revenue Growth"
               y={chartHeight - padding + 25}
               textAnchor="middle"
               fill="rgba(255,255,255,0.8)"
-              fontSize={portrait ? "38" : "13"}
+              fontSize={compactBox ? "24" : portrait ? "38" : "13"}
               fontWeight="500"
             >
               {point.label}
@@ -164,8 +173,8 @@ export default function LineChart({ data = defaultData, title = "Revenue Growth"
           <polyline
             points={points}
             fill="none"
-            stroke="#4361ee"
-            strokeWidth={portrait ? "14" : "3"}
+            stroke={accentColor}
+            strokeWidth={compactBox ? "8" : portrait ? "14" : "3"}
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeDasharray={totalLength}
@@ -187,9 +196,9 @@ export default function LineChart({ data = defaultData, title = "Revenue Growth"
                 cx={xScale(point.x)}
                 cy={yScale(point.y)}
                 r={(portrait ? 20 : 5) * pointProgress}
-                fill="#f72585"
+                fill={compactBox ? "#f8fafc" : "#f72585"}
                 stroke="white"
-                strokeWidth="2"
+                strokeWidth={compactBox ? "4" : "2"}
                 opacity={pointProgress}
               />
             );
@@ -200,18 +209,35 @@ export default function LineChart({ data = defaultData, title = "Revenue Growth"
         <div
           style={{
             position: "absolute",
-            top: "25px",
+            top: compactBox ? "24px" : "25px",
             left: "50%",
             transform: "translateX(-50%)",
-            fontSize: portrait ? "76px" : "28px",
+            fontSize: compactBox ? "34px" : portrait ? "76px" : "28px",
             fontWeight: "bold",
             color: "white",
             textShadow: "0 2px 4px rgba(0,0,0,0.3)",
             letterSpacing: "-0.5px",
+            whiteSpace: "nowrap",
           }}
         >
           {title}
         </div>
+        {compactBox && subtitle ? (
+          <div
+            style={{
+              position: "absolute",
+              left: "50%",
+              bottom: "28px",
+              transform: "translateX(-50%)",
+              fontSize: "24px",
+              fontWeight: 700,
+              color: "rgba(226,232,240,0.88)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {subtitle}
+          </div>
+        ) : null}
       </div>
     </div>
   );

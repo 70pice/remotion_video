@@ -88,11 +88,12 @@ const CSS = `
 }
 `;
 
-export default function LineByLineSlide() {
+export default function LineByLineSlide({ lines = CONFIG.lines }: { lines?: string[] }) {
   const t = useCurrentFrame() / FPS;
 
   // 出场永远不早于入场结束：最后一行入场结束 + hold
-  const enterEnd = CONFIG.lead + CONFIG.enterDur + (CONFIG.lines.length - 1) * CONFIG.enterStagger;
+  const displayLines = lines.length ? lines : CONFIG.lines;
+  const enterEnd = CONFIG.lead + CONFIG.enterDur + (displayLines.length - 1) * CONFIG.enterStagger;
   const exitStart = enterEnd + CONFIG.hold;
 
   return (
@@ -103,7 +104,7 @@ export default function LineByLineSlide() {
       <style>{CSS}</style>
       <div className="lbl-block">
         <span className="lbl-text">
-          {CONFIG.lines.map((line, i) => {
+          {displayLines.map((line, i) => {
             const at = CONFIG.lead + i * CONFIG.enterStagger;
             const out = exitStart + i * CONFIG.exitStagger;
             // 入场轨① 淡入走满 enterDur；出场轨① 淡出立刻起（入场必已结束，顺序接力）

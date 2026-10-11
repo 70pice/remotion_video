@@ -79,7 +79,7 @@ const CSS = `
 }
 `;
 
-export default function ScribbleAnnotation(_props: { hostSrc?: string }) {
+export default function ScribbleAnnotation({ title = "「限时特惠」某品牌无线耳机", price = "¥299", original = "¥899", spec = "降噪深度 48dB · 续航 36 小时 · 蓝牙 5.4", fine = "数据来自实验室理想环境，实际效果因人而异", button = "立即抢购" }: { hostSrc?: string; title?: string; price?: string; original?: string; spec?: string; fine?: string; button?: string }) {
   const t = useCurrentFrame() / FPS;
 
   return (
@@ -90,11 +90,11 @@ export default function ScribbleAnnotation(_props: { hostSrc?: string }) {
       <style>{CSS}</style>
       <div className="shot">
         <div className="bar" style={{ width: "46%" }} />
-        <h3>「限时特惠」某品牌无线耳机</h3>
-        <div className="price"><span>¥299</span><small>¥899</small></div>
-        <p className="spec">降噪深度 48dB · 续航 36 小时 · 蓝牙 5.4</p>
-        <p className="fine">* <span>数据来自实验室理想环境，实际效果因人而异</span></p>
-        <div className="btn">立即抢购</div>
+        <h3>{title}</h3>
+        <div className="price"><span>{price}</span><small>{original}</small></div>
+        <p className="spec">{spec}</p>
+        <p className="fine">* <span>{fine}</span></p>
+        <div className="btn">{button}</div>
       </div>
       <svg id="inkLayer" viewBox="0 0 960 540">
         {/* 描画一笔：dashoffset 从全长到 0；画完保持静置 */}

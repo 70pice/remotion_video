@@ -86,7 +86,7 @@ const CSS = `
 .qh-last-txt { position: relative; z-index: 1; display: inline-block; }
 `;
 
-export default function QuoteHoldArrow({ hostSrc }: { hostSrc?: string }) {
+export default function QuoteHoldArrow({ hostSrc, lines = ["你现在觉得难受", "不是因为你不行", "是因为你正在走出舒适区"] }: { hostSrc?: string; lines?: string[] }) {
   const t = useCurrentFrame() / FPS;
 
   // ① 三行逐行淡入上浮——末行此刻是普通样式（框还没出，第一拍是"平淡"）
@@ -102,6 +102,7 @@ export default function QuoteHoldArrow({ hostSrc }: { hostSrc?: string }) {
   const txtScale = t < punchAt
     ? 1
     : lerp(CONFIG.punchScale, 1, tw(t, punchAt, CONFIG.punchDur, power2Out));
+  const quoteLines = [...lines, "", ""].slice(0, 3);
 
   return (
     <AbsoluteFill style={{
@@ -112,14 +113,14 @@ export default function QuoteHoldArrow({ hostSrc }: { hostSrc?: string }) {
       <div className="host-col"><Host src={hostSrc} /></div>
 
       <div className="qh-block">
-        <div className="qh-line" style={lineStyle(0)}>你现在觉得难受</div>
-        <div className="qh-line" style={lineStyle(1)}>不是因为你不行</div>
+        <div className="qh-line" style={lineStyle(0)}>{quoteLines[0]}</div>
+        <div className="qh-line" style={lineStyle(1)}>{quoteLines[1]}</div>
         <div className="qh-line" style={lineStyle(2)}>
           <span className="qh-last">
             <span className="qh-hl" style={{ transform: `scaleX(${hlX})` }} />
             <span className="qh-last-txt" style={{
               transform: `scale(${txtScale})`, transformOrigin: "50% 50%",
-            }}>是因为你正在走出舒适区</span>
+            }}>{quoteLines[2]}</span>
           </span>
         </div>
       </div>

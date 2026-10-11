@@ -40,6 +40,10 @@ export interface AnswerCard {
 }
 
 export interface AnswerStreamProps {
+  /** Readable text sizes for a production callout viewport; demo defaults stay unchanged. */
+  productionCompact?: boolean;
+  slotWidth?: number;
+  slotHeight?: number;
   /** The prompt. Fills the pill, and stays in the composer. */
   question?: string;
   /** The reply. `\n` is a hard break; everything else wraps. */
@@ -366,6 +370,9 @@ const MACRO_Y = 0.591;
  * is a prop.
  */
 export function AnswerStream({
+  productionCompact = false,
+  slotWidth,
+  slotHeight,
   question = "How do I rank higher in AI answers?",
   answer = "Analysing your prompt gaps…\nFound 27 prompts you should rank for and don't yet, so your name shows up everywhere AI looks.",
   headline = "Your AI visibility score: 34% — here's how I'd fix it:",
@@ -397,7 +404,7 @@ export function AnswerStream({
   const accent = accentColor ?? t.primary;
 
   const fc = frame * speed;
-  const stageScale = Math.min(width / REF_W, height / REF_H);
+  const stageScale = Math.min((slotWidth ?? width) / REF_W, (slotHeight ?? height) / REF_H);
 
   // A hairline is specified at a 40px control; these surfaces are 128–140 tall,
   // so the token is walked toward the foreground through the system's own mix
@@ -500,7 +507,7 @@ export function AnswerStream({
           top: 26,
           right: 28,
           fontFamily: face,
-          fontSize: 14,
+          fontSize: productionCompact ? 40 : 14,
           lineHeight: 1.4,
           color: t.foreground,
           textRendering: "geometricPrecision",
@@ -589,7 +596,7 @@ export function AnswerStream({
                   position: "absolute",
                   right: REF_W - PILL.right,
                   top: PILL.top,
-                  height: PILL.h,
+                  height: productionCompact ? 48 : PILL.h,
                   padding: `0 ${PILL.padX}px`,
                   borderRadius: PILL.h / 2,
                   background: t.muted,
@@ -606,7 +613,7 @@ export function AnswerStream({
                   ramp={mutedRamp}
                   style={{
                     fontFamily: face,
-                    fontSize: PILL.size,
+                    fontSize: productionCompact ? Math.min(32, 580 / Math.max(1, [...question].length)) : PILL.size,
                     lineHeight: 1,
                     whiteSpace: "nowrap",
                   }}
@@ -623,13 +630,13 @@ export function AnswerStream({
                 ramp={ramp}
                 style={{
                   position: "absolute",
-                  left: ANSWER.x,
-                  top: ANSWER.top,
-                  width: ANSWER.w,
-                  fontFamily: SERIF,
+                  left: productionCompact ? 105 : ANSWER.x,
+                  top: productionCompact ? 90 : ANSWER.top,
+                  width: productionCompact ? 675 : ANSWER.w,
+                  fontFamily: productionCompact ? face : SERIF,
                   fontWeight: 600,
-                  fontSize: ANSWER.size,
-                  lineHeight: `${ANSWER.line}px`,
+                  fontSize: productionCompact ? 32 : ANSWER.size,
+                  lineHeight: `${productionCompact ? 40 : ANSWER.line}px`,
                 }}
               />
 
@@ -663,10 +670,10 @@ export function AnswerStream({
                     <div
                       style={{
                         position: "absolute",
-                        left: ROW.x + i * (ROW.w + ROW.gap),
-                        top: ROW.top,
-                        width: ROW.w,
-                        height: ROW.h,
+                        left: productionCompact ? 105 + i * 218 : ROW.x + i * (ROW.w + ROW.gap),
+                        top: productionCompact ? 210 : ROW.top,
+                        width: productionCompact ? 200 : ROW.w,
+                        height: productionCompact ? 140 : ROW.h,
                         borderRadius: ROW.r,
                         background: t.card,
                         border,
@@ -676,7 +683,7 @@ export function AnswerStream({
                       <div style={{ position: "absolute", left: 12, top: 12 }}>
                         <Glyph
                           d={c.icon ?? CARD_ICONS[i % CARD_ICONS.length]}
-                          size={11}
+                          size={productionCompact ? 24 : 11}
                           color={t.mutedForeground}
                         />
                       </div>
@@ -690,11 +697,11 @@ export function AnswerStream({
                         style={{
                           position: "absolute",
                           left: 12,
-                          top: 32,
+                          top: productionCompact ? 48 : 32,
                           right: 12,
                           fontFamily: SERIF,
                           fontWeight: 600,
-                          fontSize: 8,
+                          fontSize: productionCompact ? 28 : 8,
                           lineHeight: 1.2,
                         }}
                       />
@@ -708,11 +715,11 @@ export function AnswerStream({
                         style={{
                           position: "absolute",
                           left: 12,
-                          top: 46,
+                          top: productionCompact ? 88 : 46,
                           right: 12,
                           fontFamily: face,
-                          fontSize: 7,
-                          lineHeight: "10px",
+                          fontSize: productionCompact ? 24 : 7,
+                          lineHeight: productionCompact ? "28px" : "10px",
                         }}
                       />
                     </div>

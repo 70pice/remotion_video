@@ -66,7 +66,7 @@ const CSS = `
 }
 `;
 
-export default function TrackingIn() {
+export default function TrackingIn({ title = "认知决定上限" }: { title?: string }) {
   const t = useCurrentFrame() / FPS;
 
   // 轨① 字距 + 模糊：同一条 spring 驱动（进度 → 秒 → spring 位置）
@@ -88,7 +88,7 @@ export default function TrackingIn() {
           opacity,
           letterSpacing: `${tracking.toFixed(4)}em`,
           filter: `blur(${Math.max(0, blur).toFixed(3)}px)`,
-        }}>认知决定上限</span>
+        }}>{title}</span>
       </div>
     </AbsoluteFill>
   );

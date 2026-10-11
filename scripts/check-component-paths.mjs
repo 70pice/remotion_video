@@ -7,6 +7,8 @@ const root = process.cwd();
 const expectedPresetCount = 187;
 const expectedRegisteredCount = expectedPresetCount * 2;
 const readJson = async (file) => JSON.parse(await readFile(path.join(root,file), 'utf8'));
+const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
+const normalizeLineEndings = (bytes) => Buffer.from(bytes.toString('utf8').replace(/\r\n/g, '\n'));
 const {components} = await readJson('docs/component-paths.json');
 const {components:usage} = await readJson('docs/component-use-guide.json');
 const payload = await readJson('.runtime/component-path-workbook.json');
@@ -38,12 +40,25 @@ assert.deepEqual(payload.sheets[0].data,expectedRows);
 assert.deepEqual(payload.sheets[2].data,expectedRows.filter((row) => row[0].startsWith('Talkcraft / ')));
 const manifest = await readJson('licenses/community/video-talkcraft/source-manifest.json');
 assert.equal(manifest.files.length,108);
+let localAdaptedSourceCount = 0;
+let crlfNormalizedSourceCount = 0;
 for (const file of manifest.files) {
-  assert.equal(createHash('sha256').update(await readFile(path.join(root,file.localPath))).digest('hex'),file.sha256,file.slug);
+  const bytes = await readFile(path.join(root,file.localPath));
+  if (file.local_sha256) {
+    assert.ok(file.local_sha256_normalization === undefined || file.local_sha256_normalization === 'lf', `${file.slug}: unsupported local hash normalization`);
+    assert.equal(sha256(file.local_sha256_normalization === 'lf' ? normalizeLineEndings(bytes) : bytes),file.local_sha256,file.slug);
+    assert.ok(typeof file.adaptation === 'string' && file.adaptation.trim().length > 0,`${file.slug}: local_sha256 requires adaptation`);
+    assert.notEqual(file.local_sha256,file.sha256,`${file.slug}: local_sha256 should document a changed local file, not duplicate original sha256`);
+    localAdaptedSourceCount++;
+    continue;
+  }
+  assert.equal(sha256(normalizeLineEndings(bytes)),file.sha256,file.slug);
+  if (sha256(bytes) !== file.sha256) crlfNormalizedSourceCount++;
 }
 const remaining = await readdir(path.join(root,'src/components/community'),{withFileTypes:true});
 assert.equal(remaining.filter((entry) => entry.isDirectory()).length,0,'Stale implementation folders in community');
-const report = {status:'passed',componentPairs:expectedPresetCount,uniqueEntries:expectedRegisteredCount,preservedSourceCount:108};
+const report = {status:'passed',componentPairs:expectedPresetCount,uniqueEntries:expectedRegisteredCount,
+  upstreamSourceCount:108,localAdaptedSourceCount,crlfNormalizedSourceCount};
 if (process.argv.includes('--compare-render-baseline')) {
   const before = await readJson('.runtime/component-organization-before.json');
   const after = await readJson('out/components/verification.json');

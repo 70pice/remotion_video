@@ -313,6 +313,339 @@
       "title": "Caption",
       "type": "object"
     },
+    "ComponentDemoMetric": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "maxLength": 24,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 20,
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "maxLength": 32,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        }
+      },
+      "required": [
+        "label",
+        "value"
+      ],
+      "title": "ComponentDemoMetric",
+      "type": "object"
+    },
+    "ComponentDemoContent": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "maxLength": 24,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "body": {
+          "maxLength": 90,
+          "minLength": 1,
+          "title": "Body",
+          "type": "string"
+        },
+        "takeaway": {
+          "maxLength": 24,
+          "minLength": 1,
+          "title": "Takeaway",
+          "type": "string"
+        },
+        "items": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 4,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Items"
+        },
+        "metric": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ComponentDemoMetric"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "numeric_items": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 4,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Numeric Items"
+        },
+        "supporting_items": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 4,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Supporting Items"
+        }
+      },
+      "required": [
+        "title",
+        "body",
+        "takeaway"
+      ],
+      "title": "ComponentDemoContent",
+      "type": "object"
+    },
+    "ComponentDemoTutorialStep": {
+      "additionalProperties": false,
+      "properties": {
+        "start_frame": {
+          "minimum": 0,
+          "title": "Start Frame",
+          "type": "integer"
+        },
+        "end_frame": {
+          "exclusiveMinimum": 0,
+          "title": "End Frame",
+          "type": "integer"
+        },
+        "instruction": {
+          "maxLength": 24,
+          "minLength": 1,
+          "title": "Instruction",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/ComponentDemoTutorialTarget"
+        }
+      },
+      "required": [
+        "start_frame",
+        "end_frame",
+        "instruction",
+        "target"
+      ],
+      "title": "ComponentDemoTutorialStep",
+      "type": "object"
+    },
+    "ComponentDemoTutorialTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Y",
+          "type": "number"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Width",
+          "type": "number"
+        },
+        "height": {
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Height",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ],
+      "title": "ComponentDemoTutorialTarget",
+      "type": "object"
+    },
+    "ComponentDemoRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "base_revision": {
+          "minimum": 1,
+          "title": "Base Revision",
+          "type": "integer"
+        },
+        "idempotency_key": {
+          "maxLength": 200,
+          "minLength": 8,
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "set_id": {
+          "enum": [
+            "A01",
+            "A02",
+            "A03",
+            "A04",
+            "A05",
+            "A06",
+            "A07",
+            "A08",
+            "A09",
+            "A10",
+            "A11",
+            "A12",
+            "B01",
+            "B02",
+            "B03",
+            "B04",
+            "B05",
+            "B06",
+            "B07",
+            "B08",
+            "B09",
+            "B10",
+            "B11",
+            "B12",
+            "B13",
+            "B14",
+            "B15",
+            "B16",
+            "B17",
+            "B18"
+          ],
+          "title": "Set Id",
+          "type": "string"
+        },
+        "asset_id": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asset Id"
+        },
+        "duration_seconds": {
+          "default": 10,
+          "maximum": 20,
+          "minimum": 6,
+          "title": "Duration Seconds",
+          "type": "number"
+        },
+        "composition": {
+          "default": "basic",
+          "enum": [
+            "basic",
+            "rich"
+          ],
+          "title": "Composition",
+          "type": "string"
+        },
+        "tutorial_steps": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/ComponentDemoTutorialStep"
+              },
+              "maxItems": 8,
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tutorial Steps"
+        },
+        "focus_steps": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/ComponentDemoTutorialStep"
+              },
+              "maxItems": 8,
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Focus Steps"
+        },
+        "content": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ComponentDemoContent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "base_revision",
+        "idempotency_key",
+        "set_id"
+      ],
+      "title": "ComponentDemoRequest",
+      "type": "object"
+    },
     "ComponentEntry": {
       "additionalProperties": false,
       "properties": {
@@ -419,6 +752,304 @@
       "title": "ComponentEntry",
       "type": "object"
     },
+    "ComponentSetBox": {
+      "additionalProperties": false,
+      "description": "Normalized rectangle inside the production content area, never the captions.",
+      "properties": {
+        "x": {
+          "exclusiveMaximum": 1,
+          "minimum": 0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "exclusiveMaximum": 1,
+          "minimum": 0,
+          "title": "Y",
+          "type": "number"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Width",
+          "type": "number"
+        },
+        "height": {
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Height",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ],
+      "title": "ComponentSetBox",
+      "type": "object"
+    },
+    "ComponentSetMetric": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 24,
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        },
+        "detail": {
+          "default": "",
+          "maxLength": 96,
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "value"
+      ],
+      "title": "ComponentSetMetric",
+      "type": "object"
+    },
+    "ComponentSetContent": {
+      "additionalProperties": false,
+      "description": "Current job's meaning; layout overrides cannot introduce additional facts.",
+      "properties": {
+        "takeaway": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Takeaway",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "maxLength": 96,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 6,
+          "title": "Items",
+          "type": "array"
+        },
+        "supporting_items": {
+          "items": {
+            "maxLength": 96,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 6,
+          "title": "Supporting Items",
+          "type": "array"
+        },
+        "metric": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ComponentSetMetric"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "numeric_items": {
+          "items": {
+            "maxLength": 96,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 6,
+          "title": "Numeric Items",
+          "type": "array"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Source Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "takeaway"
+      ],
+      "title": "ComponentSetContent",
+      "type": "object"
+    },
+    "ComponentSetFocusStep": {
+      "additionalProperties": false,
+      "properties": {
+        "instruction": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Instruction",
+          "type": "string"
+        },
+        "start_frame": {
+          "minimum": 0,
+          "title": "Start Frame",
+          "type": "integer"
+        },
+        "end_frame": {
+          "exclusiveMinimum": 0,
+          "title": "End Frame",
+          "type": "integer"
+        },
+        "target": {
+          "$ref": "#/$defs/ComponentSetBox"
+        }
+      },
+      "required": [
+        "instruction",
+        "start_frame",
+        "end_frame",
+        "target"
+      ],
+      "title": "ComponentSetFocusStep",
+      "type": "object"
+    },
+    "ComponentSetPart": {
+      "additionalProperties": false,
+      "properties": {
+        "part_id": {
+          "maxLength": 40,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Part Id",
+          "type": "string"
+        },
+        "start_frame": {
+          "minimum": 0,
+          "title": "Start Frame",
+          "type": "integer"
+        },
+        "end_frame": {
+          "exclusiveMinimum": 0,
+          "title": "End Frame",
+          "type": "integer"
+        },
+        "box": {
+          "$ref": "#/$defs/ComponentSetBox"
+        }
+      },
+      "required": [
+        "part_id",
+        "start_frame",
+        "end_frame",
+        "box"
+      ],
+      "title": "ComponentSetPart",
+      "type": "object"
+    },
+    "ComponentSetSourceSize": {
+      "additionalProperties": false,
+      "properties": {
+        "width": {
+          "exclusiveMinimum": 0,
+          "maximum": 16384,
+          "title": "Width",
+          "type": "integer"
+        },
+        "height": {
+          "exclusiveMinimum": 0,
+          "maximum": 16384,
+          "title": "Height",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "width",
+        "height"
+      ],
+      "title": "ComponentSetSourceSize",
+      "type": "object"
+    },
+    "ComponentSetDesign": {
+      "additionalProperties": false,
+      "properties": {
+        "set_id": {
+          "enum": [
+            "A01",
+            "A02",
+            "A03",
+            "A04",
+            "A05",
+            "A06",
+            "A07",
+            "A08",
+            "A09",
+            "A10",
+            "A11",
+            "A12",
+            "B01",
+            "B02",
+            "B03",
+            "B04",
+            "B05",
+            "B06",
+            "B07",
+            "B08",
+            "B09",
+            "B10",
+            "B11",
+            "B12",
+            "B13",
+            "B14",
+            "B15",
+            "B16",
+            "B17",
+            "B18"
+          ],
+          "title": "Set Id",
+          "type": "string"
+        },
+        "content": {
+          "$ref": "#/$defs/ComponentSetContent"
+        },
+        "parts": {
+          "items": {
+            "$ref": "#/$defs/ComponentSetPart"
+          },
+          "maxItems": 12,
+          "title": "Parts",
+          "type": "array"
+        },
+        "focus_steps": {
+          "items": {
+            "$ref": "#/$defs/ComponentSetFocusStep"
+          },
+          "maxItems": 6,
+          "title": "Focus Steps",
+          "type": "array"
+        },
+        "source_size": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ComponentSetSourceSize"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "set_id",
+        "content"
+      ],
+      "title": "ComponentSetDesign",
+      "type": "object"
+    },
     "ModelFinding": {
       "additionalProperties": false,
       "properties": {
@@ -477,6 +1108,20 @@
         }
       },
       "title": "ContentReviewAdvice",
+      "type": "object"
+    },
+    "DirectorRequirements": {
+      "additionalProperties": false,
+      "properties": {
+        "min_library_components": {
+          "default": 0,
+          "maximum": 187,
+          "minimum": 0,
+          "title": "Min Library Components",
+          "type": "integer"
+        }
+      },
+      "title": "DirectorRequirements",
       "type": "object"
     },
     "Script": {
@@ -639,8 +1284,99 @@
           "title": "Source Label",
           "type": "string"
         },
+        "media_usage": {
+          "default": "source_evidence",
+          "description": "source_evidence means the media supports the current narrated claim; context_example means a real same-topic imported asset from another case, which must be labeled as 另案示例 with the source hostname and must not use the evidence component.",
+          "enum": [
+            "source_evidence",
+            "context_example"
+          ],
+          "title": "Media Usage",
+          "type": "string"
+        },
         "accent_color": {
           "default": "#8cffb8",
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "title": "Accent Color",
+          "type": "string"
+        },
+        "props": {
+          "additionalProperties": true,
+          "title": "Props",
+          "type": "object"
+        },
+        "layers": {
+          "items": {
+            "$ref": "#/$defs/ShotLayer"
+          },
+          "maxItems": 2,
+          "title": "Layers",
+          "type": "array"
+        },
+        "set_design": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ComponentSetDesign"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "shot_id",
+        "start_frame",
+        "end_frame",
+        "component_id"
+      ],
+      "title": "Shot",
+      "type": "object"
+    },
+    "ShotLayer": {
+      "additionalProperties": false,
+      "description": "A real library title/emphasis, timed locally over one continuous shot.",
+      "properties": {
+        "component_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Component Id",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "title",
+            "emphasis"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "start_frame": {
+          "minimum": 0,
+          "title": "Start Frame",
+          "type": "integer"
+        },
+        "end_frame": {
+          "exclusiveMinimum": 0,
+          "title": "End Frame",
+          "type": "integer"
+        },
+        "title": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "body": {
+          "default": "",
+          "maxLength": 64,
+          "title": "Body",
+          "type": "string"
+        },
+        "accent_color": {
+          "default": "#38BDF8",
           "pattern": "^#[0-9a-fA-F]{6}$",
           "title": "Accent Color",
           "type": "string"
@@ -652,12 +1388,13 @@
         }
       },
       "required": [
-        "shot_id",
+        "component_id",
+        "role",
         "start_frame",
         "end_frame",
-        "component_id"
+        "title"
       ],
-      "title": "Shot",
+      "title": "ShotLayer",
       "type": "object"
     },
     "Timeline": {
@@ -702,6 +1439,15 @@
           "maximum": 108000,
           "title": "Duration In Frames",
           "type": "integer"
+        },
+        "presentation": {
+          "default": "production",
+          "enum": [
+            "production",
+            "component_sample"
+          ],
+          "title": "Presentation",
+          "type": "string"
         },
         "audio_src": {
           "anyOf": [
@@ -1240,6 +1986,17 @@
         "brief": {
           "$ref": "#/$defs/Brief"
         },
+        "director_requirements": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DirectorRequirements"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "script": {
           "anyOf": [
             {
@@ -1603,6 +2360,17 @@
           ],
           "default": null,
           "title": "Stop After"
+        },
+        "director_requirements": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DirectorRequirements"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -1612,6 +2380,36 @@
         "pending_token"
       ],
       "title": "ResumeRequest",
+      "type": "object"
+    },
+    "RetryFailedRunRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "base_revision": {
+          "minimum": 1,
+          "title": "Base Revision",
+          "type": "integer"
+        },
+        "retry_command_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Retry Command Id",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "maxLength": 200,
+          "minLength": 8,
+          "title": "Idempotency Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "base_revision",
+        "retry_command_id",
+        "idempotency_key"
+      ],
+      "title": "RetryFailedRunRequest",
       "type": "object"
     },
     "RoleModelConfig": {

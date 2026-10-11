@@ -1,0 +1,871 @@
+{
+  "schema_version": "1",
+  "entries": [
+    {
+      "component_id": "Bits-ChatConversation",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/bits/examples/ChatConversation.tsx",
+      "renderer": "NativeMediaScene:Bits-ChatConversation",
+      "use_case": "必须提供本期真实输入: items",
+      "content_constraints": {
+        "items_min": 2,
+        "asset_forbidden": true
+      }
+    },
+    {
+      "component_id": "Bits-CursorFlyover",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/bits/examples/CursorFlyover.tsx",
+      "renderer": "NativeMediaScene:Bits-CursorFlyover",
+      "use_case": "必须提供本期真实输入: image_media",
+      "content_constraints": {
+        "media_required": true,
+        "image_only": true
+      }
+    },
+    {
+      "component_id": "Bits-KenBurns",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/bits/examples/KenBurns.tsx",
+      "renderer": "NativeMediaScene:Bits-KenBurns",
+      "use_case": "必须提供本期真实输入: image_media",
+      "content_constraints": {
+        "media_required": true,
+        "image_only": true
+      }
+    },
+    {
+      "component_id": "Remocn-AnimatedLineChart",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/remocn/animated-line-chart/index.tsx",
+      "renderer": "NativeMediaScene:Remocn-AnimatedLineChart",
+      "use_case": "必须提供本期真实输入: strict_numeric_items",
+      "content_constraints": {
+        "items_min": 2,
+        "numeric_first_item": true,
+        "asset_forbidden": true
+      }
+    },
+    {
+      "component_id": "RemotionUI-SocialClip",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/curated/CuratedScene.tsx",
+      "renderer": "CuratedScene:social-clip",
+      "use_case": "竖屏清晰大幅真实素材，不能当作真实视频",
+      "content_constraints": {
+        "media_required": true
+      }
+    },
+    {
+      "component_id": "RenderComp-KpiCounter",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/curated/CuratedScene.tsx",
+      "renderer": "CuratedScene:kpi-counter",
+      "use_case": "真实指标，必须给metric.label/value，保留原文单位和口径",
+      "content_constraints": {
+        "metric_required": true
+      }
+    },
+    {
+      "component_id": "RenderComp-SocialReel",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/curated/CuratedScene.tsx",
+      "renderer": "CuratedScene:social-reel",
+      "use_case": "竖屏清晰大幅真实素材，不能当作真实视频",
+      "content_constraints": {
+        "media_required": true
+      }
+    },
+    {
+      "component_id": "Rve-ChartAnimation",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/rve/chart-animation.tsx",
+      "renderer": "NativeMediaScene:Rve-ChartAnimation",
+      "use_case": "必须提供本期真实输入: strict_numeric_items",
+      "content_constraints": {
+        "items_min": 2,
+        "numeric_first_item": true,
+        "asset_forbidden": true
+      }
+    },
+    {
+      "component_id": "Rve-ComparisonChart",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/rve/comparison-chart.tsx",
+      "renderer": "NativeMediaScene:Rve-ComparisonChart",
+      "use_case": "必须提供本期真实输入: strict_numeric_items",
+      "content_constraints": {
+        "items_min": 2,
+        "numeric_first_item": true,
+        "asset_forbidden": true
+      }
+    },
+    {
+      "component_id": "Rve-LineChart",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/rve/line-chart.tsx",
+      "renderer": "NativeMediaScene:Rve-LineChart",
+      "use_case": "必须提供本期真实输入: strict_numeric_items",
+      "content_constraints": {
+        "items_min": 2,
+        "numeric_first_item": true,
+        "asset_forbidden": true
+      }
+    },
+    {
+      "component_id": "Rve-ProgressSteps",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/rve/progress-steps.tsx",
+      "renderer": "NativeMediaScene:Rve-ProgressSteps",
+      "use_case": "必须提供本期真实输入: items",
+      "content_constraints": {
+        "items_min": 2,
+        "asset_forbidden": true
+      }
+    },
+    {
+      "component_id": "Rve-QuoteCard",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/rve/quote-card.tsx",
+      "renderer": "NativeMediaScene:Rve-QuoteCard",
+      "use_case": "必须提供本期真实输入: text",
+      "content_constraints": {
+        "body_required": false,
+        "asset_forbidden": true
+      }
+    },
+    {
+      "component_id": "Rve-SplitScreen",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/rve/split-screen.tsx",
+      "renderer": "NativeMediaScene:Rve-SplitScreen",
+      "use_case": "必须提供本期真实输入: items",
+      "content_constraints": {
+        "items_min": 2,
+        "asset_forbidden": true
+      }
+    },
+    {
+      "component_id": "Rve-StatCounter",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/rve/stat-counter.tsx",
+      "renderer": "NativeMediaScene:Rve-StatCounter",
+      "use_case": "必须提供本期真实输入: metric",
+      "content_constraints": {
+        "metric_required": true,
+        "asset_forbidden": true
+      }
+    },
+    {
+      "component_id": "Snapcn-AnswerHighlight",
+      "roles": [
+        "title",
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/snapcn/answer-highlight/index.tsx",
+      "renderer": "SnapcnNativeTitle:AnswerHighlight",
+      "use_case": "已确认旁白的机制示意；不能编人物对话或冒充真实App，不改原字幕时间",
+      "content_constraints": {
+        "body_required": true
+      }
+    },
+    {
+      "component_id": "Snapcn-AnswerStream",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/snapcn/answer-stream/index.tsx",
+      "renderer": "SnapcnNativeTitle:AnswerStream",
+      "use_case": "已确认旁白的机制示意；不能编人物对话或冒充真实App，不改原字幕时间",
+      "content_constraints": {
+        "body_required": true
+      }
+    },
+    {
+      "component_id": "Snapcn-KaraokeCaptions",
+      "roles": [
+        "title",
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/snapcn/karaoke-captions/index.tsx",
+      "renderer": "SnapcnNativeTitle:KaraokeCaptions",
+      "use_case": "短标题或关键词强调，文字取自当前旁白，不改口播字幕"
+    },
+    {
+      "component_id": "Snapcn-PhoneFrame",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/snapcn/phone-frame/index.tsx",
+      "renderer": "PhoneFrameMaterial",
+      "use_case": "本期真实App界面的原生手机框，不模拟真实视频",
+      "content_constraints": {
+        "media_required": true
+      }
+    },
+    {
+      "component_id": "Snapcn-PromptSend",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/snapcn/prompt-send/index.tsx",
+      "renderer": "SnapcnNativeTitle:PromptSend",
+      "use_case": "已确认旁白的机制示意；不能编人物对话或冒充真实App，不改原字幕时间"
+    },
+    {
+      "component_id": "Snapcn-SearchTyping",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/snapcn/search-typing/index.tsx",
+      "renderer": "SnapcnNativeTitle:SearchTyping",
+      "use_case": "短标题或关键词强调，文字取自当前旁白，不改口播字幕"
+    },
+    {
+      "component_id": "Snapcn-TextBuild",
+      "roles": [
+        "title",
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/snapcn/text-build/index.tsx",
+      "renderer": "SnapcnNativeTitle:TextBuild",
+      "use_case": "短标题或关键词强调，文字取自当前旁白，不改口播字幕"
+    },
+    {
+      "component_id": "Snapcn-TextHighlight",
+      "roles": [
+        "title",
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/snapcn/text-highlight/index.tsx",
+      "renderer": "SnapcnNativeTitle:TextHighlight",
+      "use_case": "短标题或关键词强调，文字取自当前旁白，不改口播字幕"
+    },
+    {
+      "component_id": "Snapcn-TextReveal",
+      "roles": [
+        "title",
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/snapcn/text-reveal/index.tsx",
+      "renderer": "SnapcnNativeTitle:TextReveal",
+      "use_case": "短标题或关键词强调，文字取自当前旁白，不改口播字幕"
+    },
+    {
+      "component_id": "Snapcn-TextRewrite",
+      "roles": [
+        "title",
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/snapcn/text-rewrite/index.tsx",
+      "renderer": "SnapcnNativeTitle:TextRewrite",
+      "use_case": "短标题或关键词强调，文字取自当前旁白，不改口播字幕",
+      "content_constraints": {
+        "replacement_required": true
+      }
+    },
+    {
+      "component_id": "Snapcn-TextSwap",
+      "roles": [
+        "title",
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/snapcn/text-swap/index.tsx",
+      "renderer": "SnapcnNativeTitle:TextSwap",
+      "use_case": "短标题或关键词强调，文字取自当前旁白，不改口播字幕",
+      "content_constraints": {
+        "replacement_required": true
+      }
+    },
+    {
+      "component_id": "Snapcn-WordCaptions",
+      "roles": [
+        "title",
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/snapcn/word-captions/index.tsx",
+      "renderer": "SnapcnNativeTitle:WordCaptions",
+      "use_case": "短标题或关键词强调，文字取自当前旁白，不改口播字幕"
+    },
+    {
+      "component_id": "Snapcn-WordFlip",
+      "roles": [
+        "title",
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/snapcn/word-flip/index.tsx",
+      "renderer": "SnapcnNativeTitle:WordFlip",
+      "use_case": "短标题或关键词强调，文字取自当前旁白，不改口播字幕",
+      "content_constraints": {
+        "items_min": 2,
+        "items_distinct": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-alt-block-lines",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/alt-block-lines.tsx",
+      "renderer": "TalkcraftNativeTitle:alt-block-lines",
+      "use_case": "two colored blocks brush text into view",
+      "content_constraints": {
+        "body_required": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-chip-grid-single-select",
+      "roles": [
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/chip-grid-single-select.tsx",
+      "renderer": "TalkcraftNativeTitle:chip-grid-single-select",
+      "use_case": "option grid flips one selected answer into equation result",
+      "content_constraints": {
+        "items_min": 2,
+        "selection_matches_item": true,
+        "min_visible_frames": 150
+      }
+    },
+    {
+      "component_id": "Talkcraft-corner-bracket-frame",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/corner-bracket-frame.tsx",
+      "renderer": "TalkcraftNativeTitle:corner-bracket-frame",
+      "use_case": "opposite corner brackets enter + two-line reveal",
+      "content_constraints": {
+        "body_required": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-count-badge-title",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/count-badge-title.tsx",
+      "renderer": "TalkcraftNativeTitle:count-badge-title",
+      "use_case": "large count lands, hue shifts, rest of phrase is pushed out",
+      "content_constraints": {
+        "keyword_required": true,
+        "items_min": 1,
+        "numeric_first_item": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-crash-zoom-punch",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/crash-zoom-punch.tsx",
+      "renderer": "TalkcraftNativeMedia:crash-zoom-punch",
+      "use_case": "fast camera punch into the central area of a real screenshot",
+      "content_constraints": {
+        "media_required": true,
+        "image_only": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-cursor-locked-zoom",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/cursor-locked-zoom.tsx",
+      "renderer": "TalkcraftNativeMedia:cursor-locked-zoom",
+      "use_case": "camera follows the command-cursor path across a real screenshot",
+      "content_constraints": {
+        "media_required": true,
+        "image_only": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-error-retype",
+      "roles": [
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/error-retype.tsx",
+      "renderer": "TalkcraftNativeTitle:error-retype",
+      "use_case": "wrong phrase retyped into corrected phrase",
+      "content_constraints": {
+        "replacement_required": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-evidence-scroll-tour",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/evidence-scroll-tour.tsx",
+      "renderer": "TalkcraftNativeMedia:evidence-scroll-tour",
+      "use_case": "vertical evidence tour scrolling a real long screenshot",
+      "content_constraints": {
+        "media_required": true,
+        "image_only": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-focus-dim-spotlight",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/focus-dim-spotlight.tsx",
+      "renderer": "TalkcraftNativeMedia:focus-dim-spotlight",
+      "use_case": "spotlight mask and glow travel across a real screenshot",
+      "content_constraints": {
+        "media_required": true,
+        "image_only": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-hand-drawn-ellipse",
+      "roles": [
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/hand-drawn-ellipse.tsx",
+      "renderer": "TalkcraftNativeTitle:hand-drawn-ellipse",
+      "use_case": "hand-drawn ellipse path + circled phrase punch",
+      "content_constraints": {
+        "keyword_required": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-highlighter-sweep",
+      "roles": [
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/highlighter-sweep.tsx",
+      "renderer": "TalkcraftNativeTitle:highlighter-sweep",
+      "use_case": "highlight block sweep + dimmed surrounding lines + lifted key sentence",
+      "content_constraints": {}
+    },
+    {
+      "component_id": "Talkcraft-impact-open-title",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/impact-open-title.tsx",
+      "renderer": "TalkcraftNativeTitle:impact-open-title",
+      "use_case": "headline slam + delayed keyword recolor + corner frame",
+      "content_constraints": {
+        "keyword_required": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-ink-underline",
+      "roles": [
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/ink-underline.tsx",
+      "renderer": "TalkcraftNativeTitle:ink-underline",
+      "use_case": "grainy ink ribbons underline two emphasized phrases",
+      "content_constraints": {
+        "keyword_required": true,
+        "body_required": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-keyword-pop-highlight",
+      "roles": [
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/keyword-pop-highlight.tsx",
+      "renderer": "TalkcraftNativeTitle:keyword-pop-highlight",
+      "use_case": "keyword scale pop + shake impact + skew color slab",
+      "content_constraints": {
+        "keyword_required": true,
+        "min_visible_frames": 60
+      }
+    },
+    {
+      "component_id": "Talkcraft-lead-word-zoom-assemble",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/lead-word-zoom-assemble.tsx",
+      "renderer": "TalkcraftNativeTitle:lead-word-zoom-assemble",
+      "use_case": "lead word zoom assemble with one accent word",
+      "content_constraints": {}
+    },
+    {
+      "component_id": "Talkcraft-line-by-line-slide",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/line-by-line-slide.tsx",
+      "renderer": "TalkcraftNativeTitle:line-by-line-slide",
+      "use_case": "each line slides in and exits as a continuous phrase block",
+      "content_constraints": {
+        "body_required": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-magnifier-detail",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/magnifier-detail.tsx",
+      "renderer": "TalkcraftNativeMedia:magnifier-detail",
+      "use_case": "moving magnifier over a real screenshot detail",
+      "content_constraints": {
+        "media_required": true,
+        "image_only": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-media-pop-in",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/media-pop-in.tsx",
+      "renderer": "TalkcraftNativeMedia:media-pop-in",
+      "use_case": "single evidence screenshot pops in with the original card tilt timing",
+      "content_constraints": {
+        "media_required": true,
+        "image_only": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-news-card-desk",
+      "roles": [
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/news-card-desk.tsx",
+      "renderer": "TalkcraftNativeTitle:news-card-desk",
+      "use_case": "newspaper cards slide onto desk + Ken Burns + redline sweep",
+      "content_constraints": {}
+    },
+    {
+      "component_id": "Talkcraft-orbit-drift",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/orbit-drift.tsx",
+      "renderer": "TalkcraftNativeMedia:orbit-drift",
+      "use_case": "slow 3D orbit drift with page shadow around a real screenshot",
+      "content_constraints": {
+        "media_required": true,
+        "image_only": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-outline-box-title",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/outline-box-title.tsx",
+      "renderer": "TalkcraftNativeTitle:outline-box-title",
+      "use_case": "single-stroke rounded rectangle + delayed chip + chevrons",
+      "content_constraints": {}
+    },
+    {
+      "component_id": "Talkcraft-per-character-rise",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/per-character-rise.tsx",
+      "renderer": "TalkcraftNativeTitle:per-character-rise",
+      "use_case": "characters rise individually with staggered opacity",
+      "content_constraints": {}
+    },
+    {
+      "component_id": "Talkcraft-pip-zoom-box",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/pip-zoom-box.tsx",
+      "renderer": "TalkcraftNativeMedia:pip-zoom-box",
+      "use_case": "picture-in-picture zoom duplicates a real screenshot only as a magnified detail view",
+      "content_constraints": {
+        "media_required": true,
+        "image_only": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-quote-bracket-pull",
+      "roles": [
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/quote-bracket-pull.tsx",
+      "renderer": "TalkcraftNativeTitle:quote-bracket-pull",
+      "use_case": "paired quote marks pull inward + final phrase marker sweep",
+      "content_constraints": {
+        "body_required": true,
+        "items_min": 1
+      }
+    },
+    {
+      "component_id": "Talkcraft-quote-card",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/quote-card.tsx",
+      "renderer": "TalkcraftNativeTitle:quote-card",
+      "use_case": "dark panel cover + staggered quote line punches",
+      "content_constraints": {
+        "body_required": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-quote-hold-arrow",
+      "roles": [
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/quote-hold-arrow.tsx",
+      "renderer": "TalkcraftNativeTitle:quote-hold-arrow",
+      "use_case": "staggered quote lines + centered highlighter box punch",
+      "content_constraints": {
+        "body_required": true,
+        "items_min": 1
+      }
+    },
+    {
+      "component_id": "Talkcraft-reticle-lock-on",
+      "roles": [
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/reticle-lock-on.tsx",
+      "renderer": "TalkcraftNativeTitle:reticle-lock-on",
+      "use_case": "reticle locks onto target button area",
+      "content_constraints": {
+        "keyword_required": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-scanline-annotate",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/scanline-annotate.tsx",
+      "renderer": "TalkcraftNativeMedia:scanline-annotate",
+      "use_case": "scanline pass reveals a central callout on a real screenshot",
+      "content_constraints": {
+        "media_required": true,
+        "image_only": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-scribble-annotation",
+      "roles": [
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/scribble-annotation.tsx",
+      "renderer": "TalkcraftNativeTitle:scribble-annotation",
+      "use_case": "three hand-drawn annotation strokes over product-like panel",
+      "content_constraints": {
+        "keyword_required": true,
+        "min_visible_frames": 120
+      }
+    },
+    {
+      "component_id": "Talkcraft-slab-punch-title",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/slab-punch-title.tsx",
+      "renderer": "TalkcraftNativeTitle:slab-punch-title",
+      "use_case": "first line snap + centered slab expands + white word punch",
+      "content_constraints": {
+        "keyword_required": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-slow-pull-reveal",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/slow-pull-reveal.tsx",
+      "renderer": "TalkcraftNativeMedia:slow-pull-reveal",
+      "use_case": "slow pull from detail back to full real screenshot",
+      "content_constraints": {
+        "media_required": true,
+        "image_only": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-slow-push-in",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/slow-push-in.tsx",
+      "renderer": "TalkcraftNativeMedia:slow-push-in",
+      "use_case": "continuous slow push into a real screenshot focal area",
+      "content_constraints": {
+        "media_required": true,
+        "image_only": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-soft-blur-in",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/soft-blur-in.tsx",
+      "renderer": "TalkcraftNativeTitle:soft-blur-in",
+      "use_case": "per-character soft blur resolves into a full sentence",
+      "content_constraints": {}
+    },
+    {
+      "component_id": "Talkcraft-source-converge",
+      "roles": [
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/source-converge.tsx",
+      "renderer": "TalkcraftNativeTitle:source-converge",
+      "use_case": "multiple sources converge into one central hub",
+      "content_constraints": {
+        "keyword_required": true,
+        "items_min": 2
+      }
+    },
+    {
+      "component_id": "Talkcraft-speed-slab-title",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/speed-slab-title.tsx",
+      "renderer": "TalkcraftNativeTitle:speed-slab-title",
+      "use_case": "speed lines + slab rush-in + lagging text catch-up",
+      "content_constraints": {
+        "keyword_required": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-split-text-stagger",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/split-text-stagger.tsx",
+      "renderer": "TalkcraftNativeTitle:split-text-stagger",
+      "use_case": "split text stagger reveal with subtitle",
+      "content_constraints": {}
+    },
+    {
+      "component_id": "Talkcraft-strike-and-replace",
+      "roles": [
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/strike-and-replace.tsx",
+      "renderer": "TalkcraftNativeTitle:strike-and-replace",
+      "use_case": "fast strike-through + same-slot replacement text",
+      "content_constraints": {
+        "replacement_required": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-sway-parallax",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/sway-parallax.tsx",
+      "renderer": "TalkcraftNativeMedia:sway-parallax",
+      "use_case": "subtle 3D side sway across a real screenshot plane",
+      "content_constraints": {
+        "media_required": true,
+        "image_only": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-tilt-3d-page",
+      "roles": [
+        "main"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/tilt-3d-page.tsx",
+      "renderer": "TalkcraftNativeMedia:tilt-3d-page",
+      "use_case": "real screenshot tilts into a 3D page with shadow drift",
+      "content_constraints": {
+        "media_required": true,
+        "image_only": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-title-demote-to-label",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/title-demote-to-label.tsx",
+      "renderer": "TalkcraftNativeTitle:title-demote-to-label",
+      "use_case": "title demotes into a label while item cards appear",
+      "content_constraints": {
+        "items_min": 1,
+        "min_visible_frames": 105
+      }
+    },
+    {
+      "component_id": "Talkcraft-tracking-in",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/tracking-in.tsx",
+      "renderer": "TalkcraftNativeTitle:tracking-in",
+      "use_case": "letter spacing and blur spring into a locked title",
+      "content_constraints": {}
+    },
+    {
+      "component_id": "Talkcraft-type-contrast-emphasis",
+      "roles": [
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/type-contrast-emphasis.tsx",
+      "renderer": "TalkcraftNativeTitle:type-contrast-emphasis",
+      "use_case": "word-by-word baseline pop with serif/color emphasis channels",
+      "content_constraints": {
+        "body_required": true
+      }
+    },
+    {
+      "component_id": "Talkcraft-typewriter-reveal",
+      "roles": [
+        "title"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/typewriter-reveal.tsx",
+      "renderer": "TalkcraftNativeTitle:typewriter-reveal",
+      "use_case": "two-line typewriter with blinking cursor handoff",
+      "content_constraints": {
+        "body_required": true,
+        "min_visible_frames": 150
+      }
+    },
+    {
+      "component_id": "Talkcraft-word-slot-cycle",
+      "roles": [
+        "emphasis"
+      ],
+      "source": "src/components/component-horizontal/video-talkcraft/cards/word-slot-cycle.tsx",
+      "renderer": "TalkcraftNativeTitle:word-slot-cycle",
+      "use_case": "fixed stem with rolling pill slot and final overshoot",
+      "content_constraints": {
+        "body_required": true,
+        "items_min": 1
+      }
+    }
+  ]
+}

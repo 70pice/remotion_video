@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Img, useCurrentFrame } from "remotion";
 
 // cursor-locked-zoom · 光标锁定跟拍 —— 自包含 Remotion 源码（与 demos/cursor-locked-zoom/index.html 同画面）
 // 复制本文件进你的工程即可用。镜头锁在打字光标上，命令从右侧"喂"进来，打完拉回全景。
@@ -108,7 +108,7 @@ const CSS = `
 }
 `;
 
-export default function CursorLockedZoom(_props: { hostSrc?: string }) {
+export default function CursorLockedZoom({ mediaSrc, mediaFit = "cover", mediaStyle }: { hostSrc?: string; mediaSrc?: string; mediaFit?: "cover" | "contain"; mediaStyle?: React.CSSProperties }) {
   const t = useCurrentFrame() / FPS;
   const C = CONFIG;
   const W = 960, H = 540;
@@ -147,6 +147,18 @@ export default function CursorLockedZoom(_props: { hostSrc?: string }) {
 
   // 光标：打字中实心不闪；打完才 2Hz 闪（收尾段唯一还在动的东西）
   const curOpacity = revealed < N ? 1 : (Math.floor(t * C.cursorHz) % 2 === 0 ? 1 : 0);
+
+  if (mediaSrc) {
+    return (
+      <AbsoluteFill style={{background: "#ffffff", overflow: "hidden"}}>
+        <div className="camera" style={{
+          transform: `translate(${W / 2 - z * cx}px, ${H / 2 - z * cy}px) scale(${z})`,
+        }}>
+          <Img src={mediaSrc} style={{position: "absolute", left: C.winL, top: C.winT, width: C.winW, height: C.winH, objectFit: mediaFit, borderRadius: 12, ...mediaStyle}} />
+        </div>
+      </AbsoluteFill>
+    );
+  }
 
   return (
     <AbsoluteFill style={{

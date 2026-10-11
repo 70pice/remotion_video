@@ -76,7 +76,7 @@ const CSS = `
 .kb-inner { transform-origin: 50% 40%; }   /* Ken Burns 作用层 */
 `;
 
-export default function NewsCardDesk(_props: { hostSrc?: string }) {
+export default function NewsCardDesk({ title = "央行宣布降准 0.5 个百分点，释放长期资金约 1 万亿元", body = "股债汇三市齐动，机构：宽松周期确认", source = "财经日报", date = "2026-08-17 · A1 版", highlight }: { hostSrc?: string; title?: string; body?: string; source?: string; date?: string; highlight?: string }) {
   const t = useCurrentFrame() / FPS;
 
   // 第一张卡：从下方滑入摆上桌（opacity/y 同一条 power3.out）
@@ -88,6 +88,8 @@ export default function NewsCardDesk(_props: { hostSrc?: string }) {
   // 第二张卡：从右侧滑入，压在前卡之上（堆叠感）
   const pB = tw(t, CONFIG.cardBAt, CONFIG.slideIn, power3Out);
   const kbB = lerp(1, CONFIG.kenburns, tw(t, CONFIG.cardBAt + CONFIG.slideIn, CONFIG.kbDur, linear));
+  const marker = highlight || title.split(/[，,。]/).find((part) => part.length >= 3) || title;
+  const titleParts = title.includes(marker) ? title.split(marker) : [title, ""];
 
   return (
     <AbsoluteFill style={{
@@ -100,8 +102,8 @@ export default function NewsCardDesk(_props: { hostSrc?: string }) {
         transform: `translateY(${lerp(CONFIG.slideY, 0, pA)}px) rotate(${CONFIG.tiltA}deg)`,
       }}>
         <div className="kb-inner" style={{ transform: `scale(${kbA})` }}>
-          <div className="masthead"><span className="paper">财经日报</span><span className="date">2026-08-17 · A1 版</span></div>
-          <h2>央行宣布降准 0.5 个百分点，<br />释放长期资金<span className="kw">约 1 万亿元<span className="redline" style={{ transform: `scaleX(${redline})` }}></span></span></h2>
+          <div className="masthead"><span className="paper">{source}</span><span className="date">{date}</span></div>
+          <h2>{titleParts[0]}<span className="kw">{marker}<span className="redline" style={{ transform: `scaleX(${redline})` }}></span></span>{titleParts.slice(1).join(marker)}</h2>
           <div className="gray-line"></div>
           <div className="gray-line"></div>
           <div className="gray-line short"></div>
@@ -112,8 +114,8 @@ export default function NewsCardDesk(_props: { hostSrc?: string }) {
         transform: `translate(${lerp(CONFIG.cardBFrom, 0, pB)}px, ${lerp(20, 0, pB)}px) rotate(${CONFIG.tiltB}deg)`,
       }}>
         <div className="kb-inner" style={{ transform: `scale(${kbB})` }}>
-          <div className="masthead"><span className="paper" style={{ fontSize: 15 }}>市场快讯</span><span className="date">10:42</span></div>
-          <h2>股债汇三市齐动，机构：宽松周期确认</h2>
+          <div className="masthead"><span className="paper" style={{ fontSize: 15 }}>补充信息</span><span className="date">{date}</span></div>
+          <h2>{body}</h2>
           <div className="gray-line"></div>
           <div className="gray-line short"></div>
         </div>

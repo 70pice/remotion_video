@@ -14,7 +14,7 @@ import ts from 'typescript';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {spring} from 'remotion';
-import {main, outputScale, parseArgs, snapshotBuiltInAssets, validateLocalInputs} from '../../scripts/render-timeline.mjs';
+import {main, outputScale, parseArgs, resolvePreviewFrameRange, selectCoverFrame, snapshotBuiltInAssets, validateLocalInputs} from '../../scripts/render-timeline.mjs';
 import {communityComponentIds, productionComponentIds, validateTimeline} from './validation.mjs';
 
 const {structuredClone} = globalThis;
@@ -39,6 +39,82 @@ const fixture = () => ({
   shots: [{shot_id: 'a', start_frame: 0, end_frame: 60, component_id: 'title', title: '测试标题',
     body: '测试内容', asset_src: null, source_label: '明确标记的测试内容', accent_color: '#B7F36B', props: {}}],
   captions: [],
+});
+
+const focusFixture = (component = 'evidence') => {
+  const timeline = fixture();
+  const instruction = '圈出关键原文';
+  Object.assign(timeline, {duration_in_frames: 120, presentation: 'component_sample'});
+  Object.assign(timeline.shots[0], {component_id: component, end_frame: 120, source_label: '',
+    asset_src: `videoagents/test-job/source.${component === 'video' ? 'mp4' : 'png'}`,
+    props: {focus_source_size: {width: 1600, height: 1600}, focus_steps: [
+      {start_frame: 0, end_frame: 60, instruction, target: {x: 0.1, y: 0.2, width: 0.6, height: 0.1}},
+      {start_frame: 60, end_frame: 120, instruction: '放大查看', target: {x: 0.3, y: 0.5, width: 0.5, height: 0.2}},
+    ]}, layers: [{component_id: 'Snapcn-TextReveal', role: 'title', start_frame: 0, end_frame: 120,
+      title: instruction, body: '', accent_color: '#FB923C', props: {}}]});
+  return timeline;
+};
+
+test('material focus keeps supplied title and targets synchronized on supported media', () => {
+  for (const component of ['video', 'evidence', 'image_focus', 'Talkcraft-tilt-3d-page']) {
+    const value = focusFixture(component);
+    assert.equal(validateTimeline(value), value);
+  }
+  for (const mutate of [
+    (s) => {s.props.focus_steps[1].start_frame = 59;},
+    (s) => {s.props.focus_steps[1].end_frame = 119;},
+    (s) => {s.props.focus_steps[0].target.x = 0.9;},
+    (s) => {s.layers[0].title = '不匹配';},
+    (s) => {s.layers[0].end_frame = 119;},
+    (s) => {s.props.focus_source_size.width = 0;},
+    (s) => {s.props.crop = {x: 0, y: 0, width: 1, height: 1};},
+    (s) => {s.props.asset_fit = 'cover';},
+    (s) => {s.component_id = 'Bits-KenBurns';},
+    (s) => {s.props.tutorial_steps = s.props.focus_steps;},
+  ]) {
+    const value = focusFixture();
+    mutate(value.shots[0]);
+    assert.throws(() => validateTimeline(value));
+  }
+});
+
+test('focus layout fits both portrait recordings and wide figures, and crops stay within source', async (t) => {
+  const {focusMediaBox, focusDetailCrop} = await importTypeScript(t, 'src/video-production/focusGeometry.ts');
+  const {tutorialTargetRect, tutorialStepAt} = await importTypeScript(t, 'src/video-production/phoneTutorial.ts');
+  assert.deepEqual(focusMediaBox({width: 720, height: 1440}), {width: 952, height: 1450});
+  assert.deepEqual(focusMediaBox({width: 1600, height: 1600}), {width: 952, height: 952});
+  const target = {x: 0.1, y: 0.2, width: 0.4, height: 0.1};
+  const rect = tutorialTargetRect(target, {width: 720, height: 1440}, {width: 952, height: 1450});
+  assert.deepEqual(rect, {x: 186, y: 290, width: 290, height: 145});
+  for (const corner of [{x: 0, y: 0, width: 0.03, height: 0.03}, {x: 0.97, y: 0.97, width: 0.03, height: 0.03}, target]) {
+    const crop = focusDetailCrop(corner);
+    assert.ok(crop.x >= 0 && crop.y >= 0 && crop.x + crop.width <= 1 && crop.y + crop.height <= 1);
+    assert.ok(crop.x <= corner.x && crop.y <= corner.y && crop.x + crop.width >= corner.x + corner.width && crop.y + crop.height >= corner.y + corner.height);
+  }
+  const steps = focusFixture().shots[0].props.focus_steps;
+  assert.equal(tutorialStepAt(steps, 59).instruction, '圈出关键原文');
+  assert.equal(tutorialStepAt(steps, 60).instruction, '放大查看');
+  assert.equal(tutorialStepAt(steps, 120), undefined);
+});
+
+test('guided copy follows material and detail without overlap or a top title block', async (t) => {
+  const {focusCompositionLayout, guidedMaterialTop, guidedTitleHeight, guidedPhoneHeight, guidedPhoneTitleTop} =
+    await importTypeScript(t, 'src/video-production/focusGeometry.ts');
+  const detailTarget = {x: 0.1, y: 0.2, width: 0.4, height: 0.1};
+  for (const [source, video] of [[{width: 720, height: 1440}, true],
+    [{width: 1600, height: 1600}, false], [{width: 1448, height: 1086}, false]]) {
+    for (const target of [detailTarget, {x: 0, y: 0, width: 1, height: 1}]) {
+      const layout = focusCompositionLayout(source, target, video);
+      const materialBottom = guidedMaterialTop + layout.media.height;
+      const finalMaterialBottom = layout.detail ? layout.detail.top + layout.detail.labelHeight + layout.detail.height : materialBottom;
+      assert.ok(layout.titleTop >= finalMaterialBottom + 28);
+      assert.ok(layout.titleTop + guidedTitleHeight <= 1824);
+      if (video || target.width * target.height > 0.7) assert.equal(layout.detail, null);
+      if (layout.detail) assert.ok(layout.detail.top >= materialBottom + 28);
+    }
+  }
+  assert.equal(guidedPhoneTitleTop, guidedMaterialTop + guidedPhoneHeight + 28);
+  assert.ok(guidedPhoneTitleTop + guidedTitleHeight <= 1824);
 });
 
 test('frozen render assets include fonts and media required by the component registry', async (t) => {
@@ -77,6 +153,166 @@ test('every production adapter accepts supplied content; data is never invented'
     assert.equal(validateTimeline(timeline), timeline);
     assert.deepEqual(timeline, before, 'validation must not replace factual input or timestamps');
   }
+});
+
+
+
+
+test('component_sample presentation is silent while legacy production defaults stay unchanged', () => {
+  const production = fixture();
+  production.audio_src = 'videoagents/test-job/narration.mp3';
+  production.captions = [{text: '默认生产仍允许字幕', start_ms: 0, end_ms: 1000}];
+  assert.equal(validateTimeline(production), production);
+
+  const sample = fixture();
+  sample.presentation = 'component_sample';
+  assert.equal(validateTimeline(sample), sample);
+
+  const withAudio = structuredClone(sample);
+  withAudio.audio_src = 'videoagents/test-job/narration.mp3';
+  assert.throws(() => validateTimeline(withAudio), /component_sample presentation must be silent/);
+
+  const withCaptions = structuredClone(sample);
+  withCaptions.captions = [{text: '不应有字幕', start_ms: 0, end_ms: 1000}];
+  assert.throws(() => validateTimeline(withCaptions), /component_sample presentation must not include captions/);
+
+  const invalid = fixture();
+  invalid.presentation = 'storyboard';
+  assert.throws(() => validateTimeline(invalid), /presentation must be production or component_sample/);
+});
+
+test('native title layers must finish their reveal before the shot ends', () => {
+  for (const [componentId, minimum] of [
+    ['Talkcraft-typewriter-reveal', 150], ['Talkcraft-scribble-annotation', 120],
+    ['Talkcraft-keyword-pop-highlight', 60], ['Talkcraft-title-demote-to-label', 105],
+    ['Talkcraft-chip-grid-single-select', 150],
+  ]) {
+    const timeline = fixture();
+    timeline.duration_in_frames = 180;
+    timeline.shots[0].end_frame = 180;
+    const role = ['Talkcraft-typewriter-reveal', 'Talkcraft-title-demote-to-label'].includes(componentId) ? 'title' : 'emphasis';
+    timeline.shots[0].layers = [{component_id: componentId, role, start_frame: 0,
+      end_frame: minimum - 1, title: '核实身份', body: '原有联系方式', accent_color: '#B7F36B', props: {items: ['继续充值', '核实身份']}}];
+    assert.throws(() => validateTimeline(timeline), new RegExp(`at least ${minimum} frames`));
+    timeline.shots[0].layers[0].end_frame = minimum;
+    assert.doesNotThrow(() => validateTimeline(timeline));
+  }
+});
+
+test('chip selection must identify one supplied option and cannot guess by substring', () => {
+  const timeline = fixture();
+  timeline.duration_in_frames = 180;
+  timeline.shots[0].end_frame = 180;
+  timeline.shots[0].layers = [{component_id: 'Talkcraft-chip-grid-single-select', role: 'emphasis',
+    start_frame: 0, end_frame: 150, title: '先停下来', body: '', accent_color: '#B7F36B',
+    props: {items: ['继续充值', '先停下来']}}];
+  assert.doesNotThrow(() => validateTimeline(timeline));
+  timeline.shots[0].layers[0].title = '充值';
+  assert.throws(() => validateTimeline(timeline), /exactly match one unique option/);
+  timeline.shots[0].layers[0].props.highlight = '先停下来';
+  assert.doesNotThrow(() => validateTimeline(timeline));
+  timeline.shots[0].layers[0].props.items = ['先停下来', '先停下来！'];
+  assert.throws(() => validateTimeline(timeline), /exactly match one unique option/);
+});
+
+test('title layers use the semantic header slot without shrinking the whole scene', async () => {
+  const source = await fs.readFile(path.join(root, 'src/video-production/adapters/layout.tsx'), 'utf8');
+  const compiled = ts.transpileModule(source, {compilerOptions: {
+    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX,
+  }}).outputText;
+  let width = 1080;
+  let frame = 0;
+  const nodeRequire = createRequire(import.meta.url);
+  const imports = (name) => name === 'remotion' ? {
+    useVideoConfig: () => ({width, height: width * 16 / 9, fps: 30, durationInFrames: 900}),
+    useCurrentFrame: () => frame,
+    spring,
+  } : nodeRequire(name);
+  const module = {exports: {}};
+  new Function('require', 'module', 'exports', compiled)(imports, module, module.exports);
+  const {LayoutComponentSample, LayoutHeaderHeight, useLayout, SceneHeader} = module.exports;
+  const Probe = () => {
+    const layout = useLayout();
+    return createElement('span', null, `${layout.contentHeight}/${layout.headerHeight}`);
+  };
+  const available = (inset) => renderToStaticMarkup(createElement(LayoutHeaderHeight.Provider,
+    {value: inset}, createElement(Probe)));
+  assert.equal(available(0), '<span>1260/260</span>');
+  assert.equal(available(400), '<span>1260/400</span>');
+  const sampleAvailable = (inset) => renderToStaticMarkup(createElement(LayoutComponentSample.Provider,
+    {value: true}, createElement(LayoutHeaderHeight.Provider, {value: inset}, createElement(Probe))));
+  assert.equal(sampleAvailable(0), '<span>1450/260</span>');
+  assert.equal(sampleAvailable(400), '<span>1450/400</span>');
+  width = 540;
+  assert.equal(available(400), '<span>630/200</span>');
+  const shot = {...fixture().shots[0], layers: [{role: 'title', start_frame: 15, end_frame: 90}]};
+  const header = () => renderToStaticMarkup(createElement(LayoutHeaderHeight.Provider,
+    {value: 400}, createElement(SceneHeader, {shot})));
+  assert.match(header(), /visibility:visible/);
+  frame = 15;
+  assert.match(header(), /visibility:hidden/);
+  frame = 90;
+  assert.match(header(), /visibility:visible/);
+});
+
+test('shot layers validate safe local title and emphasis overlays without mutating legacy shots', () => {
+  const timeline = fixture();
+  timeline.shots[0].component_id = 'conclusion';
+  timeline.shots[0].layers = [
+    {
+      component_id: 'Snapcn-TextReveal', role: 'title', start_frame: 0, end_frame: 30,
+      title: 'AI 在聊天', body: '主画面仍是真实素材', accent_color: '#38BDF8', props: {items: ['30秒Demo先看方向']},
+    },
+    {
+      component_id: 'Snapcn-TextHighlight', role: 'emphasis', start_frame: 30, end_frame: 60,
+      title: '真人接管', body: '', accent_color: '#B7F36B', props: {highlight: '视频聊天节点'},
+    },
+  ];
+  const before = structuredClone(timeline);
+  assert.equal(validateTimeline(timeline), timeline);
+  assert.deepEqual(timeline, before);
+
+  const legacy = fixture();
+  const legacyBefore = structuredClone(legacy);
+  assert.equal(validateTimeline(legacy), legacy);
+  assert.deepEqual(legacy, legacyBefore, 'missing layers stays omitted for old timeline hashes');
+});
+
+test('shot layers reject unsafe props, generic components, short ranges and conflicting roles', () => {
+  const withLayer = (layer) => {
+    const timeline = fixture();
+    timeline.shots[0].component_id = 'conclusion';
+    timeline.shots[0].layers = [layer];
+    return timeline;
+  };
+  assert.throws(() => validateTimeline(withLayer({
+    component_id: 'title', role: 'title', start_frame: 0, end_frame: 30,
+    title: '语义适配器层', body: '', accent_color: '#38BDF8', props: {},
+  })), /native layer component/);
+  assert.throws(() => validateTimeline(withLayer({
+    component_id: 'Snapcn-TextReveal', role: 'title', start_frame: 0, end_frame: 30,
+    title: '危险参数', body: '', accent_color: '#38BDF8', props: {style: 'background:url(https://example.com/a.svg)'},
+  })), /unsupported/);
+  assert.throws(() => validateTimeline(withLayer({
+    component_id: 'Snapcn-TextReveal', role: 'title', start_frame: 0, end_frame: 29,
+    title: '太短', body: '', accent_color: '#38BDF8', props: {},
+  })), /at least 30 frames/);
+
+  assert.throws(() => validateTimeline(withLayer({
+    component_id: 'Snapcn-TextReveal', role: 'title', start_frame: 0, end_frame: 30,
+    title: 'This native title is far too long to remain readable', body: '', accent_color: '#38BDF8', props: {},
+  })), /at most 32 characters/);
+  assert.throws(() => validateTimeline(withLayer({
+    component_id: 'Snapcn-TextRewrite', role: 'title', start_frame: 0, end_frame: 30,
+    title: '改口', body: '', accent_color: '#38BDF8', props: {from_text: 'This previous wording is far too long to read'},
+  })), /at most 32 characters/);
+  const overlap = fixture();
+  overlap.shots[0].component_id = 'conclusion';
+  overlap.shots[0].layers = [
+    {component_id: 'Snapcn-TextReveal', role: 'title', start_frame: 0, end_frame: 45, title: '第一层', body: '', accent_color: '#38BDF8', props: {}},
+    {component_id: 'Snapcn-TextReveal', role: 'title', start_frame: 30, end_frame: 60, title: '第二层', body: '', accent_color: '#38BDF8', props: {}},
+  ];
+  assert.throws(() => validateTimeline(overlap), /duplicated|overlaps/);
 });
 
 test('semantic cues accept local frames and legacy props without rewriting facts', () => {
@@ -282,6 +518,237 @@ test('materialized curated presets map normalized shot materials into native sce
     startSeconds: 2,
     endSeconds: 7,
   });
+
+  const listShot = {
+    ...fixture().shots[0],
+    component_id: 'Rve-AnimatedList',
+    title: '这个团伙分三层',
+    body: '',
+    asset_src: null,
+    source_label: '浦东警方',
+    props: {items: ['技术开发', '运营策划', '聊天推广：俗称“聊手”']},
+  };
+  assert.deepEqual(curatedScenePropsForShot(listShot, false).items, ['技术开发', '运营策划', '聊天推广：俗称“聊手”']);
+
+  const noItemsShot = {...listShot, props: {}};
+  assert.deepEqual(curatedScenePropsForShot(noItemsShot, true).items, []);
+});
+
+test('context examples keep their visible source and do not mutate legacy shots', () => {
+  const legacy = fixture();
+  const before = JSON.stringify(legacy);
+  validateTimeline(legacy);
+  assert.equal(JSON.stringify(legacy), before);
+  const current = fixture();
+  Object.assign(current.shots[0], {component_id: 'Snapcn-PhoneFrame', asset_src: 'videoagents/test-job/assets/profile.png',
+    media_usage: 'context_example', source_label: '另案示例｜thepaper.cn｜警方供图', props: {content_mode: 'media'}});
+  validateTimeline(current);
+  assert.equal(current.shots[0].media_usage, 'context_example');
+  for (const change of [{source_label: 'thepaper.cn'}, {source_label: '另案示例'}, {component_id: 'evidence'},
+    {asset_src: null}, {media_usage: 'unrestricted'}]) {
+    const invalid = structuredClone(current);
+    Object.assign(invalid.shots[0], change);
+    assert.throws(() => validateTimeline(invalid));
+  }
+});
+
+
+test('Snapcn phone frame renders real screen media through native phone body', async (t) => {
+  const tutorial = await importTypeScript(t, 'src/video-production/phoneTutorial.ts');
+  const focus = await importTypeScript(t, 'src/video-production/focusGeometry.ts');
+  const source = await fs.readFile(path.join(root, 'src/video-production/PhoneFrameMaterial.tsx'), 'utf8');
+  const compiled = ts.transpileModule(source, {compilerOptions: {
+    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX,
+  }}).outputText;
+  const nodeRequire = createRequire(import.meta.url);
+  const imports = (name) => {
+    if (name === 'remotion') return {
+      Img: (props) => createElement('img', props),
+      OffthreadVideo: ({trimBefore, trimAfter, ...props}) => createElement('video', {'data-trim-before': trimBefore, 'data-trim-after': trimAfter, ...props}),
+      staticFile: (src) => `/static/${src}`,
+      useVideoConfig: () => ({fps: 30, width: 1080, height: 1920, durationInFrames: 120}),
+      useCurrentFrame: () => 45,
+    };
+    if (name === '../components/component-horizontal/snapcn/phone-frame') return {
+      PhoneFrame: ({children, scale, screenSrc}) => createElement('section', {'data-phone-frame': 'true', 'data-scale': scale, 'data-screen-src': screenSrc ?? ''}, children),
+    };
+    if (name === './adapters/layout') return {
+      FittedText: ({text}) => createElement('span', null, text),
+      muted: '#A8B6CB',
+      productionFont: 'TestFont',
+      useLayout: () => ({unit: 1, vertical: true, margin: 72, contentWidth: 936}),
+      white: '#fff',
+    };
+    if (name === './phoneTutorial') return tutorial;
+    if (name === './focusGeometry') return focus;
+    return nodeRequire(name);
+  };
+  const module = {exports: {}};
+  new Function('require', 'module', 'exports', compiled)(imports, module, module.exports);
+  const {PhoneFrameMaterial} = module.exports;
+  const shot = {
+    shot_id: 'phone', start_frame: 0, end_frame: 90, component_id: 'Snapcn-PhoneFrame',
+    title: '充值界面先出现', body: '', asset_src: 'videoagents/test-job/assets/chat.mp4',
+    source_label: '另案示例｜thepaper.cn｜浦东警方供图', accent_color: '#B7F36B',
+    props: {asset_fit: 'cover', asset_crop: {x: 0.1, y: 0.2, width: 0.5, height: 0.6}, start_seconds: 1.2, end_seconds: 4.4},
+  };
+
+  const markup = renderToStaticMarkup(createElement(PhoneFrameMaterial, {shot}));
+
+  assert.match(markup, /data-phone-frame="true"/);
+  assert.match(markup, /data-scale="1.55"/);
+  assert.match(markup, /<video/);
+  assert.match(markup, /src="\/static\/videoagents\/test-job\/assets\/chat.mp4"/);
+  assert.match(markup, /data-trim-before="36"/);
+  assert.match(markup, /data-trim-after="132"/);
+  assert.match(markup, /left:-20%/);
+  assert.match(markup, /top:-33.333333333333336%/);
+  assert.match(markup, /width:200%/);
+  assert.match(markup, /height:166.66666666666669%/);
+  assert.ok(markup.includes('充值界面先出现'));
+  assert.ok(markup.includes('另案示例｜thepaper.cn｜浦东警方供图'));
+  assert.equal(markup.includes('live material'), false);
+  assert.equal(markup.includes('PHONE FRAME'), false);
+  const guided = {...shot, props: {content_mode: 'media', asset_fit: 'contain',
+    tutorial_source_size: {width: 720, height: 1440}, tutorial_steps: [
+      {start_frame: 0, end_frame: 30, instruction: '输入事项', target: {x: 0.1, y: 0.2, width: 0.8, height: 0.08}},
+      {start_frame: 30, end_frame: 90, instruction: '点保存', target: {x: 0.1, y: 0.35, width: 0.3, height: 0.06}},
+    ]}};
+  const guidedMarkup = renderToStaticMarkup(createElement(PhoneFrameMaterial, {shot: guided}));
+  assert.match(guidedMarkup, /data-scale="2.05"/);
+  assert.match(guidedMarkup, /top:96px;height:1350px/);
+  assert.match(guidedMarkup, /data-tutorial-target="点保存"/);
+  assert.doesNotMatch(guidedMarkup, /data-tutorial-target="输入事项"/);
+  assert.match(guidedMarkup, /viewBox="0 0 296 632"/);
+  assert.match(guidedMarkup, /fill="none" stroke="#FB923C"/);
+});
+
+test('tutorial targeting accounts for contain letterboxing and half-open action boundaries', async (t) => {
+  const {tutorialTargetRect, tutorialStepAt} = await importTypeScript(t, 'src/video-production/phoneTutorial.ts');
+  const target = tutorialTargetRect({x: 0.25, y: 0.25, width: 0.5, height: 0.5}, {width: 720, height: 1440});
+  assert.deepEqual(target, {x: 74, y: 168, width: 148, height: 296});
+  const steps = [{start_frame: 0, end_frame: 60, instruction: '输入'}, {start_frame: 60, end_frame: 120, instruction: '保存'}];
+  assert.equal(tutorialStepAt(steps, 59).instruction, '输入');
+  assert.equal(tutorialStepAt(steps, 60).instruction, '保存');
+  assert.equal(tutorialStepAt(steps, 120), undefined);
+});
+
+test('guided phone tutorials reject mismatched source, timings and targets', () => {
+  const timeline = fixture();
+  timeline.duration_in_frames = 120;
+  Object.assign(timeline.shots[0], {end_frame: 120, component_id: 'Snapcn-PhoneFrame', asset_src: 'videoagents/test-job/assets/tutorial.mp4',
+    props: {content_mode: 'media', asset_fit: 'contain', tutorial_source_size: {width: 720, height: 1440}, tutorial_steps: [
+      {start_frame: 0, end_frame: 60, instruction: '输入事项', target: {x: 0.1, y: 0.2, width: 0.8, height: 0.08}},
+      {start_frame: 60, end_frame: 120, instruction: '点保存', target: {x: 0.1, y: 0.4, width: 0.3, height: 0.06}},
+    ]}, layers: [{component_id: 'Snapcn-TextReveal', role: 'title', start_frame: 0, end_frame: 120,
+      title: '输入事项', body: '', accent_color: '#FB923C', props: {}}]});
+  assert.doesNotThrow(() => validateTimeline(timeline));
+  for (const mutate of [
+    (item) => { item.shots[0].props.tutorial_steps[1].start_frame = 59; },
+    (item) => { item.shots[0].props.tutorial_steps[1].start_frame = 61; },
+    (item) => { item.shots[0].props.tutorial_steps[1].end_frame = 119; },
+    (item) => { item.shots[0].props.tutorial_steps[0].target.width = 0.95; },
+    (item) => { item.shots[0].props.tutorial_steps[0].target.x = NaN; },
+    (item) => { item.shots[0].props.asset_fit = 'cover'; },
+    (item) => { item.shots[0].asset_src = 'videoagents/test-job/assets/still.png'; },
+    (item) => { item.shots[0].component_id = 'Bits-KenBurns'; },
+    (item) => { item.shots[0].layers[0].title = '保存'; },
+    (item) => { item.width = 1920; item.height = 1080; },
+  ]) {
+    const invalid = structuredClone(timeline);
+    mutate(invalid);
+    assert.throws(() => validateTimeline(invalid));
+  }
+});
+
+
+test('production community materials do not expose implementation labels or demo presets behind real assets', async () => {
+  const source = await fs.readFile(path.join(root, 'src/video-production/VideoFromTimeline.tsx'), 'utf8');
+
+  for (const forbidden of ['live material', 'workspace material', 'DEVICE FRAME', 'MATERIAL CARD', 'PHONE FRAME']) {
+    assert.equal(source.includes(forbidden), false, `${forbidden} must not be production copy`);
+  }
+  assert.equal(source.includes('resolveCommunityPreset'), false);
+  assert.equal(source.includes('<Freeze'), false);
+  assert.match(source, /<CommunityNativeMaterial shot=\{shot\} durationInFrames=\{shot\.end_frame - shot\.start_frame\} \/>/);
+});
+
+
+test('curated social reel material shows one clear screenshot without demo caption or ambient duplicate', async () => {
+  const source = await fs.readFile(path.join(root, 'src/components/component-horizontal/curated/CuratedScene.tsx'), 'utf8');
+  const compiled = ts.transpileModule(source, {compilerOptions: {
+    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX,
+  }}).outputText;
+  const nodeRequire = createRequire(import.meta.url);
+  const imports = (name) => name === 'remotion' ? {
+    AbsoluteFill: (props) => createElement('div', props, props?.children),
+    Img: (props) => createElement('img', props),
+    OffthreadVideo: (props) => createElement('video', props),
+    staticFile: (src) => `/static/${src}`,
+    useCurrentFrame: () => 45,
+    useVideoConfig: () => ({fps: 30, width: 1080, height: 1920, durationInFrames: 120}),
+  } : nodeRequire(name);
+  const module = {exports: {}};
+  new Function('require', 'module', 'exports', compiled)(imports, module, module.exports);
+  const {CuratedScene} = module.exports;
+  const material = {src: 'videoagents/test-job/assets/app.png', kind: 'image', fit: 'cover'};
+
+  const production = renderToStaticMarkup(createElement(CuratedScene, {
+    variant: 'social-reel', layout: 'portrait', title: '先看充值界面', kicker: '另案示例', accent: '#FACC15', material,
+  }));
+  const demo = renderToStaticMarkup(createElement(CuratedScene, {
+    variant: 'social-reel', layout: 'portrait', title: 'Demo title', kicker: 'Demo', accent: '#FACC15',
+  }));
+
+  assert.equal((production.match(/<img/g) ?? []).length, 1);
+  assert.match(production, /right:104px;top:500px/);
+  assert.match(production, /width:872px;height:850px/);
+  assert.match(production, /src="\/static\/videoagents\/test-job\/assets\/app.png"/);
+  assert.equal(production.includes('Caption synced from material'), false);
+  assert.equal(production.includes('repeating-linear-gradient'), false);
+  assert.equal(demo.includes('Caption synced from material'), true);
+  assert.equal(demo.includes('repeating-linear-gradient'), true);
+});
+
+test('curated animated lists render production supplied labels in both layouts', async () => {
+  const source = await fs.readFile(path.join(root, 'src/components/component-horizontal/curated/CuratedScene.tsx'), 'utf8');
+  const compiled = ts.transpileModule(source, {compilerOptions: {
+    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX,
+  }}).outputText;
+  const nodeRequire = createRequire(import.meta.url);
+  let config = {fps: 30, width: 1280, height: 720, durationInFrames: 120};
+  const passthrough = (name) => (props) => createElement(name, props, props?.children);
+  const imports = (name) => name === 'remotion' ? {
+    AbsoluteFill: passthrough('div'),
+    Img: passthrough('img'),
+    OffthreadVideo: passthrough('video'),
+    staticFile: (src) => src,
+    useCurrentFrame: () => 45,
+    useVideoConfig: () => config,
+  } : nodeRequire(name);
+  const module = {exports: {}};
+  new Function('require', 'module', 'exports', compiled)(imports, module, module.exports);
+  const {CuratedScene} = module.exports;
+  const labels = ['技术开发', '运营策划', '聊天推广：俗称“聊手”'];
+  const props = {
+    variant: 'animated-list',
+    title: '这个团伙分三层',
+    kicker: '浦东警方',
+    accent: '#FACC15',
+    items: labels,
+  };
+
+  for (const [layout, size] of [
+    ['landscape', {width: 1280, height: 720}],
+    ['portrait', {width: 1080, height: 1920}],
+  ]) {
+    config = {fps: 30, durationInFrames: 120, ...size};
+    const markup = renderToStaticMarkup(createElement(CuratedScene, {...props, layout}));
+    for (const label of labels) assert.ok(markup.includes(label), `${layout} markup missed ${label}`);
+    for (const demoLabel of ['hook', 'evidence', 'edit', 'publish']) {
+      assert.ok(!markup.includes(`>${demoLabel}</span>`), `${layout} markup kept demo label ${demoLabel}`);
+    }
+  }
 });
 
 test('all community presets route to a native material surface instead of generic overlay', async (t) => {
@@ -480,6 +947,45 @@ test('CLI accepts absolute paths with spaces and rejects ambiguous repeated flag
   assert.throws(() => parseArgs(['--timeline', path.join(location, 'timeline.json'), '--timeline', path.join(location, 'second.json')]), /Usage/);
 });
 
+test('preview render frame ranges stay half-open and capped at thirty seconds', () => {
+  const location = path.join(os.tmpdir(), 'video agents test');
+  const cli = (...extra) => parseArgs(['--timeline', path.join(location, 'timeline.json'),
+    '--output', path.join(location, 'clip.mp4'), '--mode', 'preview', ...extra]);
+  const longTimeline = {...fixture(), duration_in_frames: 1800};
+  assert.deepEqual(resolvePreviewFrameRange(longTimeline, cli()), {
+    startFrame: 0,
+    endFrame: 900,
+    remotionFrameRange: [0, 899],
+  });
+  const shortTimeline = {...fixture(), duration_in_frames: 120};
+  assert.deepEqual(resolvePreviewFrameRange(shortTimeline, cli()), {
+    startFrame: 0,
+    endFrame: 120,
+    remotionFrameRange: [0, 119],
+  });
+  assert.deepEqual(resolvePreviewFrameRange(longTimeline, cli('--start-frame', '120', '--end-frame', '180')), {
+    startFrame: 120,
+    endFrame: 180,
+    remotionFrameRange: [120, 179],
+  });
+  assert.equal(selectCoverFrame(longTimeline, {startFrame: 120, endFrame: 180}), 120);
+  assert.equal(selectCoverFrame(longTimeline, {startFrame: 0, endFrame: 10}), 9);
+
+  assert.throws(() => parseArgs(['--timeline', path.join(location, 'timeline.json'), '--output', path.join(location, 'clip.mp4'),
+    '--mode', 'preview', '--start-frame', '0']), /provided together/);
+  assert.throws(() => parseArgs(['--timeline', path.join(location, 'timeline.json'), '--output', path.join(location, 'clip.mp4'),
+    '--mode', 'preview', '--end-frame', '30']), /provided together/);
+  for (const value of ['1.5', '-1', 'abc']) {
+    assert.throws(() => cli('--start-frame', value, '--end-frame', '30'), /nonnegative integer/);
+  }
+  assert.throws(() => cli('--start-frame', '30', '--end-frame', '30'), /greater than/);
+  assert.throws(() => cli('--start-frame', '10', '--start-frame', '20', '--end-frame', '30'), /Usage/);
+  assert.throws(() => resolvePreviewFrameRange(longTimeline, cli('--start-frame', '0', '--end-frame', '901')), /30 seconds/);
+  assert.throws(() => resolvePreviewFrameRange(longTimeline, cli('--start-frame', '1799', '--end-frame', '1801')), /outside/);
+  assert.throws(() => parseArgs(['--timeline', path.join(location, 'timeline.json'), '--output', path.join(location, 'clip.mp4'),
+    '--mode', 'final', '--start-frame', '0', '--end-frame', '30']), /final render does not accept/);
+});
+
 test('preview scaling cannot turn valid even H.264 dimensions into odd pixels', () => {
   for (const dimensions of [{width: 1080, height: 1920}, {width: 242, height: 640}, {width: 360, height: 642}]) {
     const scale = outputScale(dimensions, 'preview');
@@ -561,4 +1067,43 @@ test('video preflight rejects M4A-in-MP4 spoofing and clips shorter than their s
   timeline.shots[0].asset_src = `videoagents/${jobId}/tiny.mp4`;
   timeline.shots[0].props = {start_seconds: 0, end_seconds: 1};
   await assert.rejects(validateLocalInputs(timeline), /too short/);
+  await execFileAsync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=12x24:d=4',
+    '-an', '-pix_fmt', 'yuv420p', path.join(jobRoot, 'phone.mp4')]);
+  Object.assign(timeline.shots[0], {component_id: 'Snapcn-PhoneFrame', asset_src: `videoagents/${jobId}/phone.mp4`,
+    props: {content_mode: 'media', asset_fit: 'contain', start_seconds: 0, end_seconds: 3,
+      tutorial_source_size: {width: 12, height: 24}, tutorial_steps: [
+        {start_frame: 0, end_frame: 90, instruction: '点保存', target: {x: 0.1, y: 0.3, width: 0.3, height: 0.1}},
+      ]}, layers: [{component_id: 'Snapcn-TextReveal', role: 'title', start_frame: 0, end_frame: 90,
+      title: '点保存', body: '', accent_color: '#FB923C', props: {}}]});
+  const phone = await validateLocalInputs(timeline);
+  assert.deepEqual(phone.videoMetadata[timeline.shots[0].asset_src], {width: 12, height: 24, duration: 4});
+  timeline.shots[0].props.tutorial_source_size.width = 10;
+  await assert.rejects(validateLocalInputs(timeline), /dimensions must match/);
+  timeline.shots[0].props.tutorial_source_size.width = 12;
+  timeline.shots[0].props.start_seconds = 2;
+  await assert.rejects(validateLocalInputs(timeline), /too short/);
+});
+
+test('focus preflight measures source dimensions instead of trusting image or video coordinates', async (t) => {
+  const jobId = 'focus-preflight-' + randomUUID();
+  const jobRoot = path.join(root, 'public', 'videoagents', jobId);
+  await fs.mkdir(jobRoot, {recursive: true});
+  t.after(async () => {
+    assert.equal(path.dirname(jobRoot), path.join(root, 'public', 'videoagents'));
+    assert.equal(path.basename(jobRoot), jobId);
+    await fs.rm(jobRoot, {recursive: true, force: true});
+  });
+  const timeline = focusFixture();
+  timeline.job_id = jobId;
+  timeline.shots[0].asset_src = `videoagents/${jobId}/source.png`;
+  await fs.writeFile(path.join(jobRoot, 'source.png'), Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64'));
+  await assert.rejects(validateLocalInputs(timeline), /dimensions must match measured media/);
+  timeline.shots[0].props.focus_source_size = {width: 1, height: 1};
+  await validateLocalInputs(timeline);
+  await execFileAsync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=12x24:d=4',
+    '-an', '-pix_fmt', 'yuv420p', path.join(jobRoot, 'source.mp4')]);
+  Object.assign(timeline.shots[0], {component_id: 'video', asset_src: `videoagents/${jobId}/source.mp4`});
+  await assert.rejects(validateLocalInputs(timeline), /dimensions must match measured media/);
+  timeline.shots[0].props.focus_source_size = {width: 12, height: 24};
+  await validateLocalInputs(timeline);
 });

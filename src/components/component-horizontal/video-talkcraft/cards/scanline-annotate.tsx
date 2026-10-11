@@ -92,9 +92,10 @@ type Props = {
   targets?: Target[];
   /** 每个目标的标注（与 targets 一一对应）：主行 + 副行 */
   labels?: { text: string; sub?: string }[];
+  mediaStyle?: React.CSSProperties;
 };
 
-export default function ScanlineAnnotate({ src, targets = DEMO_TARGETS, labels = DEMO_LABELS }: Props) {
+export default function ScanlineAnnotate({ src, targets = DEMO_TARGETS, labels = DEMO_LABELS, mediaStyle }: Props) {
   const t = useCurrentFrame() / FPS;
   const n = targets.length;
 
@@ -121,7 +122,7 @@ export default function ScanlineAnnotate({ src, targets = DEMO_TARGETS, labels =
       {/* 截图（演示语境）：真截图铺满，或 CSS 假落地页 */}
       <div className="sla-shot" style={{ opacity: exitK }}>
         {src ? (
-          <Img src={src} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+          <Img src={src} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", ...mediaStyle }} />
         ) : (
           <>
             <div className="sla-bar"><i /><i /><i /></div>

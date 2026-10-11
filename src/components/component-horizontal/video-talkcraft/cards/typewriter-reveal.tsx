@@ -34,21 +34,35 @@ const charTimes = (text: string, seed: string, at: number) => {
    ≈3.15        光标移交第二行
    ≈3.15–≈4.14  第二行逐字符敲出
    ≈4.24–∞      光标常驻闪烁（周期 0.52s）→ tsx 取 +2s idle 收尾 */
-const TIMES1 = charTimes(CONFIG.line1, "tw-l1", CONFIG.startDelay);
-const T1_END = TIMES1[TIMES1.length - 1];
-const BLINK_AT = T1_END + 0.08;                                      // 句尾闪烁起点
-const BLINK_END = BLINK_AT + CONFIG.blinkTimes * CONFIG.blinkPeriod; // 闪 3 次
-const T2_START = BLINK_END + CONFIG.line2Delay;                      // 光标移交第二行
-const TIMES2 = charTimes(CONFIG.line2, "tw-l2", T2_START);
-const T2_END = TIMES2[TIMES2.length - 1];
-const LOOP_AT = T2_END + 0.1;   // 收尾常驻闪烁起点 = 有限动画结束点
+const DEFAULT_TIMES1 = charTimes(CONFIG.line1, "tw-l1", CONFIG.startDelay);
+const DEFAULT_T1_END = DEFAULT_TIMES1[DEFAULT_TIMES1.length - 1] ?? CONFIG.startDelay;
+const DEFAULT_BLINK_AT = DEFAULT_T1_END + 0.08;                                      // 句尾闪烁起点
+const DEFAULT_BLINK_END = DEFAULT_BLINK_AT + CONFIG.blinkTimes * CONFIG.blinkPeriod; // 闪 3 次
+const DEFAULT_T2_START = DEFAULT_BLINK_END + CONFIG.line2Delay;                      // 光标移交第二行
+const DEFAULT_TIMES2 = charTimes(CONFIG.line2, "tw-l2", DEFAULT_T2_START);
+const DEFAULT_T2_END = DEFAULT_TIMES2[DEFAULT_TIMES2.length - 1] ?? DEFAULT_T2_START;
+const DEFAULT_LOOP_AT = DEFAULT_T2_END + 0.1;   // 收尾常驻闪烁起点 = 有限动画结束点
 // gsap to{duration:0.01, repeat:-1, repeatDelay:0.25, yoyo} ⇒ 周期 2×(0.01+0.25)=0.52s 方波
 const LOOP_PERIOD = 2 * (0.01 + CONFIG.blinkPeriod / 2);
 
 export const meta = {
   width: 960, height: 540, fps: FPS,
-  durationInFrames: Math.round((LOOP_AT + 2.0) * FPS),
+  durationInFrames: Math.round((DEFAULT_LOOP_AT + 2.0) * FPS),
 };
+
+const buildSchedule = (line1: string, line2: string) => {
+  const times1 = charTimes(line1, "tw-l1", CONFIG.startDelay);
+  const t1End = times1[times1.length - 1] ?? CONFIG.startDelay;
+  const blinkAt = t1End + 0.08;
+  const blinkEnd = blinkAt + CONFIG.blinkTimes * CONFIG.blinkPeriod;
+  const t2Start = blinkEnd + CONFIG.line2Delay;
+  const times2 = charTimes(line2, "tw-l2", t2Start);
+  const t2End = times2[times2.length - 1] ?? t2Start;
+  const loopAt = t2End + 0.1;
+  return {times1, blinkAt, t2Start, times2, loopAt};
+};
+
+const visibleChars = (text: string, count: number) => Array.from(text).slice(0, count).join("");
 
 // 句尾方波闪烁：demo blink() 每周期先灭半拍再亮半拍
 const blinkOpacity = (t: number, at: number, times: number) => {
@@ -103,22 +117,23 @@ const CSS = `
 .line2 .cursor { background: #8a8a8a; }
 `;
 
-export default function TypewriterReveal({ hostSrc }: { hostSrc?: string }) {
+export default function TypewriterReveal({ hostSrc, line1 = CONFIG.line1, line2 = CONFIG.line2 }: { hostSrc?: string; line1?: string; line2?: string }) {
   const t = useCurrentFrame() / FPS;
+  const schedule = buildSchedule(line1, line2);
 
   // 已敲出的字符数 = 时刻表里 ≤ t 的项数
-  const n1 = TIMES1.filter((x) => t >= x).length;
-  const n2 = TIMES2.filter((x) => t >= x).length;
+  const n1 = Math.min(Array.from(line1).length, schedule.times1.filter((x) => t >= x).length);
+  const n2 = Math.min(Array.from(line2).length, schedule.times2.filter((x) => t >= x).length);
 
   // 第一行光标：敲字期间常亮 → 句尾闪 3 次 → 移交第二行后消失
-  const cur1Visible = t < T2_START;
-  const cur1Opacity = blinkOpacity(t, BLINK_AT, CONFIG.blinkTimes);
+  const cur1Visible = t < schedule.t2Start;
+  const cur1Opacity = blinkOpacity(t, schedule.blinkAt, CONFIG.blinkTimes);
 
   // 第二行光标：移交后出现常亮；敲完后常驻方波闪烁（先灭半拍再亮半拍）
-  const cur2Visible = t >= T2_START;
+  const cur2Visible = t >= schedule.t2Start;
   let cur2Opacity = 1;
-  if (t >= LOOP_AT) {
-    const phase = (t - LOOP_AT) % LOOP_PERIOD;
+  if (t >= schedule.loopAt) {
+    const phase = (t - schedule.loopAt) % LOOP_PERIOD;
     cur2Opacity = phase < LOOP_PERIOD / 2 ? 0 : 1;
   }
 
@@ -131,12 +146,12 @@ export default function TypewriterReveal({ hostSrc }: { hostSrc?: string }) {
       <div className="host-wrap"><Host src={hostSrc} /></div>
       <div className="stamp">
         <div className="line1">
-          <span className="txt">{CONFIG.line1.slice(0, n1)}</span>
+          <span className="txt">{visibleChars(line1, n1)}</span>
           <span className="cursor" style={{
             display: cur1Visible ? "inline-block" : "none", opacity: cur1Opacity }} />
         </div>
         <div className="line2">
-          <span className="txt">{CONFIG.line2.slice(0, n2)}</span>
+          <span className="txt">{visibleChars(line2, n2)}</span>
           <span className="cursor" style={{
             display: cur2Visible ? "inline-block" : "none", opacity: cur2Opacity }} />
         </div>

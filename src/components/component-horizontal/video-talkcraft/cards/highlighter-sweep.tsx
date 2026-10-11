@@ -74,7 +74,7 @@ const CSS = `
 }
 `;
 
-export default function HighlighterSweep(_props: { hostSrc?: string }) {
+export default function HighlighterSweep({ title = "真正拖住消费的不是没钱，而是对未来的不确定感", body, source = "《2024 年度宏观经济报告》 · 第 42 页" }: { hostSrc?: string; title?: string; body?: string; source?: string }) {
   const t = useCurrentFrame() / FPS;
 
   // 荧光笔从左到右扫过关键句；同帧其余文字压暗——视线被押着走
@@ -84,6 +84,7 @@ export default function HighlighterSweep(_props: { hostSrc?: string }) {
   const liftP = tw(t, CONFIG.startDelay + CONFIG.sweep, 0.3, power2Out);
   const keyScale = lerp(1, CONFIG.liftScale, liftP);
   const keyY = lerp(0, -2, liftP);
+  const contextLines = (body ? body.split(/[\n｜|]/).map((line) => line.trim()).filter(Boolean) : ["过去三年，居民部门的储蓄率持续攀升，", "消费意愿始终徘徊在低位。报告指出，", "这一判断与多家机构的调研结论一致，", "政策端的回应也在陆续落地。"]).slice(0, 4);
 
   return (
     <AbsoluteFill style={{
@@ -92,20 +93,18 @@ export default function HighlighterSweep(_props: { hostSrc?: string }) {
     }}>
       <style>{CSS}</style>
       <div className="quote-card">
-        <div className="doc-head">《2024 年度宏观经济报告》 · 第 42 页</div>
-        <div className="quote-line dim" style={{ opacity: dimOpacity }}>过去三年，居民部门的储蓄率持续攀升，</div>
-        <div className="quote-line dim" style={{ opacity: dimOpacity }}>消费意愿始终徘徊在低位。报告指出，</div>
+        <div className="doc-head">{source}</div>
+        {contextLines.slice(0, 2).map((line, index) => <div key={index} className="quote-line dim" style={{ opacity: dimOpacity }}>{line}</div>)}
         <div className="quote-line key" style={{
           transform: `translateY(${keyY}px) scale(${keyScale})`,
           transformOrigin: "left center",
         }}>
           <span className="hl-wrap">
             <span className="hl-block" style={{ transform: `scaleX(${sweepX})` }} />
-            真正拖住消费的不是没钱，而是对未来的不确定感
+            {title}
           </span>。
         </div>
-        <div className="quote-line dim" style={{ opacity: dimOpacity }}>这一判断与多家机构的调研结论一致，</div>
-        <div className="quote-line dim" style={{ opacity: dimOpacity }}>政策端的回应也在陆续落地。</div>
+        {contextLines.slice(2, 4).map((line, index) => <div key={index + 2} className="quote-line dim" style={{ opacity: dimOpacity }}>{line}</div>)}
       </div>
     </AbsoluteFill>
   );

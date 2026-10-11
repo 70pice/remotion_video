@@ -109,7 +109,7 @@ const CSS = `
 }
 `;
 
-export default function CountBadgeTitle({ hostSrc }: { hostSrc?: string }) {
+export default function CountBadgeTitle({ hostSrc, count = "3", unit = "个方法", title = "解决问题" }: { hostSrc?: string; count?: string; unit?: string; title?: string }) {
   const t = useCurrentFrame() / FPS;
 
   const tLand = CONFIG.startDelay + CONFIG.numIn;
@@ -149,14 +149,14 @@ export default function CountBadgeTitle({ hostSrc }: { hostSrc?: string }) {
         <div className="cb-l1">
           <span className="cb-num" style={{
             opacity: numInP, color: numColor, transform: `scale(${numScale})`,
-          }}>3</span>
+          }}>{count}</span>
           <span className="cb-rest" style={{
             clipPath: `inset(0 ${restClip}% 0 0)`, transform: `translateX(${restX}px)`,
-          }}>个方法</span>
+          }}>{unit}</span>
         </div>
         <div className="cb-l2" style={{
           opacity: l2P, transform: `translateY(${lerp(CONFIG.l2Rise, 0, l2P)}px)`,
-        }}>解决问题</div>
+        }}>{title}</div>
       </div>
     </AbsoluteFill>
   );

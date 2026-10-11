@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Img, useCurrentFrame } from "remotion";
 
 // slow-pull-reveal · 缓拉全貌 —— 自包含 Remotion 源码（与 demos/slow-pull-reveal/index.html 同画面）
 // 复制本文件进你的工程即可用。从局部细节缓拉到全貌的一条拉镜曲线。
@@ -111,7 +111,7 @@ const CSS = `
 }
 `;
 
-export default function SlowPullReveal(_props: { hostSrc?: string }) {
+export default function SlowPullReveal({ mediaSrc, mediaFit = "cover", mediaStyle }: { hostSrc?: string; mediaSrc?: string; mediaFit?: "cover" | "contain"; mediaStyle?: React.CSSProperties }) {
   const t = useCurrentFrame() / FPS;
 
   const z = CONFIG.zoomFrom;
@@ -133,6 +133,19 @@ export default function SlowPullReveal(_props: { hostSrc?: string }) {
     scale = lerp(z - total * k, CONFIG.zoomTo, p);
     x = lerp(-D.x * (1 - k), 0, p);
     y = lerp(-D.y * (1 - k), 0, p);
+  }
+
+  if (mediaSrc) {
+    return (
+      <AbsoluteFill style={{background: "#ffffff", overflow: "hidden"}}>
+        <div className="camera" style={{
+          transformOrigin: "50% 50%",
+          transform: `translate(${x}px, ${y}px) scale(${scale})`,
+        }}>
+          <Img src={mediaSrc} style={{position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: mediaFit, ...mediaStyle}} />
+        </div>
+      </AbsoluteFill>
+    );
   }
 
   return (

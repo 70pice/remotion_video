@@ -11,16 +11,28 @@ export interface SplitScreenProps {
   rightTitle?: string;
   rightText?: string;
   layout?: "default" | "portrait";
+  productionCompact?: boolean;
+  largeCopy?: boolean;
+  compactBox?: boolean;
 }
 
 export default function SplitScreen({
   leftTitle = "Panel A", leftText = "Left side content slides in from the left edge",
   rightTitle = "Panel B", rightText = "Right side content slides in from the right edge",
   layout = "default",
+  productionCompact = false,
+  largeCopy = false,
+  compactBox = false,
 }: SplitScreenProps = {}) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const portrait = layout === "portrait";
+  const compactPortrait = portrait && productionCompact;
+  const slotCompact = compactBox || compactPortrait;
+  const panelPadding = compactBox ? "18px 22px" : compactPortrait ? "3.2rem" : "2rem";
+  const titleSize = compactBox ? (largeCopy ? "48px" : "44px") : largeCopy ? "4rem" : compactPortrait ? "3.2rem" : portrait ? "5rem" : "2.5rem";
+  const bodySize = compactBox ? "34px" : largeCopy ? "3rem" : compactPortrait ? "1.55rem" : portrait ? "2.1rem" : "1rem";
+  const bodyLineHeight = compactBox ? 1.22 : compactPortrait ? 1.35 : undefined;
 
   // Left panel slides in from left
   const leftSlide = spring({
@@ -70,15 +82,19 @@ export default function SplitScreen({
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          padding: "2rem",
+          padding: panelPadding,
         }}
       >
         <h2
           style={{
             color: "white",
-            fontSize: portrait ? "5rem" : "2.5rem",
+            fontSize: titleSize,
             fontWeight: "bold",
             margin: 0,
+            lineHeight: compactBox ? 1.06 : undefined,
+            maxWidth: "100%",
+            textAlign: "center",
+            overflowWrap: "anywhere",
           }}
         >
           {leftTitle}
@@ -86,9 +102,12 @@ export default function SplitScreen({
         <p
           style={{
             color: "#bfdbfe",
-            fontSize: portrait ? "2.1rem" : "1rem",
-            marginTop: "0.75rem",
+            fontSize: bodySize,
+            marginTop: compactBox ? "10px" : "0.75rem",
             textAlign: "center",
+            lineHeight: bodyLineHeight,
+            maxWidth: "100%",
+            overflowWrap: "anywhere",
           }}
         >
           {leftText}
@@ -106,15 +125,19 @@ export default function SplitScreen({
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          padding: "2rem",
+          padding: panelPadding,
         }}
       >
         <h2
           style={{
             color: "white",
-            fontSize: portrait ? "5rem" : "2.5rem",
+            fontSize: titleSize,
             fontWeight: "bold",
             margin: 0,
+            lineHeight: compactBox ? 1.06 : undefined,
+            maxWidth: "100%",
+            textAlign: "center",
+            overflowWrap: "anywhere",
           }}
         >
           {rightTitle}
@@ -122,9 +145,12 @@ export default function SplitScreen({
         <p
           style={{
             color: "#ddd6fe",
-            fontSize: portrait ? "2.1rem" : "1rem",
-            marginTop: "0.75rem",
+            fontSize: bodySize,
+            marginTop: compactBox ? "10px" : "0.75rem",
             textAlign: "center",
+            lineHeight: bodyLineHeight,
+            maxWidth: "100%",
+            overflowWrap: "anywhere",
           }}
         >
           {rightText}
@@ -143,7 +169,7 @@ export default function SplitScreen({
           width: portrait ? undefined : "2px",
           height: portrait ? "2px" : undefined,
           background: "linear-gradient(180deg, transparent, rgba(255,255,255,0.8), transparent)",
-          opacity: dividerOpacity,
+          opacity: slotCompact ? Math.max(0.55, dividerOpacity) : dividerOpacity,
         }}
       />
     </div>

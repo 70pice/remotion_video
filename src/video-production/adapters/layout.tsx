@@ -1,4 +1,4 @@
-import {useMemo} from 'react';
+import {createContext, useContext, useMemo} from 'react';
 import type {CSSProperties, ReactNode} from 'react';
 import {interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
 import type {TimelineShot, VideoMetadata} from '../types';
@@ -8,6 +8,8 @@ export const muted = '#A8B6CB';
 export const panel = '#1B2940';
 export const white = '#F4F7FC';
 export const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} as const;
+export const LayoutHeaderHeight = createContext(0);
+export const LayoutComponentSample = createContext(false);
 
 export type AdapterProps = {shot: TimelineShot; durationInFrames: number; videoMetadata?: Record<string, VideoMetadata>};
 
@@ -17,11 +19,14 @@ export const useLayout = () => {
   const unit = Math.min(width, height) / 1080;
   const margin = 72 * unit;
   const contentWidth = width - margin * 2;
-  // Reserve the subtitle and source regions even for a shot with no captions.
-  const contentHeight = height - (vertical ? 640 : 430) * unit;
-  const headerHeight = (vertical ? 260 : 170) * unit;
-  const bodyHeight = (vertical ? 180 : 120) * unit;
-  return {width, height, fps, durationInFrames, unit, vertical, margin, contentWidth, contentHeight, headerHeight, bodyHeight};
+  const reservedHeaderHeight = useContext(LayoutHeaderHeight) * unit;
+  const componentSample = useContext(LayoutComponentSample);
+  // Reserve the subtitle and source regions for production. Silent component samples
+  // use a taller middle stage because audio/captions are rejected for that mode.
+  const contentHeight = height - (vertical ? (componentSample ? 470 : 660) : 430) * unit;
+  const headerHeight = Math.max((vertical ? 260 : 170) * unit, reservedHeaderHeight);
+  const bodyHeight = (vertical ? (componentSample ? 240 : 180) : 120) * unit;
+  return {width, height, fps, durationInFrames, unit, vertical, margin, contentWidth, contentHeight, headerHeight, bodyHeight, componentSample};
 };
 
 const fittedSize = (text: string, width: number, height: number, max: number, min: number, lineHeight: number,
@@ -101,7 +106,10 @@ export const CuedMotion = ({children, revealFrame, delay = 0, style}: {
 
 export const SceneHeader = ({shot}: {shot: TimelineShot}) => {
   const {contentWidth, unit, vertical, headerHeight} = useLayout();
-  return <Motion style={{height: headerHeight, flexShrink: 0}}>
+  const frame = useCurrentFrame();
+  const titleLayerActive = shot.layers?.some((layer) => layer.role === 'title'
+    && frame >= layer.start_frame && frame < layer.end_frame);
+  return <Motion style={{height: headerHeight, flexShrink: 0, visibility: titleLayerActive ? 'hidden' : 'visible'}}>
     <div style={{height: 6 * unit, width: 72 * unit, background: shot.accent_color, marginBottom: 22 * unit}} />
     <FittedText text={shot.title} width={contentWidth} height={headerHeight - 58 * unit}
       fontSize={(vertical ? 80 : 70) * unit} minFontSize={32 * unit} />

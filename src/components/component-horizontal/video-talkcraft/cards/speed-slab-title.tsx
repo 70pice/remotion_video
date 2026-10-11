@@ -124,7 +124,7 @@ const CSS = `
 }
 `;
 
-export default function SpeedSlabTitle({ hostSrc }: { hostSrc?: string }) {
+export default function SpeedSlabTitle({ hostSrc, title = "效率不是更快", emphasis = "而是不做错事" }: { hostSrc?: string; title?: string; emphasis?: string }) {
   const t = useCurrentFrame() / FPS;
 
   // ① 主标题硬现
@@ -148,7 +148,7 @@ export default function SpeedSlabTitle({ hostSrc }: { hostSrc?: string }) {
       <div className="host-wrap"><Host src={hostSrc} /></div>
       <div className="ss-title">
         <div className="ss-l1" style={{ opacity: l1P, transform: `scale(${l1Scale})` }}>
-          效率不是更快
+          {title}
         </div>
         <div className="ss-row">
           <div className="ss-lines">
@@ -168,7 +168,7 @@ export default function SpeedSlabTitle({ hostSrc }: { hostSrc?: string }) {
           </div>
           <span className="ss-slab" style={{ transform: `translateX(${slabX}px)` }}>
             <span className="ss-slab-t" style={{ transform: `translateX(${slabTX}px)` }}>
-              而是不做错事
+              {emphasis}
             </span>
           </span>
         </div>

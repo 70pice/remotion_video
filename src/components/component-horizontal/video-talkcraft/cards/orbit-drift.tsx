@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Img, useCurrentFrame } from "remotion";
 
 // orbit-drift · 环绕微漂 —— 自包含 Remotion 源码（与 demos/orbit-drift/index.html 同画面）
 // 复制本文件进你的工程即可用。3D 空间里绕静态页面做小幅环绕。
@@ -130,7 +130,7 @@ const CSS = `
 .detail .ln { height: 6px; border-radius: 2px; background: #ececef; margin-top: 12px; }
 `;
 
-export default function OrbitDrift(_props: { hostSrc?: string }) {
+export default function OrbitDrift({ mediaSrc, mediaFit = "cover", mediaStyle }: { hostSrc?: string; mediaSrc?: string; mediaFit?: "cover" | "contain"; mediaStyle?: React.CSSProperties }) {
   const rawT = useCurrentFrame() / FPS;
   const C = CONFIG;
   const TAU = Math.PI * 2;
@@ -149,6 +149,23 @@ export default function OrbitDrift(_props: { hostSrc?: string }) {
   const shX = -sy * C.shadowShift;
   const shY = sx * C.shadowShift * 0.5;
   const shOp = 0.16 + sz * 0.03;
+
+  if (mediaSrc) {
+    return (
+      <AbsoluteFill style={{background: "#ffffff", overflow: "hidden"}}>
+        <div className="world">
+          <div className="camera" style={{
+            transform: `translate3d(0px, 0px, ${z}px) rotateY(${rotY}deg) rotateX(${rotX}deg)`,
+          }}>
+            <div className="shadow" style={{opacity: shOp, transform: `translate3d(${shX}px, ${shY}px, -40px)`}} />
+            <div className="page">
+              <Img src={mediaSrc} style={{position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: mediaFit, ...mediaStyle}} />
+            </div>
+          </div>
+        </div>
+      </AbsoluteFill>
+    );
+  }
 
   return (
     <AbsoluteFill style={{

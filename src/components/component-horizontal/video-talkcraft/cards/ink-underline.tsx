@@ -1,5 +1,5 @@
-import React from "react";
-import { AbsoluteFill, Loop, OffthreadVideo, useCurrentFrame } from "remotion";
+import React, { useLayoutEffect, useRef, useState } from "react";
+import { AbsoluteFill, Loop, OffthreadVideo, continueRender, delayRender, useCurrentFrame } from "remotion";
 
 // ink-underline · 墨迹下划线 —— 自包含 Remotion 源码（与 demos/ink-underline/index.html 同画面）
 // 复制本文件进你的工程即可用；主持人视频经 hostSrc prop 注入，不传则灰阶剪影占位。
@@ -36,8 +36,16 @@ const CONFIG = {
   hold: 1.0,             // 收尾定格：画完的两条线就是落点
 };
 
+type InkBox = { x: number; right: number; baseline: number };
+
+const DEFAULT_COPY = {
+  title: "很多人以为这轮涨价是因为",
+  wrong: "成本上涨",
+  right: "渠道结构",
+};
+
 // demo 运行时 baselineOf() 实测值（目标 <b> 的左右缘 + 文字真实 baseline）
-const BOXES: Record<string, { x: number; right: number; baseline: number }> = {
+const DEFAULT_BOXES: Record<string, InkBox> = {
   wrong: { x: 780, right: 900, baseline: 251.5 },   // 「成本上涨」
   right: { x: 660, right: 780, baseline: 310.0 },   // 「渠道结构」
 };
@@ -68,7 +76,7 @@ function sampleCubic(p0: Pt, c1: Pt, c2: Pt, p3: Pt, count: number): Pt[] {
   }
   return pts;
 }
-function spineOf(box: { x: number; right: number; baseline: number }, o: Mark): Pt[] {
+function spineOf(box: InkBox, o: Mark): Pt[] {
   const x0 = box.x - o.overhang, x1 = box.right + o.overhang;
   const y = box.baseline + o.baselineGap, w = o.wobble;
   return sampleCubic([x0, y], [x0 + (x1 - x0) * 0.3, y + w],
@@ -146,17 +154,88 @@ const CSS = `
 #inkLayer path { stroke: none; }
 `;
 
-export default function InkUnderline({ hostSrc }: { hostSrc?: string }) {
+const isDefaultCopy = (title: string, wrong: string, right: string) =>
+  title === DEFAULT_COPY.title && wrong === DEFAULT_COPY.wrong && right === DEFAULT_COPY.right;
+
+const approxTextWidth = (text: string, fontSize: number) =>
+  Array.from(text).reduce((sum, ch) => {
+    if (/\s/.test(ch)) return sum + fontSize * 0.34;
+    if (/[\x00-\x7F]/.test(ch)) return sum + fontSize * 0.56;
+    return sum + fontSize * 0.92;
+  }, 0);
+
+const estimatedBoxes = (title: string, wrong: string, right: string): Record<string, InkBox> => {
+  if (isDefaultCopy(title, wrong, right)) return DEFAULT_BOXES;
+  const lineLeft = 420;
+  const firstBaseline = 251.5;
+  const secondBaseline = 310.0;
+  const rightPrefix = "真正要看的，是";
+  const wrongX = lineLeft + approxTextWidth(title, 30);
+  const rightX = lineLeft + approxTextWidth(rightPrefix, 30);
+  return {
+    wrong: {x: wrongX, right: wrongX + approxTextWidth(wrong, 30), baseline: firstBaseline},
+    right: {x: rightX, right: rightX + approxTextWidth(right, 30), baseline: secondBaseline},
+  };
+};
+
+const measuredBox = (target: HTMLElement, stage: HTMLElement): InkBox => {
+  const targetRect = target.getBoundingClientRect();
+  const stageRect = stage.getBoundingClientRect();
+  const scaleX = 960 / (stageRect.width || 960);
+  const scaleY = 540 / (stageRect.height || 540);
+  const x = (targetRect.left - stageRect.left) * scaleX;
+  const right = (targetRect.right - stageRect.left) * scaleX;
+  const baseline = (targetRect.bottom - stageRect.top) * scaleY - 5;
+  return {x, right, baseline};
+};
+
+export default function InkUnderline({ hostSrc, title = DEFAULT_COPY.title, wrong = DEFAULT_COPY.wrong, right = DEFAULT_COPY.right }: { hostSrc?: string; title?: string; wrong?: string; right?: string }) {
   const t = useCurrentFrame() / FPS;
+  const useDefaultBoxes = isDefaultCopy(title, wrong, right);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const wrongRef = useRef<HTMLElement>(null);
+  const rightRef = useRef<HTMLElement>(null);
+  const [measuredBoxes, setMeasuredBoxes] = useState<Record<string, InkBox>>(() =>
+    useDefaultBoxes ? DEFAULT_BOXES : estimatedBoxes(title, wrong, right));
+  const [handle] = useState(() => delayRender("ink-underline: measure keyword boxes"));
+  const continued = useRef(false);
+  const done = () => {
+    if (!continued.current) {
+      continueRender(handle);
+      continued.current = true;
+    }
+  };
+
+  useLayoutEffect(() => {
+    if (useDefaultBoxes) {
+      setMeasuredBoxes(DEFAULT_BOXES);
+      done();
+      return;
+    }
+    const stage = stageRef.current;
+    const wrongEl = wrongRef.current;
+    const rightEl = rightRef.current;
+    if (!stage || !wrongEl || !rightEl) {
+      setMeasuredBoxes(estimatedBoxes(title, wrong, right));
+      done();
+      return;
+    }
+    setMeasuredBoxes({
+      wrong: measuredBox(wrongEl, stage),
+      right: measuredBox(rightEl, stage),
+    });
+    done();
+  }, [right, title, useDefaultBoxes, wrong]);
 
   // 每条墨线：t0 起 opacity 置 0.85，progress 0→1 每帧重算 ribbon
   let t0 = CONFIG.startDelay;
+  const boxes = measuredBoxes;
   const strokes = CONFIG.marks.map((m, idx) => {
     const at = t0;
     t0 += m.dur + CONFIG.gapBetween;
     const v = tw(t, at, m.dur, power1Out);
     return {
-      d: ribbon(spineOf(BOXES[m.target], m), m, v),
+      d: ribbon(spineOf(boxes[m.target], m), m, v),
       opacity: t >= at ? CONFIG.inkOpacity : 0,
       fid: `ink-grain-${idx}`,
       seed: 17 + idx * 61,
@@ -169,29 +248,31 @@ export default function InkUnderline({ hostSrc }: { hostSrc?: string }) {
       background: "#ffffff", color: "#1d1d1f", overflow: "hidden",
       fontFamily: '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif',
     }}>
-      <style>{CSS}</style>
-      <div className="host-wrap"><Host src={hostSrc} /></div>
-      <div className="say">
-        <div className="say-line">很多人以为这轮涨价是因为<b>成本上涨</b>，</div>
-        <div className="say-line">其实真正的变量是<b>渠道结构</b>。</div>
-      </div>
-      <svg id="inkLayer" viewBox="0 0 960 540">
-        {/* ④ 边缘颗粒：静态 turbulence 位移（毛边是形状，不随时间变 —— 不是沸腾） */}
-        <defs>
+      <div ref={stageRef} style={{position: "absolute", inset: 0}}>
+        <style>{CSS}</style>
+        <div className="host-wrap"><Host src={hostSrc} /></div>
+        <div className="say">
+          <div className="say-line">{title}<b ref={wrongRef}>{wrong}</b>，</div>
+          <div className="say-line">真正要看的，是<b ref={rightRef}>{right}</b>。</div>
+        </div>
+        <svg id="inkLayer" viewBox="0 0 960 540">
+          {/* ④ 边缘颗粒：静态 turbulence 位移（毛边是形状，不随时间变 —— 不是沸腾） */}
+          <defs>
+            {strokes.map((s) => (
+              <filter key={s.fid} id={s.fid} x="-30%" y="-30%" width="160%" height="160%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves={3}
+                              seed={s.seed} result="g" />
+                <feDisplacementMap in="SourceGraphic" in2="g" scale={s.scale}
+                                   xChannelSelector="R" yChannelSelector="G" />
+              </filter>
+            ))}
+          </defs>
           {strokes.map((s) => (
-            <filter key={s.fid} id={s.fid} x="-30%" y="-30%" width="160%" height="160%">
-              <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves={3}
-                            seed={s.seed} result="g" />
-              <feDisplacementMap in="SourceGraphic" in2="g" scale={s.scale}
-                                 xChannelSelector="R" yChannelSelector="G" />
-            </filter>
+            <path key={s.fid} d={s.d} fill={CONFIG.color} opacity={s.opacity}
+                  filter={CONFIG.grain > 0 ? `url(#${s.fid})` : undefined} />
           ))}
-        </defs>
-        {strokes.map((s) => (
-          <path key={s.fid} d={s.d} fill={CONFIG.color} opacity={s.opacity}
-                filter={CONFIG.grain > 0 ? `url(#${s.fid})` : undefined} />
-        ))}
-      </svg>
+        </svg>
+      </div>
     </AbsoluteFill>
   );
 }
