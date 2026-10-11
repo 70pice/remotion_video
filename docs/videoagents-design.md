@@ -1,8 +1,10 @@
 # VideoAgents：基于 LangGraph 的短视频制作工作流方案
 
+2026-10-10 更新：当前生产图不是本文历史设计中的“导演直接剪辑”或最终审核链。最新合同为文案人工确认 → 配音 → 导演输出 `shots + segment_performances + demo` → 真实最长 30 秒 Demo → 导演 Demo 人工确认 → 完整剪辑；详见 [生产图精简](videoagents-graph-simplification.md)、[阶段人工审核](videoagents-human-review.md) 和 [生产策略](videoagents-production-policy.md)。
+
 日期：2026-10-03。这是实施前通过审查的设计记录，保留当时的源码和外部资料核验结论。当前实现、实际测试及边界见 [实现与验证记录](videoagents-implementation-status.md)，启动操作见 [使用说明](videoagents-setup.md)。设计中的未来扩展不能当作已实测功能。
 
-2026-10-07 用户更新：当前生产图只保留文案人工审核，导演直接进入剪辑，视频生成后结束；本文中的后续成片审核设计属于历史方案。当前编排见 [生产图精简](videoagents-graph-simplification.md)。
+2026-10-07 历史更新：当时生产图只保留文案人工审核，导演直接进入剪辑，视频生成后结束；本文中的后续成片审核设计属于历史方案。当前编排见 [生产图精简](videoagents-graph-simplification.md)。
 
 最新实现已将素材独立为第一个节点：`materials → screenwriter`，并增加文案审查讨论。历史方案中的编剧采集职责已迁入素材节点；当前交接与平台能力见 [素材研究节点](videoagents-materials.md)。2026-10-09 当前生产清单为 9 个参数化适配器 + 187 个社区预设，共 196 个生产 ID；导演先读组件知识库摘要，再设计分镜。当前事实以 [实现与验证记录](videoagents-implementation-status.md) 为准。
 

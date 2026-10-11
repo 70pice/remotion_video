@@ -10,14 +10,26 @@
 
 1. 先判断旁白这一拍到底需要提出问题、展示证据、解释差异、说明数字、讲步骤、建立节奏还是收束结论。
 2. 再从下表按“适用场景”和“画面效果”选组件，优先使用能承载真实素材的 video / evidence / image_focus；纯解释才使用 title / keyword / comparison / data / steps / conclusion 或社区预设。
-3. 先判断组件的素材接入方式：当前 196 个生产组件全部为 `native_slots`。VideoAgents 参数化适配器用强类型 props 承载事实素材；35 个 CuratedScene 精选预设使用专用原生槽；其余社区预设按组件语义进入 device、gallery、pip、data、workspace、reveal、text、motion 或 material-card 展示面。需要精确证据框、复杂数据或步骤同步时，优先使用参数化适配器。
+3. 区分“组件 ID 可选”和“已经接入原组件动画”。196 个可选 ID 的安全槽位不代表 196 个原组件都已适配。当前真实原生绑定与支持角色以 `videoagents/native-component-capabilities.json` 为准；未列出的 ID 可能仍使用通用素材展示面，不能作为原生组件使用数量的证明。需要精确证据框、复杂数据或步骤同步时，优先使用参数化适配器。
 4. 社区预设已经进入生产清单，不是随意 import 的代码入口。它们可以使用统一安全素材槽位，但演示内容、演示代码、演示数字不能当成本期事实。
 5. 商业任务会过滤 Talkcraft 等非商业组件；个人任务可以使用完整个人/未指定清单。最终可选 ID 仍以运行时 schema 为准。
 6. 如果组件清单和实际素材不能支持某个画面，不要凭名字想象新能力，也不要新增 props、CSS、URL 或任意代码。
 
 当前共有 **196 个生产组件**：9 个参数化适配器 + 187 个社区预设。
 素材接入能力分层：196 个 `native_slots`（9 个参数化适配器 + 187 个社区预设），0 个 `overlay`。
-其中 35 个 CuratedScene 社区预设支持把 `asset_src`、裁剪、视频截取、标题、正文和强调色映射进组件自身的手机框、图库、画中画、遮罩、玻璃卡、图表或背景槽位；其余社区预设使用同一批安全素材字段，按组件语义进入 device、gallery、pip、data、workspace、reveal、text、motion 或 material-card 展示面，并保留原预设动效和构图。
+其中 35 个 CuratedScene 社区预设支持把 `asset_src`、裁剪、视频截取、标题、正文和强调色映射进专用素材槽；`Snapcn-PhoneFrame` 将真实素材直接放进 PhoneFrame 本体，保留设备入场与漂浮。其余社区预设使用同一批安全素材字段，按组件语义进入 device、gallery、pip、data、workspace、reveal、text、motion 或 material-card 生产展示面，不在背景播放带内置示例内容的原预设。表中的原组件效果描述不代表所有生产适配器都已开放同样的动效和参数。
+
+生产镜头须使用实际开放的表演能力：手机界面用真实 PhoneFrame，逐项列表可用 Rve-AnimatedList，实际金额可用接受 `metric` 的 RenderComp-KpiCounter；需要精确按旁白揭示数字或步骤时用 data / steps 的 `reveal_frame`。来源、单位和金额来自本期输入，不能沿用独立组件 Demo 的数值、图表或文字。不能仅因换了组件 ID 就宣称画面动作已经变化。
+
+### 镜头内组合与数量要求
+
+导演可以在同一连续真实素材镜头使用最多两个 `layers`，分别承载短标题或强调，保留原图阅读时间。层的时刻使用所属镜头的本地帧，必须落在镜头区间内且可见至少 30 帧；只可选择原生能力清单支持的 `title` / `emphasis` 角色。文字取自当前旁白或证据，不替换口播字幕，不编造对话。标题最多 32 字、正文最多 64 字，优先更短；替换动画需提供不同的 `from_text` / `to_text`，多条内容需完整真实输入。原组件 Demo 默认文案、头像、数字和代码不得进入生产。
+
+任务人工导演返工入口可持久化 `director_requirements.min_library_components`。本任务要求至少 60 个不同原生库组件：按完整时间轴的主组件和实际层组件去重，重复只计一次，9 个语义适配器不计数。每个计数组件必须满足能力清单的素材、正文、关键词、条目和数字约束。30 秒 Demo 只呈现全片方案的一个连续片段，不能把全片设计数量冒称 Demo 已呈现数量。导演产出 Demo 后停人工审核，确认才进入剪辑和成片渲染。
+
+原生能力清单中的 `min_visible_frames` 是按源码动画设置的显示时间下限，层不能只满足通用30帧。当前打字机需150帧、完整手绘标注120帧、关键词弹出60帧、标题降为标签105帧；导演须预留显字完成后的阅读时间。长文或多条内容可能需要更久，下限通过仍需实际Demo检查。
+
+维护原生清单：`npm run generate:native-components` 从真实绑定源码生成；`npm run check:native-components` 校验来源、ID、角色及文件一致性。
 
 - VideoAgents: 9 个
 - Snapcn: 21 个
@@ -29,6 +41,15 @@
 - Talkcraft: 108 个
 
 ## 场景组件组合 Playbook
+
+30套组件套的选型入口见 [导演使用指导](../component-set-director-guide.md) 和
+[备案 JSON](../component-set-registry.json)：先匹配表达目的和素材类型，再看逐套表达顺序、
+素材/内容边界及普通生产适配方法。导演 prompt 每次从 JSON 注入这些字段。整套 A/B 布局
+仍为静音样片能力；普通生产只能参考表达方式，不能把备案当作整套生产渲染已接入。
+
+组件套 A03–A06 的竖屏静音样片支持 `focus_steps`：短标题与原始素材目标框按连续帧同步切换，图片下方提供局部放大，操作视频优先占用纵向空间。A04 的标注置于真实 Tilt3dPage 页面内部，与图片一同透视变化；A05/A06 不再只弹出孤立关键词。它是样片布局能力，不新增组件计数，不能直接用于普通成片字幕安全区。输入和边界见 [组件套同步标注](../component-set-demos.md#a03a06标题与素材重点同步)。
+
+手机教学需要把当前口令和界面目标绑定：`Snapcn-PhoneFrame` 的生产适配器支持 `tutorial_steps`（连续局部帧、短口令、原始素材归一化目标框）和实测 `tutorial_source_size`，配合一个全时长 `Snapcn-TextReveal` 标题层，按步骤换字并画橙色无填充手绘圈。使用未裁剪的 contain-fit MP4 和竖屏时间轴；时刻与目标依据实际录屏确认，不能把首页当作保存动作。见 [A02 教学版契约](../component-set-demos.md#a02-教学版当前口令与手绘圈同步)。圈是适配器能力，不新增原生组件计数。
 
 账号选题先按 [普通人与 AI 镜头组合规则](account-shot-playbooks.md) 判断主题、素材条件与段落任务，
 再使用以下通用场景组合。主题不是组件白名单，完整清单继续保留；实际切镜须交付新信息并换成相关新素材。

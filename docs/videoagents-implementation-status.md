@@ -2,11 +2,15 @@
 
 2026-10-03。React 前端、FastAPI API、独立 worker、持久 LangGraph 工作流和 Remotion 生产入口已实现并完成本机联调。设计记录见 [原方案](videoagents-design.md)，操作见 [使用说明](videoagents-setup.md)，接口见 [共享契约](videoagents-implementation-contract.md)。
 
-## 2026-10-07：精简分镜及成片审核链
+## 2026-10-10：导演 Demo 人工审核进入默认生产图
 
-按用户决定，默认生产图只保留文案人工审核。`timeline_gate`、`human_review_timeline`、`human_review_render`、`reviewers`、`review_gate` 及其三个清理/衔接节点不再注册，共保留 18 个业务及辅助节点（不计 START/END）。文案人工确认后，配音经过音频检查进入导演，导演直接进入剪辑，生成视频后结束；缺素材及可恢复失败仍通过 `await_input` 暂停和续跑。完整路由见 [生产图精简](videoagents-graph-simplification.md)。
+按用户决定，默认生产图为 `materials → screenwriter/script_reviewer → human_review_script → voice → audio_gate → director → director_demo → director_human_gate → editing`。文案人工确认后进入配音；导演输出完整镜头、逐段表演方案和 Demo 帧范围；`director_demo` 渲染真实最长 30 秒 Demo；`director_human_gate` 确认后才允许 `editing` 渲染完整成片。完整路由见 [生产图精简](videoagents-graph-simplification.md)。
 
-`storyboard` 完成为 `DRAFT/director`，`preview` 完成为 `DRAFT/render`，`produce/final` 完成为 `DRAFT/complete`，不生成最终审核通过记录或 `READY_FOR_PUBLISH`。前端展示“成片已生成”，成片审核入口移除，旧报告仍可在“历史审核”查看。新 `review` 动作在 API 入队前返回 422；旧命令、已删除节点、清理节点中的旧路由或最终审核 interrupt 恢复时安全结束为草稿并提示重新提交。
+`storyboard` 完成为 `DRAFT/director`，只保存导演设计；`preview` 在 Demo 生成后结束为 `DRAFT/director`，不自动写审核记录；`produce/final` 在导演 Demo 人审确认和完整成片渲染后完成为 `DRAFT/complete`，不生成最终发布审核通过记录或 `READY_FOR_PUBLISH`。2026-10-07 删除的 `timeline_gate`、旧分镜/成片人审、`reviewers`、`review_gate` 和最终发布审核链仍不注册；旧 `review` 动作、旧 token、旧 revision、内容变化或文件 hash 变化都 fail closed。
+
+## 2026-10-07：精简旧时间轴及成片审核链（历史）
+
+当时默认生产图只保留文案人工审核，导演直接进入剪辑，生成视频后结束。该设计已被 2026-10-10 的导演 Demo 审核合同替代；保留在这里作为历史背景。
 
 Fresh 验证：**709 Python、85 React、23 Remotion 时间轴测试通过**；Ruff、Python 编译、生成契约一致性、根 TypeScript/ESLint、React typecheck/build、Python wheel 构建和 `git diff --check` 通过。独立只读检查与聚焦恢复测试通过。提示词测试使用短参数名，修复 Windows `PYTEST_CURRENT_TEST` 超过 32767 字符的环境变量限制。Python 项目未配置独立静态类型检查器，编译和契约检查不替代该项。
 

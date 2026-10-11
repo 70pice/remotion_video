@@ -3,19 +3,20 @@
 节点实现：`videoagents/nodes/human_review.py` 的 `HumanReviewNode`。
 编排入口：`videoagents/graph/video_graph.py` 的构造函数和 `add_human_review()`。
 
-2026-10-07 起，默认图只接入 `human_review_script`（文案）。它使用真正的 LangGraph interrupt，未确认时不会配音。分镜人审、剪辑成片人审、成片机器审核及最终发布人审链已移除；`await_input` 保留补充输入和失败续跑能力。旧的 `human_review` 注册仍保留，供自行编排使用，正常入口没有进入它的边。
+2026-10-10 起，默认图接入两个固定人工审核点：`human_review_script`（文案）和 `director_human_gate`（导演表演与最长 30 秒 Demo）。它们都使用真正的 LangGraph interrupt。文案未确认时不会配音；导演 Demo 未确认时不会进入完整成片渲染。旧 `timeline_gate`、`human_review_timeline`、`human_review_render`、成片机器审核及最终发布人审链仍保持移除。`await_input` 保留补充输入、Demo 渲染失败和其他可恢复失败的续跑能力。旧的 `human_review` 注册仍保留，供自行编排使用，正常入口没有进入它的边。
 
-项目的人工参与还包括补充信息、直接修改产物，以及提交意见让编剧修订。文案审核的 `revise` 会把当前稿件和说明交给编剧，实际改稿后再次审核；自行注册且未配置返工目标的审核节点仍会回到草稿，供手工保存新版本。
+项目的人工参与还包括补充信息、直接修改产物，以及提交意见让编剧或导演修订。文案审核的 `revise` 会把当前稿件和说明交给编剧，实际改稿后再次审核；导演 Demo 审核的 `revise` 回到 `director`，保留匹配的音频和时间戳，让导演重做 `shots`、逐段表演和 Demo 帧范围。自行注册且未配置返工目标的审核节点仍会回到草稿，供手工保存新版本。
 
 ## 当前默认主流程
 
-素材 → 编剧与文案审查讨论 → 文案人工审核 → 配音 → AudioGate → 导演读取组件知识库并生成分镜 → 剪辑/Remotion → 结束。默认 1 轮审查；若审查要求修改，编剧最后改稿一次后直接交人工审核。
+素材 → 编剧与文案审查讨论 → 文案人工审核 → 配音 → AudioGate → 导演读取组件知识库并输出 `shots + segment_performances + demo` → 渲染真实最长 30 秒 Demo → 导演 Demo 人工审核 → 剪辑/Remotion 完整成片 → 结束。默认 1 轮文案审查；若审查要求修改，编剧最后改稿一次后直接交人工审核。
 
 | 人工审核 | 用户检查 | 要求返工时 |
 | --- | --- | --- |
 | 文案 | 普通人视角、首句观看理由、主线、事实依据、自然收尾 | 编剧消费意见生成改稿，重新机器讨论和检查，再次人工审稿 |
+| 导演 Demo | 逐段表演设计是否贴合口播，组件/素材是否支撑事实，真实 Demo 的画面、字幕和配音节奏是否代表本片方向 | 回到导演节点，保留当前配音和 alignment，重做镜头、表演方案及 Demo 帧范围，再渲染新 Demo 后重新人工审核 |
 
-文案确认只放行配音。成片生成后以 `DRAFT` / `complete` 结束，不授予 `READY_FOR_PUBLISH`，也不生成审核通过记录。
+文案确认只放行配音；导演 Demo 确认只放行完整成片渲染。成片生成后以 `DRAFT` / `complete` 结束，不授予 `READY_FOR_PUBLISH`，也不生成最终发布审核通过记录。
 
 ## 当前文案审核连线
 
@@ -64,14 +65,9 @@ Worker 绑定当前版本已完成的原 checkpoint，核对文案人工确认�
 文案、配音、素材和人工反馈保留。此入口要求 `DRAFT` / `director`、`render` 或
 `complete`，没有待办，且原制作输入未改变。不能同时指定 `continue_from`。
 
-导演成功后经 `clear_director` 直接进入剪辑；`storyboard` 动作在导演完成后结束。
-剪辑成功后经 `clear_editing` 结束；`preview` 停在 `DRAFT` / `render`，完整成片停在
-`DRAFT` / `complete`。旧 `review` 动作结束为草稿并提示审核流程已移除。
-时间轴及素材的技术校验仍由导演、剪辑节点执行，失败进入 `await_input`。
-导演节点内同时检查镜头可读时长；已有短镜头通过原导演节点重做视觉切点。
-剪辑指导只检查画面与渲染输入，输出问题只归属导演或剪辑，不重开已确认的文案
-与配音审查。剪辑输入包含程序计算的素材可用性；个人视频的素材可直接入片，
-历史“待核验”备注不阻止使用。有合适素材时必须在画面中使用，仍需匹配内容与时长。
+导演成功后经 `clear_director` 进入 `director_demo`。`storyboard` 动作在导演完成设计后结束，不渲染 Demo 或成片。`preview` 目标在 `director_demo` 生成真实最长 30 秒 Demo 后结束为 `DRAFT` / `director`，不自动写入审核确认。`produce` / `final` 必须经过 `director_human_gate` 的 `confirm` 后才进入 `editing` 渲染完整成片，并以 `DRAFT` / `complete` 结束。旧 `review` 动作结束为草稿并提示审核流程已移除。
+
+时间轴及素材的技术校验仍由导演、Demo 和剪辑节点执行，失败进入 `await_input`。导演节点内同时检查镜头可读时长；已有短镜头通过原导演节点重做视觉切点。`director_plan` 与 timeline fingerprint、Demo frame range、素材 hash 和审核回执绑定；旧 token、旧 revision、内容变化或文件变化都会 fail closed。剪辑指导只检查画面与渲染输入，输出问题只归属导演或剪辑，不重开已确认的文案、配音和导演 Demo 审查。剪辑输入包含程序计算的素材可用性；个人视频的素材可直接入片，历史“待核验”备注不阻止使用。有合适素材时必须在画面中使用，仍需匹配内容与时长。
 
 `stage` 使用 `materials`、`script`、`voice`、`director`、`render` 或 `review`；素材审核示例见 [素材节点](videoagents-materials.md)。审核节点名称需唯一，`next_node` 要是图中已有节点。也可以指定 `END`，此时确认后结束本次执行，任务回到 `DRAFT`，不会留在运行中或标记发布通过。
 

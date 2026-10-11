@@ -1,8 +1,9 @@
 # 素材研究节点
 
+2026-10-10 更新：当前制作流程已在导演后加入真实最长 30 秒 Demo 与 `director_human_gate`，不是旧的“导演直接剪辑”。素材节点仍负责冻结来源、图片、截图和真实视频，并把叙事用途交给编剧和导演；最新路由见 [生产图精简](videoagents-graph-simplification.md)，审核规则见 [阶段人工审核](videoagents-human-review.md)。
 ## 流程和职责
 
-当前制作流程为 `START → materials → screenwriter ↔ script_reviewer → human_review_script → voice → director → editing`。文案审查固定开启；达到轮数上限仍要求修改时，编剧最后改稿一次再进入人工审核。
+当前制作流程为 `START → materials → screenwriter ↔ script_reviewer → human_review_script → voice → audio_gate → director → director_demo → director_human_gate → editing`。文案审查固定开启；达到轮数上限仍要求修改时，编剧最后改稿一次再进入人工审核。导演完成镜头与 Demo 设计后，必须生成真实最长 30 秒 Demo 并经人工确认，才进入完整成片剪辑。
 
 `materials` 负责检索、读取来源、采集真实图片与网页截图；编剧只消费冻结的研究结果。导演同时获得素材文件、出处、说明和与口播段落的关联。节点仍统一定义在 `videoagents/nodes/`。
 
