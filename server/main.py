@@ -3,6 +3,7 @@
 import argparse
 import asyncio
 import json
+import math
 import secrets
 from pathlib import Path
 from typing import Any
@@ -20,10 +21,12 @@ from videoagents import __version__
 from videoagents.contracts import (
     Asset,
     Brief,
+    ComponentDemoRequest,
     DraftRequest,
     Job,
     ModelCatalog,
     ResumeRequest,
+    RetryFailedRunRequest,
     RunRequest,
     SettingsPatch,
 )
@@ -49,6 +52,167 @@ def require_portrait_production(brief: Brief) -> None:
         raise ValueError("制作格式固定为抖音竖屏 1080 × 1920、30 fps；请保存新版本制作要求")
     if "横屏" in brief.platform:
         raise ValueError("发布格式固定为竖屏，请使用抖音等竖屏平台")
+
+
+def _same_idempotency_command_exists(repository: Repository, job_id: str, idempotency_key: str) -> bool:
+    with repository.connection() as db:
+        return db.execute(
+            "SELECT 1 FROM commands WHERE job_id=? AND idempotency_key=?",
+            (job_id, idempotency_key),
+        ).fetchone() is not None
+
+
+def _validate_component_demo_history(repository: Repository, job: Job, idempotency_key: str) -> None:
+    if _same_idempotency_command_exists(repository, job.job_id, idempotency_key):
+        return
+    with repository.connection() as db:
+        rows = db.execute(
+            "SELECT command_id,payload FROM commands WHERE job_id=? ORDER BY created_at,rowid",
+            (job.job_id,),
+        ).fetchall()
+
+    commands: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        try:
+            payload = json.loads(row["payload"])
+        except json.JSONDecodeError as exc:
+            raise Conflict("任务已有无法识别的历史命令，不能改作组件套样片") from exc
+        if not isinstance(payload, dict):
+            raise Conflict("任务已有无法识别的历史命令，不能改作组件套样片")
+        commands[row["command_id"]] = payload
+
+    def is_prior_revision(payload: dict[str, Any]) -> bool:
+        base_revision = payload.get("base_revision")
+        if type(base_revision) is not int:
+            raise Conflict("任务已有无法识别的历史命令，不能改作组件套样片")
+        if base_revision >= job.revision:
+            raise Conflict("当前版本已有组件套样片命令，请刷新或保存新版本后重试")
+        return True
+
+    def referenced_command(thread_id: Any) -> dict[str, Any] | None:
+        prefix = f"job:{job.job_id}:run:"
+        if not isinstance(thread_id, str) or not thread_id.startswith(prefix):
+            return None
+        return commands.get(thread_id.removeprefix(prefix))
+
+    def is_component_demo_recovery(payload: dict[str, Any]) -> bool:
+        action = payload.get("action")
+        if action == "resume":
+            pending = payload.get("pending_input")
+            if not isinstance(pending, dict) or pending.get("retry_node") != "director_demo":
+                return False
+            previous = referenced_command(pending.get("thread_id"))
+        elif action == "retry":
+            retry_command_id = payload.get("retry_command_id")
+            previous = commands.get(retry_command_id) if isinstance(retry_command_id, str) else None
+        else:
+            return False
+        return (
+            isinstance(previous, dict)
+            and previous.get("action") == "component_demo"
+            and payload.get("base_revision") == previous.get("base_revision")
+        )
+
+    for payload in commands.values():
+        if payload.get("action") == "component_demo":
+            is_prior_revision(payload)
+            continue
+        if is_component_demo_recovery(payload) and is_prior_revision(payload):
+            continue
+        if payload.get("action") != "component_demo":
+            raise Conflict("任务已有生产或恢复命令历史，不能改作组件套样片")
+
+
+def validate_component_demo_request(repository: Repository, job: Job, request: ComponentDemoRequest) -> None:
+    """Allow component samples only on fresh material-only draft revisions."""
+    if _same_idempotency_command_exists(repository, job.job_id, request.idempotency_key):
+        return
+    _validate_component_demo_history(repository, job, request.idempotency_key)
+    if job.status != "DRAFT" or job.pending_input:
+        raise Conflict("组件套样片只能从无待办的草稿任务发起")
+    if job.script or job.timeline:
+        raise Conflict("已有文案或时间轴的任务不能改作组件套样片")
+    if any(asset.role == "audio" for asset in job.assets):
+        raise Conflict("已有配音素材的任务不能改作组件套样片")
+    if any(artifact.kind == "stage_review" for artifact in job.artifacts):
+        raise Conflict("已有人工审核记录的任务不能改作组件套样片")
+    if any(artifact.kind != "asset" for artifact in job.artifacts):
+        raise Conflict("已有生产产物的任务不能改作组件套样片")
+    if request.set_id.startswith("B"):
+        if job.assets or any(artifact.kind == "asset" for artifact in job.artifacts):
+            raise Conflict("B 无素材组件套只能从空素材草稿任务发起")
+        return
+    asset = next((item for item in job.assets if item.asset_id == request.asset_id), None)
+    if asset is None:
+        raise Conflict("组件套样片指定的素材不存在")
+    if asset.role == "audio" or not (asset.mime_type.startswith("image/") or asset.mime_type.startswith("video/")):
+        raise Conflict("组件套样片必须选择已导入的图片或视频素材")
+    if request.set_id in {f"A{index:02d}" for index in range(7, 13)}:
+        metadata = repository.asset_metadata(asset.asset_id)
+        width = metadata.get("width")
+        height = metadata.get("height")
+        if type(width) is not int or type(height) is not int or not 1 <= width <= 16384 or not 1 <= height <= 16384:
+            raise Conflict(f"{request.set_id} rich 素材必须带有效实测尺寸元数据")
+        if request.set_id == "A09":
+            duration = metadata.get("duration_seconds")
+            frame_count = next(
+                (
+                    metadata.get(key)
+                    for key in ("frame_count", "framecount", "video_frame_count")
+                    if type(metadata.get(key)) is int and metadata.get(key) > 0
+                ),
+                None,
+            )
+            frame_rate = metadata.get("frame_rate")
+            expected_frames = math.ceil(request.duration_seconds * 30)
+            if not asset.mime_type.startswith("video/") or not asset.timeline_src.lower().endswith(".mp4"):
+                raise Conflict("A09 rich 必须选择当前任务导入的 MP4 操作录屏")
+            if not isinstance(duration, (int, float)) or isinstance(duration, bool) or not math.isfinite(duration):
+                raise Conflict("A09 rich 操作录屏缺少有效实测时长")
+            if frame_count is None and (
+                not isinstance(frame_rate, (int, float)) or isinstance(frame_rate, bool) or frame_rate <= 0
+            ):
+                raise Conflict("A09 rich 操作录屏缺少实测 frame_count 或 frame_rate 元数据")
+            if frame_count is not None and frame_count < expected_frames:
+                raise Conflict("A09 rich duration_seconds 必须被实测 frame_count/时长覆盖")
+            if duration + 0.001 < request.duration_seconds:
+                raise Conflict("A09 rich duration_seconds 必须被实测 frame_count/时长覆盖")
+        else:
+            if not asset.mime_type.startswith("image/") or not asset.timeline_src.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
+                raise Conflict(f"{request.set_id} rich 必须选择当前任务导入的图片素材")
+        return
+    if request.tutorial_steps is not None:
+        if request.set_id != "A02":
+            raise Conflict("教学步骤只允许用于 A02 App 对象组件套")
+        if not asset.mime_type.startswith("video/") or not asset.timeline_src.lower().endswith(".mp4"):
+            raise Conflict("A02 教学演示必须选择当前任务导入的 MP4 录屏素材")
+        metadata = repository.asset_metadata(asset.asset_id)
+        duration = metadata.get("duration_seconds")
+        width = metadata.get("width")
+        height = metadata.get("height")
+        if not isinstance(duration, (int, float)) or isinstance(duration, bool) or not math.isfinite(duration) or duration + 0.001 < request.duration_seconds:
+            raise Conflict("A02 教学录屏缺少有效实测时长或时长不足")
+        if type(width) is not int or type(height) is not int or not 1 <= width <= 16384 or not 1 <= height <= 16384 or height <= width:
+            raise Conflict("A02 教学录屏必须带有效竖屏尺寸元数据")
+    if request.focus_steps is not None:
+        if request.set_id not in {"A03", "A04", "A05", "A06"}:
+            raise Conflict("重点圈选步骤只允许用于 A03-A06 素材组件套")
+        metadata = repository.asset_metadata(asset.asset_id)
+        width = metadata.get("width")
+        height = metadata.get("height")
+        if type(width) is not int or type(height) is not int or not 1 <= width <= 16384 or not 1 <= height <= 16384:
+            raise Conflict("重点圈选素材必须带有效实测尺寸元数据")
+        if request.set_id == "A03":
+            duration = metadata.get("duration_seconds")
+            if not asset.mime_type.startswith("video/") or not asset.timeline_src.lower().endswith(".mp4"):
+                raise Conflict("A03 重点演示必须选择当前任务导入的 MP4 操作录屏素材")
+            if not isinstance(duration, (int, float)) or isinstance(duration, bool) or not math.isfinite(duration) or duration + 0.001 < request.duration_seconds:
+                raise Conflict("A03 操作录屏缺少有效实测时长或时长不足")
+        else:
+            if not asset.mime_type.startswith("image/") or not asset.timeline_src.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
+                raise Conflict(f"{request.set_id} 重点演示必须选择当前任务导入的图片素材")
+            if request.set_id == "A05" and (asset.role != "evidence" or not asset.source_url):
+                raise Conflict("A05 模拟文档需按 evidence 素材导入并保留模拟来源 URL")
 
 
 def create_app(runtime_dir: Path | None = None, project_root: Path | None = None) -> FastAPI:
@@ -144,6 +308,40 @@ def create_app(runtime_dir: Path | None = None, project_root: Path | None = None
         if command.action == "review":
             raise HTTPException(422, "成片审核流程已移除，请使用制作或渲染动作")
         return repository.enqueue(job_id, command.model_dump(exclude_none=True))
+
+
+    @app.post("/api/jobs/{job_id}/retry-failed-run", response_model=Job, status_code=202, dependencies=protected)
+    def retry_failed_run(job_id: str, command: RetryFailedRunRequest):
+        require_portrait_production(repository.get_job(job_id).brief)
+        return service.retry_failed_run(job_id, command)
+
+
+    @app.post("/api/jobs/{job_id}/component-demo", response_model=Job, status_code=202, dependencies=protected)
+    def component_demo(job_id: str, command: ComponentDemoRequest):
+        job = repository.get_job(job_id)
+        require_portrait_production(job.brief)
+        validate_component_demo_request(repository, job, command)
+        component_demo = {
+            "set_id": command.set_id,
+            "duration_seconds": command.duration_seconds,
+        }
+        if command.composition != "basic":
+            component_demo["composition"] = command.composition
+        if command.asset_id is not None:
+            component_demo["asset_id"] = command.asset_id
+        if command.content is not None:
+            component_demo["content"] = command.content.model_dump(exclude_none=True)
+        if command.tutorial_steps is not None:
+            component_demo["tutorial_steps"] = [item.model_dump() for item in command.tutorial_steps]
+        if command.focus_steps is not None:
+            component_demo["focus_steps"] = [item.model_dump() for item in command.focus_steps]
+        return repository.enqueue(job_id, {
+            "base_revision": command.base_revision,
+            "idempotency_key": command.idempotency_key,
+            "action": "component_demo",
+            "component_demo": component_demo,
+        })
+
 
     @app.post("/api/jobs/{job_id}/cancel", response_model=Job, dependencies=protected)
     def cancel(job_id: str):

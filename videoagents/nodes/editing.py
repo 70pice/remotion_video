@@ -1,11 +1,17 @@
 """Freeze verified media, render a real MP4 and register inspectable outputs."""
 
 import copy
+import json
 import uuid
 from typing import Any
 
 from videoagents.contracts import EditingAdvice, Job
-from videoagents.nodes.common import agent_state, request_input, start_stage, state_context
+from videoagents.nodes.common import agent_state, current_job, request_input, start_stage, state_context
+from videoagents.nodes.director_review import (
+    checked_artifact,
+    current_plan_artifact,
+    director_demo_is_approved,
+)
 from videoagents.nodes.gates import timeline_readability_issues
 from videoagents.nodes.reviewers import dependency_fingerprint
 from videoagents.prompts import load_prompt
@@ -14,10 +20,30 @@ from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.state import VideoState
 from videoagents.storage import Repository
+from videoagents.storage.repository import fingerprint
+from videoagents.tools.component_sets import allowed_component_set_templates
+from videoagents.tools.components import native_component_capabilities
 from videoagents.tools.timeline import asset_renderable, validate_timeline
 from worker.process_manager import render
 
 PROMPT = load_prompt("editing")
+
+
+def editing_prompt(job: Job) -> str:
+    """Give preflight the same executable kits and layer roles as production."""
+    templates = allowed_component_set_templates(job.brief.usage)
+    shots = job.timeline.shots if job.timeline else []
+    selected = sorted({shot.set_design.set_id for shot in shots if shot.set_design})
+    roles = native_component_capabilities()["layer_roles"]
+    layer_ids = sorted({layer.component_id for shot in shots for layer in shot.layers})
+    capabilities = {"component_sets": [templates[set_id] for set_id in selected],
+                    "layer_roles": {component_id: sorted(roles.get(component_id, ())) for component_id in layer_ids}}
+    return PROMPT + "\n\n当前生产镜内组合能力（固定绑定，不含示例素材或文案）：\n" + json.dumps(
+        capabilities, ensure_ascii=False, separators=(",", ":"))
+
+
+def editing_instruction_fingerprint(job: Job) -> str:
+    return fingerprint({"instruction": editing_prompt(job)})
 
 
 class DirectorInputError(ValueError):
@@ -86,17 +112,24 @@ class EditingNode:
         self.model = JsonModel(repository)
 
     def __call__(self, state: VideoState) -> dict[str, Any]:
+        job = current_job(self.repo, state)
+        if state.get("action") == "preview" or not director_demo_is_approved(self.repo, job):
+            # Old checkpoints and failure retries cannot bypass the new gate.
+            return state_context(self.repo, state, route="director_demo")
         job = start_stage(self.repo, state, "render", "剪辑正在冻结素材并调用 Remotion")
-        mode = "preview" if state["action"] == "preview" else "final"
         try:
-            self.render_video(job, mode, state=state)
+            final = next((item for item in reversed(job.artifacts) if item.kind == "final"
+                          and item.revision == job.revision
+                          and self.repo.artifact_metadata(item.artifact_id).get("dependency_fingerprint")
+                          == dependency_fingerprint(job)), None)
+            if final:
+                checked_artifact(self.repo, job, final)
+            else:
+                self.render_video(job, "final", state=state)
         except DirectorInputError as exc:
             return request_input(self.repo, state, "director", [str(exc)], ["timeline"], exc)
         except (CapabilityMissing, ValueError, TimeoutError) as exc:
             return request_input(self.repo, state, "render", [str(exc)], getattr(exc, "fields", ["render"]), exc)
-        if mode == "preview":
-            job = self.repo.update_job(job.job_id, job.revision, status="DRAFT", message="真实预览已渲染，可试听并调整分镜", stage="render", progress=1)
-            return state_context(self.repo, state, route="end")
         job = self.repo.update_job(job.job_id, job.revision, status="DRAFT", message="成片已渲染完成，可人工查看后决定是否发布", stage="complete", progress=1)
         return state_context(self.repo, state, route="end")
 
@@ -108,7 +141,7 @@ class EditingNode:
         issues = timeline_readability_issues(job.timeline) if (job.brief.width, job.brief.height, job.brief.fps) == (1080, 1920, 30) else []
         if issues:
             raise DirectorInputError("；".join(issues))
-        if self.model.available("editing"):
+        if mode == "final" and self.model.available("editing"):
             context = agent_state(self.repo, job, state)
             if state is None:
                 context = {**context, "action": mode}
@@ -121,12 +154,17 @@ class EditingNode:
             fields = ("brief", "script", "timeline", "assets", "asset_metadata", "action")
             if has_unapplied_human_feedback(context.get("extras", {})):
                 fields = (*fields, "extras")
-            value = self.model.invoke(context, "editing", PROMPT,
+            instruction = editing_prompt(job)
+            value = self.model.invoke(context, "editing", instruction,
                 fields=fields,
                 command_id=context.get("resume_command_id", context.get("run_id", "")),
                 output_schema=EditingAdvice.model_json_schema())
             advice = EditingAdvice.model_validate(value)
-            self.service.write_json(job, "editing_guidance.json", advice.model_dump(), "editing_guidance")
+            artifact = self.service.write_json(job, "editing_guidance.json", advice.model_dump(), "editing_guidance")
+            self.repo.update_artifact_metadata(artifact.artifact_id, {
+                "instruction_fingerprint": fingerprint({"instruction": instruction}),
+                "dependency_fingerprint": dependency_fingerprint(job),
+            })
             blocked = [item.message for item in advice.findings if item.blocking or item.severity == "error"]
             if blocked:
                 if any(item.owner == "director" for item in advice.findings if item.blocking or item.severity == "error"):
@@ -136,15 +174,21 @@ class EditingNode:
             self.service.freeze_asset(asset)
         folder = self.repo.root / "jobs" / job.job_id / "revisions" / str(job.revision) / "renders" / uuid.uuid4().hex
         folder.mkdir(parents=True, exist_ok=True)
+        frame_range = None
+        render_metadata = {"dependency_fingerprint": dependency_fingerprint(job)}
+        if mode == "preview":
+            plan_artifact, plan = current_plan_artifact(self.repo, job)
+            frame_range = (plan["demo"]["start_frame"], plan["demo"]["end_frame"])
+            render_metadata.update(director_plan_sha256=plan_artifact.sha256, frame_range=list(frame_range))
         timeline_path, output, cover = folder / "timeline.json", folder / f"{mode}.mp4", folder / "cover.png"
         timeline_path.write_text(job.timeline.model_dump_json(indent=2), encoding="utf-8")
         config = SettingsService(self.repo).internal()
         def update(value):
             self.repo.update_job(job.job_id, job.revision, progress=max(0, min(1, value)), message="Remotion 正在渲染")
         render(self.service.project_root, timeline_path, output, cover, mode, config["render_timeout_seconds"],
-               lambda: self.repo.get_job(job.job_id).status == "CANCELLED", update)
+               lambda: self.repo.get_job(job.job_id).status == "CANCELLED", update, frame_range=frame_range)
         artifact = self.service.register_artifact(job, output, mode, "video/mp4")
-        self.repo.update_artifact_metadata(artifact.artifact_id, {"dependency_fingerprint": dependency_fingerprint(job)})
+        self.repo.update_artifact_metadata(artifact.artifact_id, render_metadata)
         self.service.append_artifact(job.job_id, artifact, job.revision)
         if cover.is_file():
             self.service.append_artifact(job.job_id, self.service.register_artifact(job, cover, "cover", "image/png"), job.revision)
@@ -155,5 +199,13 @@ class EditingNode:
             minutes, rem = divmod(rem, 60000)
             seconds, millis = divmod(rem, 1000)
             return f"{hours:02}:{minutes:02}:{seconds:02},{millis:03}"
-        captions_path.write_text("\n\n".join(f"{i + 1}\n{timestamp(c.start_ms)} --> {timestamp(c.end_ms)}\n{c.text}" for i, c in enumerate(job.timeline.captions)), encoding="utf-8")
+        start_ms, end_ms = (0, job.timeline.duration_in_frames * 1000 / job.timeline.fps)
+        if frame_range:
+            start_ms, end_ms = (frame * 1000 / job.timeline.fps for frame in frame_range)
+        captions = [caption for caption in job.timeline.captions
+                    if caption.end_ms > start_ms and caption.start_ms < end_ms]
+        captions_path.write_text("\n\n".join(
+            f"{i + 1}\n{timestamp(max(c.start_ms, start_ms) - start_ms)} --> "
+            f"{timestamp(min(c.end_ms, end_ms) - start_ms)}\n{c.text}"
+            for i, c in enumerate(captions)), encoding="utf-8")
         self.service.append_artifact(job.job_id, self.service.register_artifact(job, captions_path, "captions", "text/plain"), job.revision)

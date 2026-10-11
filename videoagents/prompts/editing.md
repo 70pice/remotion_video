@@ -79,6 +79,35 @@ start_frame、end_frame、component_id 和相关 props，再与反馈要求逐�
 安全素材槽位的社区预设；新视频使用原生竖屏实现。清单已经在导演
 阶段按 `brief.usage` 过滤，Talkcraft 预设不能用于商业任务。
 
+### 已支持的镜内组合契约
+
+`shot.layers` 与 `shot.set_design` 都是正式生产字段，不能因它们不在主镜头
+props 列表中就判为未支持。当前调用附带所选组件套的固定部件绑定及文字层
+角色能力，已经由同一生产契约校验；这不是旧组件样片标记。
+
+- `layers` 最多两个真实原生文字层，role 为 title 或 emphasis；component_id
+  必须支持该角色，title/body 为本期文字，start_frame/end_frame 是镜头内局部帧。
+  层至少持续30帧；同一角色不能同时出现。它是连续镜头内的标题或强调，
+  不是独立切镜。评估是否出现新的独立阅读任务时，应合并主画面、持续文字、
+  相邻同内容层和当前旁白的实际承载，不能机械套用独立镜头45/75帧下限。
+  重复已持续呈现的信息可短时强调；新增关键条件只在短层出现、没有其他
+  可读承载时，仍应定位具体文字和时段要求导演修正，不能仅因通过字段校验放行。
+- `set_design` 通过 set_id 选择已登记组件套；content 的 takeaway/items/
+  supporting_items/metric/numeric_items/source_refs 均为本任务内容。
+  固定 part_id 及其 component_id/binding 来自附带模板，导演可调整 parts 的
+  start_frame/end_frame 和 box{x,y,width,height}；帧为镜头内局部帧，box 为内容
+  安全区中的归一化矩形，不是任意 CSS。不能添加/换掉内部组件，也不能额外叠加 layers。
+  source_size 是素材实测宽高；focus_steps 只在模板 focus_supported=true 时可用，
+  每项 instruction/start_frame/end_frame/target 对应已核验素材目标。
+- 每个非媒体 part 的原生入场预算为 ceil(0.5*fps) 帧，其最小显示时长为
+  入场预算加 max(ceil(1.5*fps),ceil(去空格后文字数/12*fps))；media 没有文字
+  入场预算。这是镜内短句的实际生产规则，不给所有 parts 额外追加独立镜头
+  75帧阅读或适配器 reveal_frame 的固定15帧入场。长文、多项同屏和新条件
+  应按真实阅读负担继续检查，指出具体内容依据，不用另一契约的下限制造阻断。
+- 有素材套仍必须使用当前任务 asset_src/source_label，图片与真实MP4区分；
+  无素材套没有素材参数。所选套布局可调整，但旧 props.component_set/
+  composition/rich_content 样片标记仍不得用于普通生产。
+
 九个可参数化适配器是 title、keyword、evidence、image_focus、video、comparison、
 data、steps、conclusion：
 
@@ -102,7 +131,7 @@ metric 这些统一安全槽位。预设中的演示内容不能支持本片事�
 更换预设 `component_id` 或调整安全槽位，但不能编造清单外 ID、源码路径、CSS、
 URL、函数或组件实现。
 
-对参数化适配器，可建议调整的字段仅限 shot 的 component_id/title/body/
+对未使用 set_design 的参数化适配器，可建议调整的主字段仅限 shot 的 component_id/title/body/
 asset_src/source_label/accent_color 及对应 props：title.eyebrow、keyword.keyword、
 evidence.highlight{x,y,width,height}、image_focus.focal_x/focal_y 或
 image_focus.crop{x,y,width,height}、
@@ -111,7 +140,8 @@ data.items[{label,value,detail?,reveal_frame?}]、steps.items[{title,body?,revea
 conclusion.call_to_action、video 的起止秒数/fit/已核验 crop。这些只是待采纳建议，不写成已执行。不存在可配置
 的自由动画、转场、变速、BGM、音效、字幕样式或镜头运动参数，不把这些列为
 当前可执行改法。社区预设只能调整统一安全槽位，不能建议给它增加任意 props、
-组件私有参数或远程素材。
+组件私有参数或远程素材。合法的 layers 与 set_design 调整按上面的镜内组合契约，
+不把这两类正式字段错误归入“任意 props”。
 
 image_focus 与 video 的 crop 都是归一化原图区域：x/y 为 0～1，width/height
 为大于 0 且不超过 1，x+width、y+height 均不超过 1。坐标与片段内容必须有核验依据；
@@ -120,7 +150,7 @@ image_focus 与 video 的 crop 都是归一化原图区域：x/y 为 0～1，wid
 ## 逐镜检查
 
 本次必须检查用户已明确要求解决的主答案与视觉推进，不能只提醒一句就放行。
-逐镜计算 `end_frame-start_frame`：普通镜头少于 `ceil(1.5*fps)` 帧（30 fps
+逐镜计算主镜头 `end_frame-start_frame`（不是 layers 或 parts）：普通镜头少于 `ceil(1.5*fps)` 帧（30 fps
 时少于 45 帧）就是闪现镜头；evidence、image_focus、comparison、data、steps
 以及其他需要同时阅读标题、正文、数值、来源或条件的镜头少于
 `ceil(2.5*fps)` 帧（30 fps 时少于 75 帧）就是不可读镜头。两类都必须生成

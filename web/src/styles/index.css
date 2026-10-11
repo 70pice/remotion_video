@@ -633,6 +633,43 @@ footer {
   border-radius: 12px;
   margin: 10px 0;
 }
+.stage-review-director-plan {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #dfe7f3;
+}
+.stage-review-demo-card,
+.stage-review-performances article {
+  background: #fff;
+  border: 1px solid #e5ebf4;
+  border-radius: 10px;
+  padding: 14px;
+}
+.stage-review-demo-card {
+  margin-top: 12px;
+}
+.stage-review-demo-card small,
+.stage-review-performances small {
+  display: block;
+  margin-top: 5px;
+}
+.stage-review-demo-card p,
+.stage-review-performances p {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+}
+.stage-review-demo-card video {
+  width: 100%;
+  max-height: 460px;
+  background: #06101d;
+  border-radius: 10px;
+  margin-top: 12px;
+}
+.stage-review-performances {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
 label,
 .label {
   display: block;

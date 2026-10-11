@@ -228,6 +228,7 @@ def test_render_substitutes_every_placeholder():
         "director",
         component_props='{"title": {}}',
         component_scene_playbook="先定场景，再选组件",
+        component_set_registry="A01 人物处境 | review_status=approved",
         component_catalog="Snapcn-TextReveal | Snapcn | 固定预设 | 标题 | 开场",
     )
     assert "{{" not in text and "component_props" not in text
@@ -245,14 +246,16 @@ def test_director_prompt_requires_native_slots_for_all_community_presets():
 
 
 def test_render_rejects_missing_and_unknown_variables():
-    with pytest.raises(ValueError, match="component_scene_playbook"):
+    with pytest.raises(ValueError, match="component_set_registry"):
         render("director")
     with pytest.raises(ValueError, match="component_catalog"):
+        render("director", component_props="x", component_scene_playbook="y", component_set_registry="registry")
+    with pytest.raises(ValueError, match="component_set_registry"):
         render("director", component_props="x", component_scene_playbook="y")
     with pytest.raises(ValueError, match="component_scene_playbook"):
-        render("director", component_props="x")
+        render("director", component_props="x", component_set_registry="registry")
     with pytest.raises(ValueError, match="未使用"):
-        render("director", component_props="x", component_scene_playbook="y", component_catalog="z", unexpected="w")
+        render("director", component_props="x", component_scene_playbook="y", component_set_registry="registry", component_catalog="z", unexpected="w")
 
 
 @pytest.mark.parametrize("bad_name", ["", "UPPER", "has space", "a/b", "a.b", "../screenwriter"])
@@ -315,6 +318,22 @@ def test_director_prompt_injects_props_examples():
     )
     assert expected in director.PROMPT
     assert all(component_id in director.PROMPT for component_id in COMMUNITY_COMPONENT_IDS)
+
+
+def test_director_prompt_injects_component_set_registry_summary():
+    prompt = director.PROMPT
+    assert "组件套登记摘要来自 docs/component-set-registry.json" in prompt
+    assert "A01 人物处境" in prompt
+    assert "review_status=approved (已验收范例)" in prompt
+    assert "A02 App对象" in prompt
+    assert "review_status=registered_pending_review (待品鉴参考，不能称已验收)" in prompt
+    assert "B04 数字账本" in prompt
+    assert "content.metric.value" in prompt
+    assert "0..99999" in prompt
+    assert "旧 props.component_set" in prompt
+    assert "shot.set_design" in prompt
+    assert "set_design.set_id" in prompt
+    assert "样片标记仍不可用于普通生产" in prompt
 
 
 def test_component_study_prompt_has_been_folded_into_director_prompt():

@@ -3,7 +3,16 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { Job } from "../src/api/types";
 import { ReviewPanel } from "../src/features/review/ReviewPanel";
-import { StageReviewPanel } from "../src/features/review/StageReviewPanel";
+import {
+  RenderPanel,
+  resolveDirectorDemoApproval,
+} from "../src/features/render/RenderPanel";
+import {
+  DirectorPlanReview,
+  StageReviewPanel,
+  directorStageReviewReady,
+  formatDemoRange,
+} from "../src/features/review/StageReviewPanel";
 import {
   canConfirmStageReview,
   getStageReviewPending,
@@ -352,6 +361,18 @@ describe("stage review pending state", () => {
             source_label: "官方演示",
             accent_color: "#B7F36B",
             props: {},
+            layers: [
+              {
+                component_id: "Snapcn-TextHighlight",
+                role: "emphasis",
+                start_frame: 30,
+                end_frame: 60,
+                title: "视频聊天由真人接管",
+                body: "主镜头素材不变，只叠加重点说明",
+                accent_color: "#38BDF8",
+                props: { highlight: "真人接管" },
+              },
+            ],
           },
         ],
       },
@@ -369,7 +390,107 @@ describe("stage review pending state", () => {
     expect(markup).toContain("待审导演分镜");
     expect(markup).toContain("真实操作画面");
     expect(markup).toContain("Muse 官方演示.mp4");
+    expect(markup).toContain("1 个主镜头 · 1 个叠加层");
+    expect(markup).toContain("叠加层 1：强调 · Snapcn-TextHighlight");
+    expect(markup).toContain("视频聊天由真人接管");
+    expect(markup).toContain("完整分镜包含主镜头和文字/强调叠加层");
     expect(markup).toContain("竖屏主体清楚");
+  });
+
+  it("renders director plan performances, shot ids, demo range, and demo video", () => {
+    const markup = renderToStaticMarkup(
+      createElement(DirectorPlanReview, {
+        fps: 30,
+        planState: "loaded",
+        scriptSegments: [
+          {
+            segment_id: "s1",
+            narration: "开头先问可能正在聊天的人是不是AI。",
+          },
+        ],
+        plan: {
+          segment_performances: [
+            {
+              segment_id: "s1",
+              shot_ids: ["shot-1", "shot-2"],
+              component_reason: "用 evidence 组件承接口播里的合同截图。",
+              visual_action: "镜头先停留骗局金额，再推近到人工视频聊天节点。",
+            },
+          ],
+          component_usage: {
+            required: 2,
+            library_count: 2,
+            library_ids: ["RenderComp-SocialReel", "Snapcn-TextHighlight"],
+            main_count: 1,
+            layer_count: 1,
+            native_manifest_fingerprint: "abcdef1234567890",
+          },
+          demo: {
+            start_frame: 0,
+            end_frame: 900,
+            reason: "覆盖开头问题和第一个证据点，供人工先看方向。",
+          },
+        },
+        demoVideo: {
+          artifact_id: "demo-video",
+          kind: "preview",
+          name: "导演Demo.mp4",
+          mime_type: "video/mp4",
+          size_bytes: 4096,
+          sha256: "demo",
+          url: "/api/artifacts/demo-video",
+          revision: 4,
+        },
+      }),
+    );
+
+    expect(markup).toContain("导演逐段表演方案");
+    expect(markup).toContain("第 1 段：开头先问可能正在聊天的人是不是AI。");
+    expect(markup).toContain("shot-1 / shot-2");
+    expect(markup).toContain("画面组件为什么这样用：");
+    expect(markup).toContain("用 evidence 组件承接口播里的合同截图");
+    expect(markup).toContain("这一段怎么演：");
+    expect(markup).toContain("人工视频聊天节点");
+    expect(markup).toContain("0.00–30.00 秒");
+    expect(markup).toContain("导演方案原生组件用量");
+    expect(markup).toContain("要求至少 2 个，实际 2 个");
+    expect(markup).toContain("主镜头 1 个 · 叠加层 1 个");
+    expect(markup).toContain("RenderComp-SocialReel / Snapcn-TextHighlight");
+    expect(markup).toContain("原生清单指纹：abcdef123456");
+    expect(markup).toContain("Demo 只是抽取其中 30 秒以内");
+    expect(markup).toContain('src="/api/artifacts/demo-video"');
+    expect(formatDemoRange({ start_frame: 30, end_frame: 75, reason: "" }, 30)).toBe(
+      "1.00–2.50 秒",
+    );
+  });
+
+  it("requires a loaded director plan with demo and current preview before director confirmation can be ready", () => {
+    const plan = {
+      segment_performances: [
+        {
+          segment_id: "s1",
+          shot_ids: ["shot-1"],
+          component_reason: "UNIT",
+          visual_action: "UNIT",
+        },
+      ],
+      demo: { start_frame: 0, end_frame: 300, reason: "UNIT" },
+    };
+    const preview = {
+      artifact_id: "demo-video",
+      kind: "preview",
+      name: "导演Demo.mp4",
+      mime_type: "video/mp4",
+      size_bytes: 4096,
+      sha256: "demo",
+      url: "/api/artifacts/demo-video",
+      revision: 4,
+    };
+
+    expect(directorStageReviewReady(plan, "loaded", preview)).toBe(true);
+    expect(directorStageReviewReady(plan, "loading", preview)).toBe(false);
+    expect(directorStageReviewReady({ ...plan, demo: undefined }, "loaded", preview)).toBe(false);
+    expect(directorStageReviewReady(plan, "loaded")).toBe(false);
   });
 
   it("renders render review with the latest current preview or final video only", () => {
@@ -519,6 +640,85 @@ describe("stage review pending state", () => {
 
     expect(markup).toContain("当前正在等待阶段人工审核");
     expect(markup).not.toContain("确认已核对当前版本");
+  });
+
+  it("keeps full render blocked in SSR until director demo receipt is loaded and verified", () => {
+    const job = {
+      ...baseJob,
+      status: "DRAFT",
+      stage: "director",
+      timeline: {
+        schema_version: "1",
+        job_id: "job-1",
+        revision: 4,
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration_in_frames: 90,
+        audio_src: null,
+        captions: [],
+        shots: [],
+      },
+      pending_input: null,
+    } as Job;
+    const blocked = renderToStaticMarkup(
+      createElement(RenderPanel, {
+        job,
+        locked: false,
+        run: () => undefined,
+        target: null,
+      }),
+    );
+
+    expect(blocked).toContain("当前版本还没有通过「导演表演与30秒Demo审核」");
+    expect(blocked).toContain("确认前不会开始完整成片渲染");
+    expect(blocked).toContain("disabled=\"\"");
+  });
+
+  it("accepts only the latest current-revision confirmed director receipt", () => {
+    const job = {
+      ...baseJob,
+      revision: 4,
+      status: "DRAFT",
+      pending_input: null,
+    } as Job;
+
+    expect(
+      resolveDirectorDemoApproval(job, [
+        { node_name: "director_human_gate", stage: "director", decision: "confirm", revision: 4 },
+      ]),
+    ).toBe("confirmed");
+    expect(
+      resolveDirectorDemoApproval(job, [
+        { node_name: "director_human_gate", stage: "director", decision: "confirm", revision: 4 },
+        { node_name: "director_human_gate", stage: "director", decision: "revise", revision: 4 },
+      ]),
+    ).toBe("blocked");
+    expect(
+      resolveDirectorDemoApproval(job, [
+        { node_name: "director_human_gate", stage: "director", decision: "confirm", revision: 4 },
+        { node_name: "director_human_gate", stage: "director", decision: "cancel", revision: 4 },
+      ]),
+    ).toBe("blocked");
+    expect(
+      resolveDirectorDemoApproval(job, [
+        { node_name: "director_human_gate", stage: "director", decision: "confirm", revision: 3 },
+      ]),
+    ).toBe("blocked");
+    expect(
+      resolveDirectorDemoApproval(
+        {
+          ...job,
+          status: "NEEDS_HUMAN",
+          pending_input: {
+            kind: "stage_review",
+            node_name: "director_human_gate",
+            pending_token: "stage-review-token-director",
+          },
+        } as Job,
+        [{ node_name: "director_human_gate", stage: "director", decision: "confirm", revision: 4 }],
+      ),
+    ).toBe("blocked");
   });
 
   it("renders historical review reports without starting or confirming final review", () => {

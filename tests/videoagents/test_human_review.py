@@ -10,7 +10,14 @@ from langgraph.graph import END, START, StateGraph
 
 from videoagents.contracts import Alignment, Brief, DraftRequest, Script, ScriptSegment, SettingsPatch
 from videoagents.graph import VideoProductionGraph
-from videoagents.nodes.common import mark_feedback_applied, request_input, stage_feedback, state_context
+from videoagents.nodes.await_input import AwaitInputNode
+from videoagents.nodes.common import (
+    DIRECTOR_VOICE_REVISION_ISSUE,
+    mark_feedback_applied,
+    request_input,
+    stage_feedback,
+    state_context,
+)
 from videoagents.nodes.director import DirectorNode
 from videoagents.nodes.human_review import HumanReviewNode
 from videoagents.nodes.screenwriter import ScreenwriterNode, active_script_feedback
@@ -24,6 +31,30 @@ from worker.runner import Worker
 
 NOTE = "UNIT TEST：已核对本阶段文案表达、事实来源及素材。"
 
+
+
+def director_model_response(context, shots):
+    timeline = context.get("timeline", {})
+    script = context.get("script") or {}
+    segments = script.get("segments") or []
+    segment_id = segments[0].get("segment_id") if segments else "timeline"
+    shot_ids = [shot.get("shot_id") for shot in shots if shot.get("shot_id")]
+    duration = timeline.get("duration_in_frames") or max((shot.get("end_frame", 1) for shot in shots), default=1)
+    fps = timeline.get("fps") or 30
+    return {
+        "shots": shots,
+        "segment_performances": [{
+            "segment_id": segment_id,
+            "shot_ids": shot_ids,
+            "component_reason": "UNIT TEST：导演说明组件如何承接口播。",
+            "visual_action": "UNIT TEST：导演说明本段画面如何表演。",
+        }],
+        "demo": {
+            "start_frame": 0,
+            "end_frame": max(1, min(duration, fps * 30)),
+            "reason": "UNIT TEST：使用当前时间轴开头作为30秒内Demo。",
+        },
+    }
 
 def approve_script_reviewer(monkeypatch, handler=None):
     def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
@@ -89,14 +120,15 @@ def answer(repo, job, decision="confirm", note=NOTE, key="UNIT-resume"):
         "idempotency_key": key})
 
 
-def test_only_script_review_is_registered_on_default_flow(tmp_path, monkeypatch):
+def test_script_and_director_demo_reviews_are_registered_on_default_flow(tmp_path, monkeypatch):
     repo = Repository(tmp_path / "runtime")
     SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False))
     approve_script_reviewer(monkeypatch)
     job = repo.create_job(Brief(script_text="观点：默认流程测试。"))
     with VideoProductionGraph(repo, tmp_path / "project") as graph:
         topology = graph.graph.get_graph()
-        for node in ("human_review", "human_review_script"):
+        for node in ("human_review", "human_review_script", "director_demo",
+                     "director_human_gate", "after_director_demo_review"):
             assert node in topology.nodes
         for node in ("timeline_gate", "human_review_timeline", "human_review_render",
                      "reviewers", "review_gate", "clear_reviewers",
@@ -104,7 +136,15 @@ def test_only_script_review_is_registered_on_default_flow(tmp_path, monkeypatch)
             assert node not in topology.nodes
         assert not any(edge.target == "human_review" and edge.source != "human_review" for edge in topology.edges)
         assert any(edge.source == "clear_script_reviewer" and edge.target == "human_review_script" for edge in topology.edges)
-        assert any(edge.source == "clear_director" and edge.target == "editing" for edge in topology.edges)
+        edges = {(edge.source, edge.target) for edge in topology.edges}
+        assert ("clear_director", "director_demo") in edges
+        if "clear_director_demo" in topology.nodes:
+            assert ("director_demo", "clear_director_demo") in edges
+            assert ("clear_director_demo", "director_human_gate") in edges
+        else:
+            assert ("director_demo", "director_human_gate") in edges
+        assert ("director_human_gate", "after_director_demo_review") in edges
+        assert any(edge.source == "after_director_demo_review" and edge.target == "editing" for edge in topology.edges)
         assert any(edge.source == "clear_editing" and edge.target == "__end__" for edge in topology.edges)
         removed = {"timeline_gate", "human_review_timeline", "human_review_render", "reviewers",
                    "review_gate", "clear_reviewers", "after_timeline_review", "after_render_review"}
@@ -495,12 +535,107 @@ def test_screenwriter_feedback_rejects_noop_rewrite(tmp_path, monkeypatch):
     assert not any(item.kind == "human_feedback_applied" for item in repo.get_job(job.job_id).artifacts)
 
 
+def test_screenwriter_consumes_director_feedback_that_requests_copy_rewrite(tmp_path, monkeypatch):
+    repo = Repository(tmp_path / "runtime")
+    service = JobService(repo, tmp_path / "project")
+    job = repo.create_job(Brief(script_text="观点：旧稿。"))
+    old = Script(title="旧稿", origin="user", revision=job.revision,
+                 segments=[ScriptSegment(segment_id="s1", narration="观点：旧稿。")])
+    repo.update_job(job.job_id, script=old)
+    SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False,
+        role_models={"screenwriter": {"enabled": True, "provider": "codex_cli"}}))
+    calls = []
+
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        calls.append(context["extras"]["human_feedback"]["director"]["note"])
+        return {"response": "已按导演 Demo 审核意见改稿", "script": {"title": "新稿", "origin": "model",
+            "revision": revision, "segments": [{"segment_id": "s1", "narration": "观点：新稿。"}]}}
+
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
+    feedback = {"director": {"decision": "revise", "note": "UNIT：Demo暴露出结尾太硬，请改旁白文案。",
+                             "pending_token": "UNIT-director-script", "target": "director",
+                             "script": old.model_dump()}}
+    state = state_context(repo, VideoState(job_id=job.job_id, revision=repo.get_job(job.job_id).revision,
+        action="produce", run_id="UNIT-director-script", thread_id="UNIT-director-script",
+        extras={"human_feedback": feedback}))
+    result = ScreenwriterNode(repo, service)(state)
+
+    current = repo.get_job(job.job_id)
+    assert result["route"] == "script_reviewer"
+    assert calls == ["UNIT：Demo暴露出结尾太硬，请改旁白文案。"]
+    assert current.script.segments[0].narration == "观点：新稿。"
+    receipt = next(item for item in current.artifacts if item.kind == "human_feedback_applied")
+    saved = json.loads(repo.artifact_path(receipt.artifact_id)[0].read_text(encoding="utf-8"))
+    assert saved["stage"] == "director" and saved["target"] == "screenwriter"
+
+
+def test_screenwriter_rejects_noop_director_copy_rewrite(tmp_path, monkeypatch):
+    repo = Repository(tmp_path / "runtime")
+    service = JobService(repo, tmp_path / "project")
+    job = repo.create_job(Brief(script_text="观点：旧稿。"))
+    old = Script(title="旧稿", origin="user", revision=job.revision,
+                 segments=[ScriptSegment(segment_id="s1", narration="观点：旧稿。")])
+    repo.update_job(job.job_id, script=old)
+    SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False,
+        role_models={"screenwriter": {"enabled": True, "provider": "codex_cli"}}))
+
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        return {"response": "没有实际修改", "script": dict(old.model_dump(), origin="model", revision=revision)}
+
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
+    feedback = {"director": {"decision": "revise", "note": "UNIT：请改旁白文案。",
+                             "pending_token": "UNIT-director-noop", "target": "director",
+                             "script": old.model_dump()}}
+    state = state_context(repo, VideoState(job_id=job.job_id, revision=repo.get_job(job.job_id).revision,
+        action="produce", run_id="UNIT-director-noop", thread_id="UNIT-director-noop",
+        extras={"human_feedback": feedback}))
+    result = ScreenwriterNode(repo, service)(state)
+
+    assert result["route"] == "await_input"
+    assert "人工返工未产生文案修改" in result["gate_issues"][0]
+    assert not any(item.kind == "human_feedback_applied" for item in repo.get_job(job.job_id).artifacts)
+
+
 def test_screenwriter_ignores_visual_only_render_feedback():
     state = VideoState(job_id="UNIT-job", revision=1, action="final", extras={"human_feedback": {
         "render": {
             "decision": "revise",
             "note": "UNIT：请仅修复 DeepPlanning 的画面断行并保持旁白不变。",
             "pending_token": "UNIT-render-token",
+            "target": "director",
+            "applied": False,
+        },
+    }})
+
+    stage, feedback = active_script_feedback(state)
+
+    assert stage == "script"
+    assert feedback is None
+
+
+def test_screenwriter_ignores_visual_only_director_feedback():
+    state = VideoState(job_id="UNIT-job", revision=1, action="produce", extras={"human_feedback": {
+        "director": {
+            "decision": "revise",
+            "note": "UNIT：请只重做Demo镜头表演，旁白保持不变。",
+            "pending_token": "UNIT-director-token",
+            "target": "director",
+            "applied": False,
+        },
+    }})
+
+    stage, feedback = active_script_feedback(state)
+
+    assert stage == "script"
+    assert feedback is None
+
+
+def test_screenwriter_ignores_director_feedback_that_preserves_script_and_voice():
+    state = VideoState(job_id="UNIT-job", revision=1, action="produce", extras={"human_feedback": {
+        "director": {
+            "decision": "revise",
+            "note": "UNIT：保留正文、原音频和全部字幕时间戳，只修改画面，不要重写文案或重配音。",
+            "pending_token": "UNIT-director-token",
             "target": "director",
             "applied": False,
         },
@@ -529,14 +664,132 @@ def test_screenwriter_consumes_render_feedback_that_requests_copy_rewrite():
     assert feedback and feedback["pending_token"] == "UNIT-render-token"
 
 
+def test_screenwriter_consumes_director_feedback_targeted_to_writer():
+    state = VideoState(job_id="UNIT-job", revision=1, action="produce", extras={"human_feedback": {
+        "director": {
+            "decision": "revise",
+            "note": "UNIT：导演Demo审核要求编剧处理。",
+            "pending_token": "UNIT-director-writer",
+            "target": "screenwriter",
+            "applied": False,
+        },
+    }})
+
+    stage, feedback = active_script_feedback(state)
+
+    assert stage == "director"
+    assert feedback and feedback["pending_token"] == "UNIT-director-writer"
+
+
+def test_director_demo_review_snapshot_includes_current_script(tmp_path, monkeypatch):
+    repo = Repository(tmp_path / "runtime")
+    job = repo.create_job(Brief(script_text="观点：旧稿。"))
+    script = Script(title="旧稿", origin="user", revision=job.revision,
+                    segments=[ScriptSegment(segment_id="s1", narration="观点：旧稿。")])
+    job = repo.update_job(job.job_id, script=script)
+    monkeypatch.setattr("videoagents.nodes.human_review.current_plan_artifact",
+                        lambda repository, current, **kwargs: (None, {"demo": {"start_frame": 0, "end_frame": 1}}))
+
+    subject = HumanReviewNode(repo, node_name="director_human_gate", stage="director")._subject_snapshot(job)
+
+    assert subject["script"] == script.model_dump()
+    assert subject["director_plan"]["demo"] == {"start_frame": 0, "end_frame": 1}
+
+
 def test_director_feedback_allows_visual_mismatch_language_without_voice_block(tmp_path):
     repo = Repository(tmp_path / "runtime")
     service = JobService(repo, tmp_path / "project")
     node = DirectorNode(repo, service)
     assert not node._needs_voice_or_script("画面与旁白不对应，请重新匹配素材和镜头")
+    assert not node._needs_voice_or_script("保留已确认原稿、原音频、全部字幕时间戳和总帧数，只修改画面，不回到编剧或重配音")
+    assert not node._needs_voice_revision("保留原音频，不回到编剧或重配音")
+    assert not node._needs_voice_revision("不要改音频，保留原音频，只重新安排镜头")
     assert node._needs_voice_or_script("语速太快，请调整语速后再做视频")
+    assert node._needs_voice_revision("这里读音错误，请改发音")
+    assert node._needs_voice_revision("这版音频不对，请重配音")
+    assert node._needs_voice_revision("不要改画面，重配音")
+    assert node._needs_voice_revision("保留现有素材，但是调整语速")
+    assert not node._needs_voice_revision("不是语速太快，是画面没有跟上旁白")
     assert node._needs_script_revision("防御性文案太多，请改旁白文案并把结论前置")
+    assert node._needs_script_revision("请重写文案")
+    assert node._needs_script_revision("不要改镜头，但是修改文案")
+    assert not node._needs_script_revision("保留正文、原音频和全部字幕时间戳，只修改画面，不要重写文案或重配音")
+    assert not node._needs_script_revision("不要结论前置，只改画面")
     assert not node._needs_voice_revision("防御性文案太多，请改旁白文案并把结论前置")
+
+
+@pytest.mark.parametrize(("note", "expected_route"), [
+    ("保留已确认原稿、原音频、全部字幕时间戳和总帧数，只修改画面，不回到编剧或重配音", "director"),
+    ("保留正文、原音频和全部字幕时间戳，只修改画面，不要重写文案或重配音。", "director"),
+    ("语速太快，请调整语速后再做视频", "voice"),
+])
+def test_legacy_director_voice_pending_confirm_routes_by_feedback_intent(tmp_path, monkeypatch, note, expected_route):
+    repo = Repository(tmp_path / "runtime")
+    service = JobService(repo, tmp_path / "project")
+    job = repo.create_job(Brief(script_text="观点：导演返工恢复测试。"))
+    pending = {
+        "kind": "input",
+        "stage": "voice",
+        "issues": [DIRECTOR_VOICE_REVISION_ISSUE],
+        "fields": ["voice", "timeline"],
+        "thread_id": "UNIT-legacy-director-voice",
+        "revision": job.revision,
+        "pending_token": "UNIT-legacy-token",
+    }
+    repo.update_job(job.job_id, job.revision, status="NEEDS_INPUT", stage="voice", pending_input=pending)
+    monkeypatch.setattr("videoagents.nodes.await_input.interrupt", lambda payload: {"decision": "confirm"})
+    state = state_context(repo, VideoState(
+        job_id=job.job_id,
+        revision=job.revision,
+        action="produce",
+        run_id="UNIT-legacy-director-voice",
+        thread_id="UNIT-legacy-director-voice",
+        pending_snapshot=pending,
+        extras={"human_feedback": {"director": {
+            "decision": "revise",
+            "note": note,
+            "pending_token": "UNIT-director-review",
+        }}},
+    ))
+
+    result = AwaitInputNode(repo, service)(state)
+
+    assert result["route"] == expected_route
+
+
+def test_non_director_voice_pending_confirm_stays_voice(tmp_path, monkeypatch):
+    repo = Repository(tmp_path / "runtime")
+    service = JobService(repo, tmp_path / "project")
+    job = repo.create_job(Brief(script_text="观点：真实配音待办测试。"))
+    pending = {
+        "kind": "input",
+        "stage": "voice",
+        "issues": ["UNIT TEST：真实音频缺少对齐结果"],
+        "fields": ["voice"],
+        "thread_id": "UNIT-real-voice",
+        "revision": job.revision,
+        "pending_token": "UNIT-real-voice-token",
+    }
+    repo.update_job(job.job_id, job.revision, status="NEEDS_INPUT", stage="voice", pending_input=pending)
+    monkeypatch.setattr("videoagents.nodes.await_input.interrupt", lambda payload: {"decision": "confirm"})
+    state = state_context(repo, VideoState(
+        job_id=job.job_id,
+        revision=job.revision,
+        action="produce",
+        run_id="UNIT-real-voice",
+        thread_id="UNIT-real-voice",
+        pending_snapshot=pending,
+        extras={"human_feedback": {"director": {
+            "decision": "revise",
+            "note": "保留原音频，只重新安排画面",
+            "pending_token": "UNIT-director-review",
+        }}},
+    ))
+
+    result = AwaitInputNode(repo, service)(state)
+
+    assert result["route"] == "voice"
+
 
 def test_director_feedback_does_not_reuse_cached_timeline_without_model(tmp_path):
     repo = Repository(tmp_path / "runtime")
@@ -588,9 +841,8 @@ def test_director_feedback_replay_after_sql_before_applied_receipt_does_not_call
 
     def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
         calls.append(context["timeline"]["shots"][0]["body"])
-        value = {"shots": context["timeline"]["shots"]}
-        value["shots"] = [dict(item, body="观点：新分镜画面。") for item in value["shots"]]
-        return value
+        shots = [dict(item, body="观点：新分镜画面。") for item in context["timeline"]["shots"]]
+        return director_model_response(context, shots)
 
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.available", lambda *args: True)
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
@@ -654,7 +906,7 @@ def test_director_feedback_rejects_noop_timeline(tmp_path, monkeypatch):
     repo.update_job(job.job_id, timeline=old_timeline)
     SettingsService(repo).patch(SettingsPatch(role_models={"director": {"enabled": True, "provider": "codex_cli"}}))
     def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
-        return {"shots": context["timeline"]["shots"]}
+        return director_model_response(context, context["timeline"]["shots"])
 
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.available", lambda *args: True)
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)

@@ -95,6 +95,7 @@ class VideoState(TypedDict, total=False):
     created_at: str  # 任务创建时间，使用 ISO 8601 字符串。
     updated_at: str  # 任务最近一次持久化更新时间，使用 ISO 8601 字符串。
     brief: dict[str, Any]  # 制作要求：主题、创作方向、历史原始文案、受众、平台、尺寸、用途和来源链接。
+    director_requirements: dict[str, Any] | None  # 导演阶段的附加硬约束，如库组件最低使用数量。
     script: dict[str, Any] | None  # 当前完整口播稿及段落的画面文字、来源和素材引用；未生成时为 None。
     script_discussion: dict[str, Any] | None  # 编剧与文案审查的每轮稿件、意见、回应及讨论状态。
     timeline: dict[str, Any] | None  # 可执行分镜：镜头、帧区间、字幕、音频路径及 Remotion 参数。
@@ -114,6 +115,7 @@ class VideoState(TypedDict, total=False):
     research: dict[str, Any]  # 素材节点最终研究产物：检索歧义、来源正文、图片/截图引用及资料局限；不含工具调用过程。
     audio_report: dict[str, Any] | None  # 配音核验报告，记录音频 hash、实测时长、来源及对齐核验状态。
     voice_guidance: dict[str, Any] | None  # 配音角色模型给出的发音、停顿、情绪建议和预检问题。
+    director_plan: dict[str, Any] | None  # 导演节点持久化的逐段表演方案、镜头方案与 Demo 帧区间。
     editing_guidance: dict[str, Any] | None  # 剪辑角色模型给出的节奏、布局建议和渲染前预检问题。
     render: dict[str, Any]  # 按产物类型索引的预览、成片、封面、字幕及发布包引用。
     human_reviews: list[dict[str, Any]]  # 累计人工回复及阶段、成片核验回执，保留意见和产物关联。
@@ -171,7 +173,7 @@ def clean_handoff(state: VideoState) -> VideoState:
     asset_fields = {"origin", "source_url", "image_url", "description", "width", "height", "collection_key",
                     "duration_seconds", "alignment", "script_fingerprint", "voice_fingerprint",
                     "voice_model", "voice_style", "voice_speech_rate", "renderable"}
-    artifact_fields = {"source_url", "dependency_fingerprint"}
+    artifact_fields = {"source_url", "dependency_fingerprint", "director_plan_sha256", "frame_range"}
     for name, allowed in (("asset_metadata", asset_fields), ("artifact_metadata", artifact_fields)):
         if name in result:
             result[name] = {identifier: {key: value for key, value in metadata.items() if key in allowed}
@@ -199,6 +201,7 @@ def job_context(job: Job) -> VideoState:
         created_at=job.created_at,
         updated_at=job.updated_at,
         brief=job.brief.model_dump(),
+        director_requirements=job.director_requirements.model_dump() if job.director_requirements else None,
         script=job.script.model_dump() if job.script else None,
         script_discussion=job.script_discussion.model_dump() if job.script_discussion else None,
         timeline=job.timeline.model_dump() if job.timeline else None,

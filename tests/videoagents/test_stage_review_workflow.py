@@ -7,6 +7,7 @@ import pytest
 from langgraph.types import Command
 
 from videoagents.contracts import (
+    Alignment,
     Brief,
     Script,
     ScriptCritique,
@@ -19,10 +20,12 @@ from videoagents.contracts import (
 )
 from videoagents.graph import VideoProductionGraph
 from videoagents.nodes.common import state_context
-from videoagents.nodes.director import DirectorNode
+from videoagents.nodes.director import DirectorNode, _performance_payload
+from videoagents.nodes.director_demo import DirectorDemoNode
 from videoagents.nodes.editing import EditingNode
 from videoagents.nodes.gates import AudioGateNode, ScriptGateNode
 from videoagents.nodes.materials import MaterialsNode
+from videoagents.nodes.reviewers import dependency_fingerprint
 from videoagents.nodes.screenwriter import ScreenwriterNode
 from videoagents.nodes.script_reviewer import ScriptReviewerNode
 from videoagents.nodes.voice import VoiceNode
@@ -69,10 +72,25 @@ def staged_pipeline(tmp_path, monkeypatch):
                     segments=[ScriptSegment(segment_id="s1", narration=f"UNIT 第 {calls[name]} 稿。",
                                              screen_text="UNIT 文案", source_refs=[], asset_ids=[])])
             if name == "director":
-                changes["timeline"] = Timeline(job_id=current.job_id, revision=current.revision,
+                timeline = Timeline(job_id=current.job_id, revision=current.revision,
                     width=1080, height=1920, fps=30, duration_in_frames=30,
                     shots=[Shot(shot_id="shot-1", start_frame=0, end_frame=30, component_id="keyword",
-                                title=f"UNIT 第 {calls[name]} 版分镜")])
+                                 title=f"UNIT 第 {calls[name]} 版分镜")])
+                changes["timeline"] = timeline
+                alignment = Alignment(origin="manual", verified=True, audio_sha256="0" * 64,
+                                      segments=[{"segment_id": "s1", "text": "UNIT 口播。",
+                                                 "start_ms": 0, "end_ms": 1000}])
+                plan = _performance_payload("unit", current, timeline, alignment)
+                service.write_json(current, f"unit-director-plan-{calls[name]}.json", plan, "director_plan")
+            if name == "director_demo":
+                preview = service.write_json(current, f"unit-director-demo-{calls[name]}.json",
+                                             {"unit_preview": calls[name]}, "preview")
+                plan = [artifact for artifact in repo.get_job(current.job_id).artifacts if artifact.kind == "director_plan"][-1]
+                repo.update_artifact_metadata(preview.artifact_id, {
+                    "director_plan_sha256": plan.sha256,
+                    "dependency_fingerprint": dependency_fingerprint(current),
+                    "frame_range": [0, min(900, current.timeline.duration_in_frames if current.timeline else 0)],
+                })
             if name == "editing":
                 changes["status"] = "DRAFT"
                 changes["progress"] = 1
@@ -92,7 +110,8 @@ def staged_pipeline(tmp_path, monkeypatch):
         (ScriptGateNode, "script_gate", "voice", "script"),
         (VoiceNode, "voice", "audio_gate", "voice"),
         (AudioGateNode, "audio_gate", "director", "voice"),
-        (DirectorNode, "director", "editing", "director"),
+        (DirectorNode, "director", "director_demo", "director"),
+        (DirectorDemoNode, "director_demo", "director_human_gate", "director"),
         (EditingNode, "editing", "end", "render"),
     ):
         monkeypatch.setattr(cls, "__call__", stub(name, route, stage))
@@ -116,18 +135,43 @@ def run_or_resume(pipeline, decision=None, note="UNIT：已核对当前阶段内
     return repo.get_job(job.job_id), checkpoint
 
 
-def test_default_flow_requires_only_script_approval_before_rendering(staged_pipeline):
+def test_default_flow_requires_director_demo_approval_before_rendering(staged_pipeline):
     _, _, _, calls, _ = staged_pipeline
     current, checkpoint = run_or_resume(staged_pipeline)
     assert current.pending_input["node_name"] == "human_review_script"
-    assert checkpoint.interrupts and calls["voice"] == calls["director"] == calls["editing"] == 0
+    assert checkpoint.interrupts and calls["voice"] == calls["director"] == calls["director_demo"] == calls["editing"] == 0
+
+    current, checkpoint = run_or_resume(staged_pipeline, "confirm")
+    assert current.pending_input["node_name"] == "director_human_gate"
+    assert checkpoint.interrupts
+    assert calls["voice"] == calls["director"] == calls["director_demo"] == 1
+    assert calls["editing"] == 0
+    assert len(checkpoint.values["human_reviews"]) == 1
 
     current, checkpoint = run_or_resume(staged_pipeline, "confirm")
     assert not checkpoint.interrupts
-    assert calls["voice"] == calls["director"] == calls["editing"] == 1
-    assert len(checkpoint.values["human_reviews"]) == 1
+    assert calls["editing"] == 1
+    assert len(checkpoint.values["human_reviews"]) == 2
     assert current.status == "DRAFT" and current.stage == "render" and current.progress == 1
     assert current.review is None
+
+
+def test_director_demo_revise_returns_to_director_and_requires_fresh_demo_approval(staged_pipeline):
+    _, _, _, calls, feedback_seen = staged_pipeline
+    run_or_resume(staged_pipeline)
+    current, _ = run_or_resume(staged_pipeline, "confirm")
+    token = current.pending_input["pending_token"]
+    before = calls.copy()
+    note = "UNIT：Demo节奏不对，请导演重做表演设计。"
+
+    current, checkpoint = run_or_resume(staged_pipeline, "revise", note)
+
+    assert current.pending_input["node_name"] == "director_human_gate" and checkpoint.interrupts
+    assert current.pending_input["pending_token"] != token
+    assert calls["director"] == before["director"] + 1
+    assert calls["director_demo"] == before["director_demo"] + 1
+    assert calls["editing"] == before["editing"]
+    assert feedback_seen[-1] == ("director", "director", note)
 
 
 def test_script_revise_returns_to_writer_and_requires_a_fresh_approval(staged_pipeline):

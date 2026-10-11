@@ -181,6 +181,36 @@ class Repository:
             for table in ("artifacts", "job_inputs", "operations", "run_metrics", "events", "commands", "jobs"):
                 db.execute(f"DELETE FROM {table} WHERE job_id=?", (job_id,))
 
+
+    @staticmethod
+    def _command_thread_id(job_id: str, command_id: str, payload: dict[str, Any]) -> str:
+        if isinstance(payload.get("continuation_thread_id"), str) and payload["continuation_thread_id"]:
+            return payload["continuation_thread_id"]
+        pending = payload.get("pending_input")
+        if payload.get("action") == "resume" and isinstance(pending, dict) and isinstance(pending.get("thread_id"), str):
+            return pending["thread_id"]
+        return "job:" + job_id + ":run:" + command_id
+
+    @staticmethod
+    def _operation_revision(body: str, fallback: int) -> int:
+        try:
+            value = json.loads(body)
+        except json.JSONDecodeError:
+            return fallback
+        revision = value.get("revision", fallback)
+        return revision if type(revision) is int else fallback
+
+    @staticmethod
+    def _latest_current_revision_command(rows: list[sqlite3.Row], revision: int) -> str | None:
+        for row in rows:
+            try:
+                previous = json.loads(row["payload"])
+            except json.JSONDecodeError:
+                continue
+            if previous.get("base_revision") == revision:
+                return row["command_id"]
+        return None
+
     def enqueue(self, job_id: str, payload: dict[str, Any]) -> Job:
         key = payload["idempotency_key"]
         digest = fingerprint(payload)
@@ -196,7 +226,32 @@ class Repository:
                 raise Conflict("任务版本已变化，请刷新后重试")
             if db.execute("SELECT 1 FROM commands WHERE job_id=? AND status IN ('PENDING','CLAIMED')", (job_id,)).fetchone():
                 raise Conflict("任务已有待执行或执行中的命令")
-            if payload.get("continue_from") is not None or payload.get("rebuild_from") is not None:
+            if payload.get("action") == "retry":
+                if job.status != "FAILED" or job.pending_input:
+                    raise Conflict("仅失败且无待办的任务可从失败命令续跑")
+                failed = db.execute("SELECT command_id,payload,status FROM commands WHERE job_id=? AND command_id=?",
+                                    (job_id, payload.get("retry_command_id"))).fetchone()
+                if not failed or failed["status"] != "FAILED":
+                    raise Conflict("只能续跑同任务的失败命令")
+                previous_payload = json.loads(failed["payload"])
+                if previous_payload.get("base_revision") != job.revision:
+                    raise Conflict("失败命令不属于当前任务版本")
+                current_revision_commands = db.execute(
+                    "SELECT command_id,payload FROM commands WHERE job_id=? ORDER BY created_at DESC,rowid DESC",
+                    (job_id,),
+                ).fetchall()
+                if self._latest_current_revision_command(current_revision_commands, job.revision) != failed["command_id"]:
+                    raise Conflict("只能续跑当前版本最新失败命令")
+                unsettled = db.execute(
+                    "SELECT provider,body FROM operations WHERE job_id=? AND status IN ('SUBMITTING','UNKNOWN')",
+                    (job_id,),
+                ).fetchall()
+                if any(self._operation_revision(row["body"], job.revision) == job.revision for row in unsettled):
+                    raise Conflict("存在状态未知的外部提交，请先对账后再续跑")
+                payload = dict(payload, continuation_thread_id=self._command_thread_id(
+                    job_id, failed["command_id"], previous_payload
+                ))
+            elif payload.get("continue_from") is not None or payload.get("rebuild_from") is not None:
                 rebuilding = payload.get("rebuild_from") == "director"
                 valid_stage = job.stage in {"director", "render", "complete"} if rebuilding else job.stage == "voice"
                 if (payload.get("action") not in {"produce", "storyboard", "preview", "final"}
@@ -225,7 +280,9 @@ class Repository:
                     raise Conflict("没有当前版本已完成画面制作的工作流记录" if rebuilding else "没有当前版本已完成配音的工作流记录")
                 # Resolve under the queue transaction; a replay uses this same checkpoint.
                 payload = dict(payload, continuation_thread_id=thread_id)
-            if payload.get("action") == "resume":
+            if payload.get("action") == "retry":
+                job.pending_input = None
+            elif payload.get("action") == "resume":
                 if job.status not in {"NEEDS_INPUT", "NEEDS_HUMAN"} or not job.pending_input:
                     raise Conflict("当前任务没有可恢复的中断")
                 if not job.pending_input.get("thread_id") or payload.get("pending_token") != job.pending_input.get("pending_token"):
@@ -412,6 +469,17 @@ class Repository:
             row = db.execute("SELECT operation_id,status,body FROM operations WHERE job_id=? AND input_hash=? AND provider=?",
                              (job_id, input_hash, provider)).fetchone()
         return {"operation_id": row[0], "status": row[1], **json.loads(row[2])} if row else None
+
+    def latest_completed_operation(self, job_id: str, provider: str, revision: int) -> dict[str, Any] | None:
+        """Return only this task/version's recorded result for node-owned repair."""
+        with self.connection() as db:
+            rows = db.execute("SELECT operation_id,body FROM operations WHERE job_id=? AND provider=? "
+                              "AND status='COMPLETED' ORDER BY rowid DESC", (job_id, provider)).fetchall()
+        for row in rows:
+            body = json.loads(row["body"])
+            if body.get("revision") == revision and isinstance(body.get("result"), dict):
+                return {"operation_id": row["operation_id"], **body}
+        return None
 
     def unsettled_operation(self, job_id: str, provider: str, revision: int,
                             search_scope: str | None = None) -> dict[str, Any] | None:

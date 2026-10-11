@@ -51,6 +51,64 @@ def manual_job(tmp_path):
     return repo, service, repo.get_job(job.job_id), asset
 
 
+
+def director_model_response(context, shots):
+    timeline = context.get("timeline", {})
+    script = context.get("script") or {}
+    segments = script.get("segments") or []
+    segment_id = segments[0].get("segment_id") if segments else "timeline"
+    shot_ids = [shot.get("shot_id") for shot in shots if shot.get("shot_id")]
+    duration = timeline.get("duration_in_frames") or max((shot.get("end_frame", 1) for shot in shots), default=1)
+    fps = timeline.get("fps") or 30
+    return {
+        "shots": shots,
+        "segment_performances": [{
+            "segment_id": segment_id,
+            "shot_ids": shot_ids,
+            "component_reason": "UNIT TEST：导演说明组件如何承接口播。",
+            "visual_action": "UNIT TEST：导演说明本段画面如何表演。",
+        }],
+        "demo": {
+            "start_frame": 0,
+            "end_frame": max(1, min(duration, fps * 30)),
+            "reason": "UNIT TEST：使用当前时间轴开头作为30秒内Demo。",
+        },
+    }
+
+
+def record_director_demo_confirmation(repo, service, job):
+    from videoagents.nodes.director_review import current_plan_artifact, director_review_fingerprint
+    from videoagents.nodes.reviewers import dependency_fingerprint
+
+    try:
+        plan_artifact, plan = current_plan_artifact(repo, job)
+    except ValueError:
+        from videoagents.contracts import Alignment
+        from videoagents.nodes.director import _performance_payload
+        alignment_data = next((repo.asset_metadata(asset.asset_id).get("alignment") for asset in job.assets
+                               if repo.asset_metadata(asset.asset_id).get("alignment")), None)
+        plan = _performance_payload("unit_test", job, job.timeline, Alignment.model_validate(alignment_data))
+        service.write_json(job, "unit-director-plan.json", plan, "director_plan")
+        job = repo.get_job(job.job_id)
+        plan_artifact, plan = current_plan_artifact(repo, job)
+    preview = service.write_json(job, "unit-director-demo.json", {"unit_preview": True}, "preview")
+    repo.update_artifact_metadata(preview.artifact_id, {
+        "director_plan_sha256": plan_artifact.sha256,
+        "dependency_fingerprint": dependency_fingerprint(job),
+        "frame_range": [plan["demo"]["start_frame"], plan["demo"]["end_frame"]],
+    })
+    job = repo.get_job(job.job_id)
+    service.write_json(job, "unit-director-demo-confirm.json", {
+        "kind": "stage_review",
+        "stage": "director",
+        "node_name": "director_human_gate",
+        "revision": job.revision,
+        "decision": "confirm",
+        "note": "UNIT TEST：确认导演方案和Demo。",
+        "dependency_fingerprint": director_review_fingerprint(repo, job),
+    }, "stage_review")
+    return repo.get_job(job.job_id)
+
 def enqueue(repo, job, action="produce", key="first-command"):
     SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False))
     _seed_completed_research(repo, JobService(repo), job)
@@ -199,10 +257,17 @@ def test_continue_finished_voice_through_director_and_editing_only(manual_job, m
     repo.enqueue(voice.job_id, payload)
     assert worker.once()
     result = repo.get_job(voice.job_id)
+    assert result.status == "NEEDS_HUMAN" and result.stage == "director"
+    assert result.pending_input["node_name"] == "director_human_gate"
+    assert any(item.kind == "preview" for item in result.artifacts)
+    assert_director_demo_preview_metadata(repo, result)
+    assert not any(item.kind == "final" for item in result.artifacts)
+    assert result.timeline.audio_src == audio.timeline_src
+    assert len(seen) == 1 and seen[0]["audio_asset_id"] == audio.asset_id
+    result = confirm_stage_reviews(repo, voice.job_id, worker, "UNIT-continue-video-review")
     assert (result.status, result.stage, result.pending_input) == ("DRAFT", "complete", None), result.message
     assert result.script == voice.script and result.assets == voice.assets
     assert result.timeline.audio_src == audio.timeline_src
-    assert len(seen) == 1 and seen[0]["audio_asset_id"] == audio.asset_id
     assert seen[0]["research"] and any(item.get("decision") == "confirm" for item in seen[0]["human_reviews"])
     assert result.review is None and any(item.kind == "final" for item in result.artifacts)
     repo.enqueue(voice.job_id, payload)
@@ -250,7 +315,7 @@ def completed_visual_job(manual_job, monkeypatch):
     repo.enqueue(voice.job_id, {"base_revision": voice.revision, "action": "produce", "continue_from": "voice",
                  "idempotency_key": "UNIT-initial-video"})
     assert worker.once()
-    completed = repo.get_job(voice.job_id)
+    completed = confirm_stage_reviews(repo, voice.job_id, worker, "UNIT-initial-video-review")
     assert completed.stage == "complete" and completed.status == "DRAFT"
     return repo, service, completed, audio, worker
 
@@ -280,7 +345,7 @@ def test_completed_video_rebuild_runs_only_director_and_editing_and_is_replay_sa
     def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
         assert role == "director" and context["extras"]["timeline_rebuild"] is True
         assert context["timeline"] == before.timeline.model_dump()
-        return {"shots": [{**shot, "title": "UNIT new visuals"} for shot in context["timeline"]["shots"]]}
+        return director_model_response(context, [{**shot, "title": "UNIT new visuals"} for shot in context["timeline"]["shots"]])
 
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
     payload = {"base_revision": before.revision, "action": "produce", "rebuild_from": "director",
@@ -288,6 +353,11 @@ def test_completed_video_rebuild_runs_only_director_and_editing_and_is_replay_sa
     repo.enqueue(before.job_id, payload)
     assert worker.once()
     result = repo.get_job(before.job_id)
+    assert result.status == "NEEDS_HUMAN" and result.stage == "director"
+    assert result.pending_input["node_name"] == "director_human_gate"
+    assert any(item.kind == "preview" for item in result.artifacts)
+    assert_director_demo_preview_metadata(repo, result)
+    result = confirm_stage_reviews(repo, before.job_id, worker, "UNIT-rebuild-visuals-review")
     assert (result.status, result.stage, result.pending_input) == ("DRAFT", "complete", None), result.message
     assert seen == ["DirectorNode", "EditingNode"]
     assert result.revision == before.revision and result.script == before.script and result.assets == before.assets
@@ -297,6 +367,7 @@ def test_completed_video_rebuild_runs_only_director_and_editing_and_is_replay_sa
         a.artifact_id for a in result.artifacts if a.kind == "stage_review"}
     assert {a.artifact_id for a in before.artifacts if a.kind == "final"}.isdisjoint({
         a.artifact_id for a in result.artifacts if a.kind == "final"})
+    final_ids = {a.artifact_id for a in result.artifacts if a.kind == "final"}
     repo.enqueue(before.job_id, payload)
     assert not worker.once()
     with repo.connection() as db:
@@ -305,6 +376,7 @@ def test_completed_video_rebuild_runs_only_director_and_editing_and_is_replay_sa
     with VideoProductionGraph(repo, service.project_root) as graph:
         graph.execute(command)
     assert seen == ["DirectorNode", "EditingNode"]
+    assert {a.artifact_id for a in repo.get_job(before.job_id).artifacts if a.kind == "final"} == final_ids
 
 
 @pytest.mark.parametrize("change", ["script", "timeline", "alignment", "approval"])
@@ -499,35 +571,49 @@ def test_editing_role_preflight_keeps_remotion_execution_and_blocks_findings(man
     approve_script_reviewer(monkeypatch)
     enqueue(repo, job, "storyboard")
     worker = Worker(repo, service.project_root)
-    worker.once()
-    current = confirm_stage_reviews(repo, job.job_id, worker, f"editing-setup-{blocking}")
-    original_timeline = current.timeline.model_dump()
+    assert worker.once()
+    storyboard = confirm_stage_reviews(repo, job.job_id, worker, f"editing-setup-{blocking}")
+    original_timeline = storyboard.timeline.model_dump()
     SettingsService(repo).patch(SettingsPatch(role_models={"editing": {"enabled": True}}))
     calls, renders = [], []
+
     def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
         if role == "script_reviewer":
             return {"decision": "APPROVE", "summary": "UNIT TEST：文案可进入人工审核。", "strengths": [], "issues": []}
         calls.append((role, output_schema["title"]))
         return {"pacing_notes": ["UNIT TEST：保持实测边界"], "layout_notes": ["UNIT TEST：核对标题可读性"],
             "findings": [{"severity": "warning", "message": "UNIT TEST：需调整标题", "owner": "editing", "blocking": True}] if blocking else []}
-    def render_double(project, timeline_path, output, cover, mode, timeout, cancelled, progress):
-        # Synthetic bytes test invocation only, never claim a production MP4.
+
+    def render_double(project, timeline_path, output, cover, mode, timeout, cancelled, progress, frame_range=None):
+        # Preview is allowed before the editing model; final render is allowed only after nonblocking advice.
         renders.append(mode)
         output.write_bytes(b"synthetic-render-unit-test-not-a-production-video")
+
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
     monkeypatch.setattr("videoagents.nodes.editing.render", render_double)
-    enqueue(repo, current, "preview", "editing-preflight-command")
-    worker.once()
-    result = confirm_stage_reviews(repo, job.job_id, worker, f"editing-preview-{blocking}")
+    repo.enqueue(storyboard.job_id, {"base_revision": storyboard.revision, "action": "produce",
+        "idempotency_key": f"editing-preflight-command-{blocking}"})
+    assert worker.once()
+    script_review = repo.get_job(job.job_id)
+    assert script_review.status == "NEEDS_HUMAN" and script_review.stage == "script"
+    assert calls == [] and renders == []
+    resume(repo, script_review, "confirm", "UNIT TEST：确认文案后进入导演Demo。",
+        f"editing-preflight-script-{blocking}")
+    assert worker.once()
+    demo = repo.get_job(job.job_id)
+    assert demo.status == "NEEDS_HUMAN" and demo.stage == "director"
+    assert calls == []
+    assert renders == ["preview"]
+    result = confirm_stage_reviews(repo, job.job_id, worker, f"editing-preflight-review-{blocking}")
     assert calls == [("editing", "EditingAdvice")]
     assert result.timeline.model_dump() == original_timeline
     assert any(item.kind == "editing_guidance" for item in result.artifacts)
     if blocking:
         assert result.status == "NEEDS_INPUT" and result.stage == "render"
-        assert renders == []
-    else:
-        assert result.status == "DRAFT" and result.stage == "render"
         assert renders == ["preview"]
+    else:
+        assert result.status == "DRAFT" and result.stage == "complete"
+        assert renders == ["preview", "final"]
 
 
 def test_editing_model_unknown_is_a_real_persisted_interrupt(manual_job, monkeypatch):
@@ -536,22 +622,41 @@ def test_editing_model_unknown_is_a_real_persisted_interrupt(manual_job, monkeyp
     approve_script_reviewer(monkeypatch)
     enqueue(repo, job, "storyboard")
     worker = Worker(repo, service.project_root)
-    worker.once()
-    current = confirm_stage_reviews(repo, job.job_id, worker, "unknown-editing-setup")
+    assert worker.once()
+    storyboard = confirm_stage_reviews(repo, job.job_id, worker, "unknown-editing-setup")
     SettingsService(repo).patch(SettingsPatch(role_models={"editing": {"enabled": True}}))
+    renders = []
+
     def unknown(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
         if role == "script_reviewer":
             return {"decision": "APPROVE", "summary": "UNIT TEST：文案可进入人工审核。", "strengths": [], "issues": []}
         raise CapabilityMissing("UNIT TEST unknown CLI submission", ["llm_operation"], operation_status="UNKNOWN", operation_id="unit-editing-operation")
+
+    def render_double(project, timeline_path, output, cover, mode, timeout, cancelled, progress, frame_range=None):
+        renders.append(mode)
+        if mode == "final":
+            pytest.fail("UNKNOWN preflight reached final Remotion")
+        output.write_bytes(b"synthetic-render-unit-test-not-a-production-video")
+
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", unknown)
-    monkeypatch.setattr("videoagents.nodes.editing.render", lambda *a: pytest.fail("UNKNOWN preflight reached Remotion"))
-    enqueue(repo, current, "preview", "unknown-editing-command")
-    worker.once()
-    result = confirm_stage_reviews(repo, job.job_id, worker, "unknown-editing-preview")
+    monkeypatch.setattr("videoagents.nodes.editing.render", render_double)
+    repo.enqueue(storyboard.job_id, {"base_revision": storyboard.revision, "action": "produce",
+        "idempotency_key": "unknown-editing-command"})
+    assert worker.once()
+    script_review = repo.get_job(job.job_id)
+    assert script_review.status == "NEEDS_HUMAN" and script_review.stage == "script"
+    assert renders == []
+    resume(repo, script_review, "confirm", "UNIT TEST：确认文案后进入导演Demo。", "unknown-editing-script")
+    assert worker.once()
+    demo = repo.get_job(job.job_id)
+    assert demo.status == "NEEDS_HUMAN" and demo.stage == "director"
+    assert renders == ["preview"]
+    result = confirm_stage_reviews(repo, job.job_id, worker, "unknown-editing-review")
     assert result.status == "NEEDS_INPUT" and result.stage == "render"
     assert result.pending_input["operation_status"] == "UNKNOWN"
     assert result.pending_input["operation_id"] == "unit-editing-operation"
     assert result.pending_input["thread_id"] and result.pending_input["pending_token"]
+    assert renders == ["preview"]
 
 
 def test_editing_schema_cannot_reopen_script_review():
@@ -579,6 +684,7 @@ def test_short_reading_shot_returns_to_director_before_editing_model(manual_job,
     timeline.shots[0].end_frame = 60
     brief = job.brief.model_copy(update={"width": 1080, "height": 1920, "fps": 30})
     job = repo.update_job(job.job_id, timeline=timeline, brief=brief)
+    job = record_director_demo_confirmation(repo, service, job)
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.invoke", lambda *a, **k: pytest.fail("short shot reached editing model"))
     state = state_context(repo, VideoState(job_id=job.job_id, revision=job.revision, action="produce",
                           thread_id="UNIT-isolated-thread", extras={}))
@@ -608,7 +714,7 @@ def test_director_repairs_saved_short_shot_with_existing_audio(manual_job, monke
     def plan(context, *a, **k):
         calls.append(context)
         shot = dict(context["timeline"]["shots"][0], source_label="", body="")
-        return {"shots": [shot]}
+        return director_model_response(context, [shot])
 
     monkeypatch.setattr(director.model, "invoke", plan)
     metadata = repo.asset_metadata(audio.asset_id)
@@ -621,9 +727,23 @@ def test_director_repairs_saved_short_shot_with_existing_audio(manual_job, monke
 def install_isolated_render_double(monkeypatch):
     """No real media claim: this double tests state transitions/fault windows only."""
     def edit(self, job, mode, state=None):
-        path = self.repo.root / (job.job_id + "-synthetic-render-unit-test.mp4")
+        original_timeline = job.timeline.model_dump() if job.timeline else None
+        path = self.repo.root / f"{job.job_id}-{mode}-synthetic-render-unit-test.mp4"
         path.write_bytes(b"synthetic-render-unit-test-not-a-production-video")
-        artifact = self.service.register_artifact(job, path, "final", "video/mp4")
+        artifact = self.service.register_artifact(job, path, mode, "video/mp4")
+        if mode == "preview":
+            from videoagents.nodes.director import load_current_director_plan
+            from videoagents.nodes.reviewers import dependency_fingerprint
+
+            plan = load_current_director_plan(self.repo, job)
+            assert plan is not None
+            plan_artifact = latest_artifact(job, "director_plan")
+            self.repo.update_artifact_metadata(artifact.artifact_id, {
+                "director_plan_sha256": plan_artifact.sha256,
+                "dependency_fingerprint": dependency_fingerprint(job),
+                "frame_range": [plan["demo"]["start_frame"], plan["demo"]["end_frame"]],
+            })
+            assert job.timeline.model_dump() == original_timeline
         self.service.append_artifact(job.job_id, artifact, job.revision)
     monkeypatch.setattr("videoagents.nodes.editing.EditingNode.render_video", edit)
 
@@ -646,6 +766,23 @@ def confirm_stage_reviews(repo, job_id, worker, key_prefix="stage-review"):
     raise AssertionError("stage review confirmation loop did not settle")
 
 
+def latest_artifact(job, kind):
+    return [item for item in job.artifacts if item.kind == kind][-1]
+
+
+def assert_director_demo_preview_metadata(repo, job):
+    from videoagents.nodes.director import load_current_director_plan
+
+    plan = load_current_director_plan(repo, job)
+    assert plan is not None
+    metadata = repo.artifact_metadata(latest_artifact(job, "preview").artifact_id)
+    assert isinstance(metadata.get("director_plan_sha256"), str) and len(metadata["director_plan_sha256"]) == 64
+    assert metadata["director_plan_sha256"] == latest_artifact(job, "director_plan").sha256
+    assert isinstance(metadata.get("dependency_fingerprint"), str) and metadata["dependency_fingerprint"]
+    assert metadata.get("frame_range") == [plan["demo"]["start_frame"], plan["demo"]["end_frame"]]
+    assert metadata["frame_range"][1] - metadata["frame_range"][0] <= job.timeline.fps * 30
+
+
 def test_produce_completes_as_draft_without_final_review(manual_job, monkeypatch):
     install_isolated_render_double(monkeypatch)
     repo, service, job, _ = manual_job
@@ -658,6 +795,93 @@ def test_produce_completes_as_draft_without_final_review(manual_job, monkeypatch
     assert result.pending_input is None and result.review is None
     assert any(item.kind == "final" for item in result.artifacts)
     assert not any(item.kind in {"review", "human_review", "package"} for item in result.artifacts)
+
+
+def test_produce_pauses_for_director_demo_review_before_final_render(manual_job, monkeypatch):
+    install_isolated_render_double(monkeypatch)
+    repo, service, job, _ = manual_job
+    worker = Worker(repo, service.project_root)
+    approve_script_reviewer(monkeypatch)
+    enqueue(repo, job)
+    assert worker.once()
+    paused = repo.get_job(job.job_id)
+    assert paused.pending_input["node_name"] == "human_review_script"
+    resume(repo, paused, "confirm", "UNIT TEST：确认文案可以进入配音和导演Demo。", "demo-gate-script")
+    assert worker.once()
+    demo = repo.get_job(job.job_id)
+    assert demo.status == "NEEDS_HUMAN" and demo.stage == "director"
+    assert demo.pending_input["node_name"] == "director_human_gate"
+    assert any(item.kind == "preview" for item in demo.artifacts)
+    assert_director_demo_preview_metadata(repo, demo)
+    assert not any(item.kind == "final" for item in demo.artifacts)
+    resume(repo, demo, "confirm", "UNIT TEST：确认30秒Demo和导演表演设计可以进入成片渲染。", "demo-gate-director")
+    assert worker.once()
+    result = repo.get_job(job.job_id)
+    assert result.status == "DRAFT" and result.stage == "complete"
+    assert any(item.kind == "final" for item in result.artifacts)
+
+
+def test_director_demo_revise_reruns_director_and_reuses_voice(manual_job, monkeypatch):
+    install_isolated_render_double(monkeypatch)
+    repo, service, job, _ = manual_job
+    worker = Worker(repo, service.project_root)
+    approve_script_reviewer(monkeypatch)
+    enqueue(repo, job)
+    assert worker.once()
+    script_review = repo.get_job(job.job_id)
+    resume(repo, script_review, "confirm", "UNIT TEST：确认文案进入导演Demo。", "demo-revise-script")
+    assert worker.once()
+    demo = repo.get_job(job.job_id)
+    assert demo.pending_input["node_name"] == "director_human_gate"
+    original_token = demo.pending_input["pending_token"]
+    audio_ids = {item.artifact_id for item in demo.artifacts if item.kind in {"voice", "alignment", "audio_report"}}
+    preview_ids = {item.artifact_id for item in demo.artifacts if item.kind == "preview"}
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.available", lambda self, role: role == "director")
+    def director_revise_model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        assert role == "director"
+        return director_model_response(context, [{**shot, "title": "UNIT revised demo"}
+                                                for shot in context["timeline"]["shots"]])
+    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", director_revise_model)
+
+    resume(repo, demo, "revise", "UNIT TEST：Demo镜头表演不贴旁白，请导演重做。", "demo-revise-director")
+    assert worker.once()
+    revised = repo.get_job(job.job_id)
+
+    assert revised.status == "NEEDS_HUMAN" and revised.stage == "director"
+    assert revised.pending_input["node_name"] == "director_human_gate"
+    assert revised.pending_input["pending_token"] != original_token
+    assert {item.artifact_id for item in revised.artifacts if item.kind in {"voice", "alignment", "audio_report"}} == audio_ids
+    assert {item.artifact_id for item in revised.artifacts if item.kind == "preview"} != preview_ids
+    assert_director_demo_preview_metadata(repo, revised)
+    assert not any(item.kind == "final" for item in revised.artifacts)
+
+
+def test_director_demo_cancel_or_stale_token_cannot_release_final(manual_job, monkeypatch):
+    from videoagents.storage import Conflict
+
+    install_isolated_render_double(monkeypatch)
+    repo, service, job, _ = manual_job
+    worker = Worker(repo, service.project_root)
+    approve_script_reviewer(monkeypatch)
+    enqueue(repo, job)
+    assert worker.once()
+    script_review = repo.get_job(job.job_id)
+    old_token = script_review.pending_input["pending_token"]
+    resume(repo, script_review, "confirm", "UNIT TEST：确认文案进入导演Demo。", "demo-stale-script")
+    assert worker.once()
+    demo = repo.get_job(job.job_id)
+    assert demo.pending_input["node_name"] == "director_human_gate"
+    with pytest.raises(Conflict):
+        repo.enqueue(job.job_id, {"action": "resume", "base_revision": demo.revision,
+            "decision": "confirm", "note": "UNIT TEST：旧token不能确认导演Demo。",
+            "pending_token": old_token, "idempotency_key": "demo-stale-token"})
+    assert not any(item.kind == "final" for item in repo.get_job(job.job_id).artifacts)
+
+    resume(repo, demo, "cancel", "UNIT TEST：取消当前导演Demo，不允许渲染成片。", "demo-cancel")
+    assert worker.once()
+    cancelled = repo.get_job(job.job_id)
+    assert cancelled.status == "CANCELLED"
+    assert not any(item.kind == "final" for item in cancelled.artifacts)
 
 
 def test_render_completion_recovers_after_sql_draft_before_graph_checkpoint(manual_job, monkeypatch):
@@ -680,6 +904,14 @@ def test_render_completion_recovers_after_sql_draft_before_graph_checkpoint(manu
             raise SystemExit("UNIT TEST simulated process loss after draft render SQL commit")
         return result
     monkeypatch.setattr(repo, "update_job", injected)
+    with VideoProductionGraph(repo, service.project_root) as graph:
+        graph.execute(command)
+    assert repo.get_job(job.job_id).status == "NEEDS_HUMAN"
+    repo.finish(command["command_id"])
+    demo = repo.get_job(job.job_id)
+    assert demo.status == "NEEDS_HUMAN" and demo.pending_input["node_name"] == "director_human_gate"
+    resume(repo, demo, "confirm", "UNIT TEST：确认导演Demo后进入最终渲染。", "draft-render-recovery-demo")
+    command = repo.claim(os.getpid())
     with VideoProductionGraph(repo, service.project_root) as graph, pytest.raises(SystemExit):
         graph.execute(command)
     assert repo.get_job(job.job_id).status == "DRAFT"

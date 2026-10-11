@@ -1,13 +1,76 @@
 """Persisted pauses for missing inputs and recoverable production failures."""
 
+import json
 from typing import Any
 
 from langgraph.types import interrupt
 
-from videoagents.nodes.common import current_job, state_context
+from videoagents.contracts import Job
+from videoagents.nodes.common import (
+    DIRECTOR_VOICE_REVISION_ISSUE,
+    current_job,
+    needs_script_revision,
+    needs_voice_revision,
+    stage_feedback,
+    state_context,
+)
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState
 from videoagents.storage import Conflict, Repository
+
+
+def _stale_editing_preflight(repository: Repository, job: Job, pending: dict[str, Any]) -> bool:
+    """Recheck old model advice after a contract update, preserving the real gate.
+
+    This only schedules EditingNode again. Current advice still routes actual
+    visual problems to director; no finding or approval is overwritten here.
+    """
+    if (pending.get("stage") != "director" or pending.get("retry_node")
+            or set(pending.get("fields") or []) != {"timeline"}):
+        return False
+    from videoagents.nodes.director_review import checked_artifact, director_demo_is_approved
+    from videoagents.nodes.editing import editing_instruction_fingerprint
+    from videoagents.nodes.reviewers import dependency_fingerprint
+
+    artifact = next((item for item in reversed(job.artifacts)
+                     if item.kind == "editing_guidance" and item.revision == job.revision), None)
+    if not artifact or not director_demo_is_approved(repository, job):
+        return False
+    advice = json.loads(checked_artifact(repository, job, artifact).read_text(encoding="utf-8"))
+    blocked = [item["message"] for item in advice.get("findings", [])
+               if item.get("blocking") or item.get("severity") == "error"]
+    if not blocked or pending.get("issues") != ["剪辑发现分镜问题：" + "；".join(blocked)]:
+        return False
+    metadata = repository.artifact_metadata(artifact.artifact_id)
+    recorded = metadata.get("instruction_fingerprint")
+    if recorded is None:
+        # Legacy preflight omitted the newly supported in-shot contracts.
+        return bool(job.timeline and any(shot.set_design or shot.layers for shot in job.timeline.shots))
+    return (recorded != editing_instruction_fingerprint(job)
+            and metadata.get("dependency_fingerprint") == dependency_fingerprint(job))
+
+
+def _legacy_director_voice_false_positive(pending: dict[str, Any], state: VideoState) -> bool:
+    """Route old director visual-only feedback back to director instead of voice.
+
+    Older DirectorNode builds treated any mention of "重配音/音频" as an audio
+    change request, including explicit preservation notes.  Only that exact
+    generated pause is corrected here; real voice pauses keep their original
+    route.
+    """
+    if pending.get("stage") != "voice":
+        return False
+    if pending.get("retry_node"):
+        return False
+    if pending.get("issues") != [DIRECTOR_VOICE_REVISION_ISSUE]:
+        return False
+    if set(pending.get("fields") or []) != {"voice", "timeline"}:
+        return False
+    feedback = stage_feedback(state, "render", "director")
+    note = feedback.get("note") if feedback else None
+    if not isinstance(note, str) or not note.strip():
+        return False
+    return not needs_script_revision(note) and not needs_voice_revision(note)
 
 
 class AwaitInputNode:
@@ -36,6 +99,12 @@ class AwaitInputNode:
             raise Conflict("恢复决定无效")
         # Input confirmations always rerun the responsible stage and its gates.
         target = {"materials": "materials", "script": "screenwriter", "voice": "voice", "director": "director", "render": "editing"}[pending["stage"]]
+        if pending.get("retry_node") == "director_demo":
+            target = "director_demo"
+        if target == "voice" and _legacy_director_voice_false_positive(pending, state):
+            target = "director"
+        if target == "director" and _stale_editing_preflight(self.repo, job, pending):
+            target = "editing"
         if target == "screenwriter" and not state.get("research") and not job.script and not job.brief.script_text.strip():
             # 兼容此前暂停在编剧的旧图：恢复时先补素材，编剧不自行联网采集。
             target = "materials"

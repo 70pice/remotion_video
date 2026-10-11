@@ -13,7 +13,9 @@ from videoagents.contracts import Job
 from videoagents.nodes.await_input import AwaitInputNode
 from videoagents.nodes.clear_tools import ClearToolsNode
 from videoagents.nodes.common import state_context, validate_context_assets
+from videoagents.nodes.component_demo import ComponentDemoNode
 from videoagents.nodes.director import DirectorNode
+from videoagents.nodes.director_demo import DirectorDemoNode
 from videoagents.nodes.editing import EditingNode
 from videoagents.nodes.gates import AudioGateNode, ScriptGateNode
 from videoagents.nodes.human_review import HumanReviewNode
@@ -41,6 +43,7 @@ class VideoProductionGraph(AbstractContextManager):
         # 与 TradingAgents 的 Msg Clear 一样，每个模型角色后先清理，再路由到下一阶段。
         # CLI 内部运行工具，图中只交接最终 JSON，不增加 ToolNode 或工具消息循环。
         graph = StateGraph(VideoState)
+        graph.add_node("component_demo", ComponentDemoNode(repository, self.service))
         graph.add_node("materials", MaterialsNode(repository, self.service))
         graph.add_node("screenwriter", ScreenwriterNode(repository, self.service))
         graph.add_node("script_reviewer", ScriptReviewerNode(repository, self.service))
@@ -48,6 +51,7 @@ class VideoProductionGraph(AbstractContextManager):
         graph.add_node("voice", VoiceNode(repository, self.service))
         graph.add_node("audio_gate", AudioGateNode(repository))
         graph.add_node("director", DirectorNode(repository, self.service))
+        graph.add_node("director_demo", DirectorDemoNode(repository, self.service))
         graph.add_node("editing", EditingNode(repository, self.service))
         graph.add_node("await_input", AwaitInputNode(repository, self.service))
         # Available for manual orchestration; no incoming edge by default.
@@ -59,8 +63,16 @@ class VideoProductionGraph(AbstractContextManager):
                                                          "事实表达有来源，素材引用能支撑文案",
                                                          "核对机器审查意见与最终文案，人工确认后才可进入配音"),
                               next_node="after_script_review", revise_node="screenwriter")
+        self.add_human_review(graph, "director_human_gate", stage="director", title="导演表演与30秒Demo审核",
+                              confirmation_requirements=("逐段核对导演表演设计是否贴合当前口播",
+                                                         "30秒Demo画面、字幕、配音节奏可以代表本片方向",
+                                                         "素材、案例、数字与当前旁白对应，没有用组件Demo词冒充事实",
+                                                         "人工确认后才允许渲染完整成片"),
+                              next_node="after_director_demo_review", revise_node="director")
         graph.add_node("after_script_review", self.after_script_review)
-        graph.add_edge(START, "materials")
+        graph.add_node("after_director_demo_review", self.after_director_demo_review)
+        graph.add_conditional_edges(START, self.start_route, {"component_demo": "component_demo", "materials": "materials"})
+        self.add_cleanup_edge(graph, "component_demo", {"director_demo": "director_demo", "await_input": "await_input"})
         self.add_cleanup_edge(graph, "materials", {"screenwriter": "screenwriter", "await_input": "await_input"})
         self.add_cleanup_edge(graph, "screenwriter", {
             "script_reviewer": "script_reviewer", "human_review_script": "human_review_script",
@@ -76,10 +88,15 @@ class VideoProductionGraph(AbstractContextManager):
         self.add_cleanup_edge(graph, "voice", {"audio_gate": "audio_gate", "await_input": "await_input"})
         graph.add_conditional_edges("audio_gate", self.route, {"director": "director", "await_input": "await_input", "end": END})
         self.add_cleanup_edge(graph, "director", {
-            "editing": "editing", "screenwriter": "screenwriter", "await_input": "await_input", "end": END,
+            "editing": "director_demo", "director_demo": "director_demo",
+            "screenwriter": "screenwriter", "await_input": "await_input", "end": END,
         })
-        self.add_cleanup_edge(graph, "editing", {"await_input": "await_input", "end": END})
-        graph.add_conditional_edges("await_input", self.route, {"materials": "materials", "screenwriter": "screenwriter", "script_reviewer": "script_reviewer", "voice": "voice", "director": "director", "editing": "editing", "await_input": "await_input", "end": END})
+        graph.add_conditional_edges("director_demo", self.route, {
+            "director_human_gate": "director_human_gate", "await_input": "await_input", "end": END,
+        })
+        graph.add_conditional_edges("after_director_demo_review", self.route, {"editing": "editing"})
+        self.add_cleanup_edge(graph, "editing", {"director_demo": "director_demo", "await_input": "await_input", "end": END})
+        graph.add_conditional_edges("await_input", self.route, {"component_demo": "component_demo", "materials": "materials", "screenwriter": "screenwriter", "script_reviewer": "script_reviewer", "voice": "voice", "director": "director", "director_demo": "director_demo", "editing": "editing", "await_input": "await_input", "end": END})
         self.graph = graph.compile(checkpointer=self.checkpointer)
 
     def add_cleanup_edge(self, graph: StateGraph, source: str, routes: dict[str, str]) -> None:
@@ -104,11 +121,18 @@ class VideoProductionGraph(AbstractContextManager):
     def after_script_review(self, state: VideoState) -> dict[str, Any]:
         return state_context(self.repo, state, route="voice")
 
+    def after_director_demo_review(self, state: VideoState) -> dict[str, Any]:
+        return state_context(self.repo, state, route="editing")
+
     def __exit__(self, *exc):
         # The saver serializes background writes under this same lock. Closing
         # SQLite concurrently with a cursor can crash CPython on Windows.
         with self.checkpointer.lock:
             self.connection.close()
+
+    @staticmethod
+    def start_route(state: VideoState) -> str:
+        return "component_demo" if state.get("action") == "component_demo" else "materials"
 
     @staticmethod
     def route(state: VideoState) -> str:
@@ -138,8 +162,12 @@ class VideoProductionGraph(AbstractContextManager):
         job = self.repo.get_job(command["job_id"])
         if job.status == "CANCELLED":
             return None
+        if command.get("status") == "DONE":
+            return state_context(self.repo, VideoState(job_id=job.job_id, revision=job.revision, route="end"))
         if payload["base_revision"] != job.revision:
             raise Conflict("排队命令的版本已失效")
+        if payload["action"] == "retry":
+            return self.retry_failed_command(command, job)
         if payload.get("continue_from") == "voice" or payload.get("rebuild_from") == "director":
             return self.continue_after_voice(command, job)
         if payload["action"] == "review":
@@ -174,6 +202,8 @@ class VideoProductionGraph(AbstractContextManager):
                     return state_context(self.repo, result)
                 return state_context(self.repo, snapshot.values) if snapshot.values else snapshot.values
             decision = {"decision": payload["decision"], "note": payload.get("note", ""), "pending_token": payload["pending_token"]}
+            if payload.get("director_requirements") is not None:
+                decision["director_requirements"] = payload["director_requirements"]
             # Interrupt IDs also key the actual LangGraph resume map, so a
             # response can only be delivered to the selected recorded pause.
             update = {"resume_command_id": command["command_id"]}
@@ -194,10 +224,51 @@ class VideoProductionGraph(AbstractContextManager):
             result = self.graph.invoke(None, config)
             self.sync_pending(config, job)
             return state_context(self.repo, result)
+        extras = {"component_demo": payload["component_demo"]} if payload["action"] == "component_demo" else {}
         state = state_context(self.repo, VideoState(job_id=job.job_id, revision=job.revision,
                               action=payload["action"], run_id=command["command_id"], thread_id=thread_id,
-                              gate_issues=[], extras={}))
+                              gate_issues=[], extras=extras))
         result = self.graph.invoke(state, config)
+        self.sync_pending(config, job)
+        return state_context(self.repo, result)
+
+    def retry_failed_command(self, command: dict[str, Any], job: Job) -> Any:
+        """Resume saved node work without supplying an approval or changing its route."""
+        thread_id = command["payload"]["continuation_thread_id"]
+        if not thread_id.startswith(f"job:{job.job_id}:run:"):
+            raise Conflict("失败续跑的检查点不属于当前任务")
+        config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 60}
+        saved = self.graph.get_state(config)
+        state = saved.values
+        if not state or state.get("job_id") != job.job_id or state.get("revision") != job.revision:
+            raise Conflict("失败续跑的工作流状态缺失或版本已变化")
+        if self.is_removed_review_checkpoint(saved):
+            raise Conflict("旧审核节点不能通过失败续跑恢复")
+        for name in ("brief", "script", "assets", "director_requirements"):
+            if state.get(name) != job.model_dump().get(name):
+                raise Conflict("失败后的制作输入已变化，请保存新版本重新执行")
+        validate_context_assets(self.repo, job)
+        if saved.interrupts:
+            # A worker may have reached a new question before its final SQL save.
+            # Retrying a command never answers that question, even on reclaim.
+            pending = saved.interrupts[0].value
+            if not isinstance(pending, dict):
+                raise Conflict("工作流待办格式无效")
+            self.repo.update_job(job.job_id, job.revision,
+                                 status="NEEDS_HUMAN" if pending.get("kind") in {"human_review", "stage_review"} else "NEEDS_INPUT",
+                                 pending_input=dict(pending, interrupt_id=saved.interrupts[0].id),
+                                 message="工作流已停在人工待办，请查看并回答")
+            return state_context(self.repo, state)
+        if not saved.next:
+            # A completion recorded before the worker's command acknowledgement
+            # must not schedule the graph's START node or render a second time.
+            if state.get("route") != "end" or state.get("status") != "DRAFT":
+                raise Conflict("失败续跑没有可恢复节点或有效完成记录")
+            self.repo.update_job(job.job_id, job.revision, status="DRAFT", stage=state.get("stage", job.stage),
+                                 pending_input=None, message=state.get("message", "工作流已完成，未重复执行"),
+                                 progress=state.get("progress"))
+            return state_context(self.repo, state)
+        result = self.graph.invoke(Command(update={"resume_command_id": command["command_id"]}), config)
         self.sync_pending(config, job)
         return state_context(self.repo, result)
 

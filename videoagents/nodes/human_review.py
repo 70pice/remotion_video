@@ -5,9 +5,11 @@ import re
 from typing import Any
 
 from langgraph.types import interrupt
+from pydantic import ValidationError
 
-from videoagents.contracts import Artifact, Job
+from videoagents.contracts import Artifact, DirectorRequirements, Job
 from videoagents.nodes.common import current_job, state_context
+from videoagents.nodes.director_review import current_plan_artifact, director_review_fingerprint
 from videoagents.state import VideoState
 from videoagents.storage import Conflict, NotFound, Repository
 from videoagents.storage.repository import dumps, fingerprint
@@ -51,6 +53,11 @@ class HumanReviewNode:
         return current_job(self.repo, state)
 
     def _inputs(self, job: Job) -> str:
+        if self.node_name == "director_human_gate":
+            # Bind the existing waiting artifacts even after a component
+            # contract upgrade, so a rejected old demo can be sent for repair.
+            # Confirmation still requires the latest component validation.
+            return director_review_fingerprint(self.repo, job, validate_components=False)
         artifacts = [item for item in job.artifacts if item.kind != "stage_review"]
         # Bind actual bytes and imported/generated timing metadata, not only
         # declared hashes. Approval must not survive media changes in-place.
@@ -94,7 +101,12 @@ class HumanReviewNode:
         if self.stage == "script":
             return {"script": job.script.model_dump() if job.script else None}
         if self.stage == "director":
-            return {"timeline": job.timeline.model_dump() if job.timeline else None}
+            subject = {"script": job.script.model_dump() if job.script else None,
+                       "timeline": job.timeline.model_dump() if job.timeline else None}
+            if self.node_name == "director_human_gate":
+                _, plan = current_plan_artifact(self.repo, job, validate_components=False)
+                subject["director_plan"] = plan
+            return subject
         if self.stage == "render":
             return {"script": job.script.model_dump() if job.script else None,
                     "timeline": job.timeline.model_dump() if job.timeline else None,
@@ -146,6 +158,16 @@ class HumanReviewNode:
         decision, note = answer.get("decision"), answer.get("note", "")
         if decision not in {"confirm", "revise", "cancel"} or not isinstance(note, str) or len(note) > 3000:
             raise Conflict("人工审核决定或说明无效")
+        if decision == "confirm" and self.node_name == "director_human_gate":
+            director_review_fingerprint(self.repo, job)
+        director_requirements = answer.get("director_requirements")
+        if director_requirements is not None:
+            if decision != "revise" or self.node_name != "director_human_gate" or self.stage != "director":
+                raise Conflict("导演制作要求只能随导演 Demo 返工提交")
+            try:
+                director_requirements = DirectorRequirements.model_validate(director_requirements)
+            except ValidationError as exc:
+                raise Conflict("导演制作要求无效") from exc
         note = note.strip()
         if decision in {"confirm", "revise"} and len(note) < self.min_note_length:
             pending = dict(pending, pending_token=fingerprint({"previous": pending["pending_token"],
@@ -176,6 +198,9 @@ class HumanReviewNode:
         # draft recover an unapplied instruction after an UNKNOWN operation
         # makes the old graph execution unsafe to resume.
         recorded_receipt = dict(receipt, feedback=feedback[self.stage]) if feedback else receipt
+        if isinstance(director_requirements, DirectorRequirements):
+            value = director_requirements if director_requirements.min_library_components else None
+            self.repo.update_job(job.job_id, job.revision, director_requirements=value)
         self._record(job, recorded_receipt, status, message)
         rounds = dict(state.get("human_review_rounds", {}))
         rounds[self.node_name] = rounds.get(self.node_name, 0) + 1

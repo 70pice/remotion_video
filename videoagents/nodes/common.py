@@ -2,6 +2,7 @@
 
 import json
 import math
+import re
 import uuid
 from typing import Any
 
@@ -28,6 +29,19 @@ SCRIPT_REVISION_PATTERNS = (
     "结论前置", "防御性文案",
 )
 
+DIRECTOR_VOICE_REVISION_ISSUE = "成片返工意见涉及语速、发音或音频，导演无法只靠镜头修复；请先调整配音后重新制作。"
+
+VOICE_REVISION_PATTERNS = (
+    "改配音", "重配音", "调整配音", "改音频", "重做音频", "调整音频",
+    "改语速", "调整语速", "改发音",
+)
+
+VOICE_PROBLEM_PATTERNS = ("语速太", "语速过", "读音错误", "发音错误")
+
+VOICE_NEGATION_CUES = ("不", "别", "勿", "无需", "无须", "不用", "不要", "禁止", "保留", "保持", "沿用")
+VOICE_SCOPE_BOUNDARIES = ("，", ",", "。", "；", ";", "！", "!", "？", "?", "\n")
+VOICE_CONTRAST_BOUNDARIES = ("但是", "但", "不过", "然而", "而是", "却", "改为")
+
 
 def needs_script_revision(note: str) -> bool:
     """Return whether human feedback explicitly asks to change narration.
@@ -37,7 +51,58 @@ def needs_script_revision(note: str) -> bool:
     the screenwriter; purely visual feedback must not dirty the retained
     script when a new revision restores an unapplied review receipt.
     """
-    return any(pattern in note for pattern in SCRIPT_REVISION_PATTERNS)
+    compact = re.sub(r"\s+", "", note)
+    for pattern in SCRIPT_REVISION_PATTERNS:
+        start = 0
+        while True:
+            index = compact.find(pattern, start)
+            if index < 0:
+                break
+            if not _preceded_by_negation(compact, index):
+                return True
+            start = index + len(pattern)
+    return False
+
+
+def _local_voice_prefix(note: str, index: int) -> str:
+    prefix = note[:index]
+    start = 0
+    for boundary in VOICE_SCOPE_BOUNDARIES:
+        pos = prefix.rfind(boundary)
+        if pos >= start:
+            start = pos + len(boundary)
+    for boundary in VOICE_CONTRAST_BOUNDARIES:
+        pos = prefix.rfind(boundary)
+        if pos >= start:
+            start = pos + len(boundary)
+    return prefix[start:]
+
+
+def _preceded_by_negation(note: str, index: int) -> bool:
+    """Return whether an action phrase is locally negated or preservation-scoped."""
+    prefix = _local_voice_prefix(note, index)[-14:]
+    return any(cue in prefix for cue in VOICE_NEGATION_CUES)
+
+
+def needs_voice_revision(note: str) -> bool:
+    """Return whether feedback explicitly requires changing narration audio.
+
+    Director feedback often mentions audio only to preserve it, for example
+    "保留原音频，只修改画面，不回到编剧或重配音".  Those notes must stay in the
+    director path.  Positive audio defects such as "语速太快" or "读音错误" still
+    route to voice because the director cannot repair them with visuals.
+    """
+    compact = re.sub(r"\s+", "", note)
+    for pattern in VOICE_PROBLEM_PATTERNS + VOICE_REVISION_PATTERNS:
+        start = 0
+        while True:
+            index = compact.find(pattern, start)
+            if index < 0:
+                break
+            if not _preceded_by_negation(compact, index):
+                return True
+            start = index + len(pattern)
+    return False
 
 
 def validate_context_assets(repository: Repository, job: Job) -> None:
@@ -169,6 +234,7 @@ def state_context(repository: Repository, state: VideoState, **overrides: Any) -
                    audio_asset_id=audio.asset_id if audio else None,
                    alignment=audio_metadata.get("alignment"), duration_seconds=audio_metadata.get("duration_seconds"))
     context.update(research={}, audio_report=None, voice_guidance=None, editing_guidance=None,
+                   director_plan=None,
                    render={item.kind: item.model_dump() for item in job.artifacts
                            if item.kind in {"preview", "final", "cover", "captions", "package"}})
     history = list(state.get("human_reviews", []))
@@ -176,7 +242,7 @@ def state_context(repository: Repository, state: VideoState, **overrides: Any) -
     for artifact in job.artifacts:
         if artifact.revision != job.revision or artifact.kind not in {
             "research", "audio_report", "voice_guidance", "editing_guidance", "component_study",
-            "stage_review", "human_review", "human_feedback_applied",
+            "director_plan", "stage_review", "human_review", "human_feedback_applied",
         }:
             continue
         path, _, owner = repository.artifact_path(artifact.artifact_id)
@@ -345,10 +411,15 @@ def start_stage(repository: Repository, state: VideoState, stage: str, message: 
 
 
 def request_input(repository: Repository, state: VideoState, stage: str, issues: list[str],
-                  fields: list[str] | None = None, exception: Exception | None = None) -> dict[str, Any]:
+                  fields: list[str] | None = None, exception: Exception | None = None,
+                  *, retry_node: str | None = None) -> dict[str, Any]:
     current_job(repository, state)
     pending = {"kind": "input", "stage": stage, "issues": issues, "fields": fields or [],
                "thread_id": state["thread_id"], "revision": state["revision"], "pending_token": uuid.uuid4().hex}
+    if retry_node is not None:
+        if retry_node != "director_demo":
+            raise ValueError("不支持的输入重试节点")
+        pending["retry_node"] = retry_node
     # Keep provider submission receipts when work must pause; UNKNOWN cannot be
     # treated as a fresh request on resume.
     for key in ("operation_status", "operation_id", "request_id"):

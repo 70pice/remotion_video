@@ -10,14 +10,14 @@ from urllib.parse import urlparse
 
 from langgraph.checkpoint.sqlite import SqliteSaver
 
-from videoagents.contracts import Alignment, Artifact, Asset, DraftRequest, Job
+from videoagents.contracts import Alignment, Artifact, Asset, DraftRequest, Job, RetryFailedRunRequest
 from videoagents.default_config import PROJECT_ROOT
 from videoagents.storage import Repository
 from videoagents.tools.media import audio_duration, decode_check, detect_media, probe, sha256, video_metadata
 from videoagents.tools.timeline import validate_timeline
 
 INVALIDATED = {"preview", "final", "cover", "timeline", "review", "package", "captions",
-               "storyboard", "script_discussion", "component_study"}
+               "storyboard", "director_plan", "script_discussion", "component_study"}
 
 
 class JobService:
@@ -65,6 +65,12 @@ class JobService:
 
         self.repo.delete_job(job_id, base_revision, cleanup)
 
+
+    def retry_failed_run(self, job_id: str, request: RetryFailedRunRequest) -> Job:
+        payload = request.model_dump(exclude_none=True)
+        payload["action"] = "retry"
+        return self.repo.enqueue(job_id, payload)
+
     def draft(self, job_id: str, request: DraftRequest) -> Job:
         if request.brief is None and request.script is None and request.timeline is None:
             raise ValueError("草稿更新内容不能为空")
@@ -87,8 +93,15 @@ class JobService:
                 job.script = request.script.model_copy(update={"revision": new_revision})
             if request.timeline:
                 metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
-                validate_timeline(request.timeline, job, metadata)
-                job.timeline = request.timeline.model_copy(update={"revision": new_revision})
+                timeline = request.timeline
+                if any(shot.set_design for shot in timeline.shots):
+                    from videoagents.tools.component_sets import resolve_component_set_shots
+
+                    timeline = timeline.model_copy(update={
+                        "shots": resolve_component_set_shots(timeline.shots, job.assets, metadata),
+                    })
+                validate_timeline(timeline, job, metadata)
+                job.timeline = timeline.model_copy(update={"revision": new_revision})
             else:
                 job.timeline = None
             if job.script:

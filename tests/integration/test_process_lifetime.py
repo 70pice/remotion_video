@@ -25,6 +25,67 @@ def test_renderer_structured_error_survives_fast_exit(tmp_path, monkeypatch):
         render(tmp_path, tmp_path / "input.json", tmp_path / "video.mp4", tmp_path / "cover.png", "final", 10, lambda: False, lambda _: None)
 
 
+def test_renderer_preview_frame_range_is_forwarded_as_cli_args(tmp_path, monkeypatch):
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    receipt = tmp_path / "argv.json"
+    (scripts / "render-timeline.mjs").write_text(
+        "import json, sys\n"
+        "from pathlib import Path\n"
+        f"Path({str(receipt)!r}).write_text(json.dumps(sys.argv[1:]), encoding='utf-8')\n"
+        "args = sys.argv[1:]\n"
+        "Path(args[args.index('--output') + 1]).write_bytes(b'video')\n"
+        "Path(args[args.index('--cover') + 1]).write_bytes(b'cover')\n"
+        "print(json.dumps({'event': 'complete', 'output': args[args.index('--output') + 1], "
+        "'cover': args[args.index('--cover') + 1]}), flush=True)\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("worker.process_manager.shutil.which", lambda _: sys.executable)
+    result = render(tmp_path, tmp_path / "input.json", tmp_path / "preview.mp4", tmp_path / "cover.png",
+                    "preview", 10, lambda: False, lambda _: None, frame_range=(120, 180))
+    argv = json.loads(receipt.read_text(encoding="utf-8"))
+    assert argv[argv.index("--start-frame") + 1] == "120"
+    assert argv[argv.index("--end-frame") + 1] == "180"
+    assert result["event"] == "complete"
+
+
+def test_renderer_old_call_omits_frame_range_cli_args(tmp_path, monkeypatch):
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    receipt = tmp_path / "argv.json"
+    (scripts / "render-timeline.mjs").write_text(
+        "import json, sys\n"
+        "from pathlib import Path\n"
+        f"Path({str(receipt)!r}).write_text(json.dumps(sys.argv[1:]), encoding='utf-8')\n"
+        "args = sys.argv[1:]\n"
+        "Path(args[args.index('--output') + 1]).write_bytes(b'video')\n"
+        "Path(args[args.index('--cover') + 1]).write_bytes(b'cover')\n"
+        "print(json.dumps({'event': 'complete', 'output': args[args.index('--output') + 1], "
+        "'cover': args[args.index('--cover') + 1]}), flush=True)\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("worker.process_manager.shutil.which", lambda _: sys.executable)
+    render(tmp_path, tmp_path / "input.json", tmp_path / "preview.mp4", tmp_path / "cover.png",
+           "preview", 10, lambda: False, lambda _: None)
+    argv = json.loads(receipt.read_text(encoding="utf-8"))
+    assert "--start-frame" not in argv
+    assert "--end-frame" not in argv
+
+
+def test_renderer_rejects_frame_range_for_final_or_invalid_intervals(tmp_path, monkeypatch):
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    (scripts / "render-timeline.mjs").write_text("raise AssertionError('renderer should not spawn')\n", encoding="utf-8")
+    monkeypatch.setattr("worker.process_manager.shutil.which", lambda _: sys.executable)
+    with pytest.raises(ValueError, match="final render does not accept"):
+        render(tmp_path, tmp_path / "input.json", tmp_path / "final.mp4", tmp_path / "cover.png",
+               "final", 10, lambda: False, lambda _: None, frame_range=(0, 30))
+    for frame_range in [(30, 30), (-1, 30), (1.5, 30), (True, 30)]:
+        with pytest.raises(ValueError, match="frame_range"):
+            render(tmp_path, tmp_path / "input.json", tmp_path / "preview.mp4", tmp_path / "cover.png",
+                   "preview", 10, lambda: False, lambda _: None, frame_range=frame_range)
+
+
 def windows_process_alive(process_id):
     kernel = ctypes.WinDLL("kernel32", use_last_error=True)
     kernel.OpenProcess.argtypes = [ctypes.c_ulong, ctypes.c_int, ctypes.c_ulong]

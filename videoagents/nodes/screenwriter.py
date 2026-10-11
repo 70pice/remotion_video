@@ -39,8 +39,8 @@ SOURCE_DIGEST = re.compile(r"^[a-f0-9]{64}$")
 
 # 人工审核选择“返工”后，意见保存在 state.extras.human_feedback 中；stage_feedback
 # 只取有备注且尚未应用的意见。这里的 feedback 是人工返工意见，不是机器文案审查的 critique。
-# 成片审核通常交导演处理；仅当目标是编剧，或备注明确要求修改旁白文案时，
-# 才优先把 render 阶段的意见交给编剧。其他情况读取 script 阶段的人工意见。
+# 成片审核和导演 Demo 审核通常交导演处理；仅当目标是编剧，或备注明确要求修改旁白文案时，
+# 才优先把对应阶段的意见交给编剧。其他情况读取 script 阶段的人工意见。
 # 返回 (意见所属阶段, 意见内容)；没有适用意见时返回 ("script", None)。
 # 阶段名供调用方在处理后标记对应意见已应用，避免续跑时重复改稿。
 def active_script_feedback(state: VideoState) -> tuple[str, dict[str, Any] | None]:
@@ -51,6 +51,12 @@ def active_script_feedback(state: VideoState) -> tuple[str, dict[str, Any] | Non
         or needs_script_revision(str(render_feedback.get("note", "")))
     ):
         return "render", render_feedback
+    director_feedback = stage_feedback(state, "director")
+    if director_feedback and (
+        director_feedback.get("target") == "screenwriter"
+        or needs_script_revision(str(director_feedback.get("note", "")))
+    ):
+        return "director", director_feedback
     return "script", stage_feedback(state, "script")
 
 

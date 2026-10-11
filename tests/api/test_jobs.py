@@ -36,6 +36,30 @@ def create(client):
     return response.json()
 
 
+def test_draft_can_select_production_set_and_expand_layout_without_sample_route(client):
+    from videoagents.tools.component_sets import component_set_templates
+
+    job = create(client)
+    template = component_set_templates()["B01"]
+    timeline = {"job_id": job["job_id"], "revision": job["revision"], "width": 1080, "height": 1920,
+                "fps": 30, "duration_in_frames": 720, "shots": [{
+                    "shot_id": "set-shot", "start_frame": 0, "end_frame": 720,
+                    "component_id": template["main_component_id"], "title": "先确认三件事", "body": "按这三个问题逐项核对。",
+                    "set_design": {"set_id": "B01", "content": {
+                        "takeaway": "先核实再继续", "items": ["身份", "来源", "收费"],
+                        "metric": {"label": "核对问题", "value": "3项"},
+                    }},
+                }]}
+    response = client.patch(f"/api/jobs/{job['job_id']}/draft",
+                            json={"base_revision": job["revision"], "timeline": timeline})
+    assert response.status_code == 200, response.text
+    result = response.json()["timeline"]
+    assert result.get("presentation", "production") == "production"
+    assert result["shots"][0]["set_design"]["set_id"] == "B01"
+    assert len(result["shots"][0]["set_design"]["parts"]) == len(template["parts"])
+    assert "component_set" not in result["shots"][0]["props"]
+
+
 def test_session_csrf_and_cross_origin_before_mutation(client):
     assert client.post("/api/jobs", headers={"X-CSRF-Token": ""}, json={"topic": "test"}).status_code == 403
     assert client.post("/api/jobs", headers={"Origin": "https://untrusted.example"}, json={"topic": "test"}).status_code == 403

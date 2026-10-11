@@ -31,7 +31,7 @@ def terminate_tree(process: subprocess.Popen) -> None:
 
 
 def render(project_root: Path, timeline: Path, output: Path, cover: Path, mode: str, timeout: int,
-           cancelled, progress) -> dict:
+           cancelled, progress, frame_range: tuple[int, int] | None = None) -> dict:
     node = shutil.which("node")
     if not node:
         raise ValueError("Node.js 未安装")
@@ -39,6 +39,13 @@ def render(project_root: Path, timeline: Path, output: Path, cover: Path, mode: 
     if not script.is_file():
         raise ValueError("Remotion 渲染入口尚未就绪")
     command = [node, str(script), "--timeline", str(timeline), "--output", str(output), "--mode", mode, "--cover", str(cover)]
+    if frame_range is not None:
+        if mode != "preview":
+            raise ValueError("final render does not accept a frame range")
+        start_frame, end_frame = frame_range
+        if type(start_frame) is not int or type(end_frame) is not int or start_frame < 0 or end_frame <= start_frame:
+            raise ValueError("frame_range must be a nonempty half-open frame interval")
+        command.extend(["--start-frame", str(start_frame), "--end-frame", str(end_frame)])
     job = WindowsJob()
     try:
         process = subprocess.Popen(command, cwd=project_root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,

@@ -158,3 +158,55 @@ def test_editing_model_receives_renderable_visual_metadata_without_audio_alignme
     assert "captions" not in context["timeline"]
     assert repo.get_job(job.job_id).script.model_dump() == original_script
     assert repo.get_job(job.job_id).timeline.model_dump() == original_timeline
+
+
+def test_editing_guidance_records_the_actual_instruction_and_frozen_inputs(tmp_path, monkeypatch):
+    from videoagents.nodes.editing import editing_instruction_fingerprint
+    from videoagents.nodes.reviewers import dependency_fingerprint
+
+    repo = Repository(tmp_path / "runtime")
+    service = JobService(repo, tmp_path / "project")
+    job = repo.create_job(Brief(topic="UNIT", width=240, height=426, fps=15))
+    job = repo.update_job(job.job_id, timeline=Timeline(job_id=job.job_id, revision=job.revision,
+        width=240, height=426, fps=15, duration_in_frames=30,
+        shots=[{"shot_id": "shot", "start_frame": 0, "end_frame": 30, "component_id": "title", "title": "UNIT"}]))
+    node = EditingNode(repo, service)
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+    monkeypatch.setattr(node.model, "invoke", lambda *args, **kwargs: {
+        "pacing_notes": [], "layout_notes": [], "findings": [
+            {"severity": "error", "owner": "editing", "blocking": True, "message": "UNIT：不渲染"}]})
+    with pytest.raises(ValueError, match="剪辑模型预检未通过"):
+        node.render_video(job, "final")
+    artifact = next(a for a in repo.get_job(job.job_id).artifacts if a.kind == "editing_guidance")
+    assert repo.artifact_metadata(artifact.artifact_id) == {
+        "instruction_fingerprint": editing_instruction_fingerprint(job),
+        "dependency_fingerprint": dependency_fingerprint(job),
+    }
+
+
+def test_editing_prompt_includes_selected_kit_bindings_and_actual_layer_roles(tmp_path):
+    import json
+
+    from videoagents.nodes.editing import editing_prompt
+    from videoagents.tools.component_sets import allowed_component_set_templates
+    from videoagents.tools.components import native_component_capabilities
+
+    repo = Repository(tmp_path / "runtime")
+    job = repo.create_job(Brief(topic="UNIT", usage="personal"))
+    template = allowed_component_set_templates(job.brief.usage)["A12"]
+    job = repo.update_job(job.job_id, timeline=Timeline(job_id=job.job_id, revision=job.revision,
+        width=1080, height=1920, fps=30, duration_in_frames=180, shots=[
+            {"shot_id": "set", "start_frame": 0, "end_frame": 90,
+             "component_id": template["main_component_id"], "title": "本期标题",
+             "set_design": {"set_id": "A12", "content": {"takeaway": "本期结论"}}},
+            {"shot_id": "layer", "start_frame": 90, "end_frame": 180, "component_id": "title",
+             "title": "持续标题", "layers": [{"component_id": "Snapcn-TextReveal", "role": "title",
+                 "start_frame": 0, "end_frame": 90, "title": "实际强调"}]}]))
+    prompt = editing_prompt(job)
+    capabilities = json.loads(prompt.rsplit("\n", 1)[1])
+    assert capabilities["component_sets"] == [template]
+    assert capabilities["layer_roles"] == {
+        "Snapcn-TextReveal": sorted(native_component_capabilities()["layer_roles"]["Snapcn-TextReveal"])}
+    assert "本期标题" not in prompt and "本期结论" not in prompt
+    assert "shot.layers" in prompt and "shot.set_design" in prompt
+    assert "不是 layers 或 parts" in prompt

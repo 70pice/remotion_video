@@ -5,8 +5,13 @@ import json
 
 import pytest
 
-from videoagents.contracts import Alignment, Asset, Brief, Script, ScriptSegment, Timeline
-from videoagents.nodes.director import COMPONENT_PROPS_EXAMPLES, PROMPT, DirectorNode
+from videoagents.contracts import Alignment, Asset, Brief, Script, ScriptSegment, Shot, Timeline
+from videoagents.nodes.director import (
+    COMPONENT_PROPS_EXAMPLES,
+    DirectorNode,
+    director_prompt,
+    load_current_director_plan,
+)
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState, job_context
 from videoagents.storage import Repository
@@ -17,6 +22,35 @@ from videoagents.tools.timeline import (
     validate_media_coverage,
     validate_timeline,
 )
+
+
+def test_shot_media_usage_schema_defaults_and_context_example_serialization():
+    legacy = Shot(shot_id="legacy", start_frame=0, end_frame=30, component_id="title", title="旧镜头")
+
+    assert legacy.media_usage == "source_evidence"
+    assert "media_usage" not in legacy.model_dump(mode="json")
+    schema = Shot.model_json_schema()
+    assert schema["properties"]["media_usage"]["default"] == "source_evidence"
+    assert schema["properties"]["media_usage"]["enum"] == ["source_evidence", "context_example"]
+
+    example = Shot(
+        shot_id="scene",
+        start_frame=0,
+        end_frame=30,
+        component_id="image_focus",
+        title="另案充值界面",
+        source_label="另案示例｜thepaper.cn｜浦东警方供图",
+        media_usage="context_example",
+    )
+    assert example.model_dump(mode="json")["media_usage"] == "context_example"
+
+    with pytest.raises(ValueError, match="另案示例不能使用 evidence 组件"):
+        Shot(shot_id="bad", start_frame=0, end_frame=30, component_id="evidence",
+             title="误当证据", source_label="另案示例｜thepaper.cn｜浦东警方供图",
+             media_usage="context_example")
+    with pytest.raises(ValueError, match="另案示例必须在 source_label 中包含来源域名"):
+        Shot(shot_id="bad-label", start_frame=0, end_frame=30, component_id="image_focus",
+             title="缺少域名", source_label="另案示例｜央视财经", media_usage="context_example")
 
 
 def valid_study(usage="unspecified", **overrides):
@@ -87,7 +121,7 @@ def with_license(job, repo, **notes):
     return repo.update_job(job.job_id, job.revision, assets=assets)
 
 
-def test_director_returns_only_shots_and_keeps_provider_alignment_in_code(tmp_path, monkeypatch):
+def test_director_returns_shots_and_review_plan_schema_while_keeping_provider_alignment_in_code(tmp_path, monkeypatch):
     node, job, audio, alignment = director_job(tmp_path)
     state = VideoState(**job_context(job), run_id="unit-compact-director",
         asset_metadata={audio.asset_id: {"duration_seconds": 2.0, "alignment": alignment.model_dump()},
@@ -97,7 +131,8 @@ def test_director_returns_only_shots_and_keeps_provider_alignment_in_code(tmp_pa
     monkeypatch.setattr(node.model, "available", lambda role: True)
 
     def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
-        assert set(output_schema["properties"]) == {"shots"}
+        assert set(output_schema["properties"]) == {"shots", "segment_performances", "demo"}
+        assert output_schema["properties"]["demo"]["anyOf"][0]["$ref"] == "#/$defs/DirectorDemo"
         assert "alignment" not in context["asset_metadata"][audio.asset_id]
         assert context["timeline"]["captions"][0]["end_ms"] == 1800.0
         return {"shots": context["timeline"]["shots"]}
@@ -180,12 +215,22 @@ def test_director_node_uses_single_timeline_call_and_no_component_study_handoff(
     def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
         calls.append(command_id)
         assert "reviewed_preset_ids" not in json.dumps(output_schema or {})
-        return {"shots": context["timeline"]["shots"]}
+        assert set(output_schema["required"]) == {"shots", "segment_performances", "demo"}
+        return {
+            "shots": context["timeline"]["shots"],
+            "segment_performances": [{
+                "segment_id": "s1",
+                "shot_ids": [context["timeline"]["shots"][0]["shot_id"]],
+                "component_reason": "节点级生产必须返回导演方案。",
+                "visual_action": "沿用基线镜头检查旁白与画面对应关系。",
+            }],
+            "demo": {"start_frame": 0, "end_frame": 30, "reason": "默认前 30 秒导演 Demo。"},
+        }
 
     monkeypatch.setattr(node.model, "call", model)
     result = node(state)
     saved = node.repo.get_job(job.job_id)
-    assert result["route"] == "editing"
+    assert result["route"] == "director_demo"
     assert {item.kind for item in saved.artifacts} >= {"storyboard", "timeline"}
     assert "component_study" not in {item.kind for item in saved.artifacts}
     assert "component_study" not in result.get("extras", {})
@@ -195,6 +240,153 @@ def test_director_node_uses_single_timeline_call_and_no_component_study_handoff(
     # Re-entering this revision returns the committed timeline without a model call.
     node.plan(saved, audio, alignment, 2.0, state=result)
     assert calls == ["unit-director-single-call:timeline"]
+
+
+def test_director_node_persists_reviewable_plan_with_demo_and_fingerprint(tmp_path, monkeypatch):
+    node, job, audio, alignment = director_job(tmp_path)
+    node.repo.update_asset_metadata(audio.asset_id, {
+        "duration_seconds": 2.0, "alignment": alignment.model_dump(), "origin": "manual",
+    })
+    state = VideoState(**job_context(job), run_id="unit-director-plan",
+                       thread_id="unit-director-plan", action="produce", extras={})
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+
+    def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        assert "segment_performances" in instruction and "demo" in instruction
+        return {
+            "shots": context["timeline"]["shots"],
+            "segment_performances": [{
+                "segment_id": "s1",
+                "shot_ids": [context["timeline"]["shots"][0]["shot_id"]],
+                "component_reason": "用真实图片镜头承接开头案例，便于人工审核是否贴合旁白。",
+                "visual_action": "镜头展示来源截图并随旁白停留，不修改音频字幕。",
+            }],
+            "demo": {"start_frame": 0, "end_frame": 30, "reason": "默认前 30 秒导演 Demo。"},
+        }
+
+    monkeypatch.setattr(node.model, "call", model)
+    result = node(state)
+    saved = node.repo.get_job(job.job_id)
+    plan = load_current_director_plan(node.repo, saved)
+
+    assert result["route"] == "director_demo"
+    assert result["director_plan"] == plan
+    assert plan is not None
+    assert plan["job_id"] == job.job_id and plan["revision"] == job.revision
+    assert plan["shots"] == [shot.model_dump(mode="json") for shot in saved.timeline.shots]
+    assert plan["segment_performances"][0]["segment_id"] == "s1"
+    assert plan["segment_performances"][0]["shot_ids"] == ["shot-1"]
+    assert plan["demo"] == {"start_frame": 0, "end_frame": 30, "reason": "默认前 30 秒导演 Demo。"}
+
+    stale = saved.model_copy(update={"timeline": saved.timeline.model_copy(update={"duration_in_frames": 31})})
+    assert load_current_director_plan(node.repo, stale) is None
+
+
+def test_director_node_requires_model_review_plan_before_editing(tmp_path, monkeypatch):
+    node, job, audio, alignment = director_job(tmp_path)
+    node.repo.update_asset_metadata(audio.asset_id, {
+        "duration_seconds": 2.0, "alignment": alignment.model_dump(), "origin": "manual",
+    })
+    state = VideoState(**job_context(job), run_id="unit-director-missing-plan",
+                       thread_id="unit-director-missing-plan", action="produce", extras={})
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+    monkeypatch.setattr(node.model, "call",
+                        lambda job_id, revision, role, instruction, context, command_id="", output_schema=None:
+                        {"shots": context["timeline"]["shots"]})
+
+    result = node(state)
+
+    assert result["route"] == "await_input"
+    assert "必须输出 segment_performances 和 demo" in result["pending_input"]["issues"][0]
+    assert node.repo.get_job(job.job_id).timeline is None
+
+
+def test_director_rejects_demo_longer_than_thirty_seconds(tmp_path, monkeypatch):
+    node, job, audio, alignment = director_job(tmp_path)
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+
+    def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        shot = dict(context["timeline"]["shots"][0], end_frame=600)
+        return {
+            "shots": [shot],
+            "segment_performances": [{
+                "segment_id": "s1",
+                "shot_ids": [shot["shot_id"]],
+                "component_reason": "测试超长 Demo 被拒绝。",
+                "visual_action": "测试镜头。",
+            }],
+            "demo": {"start_frame": 0, "end_frame": 31 * job.brief.fps, "reason": "故意超过 30 秒。"},
+        }
+
+    monkeypatch.setattr(node.model, "call", model)
+
+    with pytest.raises(ValueError, match="不超过 30 秒"):
+        node.plan(job, audio, alignment, 40.0)
+
+
+def two_segment_job(tmp_path):
+    node, job, audio, _ = director_job(tmp_path, image=False)
+    script = Script(title="两段内容", origin="user", revision=job.revision, segments=[
+        ScriptSegment(segment_id="s1", narration="第一段。"),
+        ScriptSegment(segment_id="s2", narration="第二段。"),
+    ])
+    job = node.repo.update_job(job.job_id, job.revision, script=script)
+    alignment = Alignment(origin="manual", verified=True, audio_sha256=audio.sha256, segments=[
+        {"segment_id": "s1", "text": "第一", "start_ms": 0.0, "end_ms": 1200.0},
+        {"segment_id": "s1", "text": "段。", "start_ms": 1200.0, "end_ms": 2000.0},
+        {"segment_id": "s2", "text": "第二段。", "start_ms": 2000.0, "end_ms": 4000.0},
+    ])
+    return node, job, audio, alignment
+
+
+def test_director_review_plan_must_cover_each_script_segment(tmp_path, monkeypatch):
+    node, job, audio, alignment = two_segment_job(tmp_path)
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+
+    def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        return {
+            "shots": context["timeline"]["shots"],
+            "segment_performances": [{
+                "segment_id": "s1",
+                "shot_ids": ["shot-1"],
+                "component_reason": "只覆盖第一段。",
+                "visual_action": "只说明第一段。",
+            }],
+            "demo": {"start_frame": 0, "end_frame": 60, "reason": "前 30 秒以内。"},
+        }
+
+    monkeypatch.setattr(node.model, "call", model)
+    with pytest.raises(ValueError, match="一一对应"):
+        node.plan(job, audio, alignment, 4.0)
+
+
+def test_director_review_plan_shots_must_intersect_measured_segment_window(tmp_path, monkeypatch):
+    node, job, audio, alignment = two_segment_job(tmp_path)
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+
+    def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        return {
+            "shots": context["timeline"]["shots"],
+            "segment_performances": [
+                {
+                    "segment_id": "s1",
+                    "shot_ids": ["shot-1"],
+                    "component_reason": "第一段对应第一镜。",
+                    "visual_action": "第一段展示第一镜。",
+                },
+                {
+                    "segment_id": "s2",
+                    "shot_ids": ["shot-1"],
+                    "component_reason": "故意引用不相交镜头。",
+                    "visual_action": "故意引用不相交镜头。",
+                },
+            ],
+            "demo": {"start_frame": 0, "end_frame": 60, "reason": "前 30 秒以内。"},
+        }
+
+    monkeypatch.setattr(node.model, "call", model)
+    with pytest.raises(ValueError, match="未覆盖实测段落窗口"):
+        node.plan(job, audio, alignment, 4.0)
 
 
 @pytest.mark.parametrize("image", [False, True])
@@ -214,7 +406,7 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
 
     assert len(calls) == 1
     instruction, context, schema = calls[0]
-    assert instruction.startswith(PROMPT)
+    assert instruction.startswith(director_prompt(job.brief.usage))
     assert ("本次提交的硬约束" in instruction) is image
     assert set(context) == {"brief", "script", "timeline", "research", "assets", "asset_metadata", "extras"}
     assert "component_study" not in context["extras"]
@@ -223,6 +415,10 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
     assert "component_props_examples" not in context
     expected = [asset.timeline_src for asset in job.assets if asset.mime_type.startswith("image/")] + [None]
     assert schema["$defs"]["Shot"]["properties"]["asset_src"]["enum"] == expected
+    media_usage = schema["$defs"]["Shot"]["properties"]["media_usage"]
+    assert media_usage["default"] == "source_evidence"
+    assert media_usage["enum"] == ["source_evidence", "context_example"]
+    assert "media_usage" not in context["timeline"]["shots"][0]
     components = schema["$defs"]["Shot"]["properties"]["component_id"]["enum"]
     assert len(components) == 196
     assert "video" in components
@@ -253,7 +449,12 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
         "image_focus 仅可选 focal_x/focal_y/crop",
         "x + width <= 1 且 y + height <= 1", "width/height 必须大于0", "所有文字字段必须非空",
         "title 最多100字、body 最多240字、source_label 最多160字",
+        "media_usage 只能是", "context_example", "另案示例", "thepaper.cn",
+        "不允许使用 evidence 组件", "不得凭额外标识引入任意无关素材",
+        "不得默认只选择静态报告截图开场",
         "eligible_capacity_ratio", "actual_media_ratio", "超过 70%",
+        "带当前任务", "语义匹配的社区组件", "不能为凑组件比例使用无关社区预设",
+        "segment_performances", "默认取前 30 秒", "不能裁剪原 timeline",
         "占当前可用内容区约 70%～85%", "跨入无关联段落",
     ]:
         assert requirement in instruction
