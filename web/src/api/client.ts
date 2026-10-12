@@ -119,7 +119,7 @@ export const api = {
         idempotency_key: key,
       }),
     }),
-  resume: (job: Job, decision: Decision, note: string, key: string) => {
+  resume: (job: Job, decision: Decision, note: string, key: string, reviewedShotIds?: string[]) => {
     const token = job.pending_input?.pending_token;
     if (typeof token !== "string" || !token)
       return Promise.reject(
@@ -133,6 +133,7 @@ export const api = {
         note,
         idempotency_key: key,
         pending_token: token,
+        ...(decision === "confirm" && reviewedShotIds ? { reviewed_shot_ids: reviewedShotIds } : {}),
       }),
     });
   },

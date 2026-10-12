@@ -335,6 +335,43 @@ def test_draft_revision_invalidates_previous_release(client):
     assert response.json()["status"] == "DRAFT"
 
 
+@pytest.mark.parametrize("change", ["draft", "asset"])
+def test_input_changes_remove_per_shot_review_outputs(client, change):
+    job = create(client)
+    repo, service = client.app.state.repository, client.app.state.service
+    service.write_json(repo.get_job(job["job_id"]), "shots.json", {}, "director_shot_review")
+    service.write_json(repo.get_job(job["job_id"]), "frame.json", {}, "shot_review_frame")
+    if change == "draft":
+        response = client.patch(f"/api/jobs/{job['job_id']}/draft", json={
+            "base_revision": 1, "brief": dict(job["brief"], topic="Changed topic"),
+        })
+        assert response.status_code == 200
+    else:
+        response = client.post(f"/api/jobs/{job['job_id']}/assets", data={"role": "audio"},
+                               files={"file": ("voice.wav", tone(), "audio/wav")})
+        assert response.status_code == 201
+    current = repo.get_job(job["job_id"])
+    assert not {"director_shot_review", "shot_review_frame"} & {a.kind for a in current.artifacts}
+
+
+@pytest.mark.parametrize("kind,stage,node", [
+    ("stage_review", "script", "human_review_script"),
+    ("input", "director", "director"),
+])
+def test_reviewed_shot_ids_cannot_confirm_another_stage(client, kind, stage, node):
+    job = create(client)
+    token = "d" * 32
+    client.app.state.repository.update_job(job["job_id"], job["revision"], status="NEEDS_HUMAN",
+        pending_input={"kind": kind, "stage": stage, "node_name": node,
+                       "pending_token": token, "thread_id": f"job:{job['job_id']}:run:unit"})
+    response = client.post(f"/api/jobs/{job['job_id']}/resume", json={
+        "base_revision": job["revision"], "decision": "confirm", "note": "All reviewed",
+        "idempotency_key": "reviewed-shots-wrong-stage", "pending_token": token,
+        "reviewed_shot_ids": ["s1"],
+    })
+    assert response.status_code == 409
+
+
 def test_artifact_id_cannot_traverse_local_files(client):
     assert client.get("/api/artifacts/does-not-exist").status_code == 404
     assert client.get("/api/artifacts/%2e%2e%2fsettings.json").status_code == 404

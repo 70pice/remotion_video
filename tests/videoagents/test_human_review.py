@@ -49,6 +49,9 @@ def director_model_response(context, shots):
             "component_reason": "UNIT TEST：导演说明组件如何承接口播。",
             "visual_action": "UNIT TEST：导演说明本段画面如何表演。",
         }],
+        "shot_reviews": [{"shot_id": shot["shot_id"], "review_frame": shot["start_frame"],
+                          "component_reason": "UNIT TEST：说明逐镜选择理由。",
+                          "visual_action": "UNIT TEST：查看当前镜头的稳定画面。"} for shot in shots],
         "demo": {
             "start_frame": 0,
             "end_frame": max(1, min(duration, fps * 30)),
@@ -877,7 +880,7 @@ def test_director_feedback_replay_after_sql_before_applied_receipt_does_not_call
         alignment=alignment.model_dump(), duration_seconds=1.0, extras={"human_feedback": feedback}))
     result = DirectorNode(repo, service)(replay)
     assert calls == [old_timeline.shots[0].body]
-    assert result["route"] == "end"
+    assert result["route"] == "director_demo"
     current = repo.get_job(job.job_id)
     assert current.timeline.shots[0].body == "观点：新分镜画面。"
     assert any(item.kind == "human_feedback_applied" for item in current.artifacts)

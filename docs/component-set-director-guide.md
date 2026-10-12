@@ -18,7 +18,7 @@
 4. 只有 metadata.focus_supported=true 的套件可传 `focus_steps/source_size`，当前是 A03、A05、A06、A09；其他套件用 parts 的 `start_frame/end_frame` 与 safe-area `box` 调整表达。
 5. 为每个固定 part 设置本地起止帧和 safe_area 归一化 box。box 的 x/y/width/height 均在 safe_area {x:64,y:96,width:952,height:1304} 内归一化，换算到画布后下沿不超过 y=1400。
 6. 镜头和 part 时长由实测 captions、阅读时间和素材可读性决定；不照搬样片 12–20 秒，不强制每 2–3 秒切套，也不设置硬性数量配额。
-7. 经任务 API / Worker / VideoProductionGraph 生成不超过30秒的 director Demo MP4，停在 `director_human_gate` 等人工审核；审核通过后才进入 editing。Demo 待审时不能声称完整成片已渲染；完整剪辑实际完成后以 `DRAFT / complete` 交付成片，由用户决定是否发布。
+7. 经任务 API / Worker / VideoProductionGraph 为所有镜头生成真实 Remotion PNG，逐镜列清组件或组件套及实际成员，停在 `director_human_gate` 等人工审阅全部镜头并确认；审核通过后才进入 editing。审核图片就绪不等于完整成片已渲染；完整剪辑实际完成后以 `DRAFT / complete` 交付成片，由用户决定是否发布。详见 [导演逐镜审核](director-shot-review.md)。独立 `component_demo` 样片保留原有视频回放。
 
 底层组件参数和允许角色见 [组件知识库](knowledge/remotion-shot-library.md)、`videoagents/native-component-capabilities.json` 与导演当次输出 schema。共享套件名称、main_component_id、固定 part、默认 box、默认 start/end ratio、material_kind、focus_supported 和 safe_area 由现有 `videoagents/component-set-capabilities.json` 提供；本文档记录使用规则，不复制默认布局数值。
 

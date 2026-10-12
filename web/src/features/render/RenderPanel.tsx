@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../../api/client";
 import type { Job, RunAction } from "../../api/types";
+import type { DirectorShotReviewManifest, DirectorShotReviewSpec } from "../../../../contracts/generated/models";
 import { Empty, formatBytes, Notice } from "../../components/ui";
+import { latestShotReviewManifest, validateDirectorShotReview } from "../review/directorShotReview";
 
 export interface SeekTarget {
   seconds: number;
@@ -28,9 +30,10 @@ export function RenderPanel({
     videos.find((artifact) => artifact.artifact_id === selected) ??
     videos.at(-1);
   const currentVideo = video?.revision === job.revision;
-  const approval = useDirectorDemoApproval(job);
-  const directorDemoApproved = approval.status === "confirmed";
-  const finalRenderBlocked = Boolean(job.timeline) && !directorDemoApproved;
+  const approval = useDirectorApproval(job);
+  const directorApproved = approval.status === "confirmed";
+  const legacyDemo = usesLegacyDemo(job);
+  const finalRenderBlocked = Boolean(job.timeline) && !directorApproved;
   useEffect(() => {
     if (
       videos.length &&
@@ -59,7 +62,7 @@ export function RenderPanel({
       <div className="section-heading">
         <div>
           <h2>剪辑与交付</h2>
-          <p>先确认导演方案和 30 秒 Demo，再渲染完整成片。</p>
+          <p>{legacyDemo ? "先确认导演方案和 Demo，再渲染完整成片。" : "逐一审阅每个镜头的组件选择和实际图片，整套方案通过后再渲染完整成片。"}</p>
         </div>
         <div className="button-row">
           <button
@@ -67,11 +70,11 @@ export function RenderPanel({
             disabled={locked || !job.timeline}
             onClick={() => run("preview")}
           >
-            生成/更新30秒Demo
+            {legacyDemo ? "生成/更新Demo" : "生成/更新逐镜审核图"}
           </button>
           <button
             className="button primary"
-            disabled={locked || !job.timeline || !directorDemoApproved}
+            disabled={locked || !job.timeline || !directorApproved}
             title={
               finalRenderBlocked
                 ? approval.message
@@ -85,7 +88,7 @@ export function RenderPanel({
       </div>
       {finalRenderBlocked && (
         <Notice tone="error">
-          {approval.message} 后端仍会在渲染前复核当前导演方案与 Demo 是否匹配。
+          {approval.message} 后端会在渲染前复核当前导演方案和{legacyDemo ? " Demo" : "全部镜头审核图片"}是否与审批记录匹配。
         </Notice>
       )}
       {job.stage === "render" && ["RUNNING", "QUEUED"].includes(job.status) && (
@@ -153,7 +156,7 @@ export function RenderPanel({
         </div>
       ) : (
         <Empty title="成片将在这里出现">
-          完成分镜后点击「生成预览」，画面会由 Remotion 实际渲染。
+          {legacyDemo ? "完成分镜后点击「生成/更新Demo」，画面会由 Remotion 实际渲染。" : "完整成片会在逐镜审核通过后出现；每个镜头的 PNG 审核图在导演阶段查看。"}
         </Empty>
       )}
       {currentArtifacts.length > 0 && (
@@ -188,6 +191,15 @@ interface DirectorReviewReceipt {
   stage?: unknown;
   decision?: unknown;
   revision?: unknown;
+  review_mode?: unknown;
+  director_shot_review_artifact_id?: unknown;
+  reviewed_shot_ids?: unknown;
+  subject?: {
+    director_shot_review?: DirectorShotReviewManifest;
+    director_plan?: { review_mode?: string; timeline_fingerprint?: string; shot_reviews?: DirectorShotReviewSpec[] };
+    timeline?: unknown;
+    script?: unknown;
+  };
 }
 
 interface DirectorApprovalState {
@@ -203,6 +215,8 @@ function directorApprovalKey(job: Job): string {
     String(job.pending_input?.pending_token ?? ""),
     artifactIdentity(latestRevisionArtifact(job, "director_plan")),
     artifactIdentity(latestRevisionVideo(job, ["preview"])),
+    artifactIdentity(latestShotReviewManifest(job)),
+    ...job.artifacts.filter((artifact) => artifact.revision === job.revision && artifact.kind === "shot_review_frame").map(artifactIdentity),
     timelineIdentity(job),
     ...stageReviewArtifacts(job).map(artifactIdentity),
   ].join("|");
@@ -239,24 +253,7 @@ function artifactIdentity(artifact?: Job["artifacts"][number]): string {
 function timelineIdentity(job: Job): string {
   const timeline = job.timeline;
   if (!timeline) return "no-timeline";
-  return [
-    timeline.revision,
-    timeline.fps,
-    timeline.duration_in_frames,
-    timeline.width,
-    timeline.height,
-    timeline.shots
-      .map((shot) =>
-        [
-          shot.shot_id,
-          shot.start_frame,
-          shot.end_frame,
-          shot.component_id,
-          shot.asset_src ?? "",
-        ].join("@"),
-      )
-      .join(";"),
-  ].join(":");
+  return JSON.stringify({ timeline, script: job.script, assets: job.assets, brief: job.brief });
 }
 
 function stageReviewArtifacts(job: Job) {
@@ -299,50 +296,90 @@ export function resolveDirectorDemoApproval(
   return "blocked";
 }
 
-function approvalMessage(status: DirectorApprovalStatus): string {
-  if (status === "loading")
-    return "正在读取当前版本的导演 Demo 审核记录，读取完成前不会开始完整成片渲染。";
-  if (status === "error")
-    return "导演 Demo 审核记录读取失败，请刷新后再试；读取失败时不会开始完整成片渲染。";
-  return "当前版本还没有通过「导演表演与30秒Demo审核」。请先生成/查看 Demo，并在阶段审核中确认通过；确认前不会开始完整成片渲染。";
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value !== null && typeof value === "object")
+    return `{${Object.entries(value).sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => `${JSON.stringify(key)}:${canonicalJson(entry)}`).join(",")}}`;
+  return JSON.stringify(value) ?? "undefined";
 }
 
-function useDirectorDemoApproval(job: Job): DirectorApprovalState {
+export function resolveDirectorShotReviewApproval(
+  job: Job,
+  receipts: DirectorReviewReceipt[],
+  manifest: DirectorShotReviewManifest | null,
+): DirectorApprovalStatus {
+  if (isPendingDirectorGate(job)) return "blocked";
+  const artifact = latestShotReviewManifest(job);
+  const plan = latestRevisionArtifact(job, "director_plan");
+  const receipt = [...receipts].reverse().find((item) => item.node_name === "director_human_gate");
+  if (!receipt || !artifact || !manifest || !confirmedDirectorReceipt(job, receipt) ||
+      receipt.review_mode !== "per_shot_stills" || receipt.director_shot_review_artifact_id !== artifact.artifact_id ||
+      receipt.subject?.director_plan?.review_mode !== "per_shot_stills" ||
+      validateDirectorShotReview(job, manifest, plan, receipt.subject.director_plan) !== null)
+    return "blocked";
+  const expectedIds = manifest.items.map((item) => item.shot_id);
+  if (canonicalJson(receipt.reviewed_shot_ids) !== canonicalJson(expectedIds) ||
+      canonicalJson(receipt.subject.director_shot_review) !== canonicalJson(manifest) ||
+      canonicalJson(receipt.subject.timeline) !== canonicalJson(job.timeline) ||
+      canonicalJson(receipt.subject.script) !== canonicalJson(job.script)) return "blocked";
+  return "confirmed";
+}
+
+function usesLegacyDemo(job: Job): boolean {
+  return job.timeline?.presentation === "component_sample" ||
+    (!latestShotReviewManifest(job) && Boolean(latestRevisionVideo(job, ["preview"])));
+}
+
+function approvalMessage(status: DirectorApprovalStatus, legacyDemo: boolean): string {
+  const label = legacyDemo ? "导演 Demo" : "导演逐镜画面";
+  if (status === "loading")
+    return `正在读取当前版本的${label}审核记录，读取完成前不会开始完整成片渲染。`;
+  if (status === "error")
+    return `${label}审核记录读取失败，请刷新后再试；读取失败时不会开始完整成片渲染。`;
+  return legacyDemo
+    ? "当前版本还没有通过「导演表演与30秒Demo审核」。请先生成/查看 Demo，并在阶段审核中确认通过；确认前不会开始完整成片渲染。"
+    : "当前版本还没有通过「导演逐镜组件与画面审核」。请逐一查看所有镜头图片并确认整套方案；确认前不会开始完整成片渲染。";
+}
+
+function useDirectorApproval(job: Job): DirectorApprovalState {
   const key = directorApprovalKey(job);
   const artifacts = stageReviewArtifacts(job);
+  const legacyDemo = usesLegacyDemo(job);
+  const manifestArtifact = latestShotReviewManifest(job);
   const initialStatus: DirectorApprovalStatus =
     isPendingDirectorGate(job) || artifacts.length === 0 ? "blocked" : "loading";
   const [state, setState] = useState<DirectorApprovalState>({
     key,
     status: initialStatus,
-    message: approvalMessage(initialStatus),
+    message: approvalMessage(initialStatus, legacyDemo),
   });
   const current =
     state.key === key
       ? state
-      : { key, status: initialStatus, message: approvalMessage(initialStatus) };
+      : { key, status: initialStatus, message: approvalMessage(initialStatus, legacyDemo) };
 
   useEffect(() => {
     let cancelled = false;
     if (isPendingDirectorGate(job) || artifacts.length === 0) {
       const status: DirectorApprovalStatus = "blocked";
-      setState({ key, status, message: approvalMessage(status) });
+      setState({ key, status, message: approvalMessage(status, legacyDemo) });
       return;
     }
-    setState({ key, status: "loading", message: approvalMessage("loading") });
-    void Promise.all(
-      artifacts.map((artifact) =>
+    setState({ key, status: "loading", message: approvalMessage("loading", legacyDemo) });
+    void Promise.all([
+      Promise.all(artifacts.map((artifact) =>
         api.artifactJson<DirectorReviewReceipt>(artifact.url),
-      ),
-    )
-      .then((receipts) => {
+      )),
+      !legacyDemo && manifestArtifact ? api.artifactJson<DirectorShotReviewManifest>(manifestArtifact.url) : Promise.resolve(null),
+    ]).then(([receipts, manifest]) => {
         if (cancelled) return;
-        const status = resolveDirectorDemoApproval(job, receipts);
-        setState({ key, status, message: approvalMessage(status) });
+        const status = legacyDemo ? resolveDirectorDemoApproval(job, receipts) : resolveDirectorShotReviewApproval(job, receipts, manifest);
+        setState({ key, status, message: approvalMessage(status, legacyDemo) });
       })
       .catch(() => {
         if (!cancelled)
-          setState({ key, status: "error", message: approvalMessage("error") });
+          setState({ key, status: "error", message: approvalMessage("error", legacyDemo) });
       });
     return () => {
       cancelled = true;

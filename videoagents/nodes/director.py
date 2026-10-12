@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from videoagents.contracts import Alignment, Asset, Caption, Job, Shot, Timeline
+from videoagents.contracts import Alignment, Asset, Caption, DirectorShotReviewSpec, Job, Shot, Timeline
 from videoagents.default_config import PROJECT_ROOT
 from videoagents.nodes.common import (
     DIRECTOR_VOICE_REVISION_ISSUE,
@@ -123,7 +123,8 @@ class DirectorPerformancePlan(BaseModel):
 
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False, strict=True)
     segment_performances: list[DirectorSegmentPerformance] = Field(min_length=1, max_length=500)
-    demo: DirectorDemo
+    demo: DirectorDemo | None = None
+    shot_reviews: list[DirectorShotReviewSpec] | None = Field(default=None, max_length=400)
 
 
 class DirectorPlan(BaseModel):
@@ -133,6 +134,7 @@ class DirectorPlan(BaseModel):
     shots: list[Shot] = Field(min_length=1, max_length=400)
     segment_performances: list[DirectorSegmentPerformance] | None = Field(default=None, max_length=500)
     demo: DirectorDemo | None = None
+    shot_reviews: list[DirectorShotReviewSpec] | None = Field(default=None, max_length=400)
 
     @model_validator(mode="after")
     def minimum_shot_length(self) -> "DirectorPlan":
@@ -317,7 +319,7 @@ def prompt_component_set_registry(path=COMPONENT_SET_REGISTRY_PATH) -> str:
 def _review_plan_body(plan: dict[str, Any] | None) -> dict[str, Any] | None:
     if not plan:
         return None
-    return {key: plan.get(key) for key in ("shots", "segment_performances", "demo")}
+    return {key: plan.get(key) for key in ("shots", "segment_performances", "review_mode", "shot_reviews", "demo")}
 
 
 def _validate_director_plan_payload(payload: dict[str, Any], job: Job, timeline: Timeline,
@@ -361,6 +363,17 @@ def _validate_director_plan_payload(payload: dict[str, Any], job: Job, timeline:
             raise ValueError("导演方案库组件使用统计不匹配当前时间轴")
         if required_components:
             validate_component_requirements(timeline, job.brief.usage, required_components)
+    review_mode = payload.get("review_mode")
+    if review_mode is not None:
+        if review_mode != "per_shot_stills" or timeline.presentation == "component_sample":
+            raise ValueError("导演审核模式与当前时间轴不一致")
+        reviews = [DirectorShotReviewSpec.model_validate(item) for item in payload.get("shot_reviews", [])]
+        if [item.shot_id for item in reviews] != [shot.shot_id for shot in timeline.shots]:
+            raise ValueError("导演逐镜审核设计必须按顺序覆盖每个镜头且不能重复")
+        for review, shot in zip(reviews, timeline.shots, strict=True):
+            if not shot.start_frame <= review.review_frame < shot.end_frame:
+                raise ValueError(f"导演逐镜审核代表帧必须落在镜头 {shot.shot_id} 内")
+        return
     demo = DirectorDemo.model_validate(payload.get("demo"))
     max_demo_frames = min(timeline.duration_in_frames, timeline.fps * MAX_DEMO_SECONDS)
     if demo.end_frame <= demo.start_frame:
@@ -373,7 +386,9 @@ def _validate_director_plan_payload(payload: dict[str, Any], job: Job, timeline:
 
 def _performance_payload(origin: str, job: Job, timeline: Timeline, alignment: Alignment,
                          segment_performances: list[DirectorSegmentPerformance] | None = None,
-                         demo: DirectorDemo | None = None) -> dict[str, Any]:
+                         demo: DirectorDemo | None = None, *,
+                         review_mode: str | None = None,
+                         shot_reviews: list[DirectorShotReviewSpec] | None = None) -> dict[str, Any]:
     if segment_performances is None:
         generated: list[DirectorSegmentPerformance] = []
         script_segments = job.script.segments if job.script else []
@@ -395,17 +410,10 @@ def _performance_payload(origin: str, job: Job, timeline: Timeline, alignment: A
             component_reason=f"{origin}: 无分段文案，只能按当前时间轴镜头生成审核方案。",
             visual_action="按当前时间轴连续审核画面与旁白对应关系。",
         )]
-    if demo is None:
+    if review_mode is None and demo is None:
         end_frame = min(timeline.duration_in_frames, timeline.fps * MAX_DEMO_SECONDS)
         demo = DirectorDemo(start_frame=0, end_frame=max(1, end_frame),
                             reason="默认使用原时间轴前 30 秒作为导演 Demo，不裁剪原 timeline。")
-    max_demo_frames = min(timeline.duration_in_frames, timeline.fps * MAX_DEMO_SECONDS)
-    if demo.end_frame <= demo.start_frame:
-        raise ValueError("导演 Demo 必须是连续时间区间")
-    if demo.end_frame > timeline.duration_in_frames:
-        raise ValueError("导演 Demo 超出当前时间轴")
-    if demo.end_frame - demo.start_frame > max_demo_frames:
-        raise ValueError("导演 Demo 必须是连续时间区间且不超过 30 秒")
     payload = {
         "job_id": job.job_id,
         "revision": job.revision,
@@ -413,11 +421,21 @@ def _performance_payload(origin: str, job: Job, timeline: Timeline, alignment: A
         "timeline_fingerprint": timeline_fingerprint(timeline),
         "shots": [shot.model_dump(mode="json") for shot in timeline.shots],
         "segment_performances": [item.model_dump(mode="json") for item in segment_performances],
-        "demo": demo.model_dump(mode="json"),
         "component_usage": component_requirement_usage(
             timeline, job.brief.usage, _required_library_components(job)
         ),
     }
+    if review_mode is not None:
+        if shot_reviews is None:
+            shot_reviews = [DirectorShotReviewSpec(
+                shot_id=shot.shot_id,
+                review_frame=min(shot.end_frame - 1, shot.start_frame + max(timeline.fps, (shot.end_frame - shot.start_frame) // 2)),
+                component_reason=f"{origin}: 使用 {shot.component_id} 承接本镜旁白。",
+                visual_action=shot.title or f"{origin}: 查看当前镜头稳定画面。",
+            ) for shot in timeline.shots]
+        payload.update(review_mode=review_mode, shot_reviews=[item.model_dump(mode="json") for item in shot_reviews])
+    elif demo is not None:
+        payload["demo"] = demo.model_dump(mode="json")
     _validate_director_plan_payload(payload, job, timeline, alignment)
     return payload
 
@@ -480,9 +498,9 @@ class DirectorNode:
             timeline = self.plan(job, audio, Alignment.model_validate(state["alignment"]), state["duration_seconds"],
                                  state.get("research", {}), state=state)
             if self._last_director_plan and self._last_director_plan.get("origin") == "model_missing_review_plan":
-                raise ValueError("导演模型必须输出 segment_performances 和 demo，不能只返回镜头后直接进入剪辑")
+                raise ValueError("导演模型必须输出 segment_performances 和 shot_reviews，不能只返回镜头后直接进入剪辑")
             director_plan = self._last_director_plan or _performance_payload(
-                "fallback", job, timeline, Alignment.model_validate(state["alignment"]))
+                "fallback", job, timeline, Alignment.model_validate(state["alignment"]), review_mode="per_shot_stills")
             if feedback and type(feedback.get("timeline")) is dict:
                 revised_timeline = timeline.model_dump(mode="json")
                 previous_timeline = feedback["timeline"]
@@ -494,7 +512,8 @@ class DirectorNode:
                 if same_timeline and same_plan:
                     raise ValueError("人工返工未产生分镜修改，请补充更明确的修改意见")
             stale = {"preview", "final", "cover", "captions", "review", "package", "storyboard",
-                     "timeline", "editing_guidance", "human_review", "component_study"}
+                     "timeline", "editing_guidance", "human_review", "component_study",
+                     "director_shot_review", "shot_review_frame"}
             stale.add("director_plan")
             # Drop stale downstream artifacts from the snapshot read before planning.
             self.service.write_json(job, "director-plan.json", director_plan, "director_plan")
@@ -530,6 +549,9 @@ class DirectorNode:
         action = state.get("action")
         if action == "storyboard":
             job = self.repo.get_job(state["job_id"])
+            plan = load_current_director_plan(self.repo, job)
+            if plan and plan.get("review_mode") == "per_shot_stills":
+                return "director_demo"
             self.repo.update_job(job.job_id, job.revision, status="DRAFT", stage="director",
                                  message="分镜已生成，本次执行结束", progress=1, pending_input=None)
             return "end"
@@ -552,11 +574,18 @@ class DirectorNode:
         feedback = stage_feedback(context, "director", "render")
         rebuilding = bool(context.get("extras", {}).get("timeline_rebuild"))
         pending = context.get("pending_snapshot") or {}
-        repair_issues = list(context.get("gate_issues", [])) if pending.get("stage") == "director" else []
+        external_repair_issues = list(context.get("gate_issues", [])) if pending.get("stage") == "director" else []
+        repair_issues = list(external_repair_issues)
         required_components = _required_library_components(job)
+        previous_plan = load_current_director_plan(self.repo, job) if job.timeline else None
+        review_upgrade = bool(previous_plan and previous_plan.get("review_mode") != "per_shot_stills"
+                              and job.timeline.presentation != "component_sample")
+        if review_upgrade and not model_available:
+            raise CapabilityMissing("旧导演方案需要启用导演模型，为每个镜头重新设计组件理由和审核代表帧",
+                                    ["role_models", "director_plan"])
         if not rebuilding and feedback and job.timeline and type(feedback.get("timeline")) is dict and job.timeline.model_dump() != feedback["timeline"]:
             self._last_director_plan = load_current_director_plan(self.repo, job) or _performance_payload(
-                "existing_timeline", job, job.timeline, alignment)
+                "existing_timeline", job, job.timeline, alignment, review_mode="per_shot_stills")
             return job.timeline
         if rebuilding and not model_available:
             raise CapabilityMissing("重做画面需要启用导演模型重新选择素材和编排镜头，不能直接复用旧分镜", ["role_models", "timeline"])
@@ -568,12 +597,14 @@ class DirectorNode:
             actual = [(item.text, item.start_ms, item.end_ms) for item in job.timeline.captions]
             if expected != actual or job.timeline.audio_src != audio.timeline_src:
                 raise ValueError("人工分镜必须保留当前实测音频及字幕时间轴")
-            repair_issues = timeline_readability_issues(job.timeline) if production_portrait(job) else repair_issues
+            readability_issues = timeline_readability_issues(job.timeline) if production_portrait(job) else []
+            repair_issues = list(dict.fromkeys([*external_repair_issues, *readability_issues]))
             if not repair_issues:
                 validate_component_requirements(job.timeline, job.brief.usage, required_components)
-                self._last_director_plan = load_current_director_plan(self.repo, job) or _performance_payload(
-                    "existing_timeline", job, job.timeline, alignment)
-                return job.timeline
+                if not review_upgrade:
+                    self._last_director_plan = previous_plan or _performance_payload(
+                        "existing_timeline", job, job.timeline, alignment, review_mode="per_shot_stills")
+                    return job.timeline
             if not model_available:
                 raise ValueError("；".join(repair_issues))
         starts = {}
@@ -624,11 +655,12 @@ class DirectorNode:
                             captions=[Caption(text=item.text, start_ms=item.start_ms, end_ms=item.end_ms) for item in alignment.segments])
         model_segment_performances: list[DirectorSegmentPerformance] | None = None
         model_demo: DirectorDemo | None = None
+        model_shot_reviews: list[DirectorShotReviewSpec] | None = None
         if model_available:
             schema = DirectorPlan.model_json_schema()
-            # Legacy direct plan readers accept shots-only data; new model
-            # generation must deliver all three reviewable design fields.
-            schema["required"] = ["shots", "segment_performances", "demo"]
+            # Old saved payloads remain readable; a fresh director must
+            # specify the representative frame and reason for every shot.
+            schema["required"] = ["shots", "segment_performances", "shot_reviews"]
             schema["$defs"]["Shot"]["properties"]["component_id"]["enum"] = available_component_ids(
                 job.brief.usage
             )
@@ -653,7 +685,9 @@ class DirectorNode:
             )
             # 实测基线只作为本次导演输入；模型输出校验通过前不写入共享 state。
             reviewed_timeline = feedback.get("timeline") if feedback and type(feedback.get("timeline")) is dict else None
-            if repair_issues and not rebuilding:
+            if review_upgrade and reviewed_timeline is None:
+                reviewed_timeline = job.timeline.model_dump()
+            if repair_issues and not rebuilding and job.timeline is not None:
                 reviewed_timeline = job.timeline.model_dump()
             planning_timeline = Timeline.model_validate(reviewed_timeline) if reviewed_timeline else timeline
             coverage = media_coverage_report(
@@ -705,6 +739,7 @@ class DirectorNode:
             plan = DirectorPlan.model_validate(value)
             model_segment_performances = plan.segment_performances
             model_demo = plan.demo
+            model_shot_reviews = plan.shot_reviews
             # 镜头切点属于画面编排，不是音频对齐：只替换 shots，真实音频、
             # 字幕、画幅和总帧数保持程序实测值，连续覆盖由 Timeline 校验。
             resolved_shots = resolve_component_set_shots(plan.shots, job.assets, asset_metadata)
@@ -717,12 +752,14 @@ class DirectorNode:
             validate_media_coverage(timeline, job, asset_metadata)
         validate_component_requirements(timeline, job.brief.usage, required_components)
         self._last_director_plan = _performance_payload(
-            "model" if model_available and model_segment_performances is not None and model_demo is not None
+            "model" if model_available and model_segment_performances is not None and model_shot_reviews is not None
             else "model_missing_review_plan" if model_available else "baseline",
             job,
             timeline,
             alignment,
             model_segment_performances,
             model_demo,
+            review_mode="per_shot_stills",
+            shot_reviews=model_shot_reviews,
         )
         return timeline

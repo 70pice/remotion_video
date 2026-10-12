@@ -2171,6 +2171,24 @@
                 "type": "null"
               }
             ]
+          },
+          "reviewed_shot_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 100,
+                  "minLength": 1
+                },
+                "type": "array",
+                "maxItems": 400,
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed Shot Ids"
           }
         },
         "additionalProperties": false,

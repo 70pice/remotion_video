@@ -1,7 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../../api/client";
 import type { Artifact, Asset, Decision, Job, Shot } from "../../api/types";
+import type { DirectorShotReviewManifest, DirectorShotReviewSpec } from "../../../../contracts/generated/models";
 import { Empty, formatBytes, stageLabels } from "../../components/ui";
+import { DirectorShotReviewGallery } from "./DirectorShotReviewGallery";
+import {
+  directorShotReviewReady,
+  formatShotReviewFeedback,
+  latestShotReviewManifest,
+  usesShotReview,
+  validateDirectorShotReview,
+} from "./directorShotReview";
 import {
   canConfirmStageReview,
   stageReviewIdentity,
@@ -17,29 +26,35 @@ export function StageReviewPanel({
   job: Job;
   pending: StageReviewPending;
   locked: boolean;
-  resume: (decision: Decision, note: string) => void;
+  resume: (decision: Decision, note: string, reviewedShotIds?: string[]) => void;
 }) {
   const [note, setNote] = useState("");
   const [checked, setChecked] = useState(false);
+  const [shotFeedback, setShotFeedback] = useState<Record<string, string>>({});
+  const submittedNote = formatShotReviewFeedback(note, shotFeedback);
+  const noteTooLong = Array.from(submittedNote).length > 3000;
   const identity = stageReviewIdentity(pending);
   const directorReadyKey =
     pending.stage === "director" ? directorReviewReadyKey(job, pending) : "";
   const [directorReviewReady, setDirectorReviewReady] = useState({
     key: directorReadyKey,
     ready: pending.stage !== "director",
+    reviewedShotIds: [] as string[],
   });
 
   useEffect(() => {
     setNote("");
     setChecked(false);
+    setShotFeedback({});
     setDirectorReviewReady({
       key: directorReadyKey,
       ready: pending.stage !== "director",
+      reviewedShotIds: [],
     });
   }, [identity, pending.stage, directorReadyKey]);
 
-  const handleDirectorReadyChange = useCallback((ready: boolean, key: string) => {
-    setDirectorReviewReady({ ready, key });
+  const handleDirectorReadyChange = useCallback((ready: boolean, key: string, reviewedShotIds: string[] = []) => {
+    setDirectorReviewReady({ ready, key, reviewedShotIds });
   }, []);
 
   const directorCanConfirm =
@@ -47,8 +62,8 @@ export function StageReviewPanel({
     (directorReviewReady.ready && directorReviewReady.key === directorReadyKey);
 
   const canConfirm =
-    canConfirmStageReview(job, pending, note, checked) && directorCanConfirm;
-  const noteReady = Array.from(note.trim()).length >= pending.minNoteLength;
+    canConfirmStageReview(job, pending, submittedNote, checked) && directorCanConfirm && !noteTooLong;
+  const noteReady = Array.from(submittedNote.trim()).length >= pending.minNoteLength && !noteTooLong;
   const canResolve =
     !locked &&
     job.status === "NEEDS_HUMAN" &&
@@ -89,6 +104,9 @@ export function StageReviewPanel({
         stage={pending.stage}
         directorReadyKey={directorReadyKey}
         onDirectorReadyChange={handleDirectorReadyChange}
+        locked={locked}
+        shotFeedback={shotFeedback}
+        onShotFeedbackChange={(shotId, value) => setShotFeedback((current) => ({ ...current, [shotId]: value }))}
       />
       <label>
         审核说明
@@ -114,14 +132,14 @@ export function StageReviewPanel({
         <button
           className="button primary"
           disabled={locked || !canConfirm}
-          onClick={() => resume("confirm", note)}
+          onClick={() => resume("confirm", submittedNote, usesShotReview(job) ? directorReviewReady.reviewedShotIds : undefined)}
         >
           确认通过，继续下一阶段
         </button>
         <button
           className="button secondary"
           disabled={!canRevise}
-          onClick={() => resume("revise", note)}
+          onClick={() => resume("revise", submittedNote)}
         >
           提交返工原因
         </button>
@@ -140,9 +158,12 @@ export function StageReviewPanel({
       )}
       {pending.stage === "director" && !directorCanConfirm && (
         <small className="danger-text">
-          请等待导演方案读取成功，并确认当前版本 30 秒 Demo 视频已显示后再通过审核。
+          {usesShotReview(job)
+            ? "请等待读取当前导演方案和全部逐镜图片，逐一勾选已阅后再确认整套方案。"
+            : "请等待导演方案读取成功，并确认当前版本 Demo 视频已显示后再通过审核。"}
         </small>
       )}
+      {noteTooLong && <small className="danger-text">整体说明和逐镜返工意见合计超过 3000 字，请精简后提交；意见不会被截断。</small>}
       <p className="muted small stage-review-footnote">
         确认会继续执行下一阶段；返工会把说明提交给对应模型节点重新处理；取消会停止当前任务。
       </p>
@@ -180,11 +201,17 @@ function StageReviewContent({
   stage,
   directorReadyKey,
   onDirectorReadyChange,
+  locked,
+  shotFeedback,
+  onShotFeedbackChange,
 }: {
   job: Job;
   stage: string;
   directorReadyKey: string;
-  onDirectorReadyChange?: (ready: boolean, key: string) => void;
+  onDirectorReadyChange?: (ready: boolean, key: string, reviewedShotIds?: string[]) => void;
+  locked: boolean;
+  shotFeedback: Record<string, string>;
+  onShotFeedbackChange: (shotId: string, note: string) => void;
 }) {
   if (stage === "script") return <ScriptStagePreview job={job} />;
   if (stage === "director")
@@ -193,6 +220,9 @@ function StageReviewContent({
         job={job}
         readyKey={directorReadyKey}
         onReadyChange={onDirectorReadyChange}
+        locked={locked}
+        shotFeedback={shotFeedback}
+        onShotFeedbackChange={onShotFeedbackChange}
       />
     );
   if (stage === "render") return <RenderStagePreview job={job} />;
@@ -222,6 +252,9 @@ interface DirectorComponentUsage {
 }
 
 interface DirectorPlanArtifact {
+  review_mode?: "per_shot_stills" | "demo";
+  timeline_fingerprint?: string;
+  shot_reviews?: DirectorShotReviewSpec[];
   segment_performances?: DirectorSegmentPerformance[];
   component_usage?: DirectorComponentUsage;
   demo?: DirectorDemoPlan;
@@ -274,10 +307,16 @@ function DirectorStagePreview({
   job,
   readyKey,
   onReadyChange,
+  locked,
+  shotFeedback,
+  onShotFeedbackChange,
 }: {
   job: Job;
   readyKey: string;
-  onReadyChange?: (ready: boolean, key: string) => void;
+  onReadyChange?: (ready: boolean, key: string, reviewedShotIds?: string[]) => void;
+  locked: boolean;
+  shotFeedback: Record<string, string>;
+  onShotFeedbackChange: (shotId: string, note: string) => void;
 }) {
   const timeline = job.timeline;
   const planArtifact = latestRevisionArtifact(
@@ -289,6 +328,11 @@ function DirectorStagePreview({
     "preview",
   ]);
   const [plan, setPlan] = useState<DirectorPlanArtifact | null>(null);
+  const manifestArtifact = latestShotReviewManifest(job);
+  const [manifest, setManifest] = useState<DirectorShotReviewManifest | null>(null);
+  const [loadedShotIds, setLoadedShotIds] = useState(new Set<string>());
+  const [reviewedShotIds, setReviewedShotIds] = useState(new Set<string>());
+  const [failedShotIds, setFailedShotIds] = useState(new Set<string>());
   const [planState, setPlanState] = useState<"idle" | "loading" | "loaded" | "error">(
     "idle",
   );
@@ -296,17 +340,23 @@ function DirectorStagePreview({
   useEffect(() => {
     let cancelled = false;
     setPlan(null);
+    setManifest(null);
+    setLoadedShotIds(new Set());
+    setReviewedShotIds(new Set());
+    setFailedShotIds(new Set());
     onReadyChange?.(false, readyKey);
     if (!planArtifact) {
       setPlanState("idle");
       return;
     }
     setPlanState("loading");
-    void api
-      .artifactJson<DirectorPlanArtifact>(planArtifact.url)
-      .then((value) => {
+    void Promise.all([
+      api.artifactJson<DirectorPlanArtifact>(planArtifact.url),
+      manifestArtifact ? api.artifactJson<DirectorShotReviewManifest>(manifestArtifact.url) : Promise.resolve(null),
+    ]).then(([value, reviewManifest]) => {
         if (!cancelled) {
           setPlan(value);
+          setManifest(reviewManifest);
           setPlanState("loaded");
         }
       })
@@ -318,11 +368,19 @@ function DirectorStagePreview({
     };
   }, [planArtifact?.artifact_id, planArtifact?.url, onReadyChange, readyKey]);
 
-  const planReady = directorStageReviewReady(plan, planState, demoVideo);
+  const shotReview = usesShotReview(job, plan);
+  const manifestError = validateDirectorShotReview(job, manifest, planArtifact, plan);
+  const planReady = shotReview
+    ? planState === "loaded" && plan?.review_mode === "per_shot_stills" &&
+      directorShotReviewReady(job, manifest, planArtifact, loadedShotIds, reviewedShotIds, plan)
+    : directorStageReviewReady(plan, planState, demoVideo);
+  const reviewedIds = Array.isArray(manifest?.items)
+    ? manifest.items.filter((item) => reviewedShotIds.has(item.shot_id)).map((item) => item.shot_id) : [];
+  const reviewedIdentity = reviewedIds.join("|");
 
   useEffect(() => {
-    onReadyChange?.(planReady, readyKey);
-  }, [onReadyChange, planReady, readyKey]);
+    onReadyChange?.(planReady, readyKey, reviewedIds);
+  }, [onReadyChange, planReady, readyKey, reviewedIdentity]);
 
   if (!timeline)
     return (
@@ -346,9 +404,28 @@ function DirectorStagePreview({
         </small>
       </div>
       <p className="muted small">
-        完整分镜包含主镜头和文字/强调叠加层；上方 Demo 只覆盖导演选出的 30 秒以内片段。
+        {shotReview
+          ? "每个镜头均使用当前时间线实际渲染，展示选用的组件或组件套及其执行组件。"
+          : "完整分镜包含主镜头和文字/强调叠加层；Demo 只覆盖导演选出的片段。"}
       </p>
-      <div className="stage-review-shots">
+      {shotReview ? (
+        planState === "loaded" && !manifestError && manifest ?
+          <DirectorShotReviewGallery key={readyKey} manifest={manifest} locked={locked}
+            loadedShotIds={loadedShotIds} reviewedShotIds={reviewedShotIds} failedShotIds={failedShotIds}
+            feedback={shotFeedback} onFeedbackChange={onShotFeedbackChange}
+            onImageLoad={(shotId) => {
+              setLoadedShotIds((current) => new Set(current).add(shotId));
+              setFailedShotIds((current) => { const next = new Set(current); next.delete(shotId); return next; });
+            }} onImageError={(shotId) => {
+              setFailedShotIds((current) => new Set(current).add(shotId));
+              setLoadedShotIds((current) => { const next = new Set(current); next.delete(shotId); return next; });
+              setReviewedShotIds((current) => { const next = new Set(current); next.delete(shotId); return next; });
+            }} onReviewedChange={(shotId, reviewed) => {
+              if (!loadedShotIds.has(shotId) || failedShotIds.has(shotId)) return;
+              setReviewedShotIds((current) => { const next = new Set(current); if (reviewed) next.add(shotId); else next.delete(shotId); return next; });
+            }} />
+          : <p className="danger-text small">{planState === "loading" ? "正在读取当前版本逐镜审核包…" : manifestError || "逐镜审核包读取失败，请刷新后再审阅。"}</p>
+      ) : <div className="stage-review-shots">
         {timeline.shots.map((shot, index) => (
           <ShotReviewRow
             key={shot.shot_id}
@@ -358,7 +435,7 @@ function DirectorStagePreview({
             fps={timeline.fps}
           />
         ))}
-      </div>
+      </div>}
       <DirectorPlanReview
         plan={plan}
         planState={planState}
@@ -389,7 +466,7 @@ export function DirectorPlanReview({
       <div className="inline-spread">
         <h3>导演逐段表演方案</h3>
         <small className="muted">
-          {plan?.demo ? formatDemoRange(plan.demo, fps) : "等待读取导演方案"}
+          {plan?.review_mode === "per_shot_stills" ? "逐镜图片审核" : plan?.demo ? formatDemoRange(plan.demo, fps) : "等待读取导演方案"}
         </small>
       </div>
       {planState === "loading" && (
@@ -403,8 +480,8 @@ export function DirectorPlanReview({
       {planState === "idle" && (
         <p className="muted small">还没有导演方案，不能确认导演审核。</p>
       )}
-      <ComponentUsageSummary usage={plan?.component_usage} />
-      {plan?.demo && (
+      <ComponentUsageSummary usage={plan?.component_usage} shotReview={plan?.review_mode === "per_shot_stills"} />
+      {plan?.review_mode !== "per_shot_stills" && plan?.demo && (
         <div className="stage-review-demo-card">
           <strong>30 秒 Demo 区间</strong>
           <small>
@@ -456,8 +533,10 @@ export function DirectorPlanReview({
 
 function ComponentUsageSummary({
   usage,
+  shotReview = false,
 }: {
   usage?: DirectorPlanArtifact["component_usage"];
+  shotReview?: boolean;
 }) {
   if (!usage) return null;
   const libraryIds = usage.library_ids ?? [];
@@ -465,7 +544,7 @@ function ComponentUsageSummary({
     <div className="stage-review-demo-card">
       <strong>导演方案原生组件用量</strong>
       <small className="muted">
-        要求至少 {usage.required ?? 0} 个，实际 {usage.library_count ?? libraryIds.length} 个；Demo 只是抽取其中 30 秒以内供先审。
+        要求至少 {usage.required ?? 0} 个，实际 {usage.library_count ?? libraryIds.length} 个；{shotReview ? "每个镜头都有实际渲染图片供审阅。" : "Demo 只是抽取其中 30 秒以内供先审。"}
       </small>
       <small>
         主镜头 {usage.main_count ?? 0} 个 · 叠加层 {usage.layer_count ?? 0} 个
@@ -586,6 +665,8 @@ function directorReviewReadyKey(job: Job, pending: StageReviewPending): string {
     stageReviewIdentity(pending),
     artifactIdentity(plan),
     artifactIdentity(demo),
+    artifactIdentity(latestShotReviewManifest(job)),
+    ...job.artifacts.filter((artifact) => artifact.revision === job.revision && artifact.kind === "shot_review_frame").map(artifactIdentity),
     timelineIdentity(job),
   ].join("|");
 }
@@ -604,35 +685,7 @@ function artifactIdentity(artifact?: Artifact): string {
 function timelineIdentity(job: Job): string {
   const timeline = job.timeline;
   if (!timeline) return "no-timeline";
-  return [
-    timeline.revision,
-    timeline.fps,
-    timeline.duration_in_frames,
-    timeline.width,
-    timeline.height,
-    timeline.shots
-      .map((shot) =>
-        [
-          shot.shot_id,
-          shot.start_frame,
-          shot.end_frame,
-          shot.component_id,
-          shot.asset_src ?? "",
-          shot.layers
-            ?.map((layer) =>
-              [
-                layer.component_id,
-                layer.role,
-                layer.start_frame,
-                layer.end_frame,
-                layer.title,
-              ].join("#"),
-            )
-            .join("~") ?? "",
-        ].join("@"),
-      )
-      .join(";"),
-  ].join(":");
+  return JSON.stringify(timeline);
 }
 
 function latestRevisionArtifact(

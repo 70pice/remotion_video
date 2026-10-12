@@ -131,15 +131,15 @@ export function JobWorkspacePage({ jobId }: { jobId: string }) {
       api.run(job, action, key),
     );
   };
-  const resume = (decision: Decision, note: string) => {
+  const resume = (decision: Decision, note: string, reviewedShotIds?: string[]) => {
     if (!job) return;
     if (hasUnsaved && decision !== "cancel") {
       setError("请先保存正在编辑的内容，再提交复核或返工。");
       return;
     }
     void submit(
-      `${job.revision}:${job.pending_input?.pending_token}:${decision}:${note}`,
-      (key) => api.resume(job, decision, note, key),
+      `${job.revision}:${job.pending_input?.pending_token}:${decision}:${note}:${reviewedShotIds?.join(",") ?? ""}`,
+      (key) => api.resume(job, decision, note, key, reviewedShotIds),
     );
   };
   const showStageReview = () => {

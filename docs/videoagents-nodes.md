@@ -2,7 +2,7 @@
 
 角色实现统一放在 `videoagents/nodes/`。一个节点类同时负责本阶段的业务、状态更新、保存产物和返回路由，直接注册进 LangGraph。`videoagents/graph/video_graph.py` 负责注册、连线、checkpoint 和命令恢复。
 
-2026-10-10 当前生产图保留文案人工审核，并在导演后加入 `director_demo` 与 `director_human_gate`。导演不直接进入完整剪辑：它先输出 `shots`、逐段表演方案和 Demo 帧范围；Demo 真实渲染且最长 30 秒，人工确认后才进入 `editing` 渲染完整成片。`timeline_gate`、旧分镜/成片人审、成片机器审核和最终发布审核链不再注册；旧审核实现用于历史兼容，不代表当前默认流程。完整节点与路由见 [生产图精简](videoagents-graph-simplification.md)。
+2026-10-10 当前生产图保留文案人工审核，并在导演后加入 `director_demo` 与 `director_human_gate`。2026-10-11 起，导演不直接进入完整剪辑，也不再为普通生产输出 30 秒预览视频：它先输出 `shots`、逐段表演方案和每个镜头的审核帧；`director_demo` 保留历史名称，负责渲染逐镜 PNG 审核包，人工确认整包后才进入 `editing` 渲染完整成片。`timeline_gate`、旧分镜/成片人审、成片机器审核和最终发布审核链不再注册；旧审核实现用于历史兼容，不代表当前默认流程。完整节点与路由见 [生产图精简](videoagents-graph-simplification.md)。
 
 ```text
 videoagents/
@@ -11,13 +11,13 @@ videoagents/
 │  ├─ screenwriter.py    ScreenwriterNode：读取素材包、初稿、讨论改稿和保存
 │  ├─ script_reviewer.py ScriptReviewerNode：文案审查、修改建议和讨论路由
 │  ├─ voice.py           VoiceNode：配音指导、真实音频和实测对齐
-│  ├─ director.py        DirectorNode：按音频时间生成镜头、逐段表演方案和 Demo 帧范围
-│  ├─ director_demo.py   DirectorDemoNode：按 director_plan 渲染真实最长 30 秒 Demo
-│  ├─ director_review.py 导演方案、Demo 和审核指纹校验工具
-│  ├─ editing.py         EditingNode：确认导演 Demo 后做完整成片渲染和产物登记
+│  ├─ director.py        DirectorNode：按音频时间生成镜头、逐段表演方案和逐镜审核帧
+│  ├─ director_demo.py   DirectorDemoNode：按 director_plan 渲染真实逐镜 PNG 审核包
+│  ├─ director_review.py 导演方案、逐镜审核包和审核指纹校验工具
+│  ├─ editing.py         EditingNode：确认导演逐镜审核包后做完整成片渲染和产物登记
 │  ├─ reviewers.py       旧成片审核实现及依赖指纹工具，当前图不注册 ReviewersNode
 │  ├─ gates.py           当前图使用 ScriptGateNode / AudioGateNode；其余为旧审核实现
-│  ├─ human_review.py    HumanReviewNode：文案审核及导演 Demo 审核
+│  ├─ human_review.py    HumanReviewNode：文案审核及导演逐镜审核
 │  ├─ await_input.py     AwaitInputNode：等待补充输入及失败恢复
 │  ├─ clear_tools.py     ClearToolsNode：每个模型角色完成后清空工具历史
 │  └─ common.py          共用的版本/取消校验、阶段状态、讨论保存和输入请求
@@ -57,9 +57,9 @@ self.add_cleanup_edge(graph, "screenwriter", {
 
 `ScreenwriterNode(...)` 创建节点对象；`add_node` 把对象注册为 `screenwriter`。工作流到达它时，LangGraph 调用对象的 `__call__(state)`。返回的增量更新共享状态，先进入 `clear_screenwriter` 清理工具历史，然后 `self.route(state)` 读取 `route`，条件边再选择下一个节点。
 
-素材、编剧、文案审查、配音、导演、剪辑六个生产角色均使用 `add_cleanup_edge()`；音频检查、导演 Demo 和等待输入节点沿用条件边。文案人工审核接在编剧与文案审查之后；导演 Demo 审核接在 `director_demo` 之后。自己编排其他审核点时，修改相应路由映射并保留清理节点。
+素材、编剧、文案审查、配音、导演、剪辑六个生产角色均使用 `add_cleanup_edge()`；音频检查、导演逐镜审核包和等待输入节点沿用条件边。文案人工审核接在编剧与文案审查之后；导演逐镜审核接在 `director_demo` 之后。自己编排其他审核点时，修改相应路由映射并保留清理节点。
 
-调整业务去对应的节点文件；调整顺序和分支去图文件。编剧与文案审查的交替、轮数和记录见 [文案讨论](videoagents-script-discussion.md)。插入人工审核仍使用 `add_human_review()`，示例见 [人工审核编排](videoagents-human-review.md)。原有节点和恢复 API 保留；已经执行到文案后阶段的旧 checkpoint 不会补做新讨论。旧 checkpoint 若试图直接进入完整剪辑，会先检查当前导演 Demo 审核；未确认或内容变化时回到 `director_demo` / `director_human_gate`。
+调整业务去对应的节点文件；调整顺序和分支去图文件。编剧与文案审查的交替、轮数和记录见 [文案讨论](videoagents-script-discussion.md)。插入人工审核仍使用 `add_human_review()`，示例见 [人工审核编排](videoagents-human-review.md)。原有节点和恢复 API 保留；已经执行到文案后阶段的旧 checkpoint 不会补做新讨论。旧 checkpoint 若试图直接进入完整剪辑，会先检查当前导演逐镜审核；未确认或内容变化时回到 `director_demo` / `director_human_gate`。
 
 ## 修改模型提示词
 
@@ -90,10 +90,10 @@ value = self.model.invoke(
 | `screenwriter` 改稿 | `brief`, `script`, `script_discussion`, `research`, `assets`，必要时 `extras` | 读取当前稿、每轮最终审查意见及人工返工结论；不读取审查中间推理。 |
 | `script_reviewer` | `brief`, `script`, `script_discussion`, `research`, `assets`，必要时 `extras` | 审查当前完整稿和讨论状态，返回最终 `ScriptCritique`。 |
 | `voice` | `brief`, `script`, `settings` | 读取当前稿、受众和公开配音设置，输出朗读表演指导；真实音频由 provider 生成并校验。 |
-| `director` | `brief`, `script`, `timeline`, `research`, `assets`, `asset_metadata`, `extras` | 读取实测音频合成的基线分镜、素材能力和返工约束，返回最终镜头列表、逐段表演方案和 Demo 帧范围。 |
-| `director_demo` | `timeline`, `director_plan`, `assets`, `artifact_metadata` | 按当前导演方案渲染真实最长 30 秒 Demo，并绑定 plan、frame range 和输入指纹。 |
-| `director_human_gate` | `timeline`, `director_plan`, `preview`, `assets` | 人工确认导演表演和 Demo；确认后放行完整剪辑，返工回到导演。 |
-| `editing` | `brief`, `script`, `timeline`, `assets`, `asset_metadata`, `action`，必要时 `extras` | 在导演 Demo 审核有效时读取当前可执行分镜和素材元信息，做渲染前剪辑预检并输出最终建议。 |
+| `director` | `brief`, `script`, `timeline`, `research`, `assets`, `asset_metadata`, `extras` | 读取实测音频合成的基线分镜、素材能力和返工约束，返回最终镜头列表、逐段表演方案和逐镜审核记录。 |
+| `director_demo` | `timeline`, `director_plan`, `assets`, `artifact_metadata` | 按当前导演方案渲染真实逐镜 PNG 审核包，并绑定 plan、shot、review frame 和输入指纹。 |
+| `director_human_gate` | `timeline`, `director_plan`, `preview`, `assets` | 人工逐镜确认导演表演和 PNG；确认后放行完整剪辑，返工回到导演。 |
+| `editing` | `brief`, `script`, `timeline`, `assets`, `asset_metadata`, `action`，必要时 `extras` | 在导演逐镜审核有效时读取当前可执行分镜和素材元信息，做渲染前剪辑预检并输出最终建议。 |
 | `review` | `brief`, `script`, `timeline`, `assets`, `research`, `alignment` | 历史兼容的成片审核输入；当前默认生产图已不注册该节点。 |
 
 ## 本次精简范围与验证

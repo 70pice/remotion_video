@@ -11,9 +11,11 @@ AI 科普、避坑、案例和工具判断视频。作者身份是大厂程序�
 [工作流设计](docs/videoagents-design.md)。React 学习阅读顺序见
 [前端说明](web/README.md)。
 
-当前生产图只在文案通过机器检查后等待人工确认，随后完成配音、分镜和剪辑。
+当前生产图在文案通过机器检查后等待人工确认，再完成配音和导演设计。
+导演为每个镜头列明组件或组件套、选型理由和画面动作，由 Remotion 渲染一张真实
+代表帧 PNG；全部镜头经逐镜审阅及整包确认后才进入完整成片渲染。
 成片生成后结束，缺素材或执行能力不足时仍可补充输入并续跑；详见
-[生产图精简](docs/videoagents-graph-simplification.md)。
+[导演逐镜审核](docs/director-shot-review.md) 和 [生产图精简](docs/videoagents-graph-simplification.md)。
 
 每个正式视频应使用一条独立任务分支，建议按 `video/<job_id>` 命名。运行数据、
 素材、音频、分镜、成片和 checkpoint 都以 `job_id` 与 `revision` 隔离；跨视频

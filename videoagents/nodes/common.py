@@ -234,7 +234,7 @@ def state_context(repository: Repository, state: VideoState, **overrides: Any) -
                    audio_asset_id=audio.asset_id if audio else None,
                    alignment=audio_metadata.get("alignment"), duration_seconds=audio_metadata.get("duration_seconds"))
     context.update(research={}, audio_report=None, voice_guidance=None, editing_guidance=None,
-                   director_plan=None,
+                   director_plan=None, director_shot_review=None,
                    render={item.kind: item.model_dump() for item in job.artifacts
                            if item.kind in {"preview", "final", "cover", "captions", "package"}})
     history = list(state.get("human_reviews", []))
@@ -242,7 +242,7 @@ def state_context(repository: Repository, state: VideoState, **overrides: Any) -
     for artifact in job.artifacts:
         if artifact.revision != job.revision or artifact.kind not in {
             "research", "audio_report", "voice_guidance", "editing_guidance", "component_study",
-            "director_plan", "stage_review", "human_review", "human_feedback_applied",
+            "director_plan", "director_shot_review", "stage_review", "human_review", "human_feedback_applied",
         }:
             continue
         path, _, owner = repository.artifact_path(artifact.artifact_id)

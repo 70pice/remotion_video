@@ -8,7 +8,9 @@ import pytest
 from videoagents.contracts import Alignment, Asset, Brief, Script, ScriptSegment, Shot, Timeline
 from videoagents.nodes.director import (
     COMPONENT_PROPS_EXAMPLES,
+    DirectorDemo,
     DirectorNode,
+    _performance_payload,
     director_prompt,
     load_current_director_plan,
 )
@@ -131,7 +133,7 @@ def test_director_returns_shots_and_review_plan_schema_while_keeping_provider_al
     monkeypatch.setattr(node.model, "available", lambda role: True)
 
     def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
-        assert set(output_schema["properties"]) == {"shots", "segment_performances", "demo"}
+        assert set(output_schema["properties"]) == {"shots", "segment_performances", "demo", "shot_reviews"}
         assert output_schema["properties"]["demo"]["anyOf"][0]["$ref"] == "#/$defs/DirectorDemo"
         assert "alignment" not in context["asset_metadata"][audio.asset_id]
         assert context["timeline"]["captions"][0]["end_ms"] == 1800.0
@@ -190,6 +192,48 @@ def test_visual_rebuild_uses_model_instead_of_reusing_completed_timeline(tmp_pat
     assert result.audio_src == old.audio_src and result.captions == old.captions
 
 
+def test_director_replans_readable_timeline_when_external_director_repair_issues_exist(tmp_path, monkeypatch):
+    node, job, audio, alignment = director_job(tmp_path, production=True)
+    monkeypatch.setattr(node.model, "available", lambda role: False)
+    old = node.plan(job, audio, alignment, 3.0)
+    assert old.duration_in_frames == 90
+    job = node.repo.update_job(job.job_id, job.revision, timeline=old)
+    state = VideoState(**job_context(job), run_id="unit-editing-director-repair",
+                       gate_issues=["剪辑发现分镜问题：素材卡文字没有按导演要求放大。"],
+                       pending_snapshot={"stage": "director", "fields": ["timeline"]},
+                       extras={"component_study": valid_study(job.brief.usage)})
+    calls = []
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+
+    def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        calls.append(context)
+        assert context["timeline"] == old.model_dump()
+        assert context["extras"]["timeline_repair_issues"] == ["剪辑发现分镜问题：素材卡文字没有按导演要求放大。"]
+        shot = dict(context["timeline"]["shots"][0], title="放大素材文字后的镜头")
+        return {
+            "shots": [shot],
+            "segment_performances": [{
+                "segment_id": "s1",
+                "shot_ids": [shot["shot_id"]],
+                "component_reason": "读取剪辑阶段问题后重做素材卡可读性。",
+                "visual_action": "放大素材文字并保持旁白时间轴不变。",
+            }],
+            "shot_reviews": [{
+                "shot_id": shot["shot_id"],
+                "review_frame": 30,
+                "component_reason": "用于确认放大后的素材文字。",
+                "visual_action": "检查素材文字是否足够大。",
+            }],
+        }
+
+    monkeypatch.setattr(node.model, "call", model)
+    result = node.plan(job, audio, alignment, 3.0, state=state)
+
+    assert len(calls) == 1
+    assert result.shots[0].title == "放大素材文字后的镜头"
+    assert result.audio_src == old.audio_src and result.captions == old.captions
+
+
 def test_visual_rebuild_without_director_model_cannot_render_old_timeline(tmp_path, monkeypatch):
     from videoagents.providers.llm import CapabilityMissing
 
@@ -215,7 +259,7 @@ def test_director_node_uses_single_timeline_call_and_no_component_study_handoff(
     def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
         calls.append(command_id)
         assert "reviewed_preset_ids" not in json.dumps(output_schema or {})
-        assert set(output_schema["required"]) == {"shots", "segment_performances", "demo"}
+        assert set(output_schema["required"]) == {"shots", "segment_performances", "shot_reviews"}
         return {
             "shots": context["timeline"]["shots"],
             "segment_performances": [{
@@ -224,7 +268,8 @@ def test_director_node_uses_single_timeline_call_and_no_component_study_handoff(
                 "component_reason": "节点级生产必须返回导演方案。",
                 "visual_action": "沿用基线镜头检查旁白与画面对应关系。",
             }],
-            "demo": {"start_frame": 0, "end_frame": 30, "reason": "默认前 30 秒导演 Demo。"},
+            "shot_reviews": [{"shot_id": context["timeline"]["shots"][0]["shot_id"], "review_frame": 15,
+                              "component_reason": "本镜使用实际素材组件。", "visual_action": "查看稳定画面。"}],
         }
 
     monkeypatch.setattr(node.model, "call", model)
@@ -242,7 +287,7 @@ def test_director_node_uses_single_timeline_call_and_no_component_study_handoff(
     assert calls == ["unit-director-single-call:timeline"]
 
 
-def test_director_node_persists_reviewable_plan_with_demo_and_fingerprint(tmp_path, monkeypatch):
+def test_director_node_persists_per_shot_review_design_and_fingerprint(tmp_path, monkeypatch):
     node, job, audio, alignment = director_job(tmp_path)
     node.repo.update_asset_metadata(audio.asset_id, {
         "duration_seconds": 2.0, "alignment": alignment.model_dump(), "origin": "manual",
@@ -252,7 +297,7 @@ def test_director_node_persists_reviewable_plan_with_demo_and_fingerprint(tmp_pa
     monkeypatch.setattr(node.model, "available", lambda role: True)
 
     def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
-        assert "segment_performances" in instruction and "demo" in instruction
+        assert "segment_performances" in instruction and "shot_reviews" in instruction
         return {
             "shots": context["timeline"]["shots"],
             "segment_performances": [{
@@ -261,7 +306,8 @@ def test_director_node_persists_reviewable_plan_with_demo_and_fingerprint(tmp_pa
                 "component_reason": "用真实图片镜头承接开头案例，便于人工审核是否贴合旁白。",
                 "visual_action": "镜头展示来源截图并随旁白停留，不修改音频字幕。",
             }],
-            "demo": {"start_frame": 0, "end_frame": 30, "reason": "默认前 30 秒导演 Demo。"},
+            "shot_reviews": [{"shot_id": context["timeline"]["shots"][0]["shot_id"], "review_frame": 15,
+                              "component_reason": "本镜使用实际素材组件。", "visual_action": "查看稳定画面。"}],
         }
 
     monkeypatch.setattr(node.model, "call", model)
@@ -276,13 +322,16 @@ def test_director_node_persists_reviewable_plan_with_demo_and_fingerprint(tmp_pa
     assert plan["shots"] == [shot.model_dump(mode="json") for shot in saved.timeline.shots]
     assert plan["segment_performances"][0]["segment_id"] == "s1"
     assert plan["segment_performances"][0]["shot_ids"] == ["shot-1"]
-    assert plan["demo"] == {"start_frame": 0, "end_frame": 30, "reason": "默认前 30 秒导演 Demo。"}
+    assert plan["review_mode"] == "per_shot_stills" and "demo" not in plan
+    assert plan["shot_reviews"][0]["shot_id"] == "shot-1"
+    assert plan["shot_reviews"][0]["review_frame"] == 15
 
     stale = saved.model_copy(update={"timeline": saved.timeline.model_copy(update={"duration_in_frames": 31})})
     assert load_current_director_plan(node.repo, stale) is None
 
 
-def test_director_node_requires_model_review_plan_before_editing(tmp_path, monkeypatch):
+@pytest.mark.parametrize("reviews", ["omit", None])
+def test_director_node_requires_model_review_plan_before_editing(tmp_path, monkeypatch, reviews):
     node, job, audio, alignment = director_job(tmp_path)
     node.repo.update_asset_metadata(audio.asset_id, {
         "duration_seconds": 2.0, "alignment": alignment.model_dump(), "origin": "manual",
@@ -290,18 +339,50 @@ def test_director_node_requires_model_review_plan_before_editing(tmp_path, monke
     state = VideoState(**job_context(job), run_id="unit-director-missing-plan",
                        thread_id="unit-director-missing-plan", action="produce", extras={})
     monkeypatch.setattr(node.model, "available", lambda role: True)
-    monkeypatch.setattr(node.model, "call",
-                        lambda job_id, revision, role, instruction, context, command_id="", output_schema=None:
-                        {"shots": context["timeline"]["shots"]})
+    def missing_reviews(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        response = {"shots": context["timeline"]["shots"], "segment_performances": [{
+            "segment_id": "s1", "shot_ids": [context["timeline"]["shots"][0]["shot_id"]],
+            "component_reason": "已有逐段理由仍不能替代逐镜设计。", "visual_action": "查看当前素材。"}]}
+        if reviews != "omit":
+            response["shot_reviews"] = reviews
+        return response
+    monkeypatch.setattr(node.model, "call", missing_reviews)
 
     result = node(state)
 
     assert result["route"] == "await_input"
-    assert "必须输出 segment_performances 和 demo" in result["pending_input"]["issues"][0]
+    assert "必须输出 segment_performances 和 shot_reviews" in result["pending_input"]["issues"][0]
     assert node.repo.get_job(job.job_id).timeline is None
 
 
-def test_director_rejects_demo_longer_than_thirty_seconds(tmp_path, monkeypatch):
+def test_fresh_director_call_upgrades_legacy_plan_to_every_shot_review(tmp_path, monkeypatch):
+    node, job, audio, alignment = director_job(tmp_path)
+    monkeypatch.setattr(node.model, "available", lambda role: False)
+    timeline = node.plan(job, audio, alignment, 2.0)
+    job = node.repo.update_job(job.job_id, timeline=timeline)
+    legacy = _performance_payload("legacy", job, timeline, alignment)
+    node.service.write_json(job, "legacy-plan.json", legacy, "director_plan")
+    job = node.repo.get_job(job.job_id)
+    assert load_current_director_plan(node.repo, job)["demo"]
+    calls = []
+    monkeypatch.setattr(node.model, "available", lambda role: True)
+
+    def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
+        calls.append(command_id)
+        shots = context["timeline"]["shots"]
+        return {"shots": shots, "segment_performances": [{"segment_id": "s1", "shot_ids": [shot["shot_id"] for shot in shots],
+                "component_reason": "本次导演读取旧镜头并为每镜重新设计审核。", "visual_action": "按本次方案检查画面。"}],
+                "shot_reviews": [{"shot_id": shot["shot_id"], "review_frame": shot["start_frame"] + 15,
+                                  "component_reason": "本次导演逐镜设计。", "visual_action": "稳定帧核对。"} for shot in shots]}
+    monkeypatch.setattr(node.model, "call", model)
+    state = VideoState(**job_context(job), action="produce", run_id="unit-upgrade-legacy", extras={})
+    node.plan(job, audio, alignment, 2.0, state=state)
+    assert calls == ["unit-upgrade-legacy:timeline"]
+    assert node._last_director_plan["review_mode"] == "per_shot_stills"
+    assert "demo" not in node._last_director_plan
+
+
+def test_legacy_director_plan_rejects_demo_longer_than_thirty_seconds(tmp_path, monkeypatch):
     node, job, audio, alignment = director_job(tmp_path)
     monkeypatch.setattr(node.model, "available", lambda role: True)
 
@@ -320,8 +401,10 @@ def test_director_rejects_demo_longer_than_thirty_seconds(tmp_path, monkeypatch)
 
     monkeypatch.setattr(node.model, "call", model)
 
+    timeline = node.plan(job, audio, alignment, 40.0)
     with pytest.raises(ValueError, match="不超过 30 秒"):
-        node.plan(job, audio, alignment, 40.0)
+        _performance_payload("legacy", job, timeline, alignment,
+                             demo=DirectorDemo(start_frame=0, end_frame=31 * job.brief.fps, reason="旧版超长Demo。"))
 
 
 def two_segment_job(tmp_path):
@@ -451,10 +534,10 @@ def test_director_guidance_limits_assets_and_describes_valid_component_props(tmp
         "title 最多100字、body 最多240字、source_label 最多160字",
         "media_usage 只能是", "context_example", "另案示例", "thepaper.cn",
         "不允许使用 evidence 组件", "不得凭额外标识引入任意无关素材",
-        "不得默认只选择静态报告截图开场",
+        "不能以开场报告截图替代后续镜头的审阅",
         "eligible_capacity_ratio", "actual_media_ratio", "超过 70%",
         "带当前任务", "语义匹配的社区组件", "不能为凑组件比例使用无关社区预设",
-        "segment_performances", "默认取前 30 秒", "不能裁剪原 timeline",
+        "segment_performances", "shot_reviews", "review_frame",
         "占当前可用内容区约 70%～85%", "跨入无关联段落",
     ]:
         assert requirement in instruction

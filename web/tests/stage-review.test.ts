@@ -648,6 +648,7 @@ describe("stage review pending state", () => {
       status: "DRAFT",
       stage: "director",
       timeline: {
+        presentation: "component_sample",
         schema_version: "1",
         job_id: "job-1",
         revision: 4,

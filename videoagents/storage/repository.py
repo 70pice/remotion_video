@@ -287,6 +287,12 @@ class Repository:
                     raise Conflict("当前任务没有可恢复的中断")
                 if not job.pending_input.get("thread_id") or payload.get("pending_token") != job.pending_input.get("pending_token"):
                     raise Conflict("恢复回复绑定的中断已变化，请刷新当前待办")
+                if payload.get("reviewed_shot_ids") is not None:
+                    pending = job.pending_input
+                    if (pending.get("kind") != "stage_review" or pending.get("stage") != "director"
+                            or pending.get("node_name") != "director_human_gate"
+                            or payload.get("decision") != "confirm"):
+                        raise Conflict("已阅镜头仅可用于当前导演逐镜审核确认")
                 if payload.get("stop_after") is not None:
                     pending = job.pending_input
                     script_review = (pending.get("kind") == "stage_review" and pending.get("stage") == "script"
@@ -384,7 +390,10 @@ class Repository:
             job.script_discussion = None
             job.status, job.stage, job.message = "DRAFT", "idle", "素材已导入，旧成片审核已失效"
             job.review, job.pending_input, job.timeline = None, None, None
-            job.artifacts = [a for a in job.artifacts if a.kind not in {"preview", "final", "cover", "timeline", "review", "package", "script_discussion"}]
+            job.artifacts = [a for a in job.artifacts if a.kind not in {
+                "preview", "final", "cover", "timeline", "review", "package", "script_discussion",
+                "director_shot_review", "shot_review_frame",
+            }]
             job.artifacts.append(artifact)
             if job.script:
                 job.script.revision = job.revision
@@ -400,7 +409,8 @@ class Repository:
             db.execute("INSERT INTO job_inputs VALUES(?,'active_audio_asset_id',?) ON CONFLICT(job_id,key) DO UPDATE SET value=excluded.value", (job_id, asset.asset_id))
             job.assets.append(asset)
             job.timeline, job.review = None, None
-            invalid = {"preview", "final", "cover", "timeline", "review", "package", "captions", "storyboard", "voice"}
+            invalid = {"preview", "final", "cover", "timeline", "review", "package", "captions", "storyboard", "voice",
+                       "director_shot_review", "shot_review_frame"}
             job.artifacts = [item for item in job.artifacts if item.kind not in invalid] + [artifact]
             return self._save(db, job, "voice_created")
 

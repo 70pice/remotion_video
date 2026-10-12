@@ -17,7 +17,8 @@ from videoagents.tools.media import audio_duration, decode_check, detect_media, 
 from videoagents.tools.timeline import validate_timeline
 
 INVALIDATED = {"preview", "final", "cover", "timeline", "review", "package", "captions",
-               "storyboard", "director_plan", "script_discussion", "component_study"}
+               "storyboard", "director_plan", "script_discussion", "component_study",
+               "director_shot_review", "shot_review_frame"}
 
 
 class JobService:

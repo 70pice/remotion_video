@@ -176,6 +176,48 @@ export interface DirectorRequirements {
   min_library_components: number;
 }
 
+export interface DirectorShotReviewItem {
+  shot_id: string;
+  review_frame: number;
+  component_reason: string;
+  visual_action: string;
+  index: number;
+  start_frame: number;
+  end_frame: number;
+  component_id: string;
+  set_id: string | null;
+  component_ids: Array<string>;
+  title: string;
+  body: string;
+  asset_src: string | null;
+  source_label: string | null;
+  narration: string;
+  image: Artifact;
+}
+
+export interface DirectorShotReviewManifest {
+  schema_version: 1;
+  mode: "per_shot_stills";
+  job_id: string;
+  revision: number;
+  director_plan_artifact_id: string;
+  director_plan_sha256: string;
+  dependency_fingerprint: string;
+  timeline_fingerprint: string;
+  width: number;
+  height: number;
+  fps: number;
+  duration_in_frames: number;
+  items: Array<DirectorShotReviewItem>;
+}
+
+export interface DirectorShotReviewSpec {
+  shot_id: string;
+  review_frame: number;
+  component_reason: string;
+  visual_action: string;
+}
+
 export interface DraftRequest {
   base_revision: number;
   brief?: Brief | null;
@@ -283,6 +325,7 @@ export interface ResumeRequest {
   pending_token: string;
   stop_after?: "voice" | null;
   director_requirements?: DirectorRequirements | null;
+  reviewed_shot_ids?: Array<string> | null;
 }
 
 export interface RetryFailedRunRequest {

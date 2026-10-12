@@ -421,6 +421,85 @@ class Timeline(Contract):
         return self
 
 
+class DirectorShotReviewSpec(Contract):
+    """The director's chosen absolute frame and explanation for one shot."""
+
+    shot_id: str = Field(min_length=1, max_length=100)
+    review_frame: int = Field(ge=0)
+    component_reason: str = Field(min_length=1, max_length=600)
+    visual_action: str = Field(min_length=1, max_length=800)
+
+    @field_validator("shot_id", "component_reason", "visual_action")
+    @classmethod
+    def readable_review_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("逐镜审核设计不能为空")
+        return value
+
+
+class DirectorShotReviewItem(DirectorShotReviewSpec):
+    """A real rendered still with its executable component selection."""
+
+    index: int = Field(ge=1, le=400)
+    start_frame: int = Field(ge=0)
+    end_frame: int = Field(gt=0)
+    component_id: str = Field(min_length=1, max_length=100)
+    set_id: str | None = Field(default=None, max_length=100)
+    component_ids: list[str] = Field(min_length=1, max_length=40)
+    title: str = Field(default="", max_length=1000)
+    body: str = Field(default="", max_length=6000)
+    asset_src: str | None = None
+    source_label: str | None = None
+    narration: str = Field(default="", max_length=30000)
+    image: Artifact
+
+    @model_validator(mode="after")
+    def valid_frame_and_image(self) -> "DirectorShotReviewItem":
+        if not self.start_frame <= self.review_frame < self.end_frame:
+            raise ValueError("审核代表帧必须落在对应镜头内")
+        if self.image.kind != "shot_review_frame" or self.image.mime_type != "image/png":
+            raise ValueError("逐镜审核必须绑定真实PNG帧产物")
+        if self.component_id not in self.component_ids or len(set(self.component_ids)) != len(self.component_ids):
+            raise ValueError("审核组件清单必须含主组件且不能重复")
+        return self
+
+
+class DirectorShotReviewManifest(Contract):
+    """Complete review pack bound to one job revision and director plan."""
+
+    schema_version: Literal[1] = 1
+    mode: Literal["per_shot_stills"] = "per_shot_stills"
+    job_id: str = Field(min_length=1, max_length=100)
+    revision: int = Field(ge=1)
+    director_plan_artifact_id: str = Field(min_length=1, max_length=100)
+    director_plan_sha256: str = Field(min_length=64, max_length=64)
+    dependency_fingerprint: str = Field(min_length=64, max_length=64)
+    timeline_fingerprint: str = Field(min_length=64, max_length=64)
+    width: int = Field(ge=240, le=3840)
+    height: int = Field(ge=240, le=3840)
+    fps: int = Field(ge=15, le=60)
+    duration_in_frames: int = Field(gt=0)
+    items: list[DirectorShotReviewItem] = Field(min_length=1, max_length=400)
+
+    @model_validator(mode="after")
+    def complete_unique_pack(self) -> "DirectorShotReviewManifest":
+        previous = 0
+        shot_ids: set[str] = set()
+        image_ids: set[str] = set()
+        for index, item in enumerate(self.items, 1):
+            if item.index != index or item.start_frame != previous or item.shot_id in shot_ids:
+                raise ValueError("逐镜审核必须按顺序完整覆盖时间轴，镜头ID不能重复")
+            if item.image.artifact_id in image_ids or item.image.revision != self.revision:
+                raise ValueError("逐镜审核图片必须唯一且属于当前版本")
+            previous = item.end_frame
+            shot_ids.add(item.shot_id)
+            image_ids.add(item.image.artifact_id)
+        if previous != self.duration_in_frames:
+            raise ValueError("逐镜审核缺少镜头或时间轴覆盖不完整")
+        return self
+
+
 class Finding(Contract):
     finding_id: str
     severity: Literal["error", "warning", "info"]
@@ -919,9 +998,21 @@ class ResumeRequest(Contract):
     pending_token: str = Field(min_length=16, max_length=100)
     stop_after: Literal["voice"] | None = None
     director_requirements: DirectorRequirements | None = Field(default=None, exclude_if=lambda value: value is None)
+    reviewed_shot_ids: list[Annotated[str, Field(min_length=1, max_length=100)]] | None = Field(
+        default=None, min_length=1, max_length=400, exclude_if=lambda value: value is None,
+    )
+
+    @field_validator("reviewed_shot_ids")
+    @classmethod
+    def unique_reviewed_shots(cls, value: list[str] | None) -> list[str] | None:
+        if value is not None and (len(set(value)) != len(value) or any(not item.strip() for item in value)):
+            raise ValueError("已阅镜头ID不能为空或重复")
+        return value
 
     @model_validator(mode="after")
     def stop_after_confirmation(self):
+        if self.reviewed_shot_ids is not None and self.decision != "confirm":
+            raise ValueError("已阅镜头只可随逐镜审核确认提交")
         if self.stop_after is not None and self.decision != "confirm":
             raise ValueError("只跑配音需确认当前文案或继续配音中断")
         if self.director_requirements is not None and self.decision != "revise":

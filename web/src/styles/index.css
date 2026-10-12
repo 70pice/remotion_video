@@ -670,6 +670,59 @@ footer {
   gap: 12px;
   margin-top: 12px;
 }
+.director-shot-review-list {
+  display: grid;
+  gap: 20px;
+}
+.director-shot-review-card {
+  display: grid;
+  grid-template-columns: minmax(200px, 300px) minmax(0, 1fr);
+  gap: 22px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #dfe7f3;
+  border-radius: 12px;
+}
+.director-shot-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #06101d;
+  border-radius: 8px;
+}
+.director-shot-image small,
+.director-shot-image > a {
+  display: block;
+  margin-top: 9px;
+}
+.director-shot-details h4 {
+  margin: 0 0 8px;
+}
+.director-shot-details dl {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 10px;
+  margin: 18px 0;
+  font-size: 12px;
+}
+.director-shot-details dt {
+  color: #64738a;
+}
+.director-shot-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+@media (max-width: 800px) {
+  .director-shot-review-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .director-shot-image {
+    max-width: 420px;
+    width: 100%;
+    margin: auto;
+  }
+}
 label,
 .label {
   display: block;

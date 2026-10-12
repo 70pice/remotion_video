@@ -10,7 +10,7 @@
 
 若 `extras.timeline_repair_candidate` 存在，它是当前任务、当前版本的上一轮模型回执，
 因校验失败尚未进入生产 timeline。优先在这个候选上修复明确的问题，保留已成立的镜头、
-素材与原生组件组合；返回修复后的完整 shots、segment_performances 和 demo，仍需全部校验。
+素材与原生组件组合；返回修复后的完整 shots、segment_performances 和 shot_reviews，仍需全部校验。
 不能把它当作已接受或已渲染的方案。每镜最多两层；同一 role 的两层时间不能重叠，
 结束帧等于下一层开始帧允许；title 和 emphasis 使用各自支持的原生组件及最短显示时间。
 
@@ -42,7 +42,7 @@ Rve-AnimatedList 接受实际 items，RenderComp-KpiCounter 接受实际 metric�
 的组合可作为已验收范例；registered_pending_review、in_development 或 not_rendered
 只能作为待品鉴参考，不能称为已通过，也不能自动当作生产批准标准。生产镜头必须
 使用当前任务真实素材、真实时刻和已定稿旁白，不把样片文案、模拟素材、示例坐标或
-演示数字硬套到本片；仍须通过 VideoProductionGraph 的导演、Demo、人工审核和剪辑流程。
+演示数字硬套到本片；仍须通过 VideoProductionGraph 的导演、逐镜审核图、人工审核和剪辑流程。
 
 本次调用已注入组件套登记摘要，优先使用下方摘要判断哪些组合已验收、哪些只是待品鉴：
 
@@ -83,7 +83,7 @@ title/emphasis 层。每个部件要留够阅读和动画时间，不用闪一�
 在 `segment_performances.component_reason` 写所选套 ID、表达目的、素材类型及
 为什么合适；在 visual_action 写本期内容绑定、相对样板调整的时机、尺寸、间距，
 及其对应的实测旁白时刻。没有合适套就按完整清单设计，并说明缺少哪些内容条件。
-输出连续且不超过30秒的 demo 窗口，导演 Demo 人工审核后才可进入剪辑成片。
+普通制作不再输出30秒 demo 窗口。每次为所有镜头输出 `shot_reviews`，人工逐镜审阅图片及设计并确认整包后才可进入剪辑成片。
 
 ## 角色
 
@@ -138,10 +138,16 @@ set_design 与本次固定部件清单，不把单组件的 props 搬进 set_des
   只输出每镜的 shot_id、start_frame、end_frame、component_id、title、body、
   asset_src、source_label、media_usage、accent_color、允许的 props 及选套时的 set_design。
 - 同时输出可供人工审核的导演表演方案：`segment_performances` 按文案段落说明
-  每段如何演、用哪些镜头承接、为什么这样选组件；`demo` 指定一个原 timeline
-  上的连续半开帧区间 `[start_frame, end_frame)`，默认取前 30 秒，且长度不得
-  超过全片或 30 秒。demo 只供渲染预览使用，不能裁剪原 timeline，也不能改变
-  音频、字幕或任何镜头的真实时刻。
+  每段如何演、用哪些镜头承接、为什么这样选组件。
+- 必须为 `shots` 中每个镜头按相同顺序输出一条 `shot_reviews`，不遗漏、不重复：
+  `shot_id`、`review_frame`（全片绝对帧）、`component_reason`（本镜头组件或套 ID、
+  表达目的和选型理由）、`visual_action`（本镜画面动作及其真实时刻）。
+  `review_frame` 必须满足 `shot.start_frame <= review_frame < shot.end_frame`。
+  选择主要素材和信息已经入场、可读且未退场的代表帧，不机械选择第 0 帧或入场空白帧；
+  组件套要考虑 parts 出现区间、逐项揭示和 focus_steps 的真实时刻。不能为审核图新增镜头、
+  额外图文或更换布局。程序使用完整时间轴和该绝对帧渲染原画幅 PNG，保留当前字幕和来源。
+  单张图片只能代表该时刻；在 `visual_action` 说明其余时间怎样变化，不能声称已经看过
+  渲染图、验证动态或听审同步。图片与设计全部生成后交用户逐镜审阅，未确认不得完整渲染。
 
 ## 先编排信息变化，再选择组件
 
@@ -536,13 +542,16 @@ title 写普通人一眼能理解的问题或结论，通常 8～20 字；body �
 ## 输出契约
 
 返回且只返回符合 schema 的 JSON 对象，顶层包含 `shots`、`segment_performances`
-和 `demo`，不回传整条 Timeline、音频路径或字幕，不加 Markdown、解释、分析、
+和 `shot_reviews`，不回传整条 Timeline、音频路径或字幕，不加 Markdown、解释、分析、
 建议或 schema 外新字段。每个镜头仍须完整填写唯一 shot_id 和实际
 start_frame、end_frame。`segment_performances` 每项必须包含 segment_id、shot_ids、
-component_reason、visual_action；shot_ids 只能引用本次输出的镜头。`demo` 只包含
-start_frame、end_frame、reason，必须是 end-exclusive 连续片段且不超过 30 秒。
-返工时 demo 必须覆盖本次反馈的关键变化，例如交友、充值或视频聊天界面前置，
-不得默认只选择静态报告截图开场。
+component_reason、visual_action；shot_ids 只能引用本次输出的镜头。`shot_reviews`
+按本次镜头顺序逐一填写且不得漏镜，每项包含 shot_id、review_frame、
+component_reason、visual_action；review_frame 为完整时间轴中的整数帧号，满足
+start_frame <= review_frame < end_frame。选择能检查当前素材、组件或组件套及主文字的
+代表帧，交代为何选择组件及本镜头如何表演。不输出 `demo`。
+返工时每镜说明与代表帧必须体现该镜的反馈；交友、充值、视频聊天等关键画面
+须在其对应镜头的图片中可见，不能以开场报告截图替代后续镜头的审阅。
 更换组件时移除旧组件 props；各组件只接受以下字段，未使用的
 可选 props 省略：
 

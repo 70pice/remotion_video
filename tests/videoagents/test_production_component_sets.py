@@ -602,7 +602,11 @@ def test_director_plan_preserves_selected_component_set_and_expands_parts(tmp_pa
                 "component_reason": "选择 B02 无素材组件套承载本段结论和步骤。",
                 "visual_action": "使用默认 parts 展开内部组件，不改写音频和字幕。",
             }],
-            "demo": {"start_frame": 0, "end_frame": min(900, frames), "reason": "前 24 秒作为组件套导演 Demo。"},
+            "shot_reviews": [{
+                "shot_id": "shot-set-b02", "review_frame": frames // 2,
+                "component_reason": "选择 B02 无素材组件套承载本段结论和步骤。",
+                "visual_action": "在内部组件展开后检查代表帧，保留音频和字幕。",
+            }],
         }
 
     monkeypatch.setattr(node.model, "call", model)

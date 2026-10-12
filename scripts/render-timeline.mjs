@@ -1,8 +1,11 @@
 import {constants} from 'node:fs';
+import {Buffer} from 'node:buffer';
 import {execFile} from 'node:child_process';
+import {randomUUID} from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import process from 'node:process';
 import {promisify} from 'node:util';
 import {fileURLToPath} from 'node:url';
 import {bundle} from '@remotion/bundler';
@@ -11,6 +14,7 @@ import {validateTimeline} from '../src/video-production/validation.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const publicRoot = path.join(projectRoot, 'public');
+const {structuredClone} = globalThis;
 const execFileAsync = promisify(execFile);
 const emit = (message) => process.stdout.write(JSON.stringify(message) + '\n');
 const samePath = (a, b) => process.platform === 'win32' ? a.toLowerCase() === b.toLowerCase() : a === b;
@@ -21,21 +25,30 @@ const inside = (root, candidate) => {
 
 export const parseArgs = (argv) => {
   const options = {};
-  const allowed = new Set(['--timeline', '--output', '--mode', '--cover', '--start-frame', '--end-frame']);
+  const allowed = new Set(['--timeline', '--output', '--mode', '--cover', '--start-frame', '--end-frame', '--review-frames']);
   for (let index = 0; index < argv.length; index += 2) {
     const key = argv[index];
     const value = argv[index + 1];
     if (!allowed.has(key) || !value || value.startsWith('--') || Object.hasOwn(options, key.slice(2))) {
-      throw new Error('Usage: node scripts/render-timeline.mjs --timeline <absolute-json> --output <absolute-mp4> --mode preview|final [--cover <absolute-png>] [--start-frame <frame> --end-frame <exclusive-frame>]');
+      throw new Error('Usage: node scripts/render-timeline.mjs --timeline <absolute-json> --output <absolute-mp4-or-review-json> --mode preview|final|shot-review [--cover <absolute-png>] [--start-frame <frame> --end-frame <exclusive-frame>] [--review-frames <absolute-json>]');
     }
     options[key.slice(2)] = value;
   }
   for (const key of ['timeline', 'output']) {
     if (!options[key] || !path.isAbsolute(options[key])) throw new Error(`--${key} requires an absolute path`);
   }
-  if (!['preview', 'final'].includes(options.mode)) throw new Error('--mode must be preview or final');
+  if (!['preview', 'final', 'shot-review'].includes(options.mode)) throw new Error('--mode must be preview, final or shot-review');
   if (path.extname(options.timeline).toLowerCase() !== '.json') throw new Error('--timeline requires a JSON file');
-  if (path.extname(options.output).toLowerCase() !== '.mp4') throw new Error('--output requires an MP4 file');
+  if (options.mode === 'shot-review') {
+    if (path.extname(options.output).toLowerCase() !== '.json') throw new Error('shot-review --output requires a JSON manifest');
+    if (!options['review-frames'] || !path.isAbsolute(options['review-frames'])) throw new Error('--review-frames requires an absolute JSON request');
+    if (path.extname(options['review-frames']).toLowerCase() !== '.json') throw new Error('--review-frames requires a JSON request');
+    if (options.cover) throw new Error('shot-review does not accept --cover');
+    if (options['start-frame'] !== undefined || options['end-frame'] !== undefined) throw new Error('shot-review uses each requested frame, not a frame range');
+  } else {
+    if (options['review-frames']) throw new Error('--review-frames is only accepted for shot-review');
+    if (path.extname(options.output).toLowerCase() !== '.mp4') throw new Error('--output requires an MP4 file');
+  }
   if (options.cover && (!path.isAbsolute(options.cover) || path.extname(options.cover).toLowerCase() !== '.png')) {
     throw new Error('--cover requires an absolute PNG file path');
   }
@@ -53,6 +66,69 @@ export const parseArgs = (argv) => {
     options.frameRange = {startFrame: options['start-frame'], endFrame: options['end-frame']};
   }
   return options;
+};
+
+export const validateShotReviewRequest = (timeline, request) => {
+  if (!Array.isArray(request) || request.length !== timeline.shots.length) {
+    throw new Error('Shot review request must cover every timeline shot exactly once');
+  }
+  for (const [index, item] of request.entries()) {
+    const shot = timeline.shots[index];
+    if (!item || typeof item !== 'object' || Array.isArray(item)
+        || Object.keys(item).length !== 2 || !Object.hasOwn(item, 'shot_id') || !Object.hasOwn(item, 'frame')
+        || item.shot_id !== shot.shot_id) {
+      throw new Error('Shot review request must preserve timeline shot IDs and order');
+    }
+    if (!Number.isSafeInteger(item.frame) || item.frame < shot.start_frame || item.frame >= shot.end_frame) {
+      throw new Error(`Shot review frame must be inside its shot: ${shot.shot_id}`);
+    }
+  }
+  return request;
+};
+
+const reviewImagePath = (output, index) => path.join(path.dirname(output), `shot-${String(index + 1).padStart(3, '0')}.png`);
+
+// Render from the existing frozen composition. Only the requested absolute
+// frame varies: audio, captions, shot-local clocks and component choices stay
+// identical to the complete film. Publish the manifest after every PNG exists.
+export const renderShotReviewImages = async ({timeline, request, output, tempDir, renderFrame, progress, assertRunning}) => {
+  validateShotReviewRequest(timeline, request);
+  await assertNewOutput(output);
+  for (const index of request.keys()) await assertNewOutput(reviewImagePath(output, index));
+  const imageRoot = path.join(tempDir, 'shot-review');
+  await fs.mkdir(imageRoot, {recursive: true});
+  const images = [];
+  for (const [index, item] of request.entries()) {
+    assertRunning();
+    const staged = path.join(imageRoot, `shot-${String(index + 1).padStart(3, '0')}.png`);
+    await renderFrame(item.frame, staged);
+    const stat = await fs.stat(staged);
+    if (!stat.isFile() || stat.size === 0) throw new Error(`Shot review PNG is missing or empty: ${item.shot_id}`);
+    images.push({...item, width: timeline.width, height: timeline.height, path: reviewImagePath(output, index)});
+    progress(0.15 + (index + 1) / request.length * 0.75);
+  }
+  assertRunning();
+  await fs.mkdir(path.dirname(output), {recursive: true});
+  const pendingManifest = path.join(path.dirname(output), `${path.basename(output)}.pending-${randomUUID()}`);
+  const publishedImages = [];
+  try {
+    for (const [index, image] of images.entries()) {
+      assertRunning();
+      await fs.copyFile(path.join(imageRoot, `shot-${String(index + 1).padStart(3, '0')}.png`), image.path, constants.COPYFILE_EXCL);
+      publishedImages.push(image.path);
+    }
+    await fs.writeFile(pendingManifest, JSON.stringify(images, null, 2), {encoding: 'utf8', flag: 'wx'});
+    assertRunning();
+    // Same-directory hard link publishes all JSON bytes atomically and cannot
+    // overwrite a manifest created by another invocation in the meantime.
+    await fs.link(pendingManifest, output);
+    return images;
+  } catch (error) {
+    for (const file of publishedImages) await fs.unlink(file).catch(() => {});
+    throw error;
+  } finally {
+    await fs.unlink(pendingManifest).catch((error) => { if (error.code !== 'ENOENT') throw error; });
+  }
 };
 
 export const resolvePreviewFrameRange = (timeline, options) => {
@@ -112,7 +188,7 @@ const videoProbe = async (file, source) => {
   try {
     ({stdout} = await execFileAsync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration:stream=codec_type,duration,width,height',
       '-of', 'json', file], {maxBuffer: 1024 * 1024}));
-  } catch (error) {
+  } catch {
     throw new Error(`Video media must contain a video stream readable by ffprobe: ${source}`);
   }
   let info;
@@ -231,6 +307,7 @@ const freezeDeep = (value) => {
 };
 
 export const outputScale = (timeline, mode) => {
+  if (mode === 'shot-review') return 1;
   // H.264 yuv420p also requires the *scaled* dimensions to be even. Keep
   // canonical dimensions for unusual even sizes that would become odd at 1/2.
   return mode === 'preview' && timeline.width % 4 === 0 && timeline.height % 4 === 0 ? 0.5 : 1;
@@ -244,6 +321,13 @@ export const main = async (argv = process.argv.slice(2)) => {
   const timeline = validateTimeline(JSON.parse(text.replace(/^\uFEFF/, '')));
   await assertNewOutput(options.output);
   await assertNewOutput(options.cover);
+  let reviewRequest;
+  if (options.mode === 'shot-review') {
+    const requestStat = await fs.stat(options['review-frames']);
+    if (!requestStat.isFile() || requestStat.size > 1024 * 1024) throw new Error('Shot review request must be a local JSON file of at most 1 MiB');
+    reviewRequest = validateShotReviewRequest(timeline, JSON.parse((await fs.readFile(options['review-frames'], 'utf8')).replace(/^\uFEFF/, '')));
+    for (const index of reviewRequest.keys()) await assertNewOutput(reviewImagePath(options.output, index));
+  }
   const media = await validateLocalInputs(timeline);
   const inputProps = freezeDeep({timeline: structuredClone(timeline), videoMetadata: structuredClone(media.videoMetadata)});
   const canonicalTempRoot = await fs.realpath(os.tmpdir());
@@ -283,11 +367,20 @@ export const main = async (argv = process.argv.slice(2)) => {
       puppeteerInstance: browser, logLevel: 'error'});
     assertRunning();
     const scale = outputScale(timeline, options.mode);
-    const frameRange = resolvePreviewFrameRange(timeline, options);
+    const frameRange = options.mode === 'shot-review' ? null : resolvePreviewFrameRange(timeline, options);
     // Reuse the exact same frozen props for selection, MP4 and cover. Preview
     // changes only output scale and renderMedia's source frame range; canonical
     // timeline coordinates, audio time and shot-local animation never change.
     const offthreadVideoOptions = {offthreadVideoCacheSizeInBytes: 256 * 1024 * 1024, offthreadVideoThreads: 2};
+    if (options.mode === 'shot-review') {
+      const images = await renderShotReviewImages({timeline, request: reviewRequest, output: options.output, tempDir,
+        progress, assertRunning,
+        renderFrame: (frame, output) => renderStill({serveUrl, composition, inputProps, output, imageFormat: 'png',
+          frame, scale: 1, puppeteerInstance: browser, cancelSignal, logLevel: 'error', ...offthreadVideoOptions})});
+      progress(1);
+      emit({event: 'complete', output: options.output, images});
+      return;
+    }
     await renderMedia({serveUrl, composition, inputProps, outputLocation: path.join(tempDir, 'video.mp4'),
       codec: 'h264', crf: options.mode === 'preview' ? 26 : 18, pixelFormat: 'yuv420p',
       scale, concurrency: 2, puppeteerInstance: browser, cancelSignal, logLevel: 'error',

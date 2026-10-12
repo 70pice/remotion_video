@@ -9,7 +9,12 @@ from pydantic import ValidationError
 
 from videoagents.contracts import Artifact, DirectorRequirements, Job
 from videoagents.nodes.common import current_job, state_context
-from videoagents.nodes.director_review import current_plan_artifact, director_review_fingerprint
+from videoagents.nodes.director_review import (
+    SHOT_REVIEW_MODE,
+    current_plan_artifact,
+    current_shot_review_artifact,
+    director_review_fingerprint,
+)
 from videoagents.state import VideoState
 from videoagents.storage import Conflict, NotFound, Repository
 from videoagents.storage.repository import dumps, fingerprint
@@ -78,8 +83,19 @@ class HumanReviewNode:
 
     def _pending(self, state: VideoState, job: Job) -> dict[str, Any]:
         inputs = self._inputs(job)
-        policy_payload = {"node_name": self.node_name, "stage": self.stage, "title": self.title,
-                          "requirements": self.requirements, "min_note_length": self.min_note_length,
+        title, requirements = self.title, self.requirements
+        per_shot = False
+        if self.node_name == "director_human_gate":
+            _, plan = current_plan_artifact(self.repo, job, validate_components=False)
+            per_shot = plan.get("review_mode") == SHOT_REVIEW_MODE
+            if per_shot:
+                title = "导演逐镜组件与画面审核"
+                requirements = ("逐镜核对组件或组件套、实际内部组件和选择理由",
+                                "逐镜查看真实Remotion代表帧，核对素材可读性、版式和画面表演",
+                                "旁白、案例、数字和来源对应，代表帧只证明该帧画面，不能证明整镜字幕同步",
+                                "所有镜头审阅完成后才能确认并进入完整成片渲染")
+        policy_payload = {"node_name": self.node_name, "stage": self.stage, "title": title,
+                          "requirements": requirements, "min_note_length": self.min_note_length,
                           "finish_on_confirm": self.finish_on_confirm}
         if self.revise_route is not None:
             policy_payload["revise_route"] = self.revise_route
@@ -92,10 +108,16 @@ class HumanReviewNode:
         identity = {"thread_id": state["thread_id"], "revision": job.revision, "node_name": self.node_name,
                     "round": state.get("human_review_rounds", {}).get(self.node_name, 0),
                     "inputs": inputs, "policy": policy}
-        return {"kind": "stage_review", "stage": self.stage, "node_name": self.node_name, "title": self.title,
+        pending = {"kind": "stage_review", "stage": self.stage, "node_name": self.node_name, "title": title,
                 "thread_id": state["thread_id"], "revision": job.revision, "pending_token": fingerprint(identity)[:32],
                 "dependency_fingerprint": inputs, "policy_fingerprint": policy,
-                "confirmation_requirements": list(self.requirements), "min_note_length": self.min_note_length}
+                "confirmation_requirements": list(requirements), "min_note_length": self.min_note_length}
+        if per_shot:
+            review, _ = current_shot_review_artifact(self.repo, job, validate_components=False)
+            pending.update(review_mode=SHOT_REVIEW_MODE,
+                           required_shot_ids=[shot.shot_id for shot in job.timeline.shots],
+                           director_shot_review_artifact_id=review.artifact_id)
+        return pending
 
     def _subject_snapshot(self, job: Job) -> dict[str, Any]:
         if self.stage == "script":
@@ -106,6 +128,9 @@ class HumanReviewNode:
             if self.node_name == "director_human_gate":
                 _, plan = current_plan_artifact(self.repo, job, validate_components=False)
                 subject["director_plan"] = plan
+                if plan.get("review_mode") == SHOT_REVIEW_MODE:
+                    _, manifest = current_shot_review_artifact(self.repo, job, validate_components=False)
+                    subject["director_shot_review"] = manifest
             return subject
         if self.stage == "render":
             return {"script": job.script.model_dump() if job.script else None,
@@ -148,7 +173,7 @@ class HumanReviewNode:
         pending = self._pending(state, job)
         if job.pending_input != pending or job.status != "NEEDS_HUMAN":
             self.repo.update_job(job.job_id, job.revision, status="NEEDS_HUMAN", stage=self.stage,
-                                 message=self.title + "：等待人工核对", pending_input=pending)
+                                 message=pending["title"] + "：等待人工核对", pending_input=pending)
         answer = interrupt(pending)
         job = self._job(state)
         if self._inputs(job) != pending["dependency_fingerprint"]:
@@ -160,10 +185,16 @@ class HumanReviewNode:
             raise Conflict("人工审核决定或说明无效")
         if decision == "confirm" and self.node_name == "director_human_gate":
             director_review_fingerprint(self.repo, job)
+            if pending.get("review_mode") == SHOT_REVIEW_MODE:
+                expected = pending["required_shot_ids"]
+                reviewed = answer.get("reviewed_shot_ids")
+                if (not isinstance(reviewed, list) or any(type(item) is not str for item in reviewed)
+                        or len(reviewed) != len(expected) or set(reviewed) != set(expected)):
+                    raise Conflict("请完成逐镜审阅并确认所有镜头，不能只审核部分镜头")
         director_requirements = answer.get("director_requirements")
         if director_requirements is not None:
             if decision != "revise" or self.node_name != "director_human_gate" or self.stage != "director":
-                raise Conflict("导演制作要求只能随导演 Demo 返工提交")
+                raise Conflict("导演制作要求只能随导演画面返工提交")
             try:
                 director_requirements = DirectorRequirements.model_validate(director_requirements)
             except ValidationError as exc:
@@ -176,6 +207,10 @@ class HumanReviewNode:
                                        message=pending["issues"][0])
             return state_context(self.repo, state, route="retry", stage_review_pending=pending)
         receipt = dict(pending, decision=decision, note=note)
+        if decision == "confirm" and pending.get("review_mode") == SHOT_REVIEW_MODE:
+            receipt["reviewed_shot_ids"] = list(pending["required_shot_ids"])
+        if pending.get("review_mode") == SHOT_REVIEW_MODE:
+            receipt["subject"] = self._subject_snapshot(job)
         artifact_id = fingerprint({"job_id": job.job_id, "pending_token": pending["pending_token"]})[:32]
         feedback = {self.stage: {"stage": self.stage, "node_name": self.node_name,
                                  "pending_token": pending["pending_token"],
@@ -184,10 +219,10 @@ class HumanReviewNode:
                                  **self._subject_snapshot(job)}} if decision == "revise" else {}
         if decision == "confirm":
             status = "DRAFT" if self.finish_on_confirm else "RUNNING"
-            message = self.title + ("已确认，本次执行结束" if self.finish_on_confirm else "已确认，继续工作流")
+            message = pending["title"] + ("已确认，本次执行结束" if self.finish_on_confirm else "已确认，继续工作流")
             route = "continue"
         elif decision == "revise" and self.revise_route:
-            status, message, route = "RUNNING", self.title + "要求返工，已返回对应模型节点", "revise"
+            status, message, route = "RUNNING", pending["title"] + "要求返工，已返回对应模型节点", "revise"
         elif decision == "revise":
             status, message, route = "DRAFT", "人工审核要求返工，请修改对应产物并提交新版本", "end"
         else:

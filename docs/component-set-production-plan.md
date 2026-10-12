@@ -1,6 +1,6 @@
 # 组件套进入普通视频生产
 
-用户目标：导演先按表达目的、素材类型和本期内容选择已登记组件套，通过 `Shot.set_design` typed production selection 绑定当前任务素材、文字、数字和来源，并调整每个固定 part 的出现/结束时刻、尺寸与间距，输出不超过30秒的实际 Demo 供人工审核。
+用户目标：导演先按表达目的、素材类型和本期内容选择已登记组件套，通过 `Shot.set_design` typed production selection 绑定当前任务素材、文字、数字和来源，并调整每个固定 part 的出现/结束时刻、尺寸与间距。普通生产不再输出 30 秒导演 Demo，而是为每个镜头渲染一张代表帧 PNG，连同组件套选择和理由供人工逐镜审核。
 
 ## 生产契约
 
@@ -17,20 +17,20 @@
 
 ## 节点交接
 
-任务 API → Worker → VideoProductionGraph → 导演选择 `set_design` 并写入本期内容/素材/part 时钟/布局 → defaults 展开 → 时间线与组件套校验 → `director_demo` 渲染不超过30秒 Demo → `director_human_gate` 人工审核 → 人工通过后 `editing` 剪辑与成片渲染。
+任务 API → Worker → VideoProductionGraph → 导演选择 `set_design` 并写入本期内容/素材/part 时钟/布局 → defaults 展开 → 时间线与组件套校验 → `director_demo` 按每个镜头的代表帧渲染 PNG 审核包 → `director_human_gate` 人工逐镜审核 → 人工通过后 `editing` 剪辑与成片渲染。
 
-导演按场景、素材和内容选择：人物/生活照片优先 A01/A07，App 界面或操作优先 A02/A08/A09，账单和数字核算优先 A10/B04/B08/B10，作品细节优先 A04/A11，关系/流程优先 A06/A12/B11/B12/B16/B18，问题、概念、问答、核实、结论等无素材表达优先 B01/B02/B14/B15/B06。选择理由写入 `component_reason`；本期内容、来源、duration/layout overrides、part 本地时钟和 Demo 说明写入 `visual_action` 或导演方案。
+导演按场景、素材和内容选择：人物/生活照片优先 A01/A07，App 界面或操作优先 A02/A08/A09，账单和数字核算优先 A10/B04/B08/B10，作品细节优先 A04/A11，关系/流程优先 A06/A12/B11/B12/B16/B18，问题、概念、问答、核实、结论等无素材表达优先 B01/B02/B14/B15/B06。选择理由写入 `component_reason`；本期内容、来源、duration/layout overrides、part 本地时钟和逐镜审核说明写入 `visual_action` 或导演方案。
 
-人工返工沿现有 revision 与导演续跑入口：`director_human_gate` 的 revise 可以附带导演要求并回到 director，重新生成 Demo；confirm 才继续 editing。不得改数据库审批标记，不跳过 `director_demo` 或 `director_human_gate`。
+人工返工沿现有 revision 与导演续跑入口：`director_human_gate` 的 revise 可以附带导演要求并回到 director，重新生成逐镜审核包；confirm 必须覆盖当前包中的全部镜头，之后才继续 editing。不得改数据库审批标记，不跳过 `director_demo` 或 `director_human_gate`。
 
 ## 维护和运行
 
 - 复用现有原生组件与 rich renderer，不新增依赖或额外模型轮次。30 套实际生产 native IDs 以 `videoagents/component-set-capabilities.json` 的 `sets[].parts[].component_id` 去重结果为准；registry 中的 component_sample/历史 components 只记录样片或历史组合，Python/TS 校验保持一致，并通过生成器更新前后端模型。
 - 权限沿用本机任务 API 会话与 CSRF；不新增发布动作。普通生产、component sample、用户品鉴和媒体回执分别记录。
 - 异常沿 `await_input` 回报具体字段与缺素材原因；不自动退回旧卡片方案，不修改数据库审核标记。
-- 重启加载新代码前检查无运行中任务。真实验证通过待验证任务的正常制作或导演返工 API 执行，返工时保留该任务已确认的原稿、原音频和字幕，生成不超过30秒的 director Demo MP4，并停在 `director_human_gate` 待人工 review；记录任务 ID、节点事件、输入、导演方案、stage_review 和 Demo artifact，不在人工 confirm 前声称完整成片已渲染。独立试验任务不能继承其他任务的素材、音频或人工通过状态。
+- 重启加载新代码前检查无运行中任务。真实验证通过待验证任务的正常制作或导演返工 API 执行，返工时保留该任务已确认的原稿、原音频和字幕，生成逐镜 PNG 审核包，并停在 `director_human_gate` 待人工 review；记录任务 ID、节点事件、输入、导演方案、stage_review 和审核包 artifact，不在人工 confirm 前声称完整成片已渲染。独立试验任务不能继承其他任务的素材、音频或人工通过状态。
 - `videoagents/component-set-capabilities.json` 已提供 version、safe_area 与 30 套 parts；文档引用该文件作为默认展开来源，不在文档中复制或臆造默认 part 数值。
 
 ## 验证
 
-覆盖 30 套 `set_design` 选择与内容约束、当前 job 素材隔离、合法 duration/layout overrides、safe_area 归一化 box 与 y=1400 下沿、空间重叠/太晚揭示拒绝、仅 A03/A05/A06/A09 接受 `focus_steps+source_size`、part 局部动画时钟、defaults 展开后原生计数、旧样片兼容、生产音频字幕保留、导演 schema/Prompt 与 30 秒人工审核守卫；运行对应 Python/JS 回归、类型检查、lint、契约生成校验及前端构建，并用正常 Graph 生成真实 director Demo MP4 待审作为交付证据。
+覆盖 30 套 `set_design` 选择与内容约束、当前 job 素材隔离、合法 duration/layout overrides、safe_area 归一化 box 与 y=1400 下沿、空间重叠/太晚揭示拒绝、仅 A03/A05/A06/A09 接受 `focus_steps+source_size`、part 局部动画时钟、defaults 展开后原生计数、旧样片兼容、生产音频字幕保留、导演 schema/Prompt 与逐镜人工审核守卫；运行对应 Python/JS 回归、类型检查、lint、契约生成校验及前端构建，并用正常 Graph 生成真实逐镜 PNG 审核包作为交付证据。

@@ -4,6 +4,7 @@ import math
 import os
 import struct
 import wave
+import zlib
 from types import SimpleNamespace
 
 import pytest
@@ -24,6 +25,27 @@ def _tone(seconds=2):
         media.setframerate(16000)
         media.writeframes(b"".join(struct.pack("<h", int(500 * math.sin(i / 10))) for i in range(int(seconds * 16000))))
     return output.getvalue()
+
+
+@pytest.fixture(autouse=True)
+def isolated_shot_review_render(monkeypatch):
+    """Synthetic PNGs exercise workflow receipts without bundling a test project."""
+    def render(project, timeline_path, request_path, output_manifest, timeout, cancelled, progress):
+        timeline = json.loads(timeline_path.read_text(encoding="utf-8"))
+        width, height = timeline["width"], timeline["height"]
+        def chunk(name, data):
+            return struct.pack(">I", len(data)) + name + data + struct.pack(">I", zlib.crc32(name + data))
+        header = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+        pixels = b"".join(b"\0" + b"\x11\x22\x33" * width for _ in range(height))
+        png = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header) + chunk(b"IDAT", zlib.compress(pixels)) + chunk(b"IEND", b"")
+        images = []
+        for index, item in enumerate(json.loads(request_path.read_text(encoding="utf-8")), 1):
+            path = output_manifest.parent / f"unit-{index}.png"
+            path.write_bytes(png)
+            images.append({**item, "width": width, "height": height, "path": str(path)})
+        output_manifest.write_text(json.dumps(images), encoding="utf-8")
+        return {"images": images}
+    monkeypatch.setattr("videoagents.nodes.director_demo.render_shot_reviews", render)
 
 
 def _seed_completed_research(repo: Repository, service: JobService, job) -> None:
@@ -68,6 +90,9 @@ def director_model_response(context, shots):
             "component_reason": "UNIT TEST：导演说明组件如何承接口播。",
             "visual_action": "UNIT TEST：导演说明本段画面如何表演。",
         }],
+        "shot_reviews": [{"shot_id": shot["shot_id"], "review_frame": shot["start_frame"],
+                          "component_reason": "UNIT TEST：逐镜组件选择理由。",
+                          "visual_action": "UNIT TEST：逐镜表演设计。"} for shot in shots],
         "demo": {
             "start_frame": 0,
             "end_frame": max(1, min(duration, fps * 30)),
@@ -91,12 +116,26 @@ def record_director_demo_confirmation(repo, service, job):
         service.write_json(job, "unit-director-plan.json", plan, "director_plan")
         job = repo.get_job(job.job_id)
         plan_artifact, plan = current_plan_artifact(repo, job)
-    preview = service.write_json(job, "unit-director-demo.json", {"unit_preview": True}, "preview")
-    repo.update_artifact_metadata(preview.artifact_id, {
-        "director_plan_sha256": plan_artifact.sha256,
-        "dependency_fingerprint": dependency_fingerprint(job),
-        "frame_range": [plan["demo"]["start_frame"], plan["demo"]["end_frame"]],
-    })
+    review_fields = {}
+    if plan.get("review_mode") == "per_shot_stills":
+        from videoagents.nodes.director_demo import DirectorDemoNode
+        from videoagents.nodes.director_review import current_shot_review_artifact
+        try:
+            review, manifest = current_shot_review_artifact(repo, job)
+        except ValueError:
+            DirectorDemoNode(repo, service).render_shots(job)
+            job = repo.get_job(job.job_id)
+            review, manifest = current_shot_review_artifact(repo, job)
+        review_fields = {"review_mode": "per_shot_stills", "reviewed_shot_ids": [shot.shot_id for shot in job.timeline.shots],
+                         "director_shot_review_artifact_id": review.artifact_id,
+                         "subject": {"director_shot_review": manifest, "director_plan": plan}}
+    else:
+        preview = service.write_json(job, "unit-director-demo.json", {"unit_preview": True}, "preview")
+        repo.update_artifact_metadata(preview.artifact_id, {
+            "director_plan_sha256": plan_artifact.sha256,
+            "dependency_fingerprint": dependency_fingerprint(job),
+            "frame_range": [plan["demo"]["start_frame"], plan["demo"]["end_frame"]],
+        })
     job = repo.get_job(job.job_id)
     service.write_json(job, "unit-director-demo-confirm.json", {
         "kind": "stage_review",
@@ -106,6 +145,7 @@ def record_director_demo_confirmation(repo, service, job):
         "decision": "confirm",
         "note": "UNIT TEST：确认导演方案和Demo。",
         "dependency_fingerprint": director_review_fingerprint(repo, job),
+        **review_fields,
     }, "stage_review")
     return repo.get_job(job.job_id)
 
@@ -259,7 +299,7 @@ def test_continue_finished_voice_through_director_and_editing_only(manual_job, m
     result = repo.get_job(voice.job_id)
     assert result.status == "NEEDS_HUMAN" and result.stage == "director"
     assert result.pending_input["node_name"] == "director_human_gate"
-    assert any(item.kind == "preview" for item in result.artifacts)
+    assert any(item.kind == "director_shot_review" for item in result.artifacts)
     assert_director_demo_preview_metadata(repo, result)
     assert not any(item.kind == "final" for item in result.artifacts)
     assert result.timeline.audio_src == audio.timeline_src
@@ -355,7 +395,7 @@ def test_completed_video_rebuild_runs_only_director_and_editing_and_is_replay_sa
     result = repo.get_job(before.job_id)
     assert result.status == "NEEDS_HUMAN" and result.stage == "director"
     assert result.pending_input["node_name"] == "director_human_gate"
-    assert any(item.kind == "preview" for item in result.artifacts)
+    assert any(item.kind == "director_shot_review" for item in result.artifacts)
     assert_director_demo_preview_metadata(repo, result)
     result = confirm_stage_reviews(repo, before.job_id, worker, "UNIT-rebuild-visuals-review")
     assert (result.status, result.stage, result.pending_input) == ("DRAFT", "complete", None), result.message
@@ -603,17 +643,17 @@ def test_editing_role_preflight_keeps_remotion_execution_and_blocks_findings(man
     demo = repo.get_job(job.job_id)
     assert demo.status == "NEEDS_HUMAN" and demo.stage == "director"
     assert calls == []
-    assert renders == ["preview"]
+    assert renders == []
     result = confirm_stage_reviews(repo, job.job_id, worker, f"editing-preflight-review-{blocking}")
     assert calls == [("editing", "EditingAdvice")]
     assert result.timeline.model_dump() == original_timeline
     assert any(item.kind == "editing_guidance" for item in result.artifacts)
     if blocking:
         assert result.status == "NEEDS_INPUT" and result.stage == "render"
-        assert renders == ["preview"]
+        assert renders == []
     else:
         assert result.status == "DRAFT" and result.stage == "complete"
-        assert renders == ["preview", "final"]
+        assert renders == ["final"]
 
 
 def test_editing_model_unknown_is_a_real_persisted_interrupt(manual_job, monkeypatch):
@@ -650,13 +690,13 @@ def test_editing_model_unknown_is_a_real_persisted_interrupt(manual_job, monkeyp
     assert worker.once()
     demo = repo.get_job(job.job_id)
     assert demo.status == "NEEDS_HUMAN" and demo.stage == "director"
-    assert renders == ["preview"]
+    assert renders == []
     result = confirm_stage_reviews(repo, job.job_id, worker, "unknown-editing-review")
     assert result.status == "NEEDS_INPUT" and result.stage == "render"
     assert result.pending_input["operation_status"] == "UNKNOWN"
     assert result.pending_input["operation_id"] == "unit-editing-operation"
     assert result.pending_input["thread_id"] and result.pending_input["pending_token"]
-    assert renders == ["preview"]
+    assert renders == []
 
 
 def test_editing_schema_cannot_reopen_script_review():
@@ -751,6 +791,8 @@ def install_isolated_render_double(monkeypatch):
 def resume(repo, job, decision, note="", key="resume-command"):
     payload = {"base_revision": job.revision, "action": "resume", "decision": decision, "note": note,
                "idempotency_key": key, "pending_token": job.pending_input["pending_token"]}
+    if decision == "confirm" and job.pending_input.get("review_mode") == "per_shot_stills":
+        payload["reviewed_shot_ids"] = job.pending_input["required_shot_ids"]
     repo.enqueue(job.job_id, payload)
     return payload
 
@@ -775,6 +817,14 @@ def assert_director_demo_preview_metadata(repo, job):
 
     plan = load_current_director_plan(repo, job)
     assert plan is not None
+    if plan.get("review_mode") == "per_shot_stills":
+        from videoagents.nodes.director_review import current_shot_review_artifact
+        artifact, manifest = current_shot_review_artifact(repo, job)
+        assert manifest["director_plan_sha256"] == latest_artifact(job, "director_plan").sha256
+        assert [item["shot_id"] for item in manifest["items"]] == [shot.shot_id for shot in job.timeline.shots]
+        assert repo.artifact_metadata(artifact.artifact_id)["review_mode"] == "per_shot_stills"
+        assert not any(item.kind == "preview" for item in job.artifacts)
+        return
     metadata = repo.artifact_metadata(latest_artifact(job, "preview").artifact_id)
     assert isinstance(metadata.get("director_plan_sha256"), str) and len(metadata["director_plan_sha256"]) == 64
     assert metadata["director_plan_sha256"] == latest_artifact(job, "director_plan").sha256
@@ -811,7 +861,7 @@ def test_produce_pauses_for_director_demo_review_before_final_render(manual_job,
     demo = repo.get_job(job.job_id)
     assert demo.status == "NEEDS_HUMAN" and demo.stage == "director"
     assert demo.pending_input["node_name"] == "director_human_gate"
-    assert any(item.kind == "preview" for item in demo.artifacts)
+    assert any(item.kind == "director_shot_review" for item in demo.artifacts)
     assert_director_demo_preview_metadata(repo, demo)
     assert not any(item.kind == "final" for item in demo.artifacts)
     resume(repo, demo, "confirm", "UNIT TEST：确认30秒Demo和导演表演设计可以进入成片渲染。", "demo-gate-director")
@@ -835,7 +885,7 @@ def test_director_demo_revise_reruns_director_and_reuses_voice(manual_job, monke
     assert demo.pending_input["node_name"] == "director_human_gate"
     original_token = demo.pending_input["pending_token"]
     audio_ids = {item.artifact_id for item in demo.artifacts if item.kind in {"voice", "alignment", "audio_report"}}
-    preview_ids = {item.artifact_id for item in demo.artifacts if item.kind == "preview"}
+    preview_ids = {item.artifact_id for item in demo.artifacts if item.kind == "director_shot_review"}
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.available", lambda self, role: role == "director")
     def director_revise_model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
         assert role == "director"
@@ -851,7 +901,7 @@ def test_director_demo_revise_reruns_director_and_reuses_voice(manual_job, monke
     assert revised.pending_input["node_name"] == "director_human_gate"
     assert revised.pending_input["pending_token"] != original_token
     assert {item.artifact_id for item in revised.artifacts if item.kind in {"voice", "alignment", "audio_report"}} == audio_ids
-    assert {item.artifact_id for item in revised.artifacts if item.kind == "preview"} != preview_ids
+    assert {item.artifact_id for item in revised.artifacts if item.kind == "director_shot_review"} != preview_ids
     assert_director_demo_preview_metadata(repo, revised)
     assert not any(item.kind == "final" for item in revised.artifacts)
 

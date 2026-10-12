@@ -55,6 +55,19 @@ describe("authenticated API requests", () => {
     expect(payload.base_revision).toBe(4);
     expect(payload.idempotency_key).toBe("reply-key");
   });
+  it("sends all reviewed shot IDs only with a director confirmation", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(Response.json({ csrf_token: "token" }))
+      .mockResolvedValueOnce(Response.json({ status: "QUEUED" }))
+      .mockResolvedValueOnce(Response.json({ status: "QUEUED" }));
+    vi.stubGlobal("fetch", fetchMock);
+    const { api } = await import("../src/api/client");
+    const job = { job_id: "job", revision: 4, pending_input: { pending_token: "current-token" } } as unknown as Parameters<typeof api.resume>[0];
+    await api.resume(job, "confirm", "每镜已阅", "confirm-key", ["shot-1", "shot-2"]);
+    await api.resume(job, "revise", "[镜头 shot-1] 重新选素材套", "revise-key", ["shot-1"]);
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body).reviewed_shot_ids).toEqual(["shot-1", "shot-2"]);
+    expect(JSON.parse(fetchMock.mock.calls[2][1].body)).not.toHaveProperty("reviewed_shot_ids");
+  });
   it("establishes a session before the first protected read", async () => {
     const fetchMock = vi
       .fn()

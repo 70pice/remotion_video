@@ -115,7 +115,8 @@ class VideoState(TypedDict, total=False):
     research: dict[str, Any]  # 素材节点最终研究产物：检索歧义、来源正文、图片/截图引用及资料局限；不含工具调用过程。
     audio_report: dict[str, Any] | None  # 配音核验报告，记录音频 hash、实测时长、来源及对齐核验状态。
     voice_guidance: dict[str, Any] | None  # 配音角色模型给出的发音、停顿、情绪建议和预检问题。
-    director_plan: dict[str, Any] | None  # 导演节点持久化的逐段表演方案、镜头方案与 Demo 帧区间。
+    director_plan: dict[str, Any] | None  # 导演的逐段表演、镜头选择、逐镜代表帧设计；旧任务可含Demo区间。
+    director_shot_review: dict[str, Any] | None  # 当前设计绑定的完整逐镜审核包，每镜真实PNG与组件/套清单。
     editing_guidance: dict[str, Any] | None  # 剪辑角色模型给出的节奏、布局建议和渲染前预检问题。
     render: dict[str, Any]  # 按产物类型索引的预览、成片、封面、字幕及发布包引用。
     human_reviews: list[dict[str, Any]]  # 累计人工回复及阶段、成片核验回执，保留意见和产物关联。
@@ -173,7 +174,8 @@ def clean_handoff(state: VideoState) -> VideoState:
     asset_fields = {"origin", "source_url", "image_url", "description", "width", "height", "collection_key",
                     "duration_seconds", "alignment", "script_fingerprint", "voice_fingerprint",
                     "voice_model", "voice_style", "voice_speech_rate", "renderable"}
-    artifact_fields = {"source_url", "dependency_fingerprint", "director_plan_sha256", "frame_range"}
+    artifact_fields = {"source_url", "dependency_fingerprint", "director_plan_sha256", "frame_range",
+                       "review_mode", "shot_id", "review_frame", "width", "height"}
     for name, allowed in (("asset_metadata", asset_fields), ("artifact_metadata", artifact_fields)):
         if name in result:
             result[name] = {identifier: {key: value for key, value in metadata.items() if key in allowed}

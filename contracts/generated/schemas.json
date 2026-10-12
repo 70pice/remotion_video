@@ -1124,6 +1124,275 @@
       "title": "DirectorRequirements",
       "type": "object"
     },
+    "DirectorShotReviewItem": {
+      "additionalProperties": false,
+      "description": "A real rendered still with its executable component selection.",
+      "properties": {
+        "shot_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Shot Id",
+          "type": "string"
+        },
+        "review_frame": {
+          "minimum": 0,
+          "title": "Review Frame",
+          "type": "integer"
+        },
+        "component_reason": {
+          "maxLength": 600,
+          "minLength": 1,
+          "title": "Component Reason",
+          "type": "string"
+        },
+        "visual_action": {
+          "maxLength": 800,
+          "minLength": 1,
+          "title": "Visual Action",
+          "type": "string"
+        },
+        "index": {
+          "maximum": 400,
+          "minimum": 1,
+          "title": "Index",
+          "type": "integer"
+        },
+        "start_frame": {
+          "minimum": 0,
+          "title": "Start Frame",
+          "type": "integer"
+        },
+        "end_frame": {
+          "exclusiveMinimum": 0,
+          "title": "End Frame",
+          "type": "integer"
+        },
+        "component_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Component Id",
+          "type": "string"
+        },
+        "set_id": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Set Id"
+        },
+        "component_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 40,
+          "minItems": 1,
+          "title": "Component Ids",
+          "type": "array"
+        },
+        "title": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Title",
+          "type": "string"
+        },
+        "body": {
+          "default": "",
+          "maxLength": 6000,
+          "title": "Body",
+          "type": "string"
+        },
+        "asset_src": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asset Src"
+        },
+        "source_label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Label"
+        },
+        "narration": {
+          "default": "",
+          "maxLength": 30000,
+          "title": "Narration",
+          "type": "string"
+        },
+        "image": {
+          "$ref": "#/$defs/Artifact"
+        }
+      },
+      "required": [
+        "shot_id",
+        "review_frame",
+        "component_reason",
+        "visual_action",
+        "index",
+        "start_frame",
+        "end_frame",
+        "component_id",
+        "component_ids",
+        "image"
+      ],
+      "title": "DirectorShotReviewItem",
+      "type": "object"
+    },
+    "DirectorShotReviewManifest": {
+      "additionalProperties": false,
+      "description": "Complete review pack bound to one job revision and director plan.",
+      "properties": {
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "mode": {
+          "const": "per_shot_stills",
+          "default": "per_shot_stills",
+          "title": "Mode",
+          "type": "string"
+        },
+        "job_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Job Id",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "director_plan_artifact_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Director Plan Artifact Id",
+          "type": "string"
+        },
+        "director_plan_sha256": {
+          "maxLength": 64,
+          "minLength": 64,
+          "title": "Director Plan Sha256",
+          "type": "string"
+        },
+        "dependency_fingerprint": {
+          "maxLength": 64,
+          "minLength": 64,
+          "title": "Dependency Fingerprint",
+          "type": "string"
+        },
+        "timeline_fingerprint": {
+          "maxLength": 64,
+          "minLength": 64,
+          "title": "Timeline Fingerprint",
+          "type": "string"
+        },
+        "width": {
+          "maximum": 3840,
+          "minimum": 240,
+          "title": "Width",
+          "type": "integer"
+        },
+        "height": {
+          "maximum": 3840,
+          "minimum": 240,
+          "title": "Height",
+          "type": "integer"
+        },
+        "fps": {
+          "maximum": 60,
+          "minimum": 15,
+          "title": "Fps",
+          "type": "integer"
+        },
+        "duration_in_frames": {
+          "exclusiveMinimum": 0,
+          "title": "Duration In Frames",
+          "type": "integer"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/DirectorShotReviewItem"
+          },
+          "maxItems": 400,
+          "minItems": 1,
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "job_id",
+        "revision",
+        "director_plan_artifact_id",
+        "director_plan_sha256",
+        "dependency_fingerprint",
+        "timeline_fingerprint",
+        "width",
+        "height",
+        "fps",
+        "duration_in_frames",
+        "items"
+      ],
+      "title": "DirectorShotReviewManifest",
+      "type": "object"
+    },
+    "DirectorShotReviewSpec": {
+      "additionalProperties": false,
+      "description": "The director's chosen absolute frame and explanation for one shot.",
+      "properties": {
+        "shot_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Shot Id",
+          "type": "string"
+        },
+        "review_frame": {
+          "minimum": 0,
+          "title": "Review Frame",
+          "type": "integer"
+        },
+        "component_reason": {
+          "maxLength": 600,
+          "minLength": 1,
+          "title": "Component Reason",
+          "type": "string"
+        },
+        "visual_action": {
+          "maxLength": 800,
+          "minLength": 1,
+          "title": "Visual Action",
+          "type": "string"
+        }
+      },
+      "required": [
+        "shot_id",
+        "review_frame",
+        "component_reason",
+        "visual_action"
+      ],
+      "title": "DirectorShotReviewSpec",
+      "type": "object"
+    },
     "Script": {
       "additionalProperties": false,
       "properties": {
@@ -2371,6 +2640,25 @@
             }
           ],
           "default": null
+        },
+        "reviewed_shot_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 400,
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reviewed Shot Ids"
         }
       },
       "required": [
