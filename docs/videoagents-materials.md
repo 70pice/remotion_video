@@ -1,11 +1,11 @@
 # 素材研究节点
 
-2026-10-10 更新：当前制作流程已在导演后加入真实最长 30 秒 Demo 与 `director_human_gate`，不是旧的“导演直接剪辑”。素材节点仍负责冻结来源、图片、截图和真实视频，并把叙事用途交给编剧和导演；最新路由见 [生产图精简](videoagents-graph-simplification.md)，审核规则见 [阶段人工审核](videoagents-human-review.md)。
+2026-10-12 更新：普通制作在导演后生成每个镜头一张真实代表帧 PNG，经 `director_human_gate` 整包人工确认后进入完整成片剪辑。历史任务及独立组件套样片保留 Demo 路径；素材节点负责冻结来源、图片、截图和真实视频，并把用途交给编剧和导演。最新路由见 [生产图精简](videoagents-graph-simplification.md)，审核规则见 [阶段人工审核](videoagents-human-review.md)。
 ## 流程和职责
 
-当前制作流程为 `START → materials → screenwriter ↔ script_reviewer → human_review_script → voice → audio_gate → director → director_demo → director_human_gate → editing`。文案审查固定开启；达到轮数上限仍要求修改时，编剧最后改稿一次再进入人工审核。导演完成镜头与 Demo 设计后，必须生成真实最长 30 秒 Demo 并经人工确认，才进入完整成片剪辑。
+当前制作流程为 `START → materials → screenwriter ↔ script_reviewer → human_review_script → voice → audio_gate → director → director_demo → director_human_gate → editing`。文案审查固定开启；达到轮数上限仍要求修改时，编剧最后改稿一次再进入人工审核。`director_demo` 是保留的节点名，普通制作由它生成逐镜 PNG 审核包，不要求30秒 Demo；整包经人工确认后才进入完整成片剪辑。
 
-`materials` 负责检索、读取来源、采集真实图片与网页截图；编剧只消费冻结的研究结果。导演同时获得素材文件、出处、说明和与口播段落的关联。节点仍统一定义在 `videoagents/nodes/`。
+`materials` 负责检索、读取来源、采集真实图片、网页截图及相关真实视频；编剧只消费冻结的研究结果。导演同时获得素材文件、出处、说明和与口播段落的关联。节点仍统一定义在 `videoagents/nodes/`。
 
 素材节点直接启动 **Codex 模型研究**：模型读取 `agent-reach` 和已安装的互补技能，自行选择检索、网页读取、视频字幕、原图及截图工具。Python 接收并验证最终文件清单，没有单独的规划或固定检索分支。技能安装、各平台实测状态与待配置项见 [检索环境清单](videoagents-research-skills.md)。
 
@@ -30,12 +30,12 @@ VideoState → MaterialsNode.collect()
   → 冻结 research / assets → VideoState → 编剧与导演
 ```
 
-业务 Prompt 独立保存在 `videoagents/prompts/materials.md`，`materials.py` 的 `PROMPT` 仅负责加载共享风格与角色规则。没有单独的规划 Prompt、方法、契约或规划产物。
+业务 Prompt 独立保存在 `videoagents/prompts/materials.md`，`materials.py` 的 `PROMPT` 负责加载该角色规则。没有单独的规划 Prompt、方法、契约或规划产物。
 素材研究目前要求启用素材模型并选择 `codex_cli`；模型关闭或选择尚不支持研究的 CLI 时暂停并提示能力缺口。
 
 每版本研究目录为 `jobs/<job_id>/revisions/<revision>/skills-research/`。
 最终清单中的 `text_file` / `file` 必须为目录内相对路径，文件实际存在且散列一致。
-通过验证的来源和画面复制到冻结目录、登记为当前任务产物；权限尚未确认的原图与截图仍需后续审核。
+通过验证的来源和画面复制到冻结目录、登记为当前任务产物；默认个人视频直接使用合适的已导入素材，保留出处与已有明确使用限制，不新增统一许可审核。
 目录只是执行空间，不进入下一个 Agent 的输入。`material-skill-manifest.json` 与脱敏的
 `material-tool-audit-*.jsonl` 仅用于追溯，`VideoState` 中只传最终研究结果和已登记素材。
 
@@ -46,6 +46,14 @@ CLI 调用账本保留原有 `UNKNOWN` 阻断，切换 CLI 或模型不能绕过
 `VideoState.research` 只保存最终来源、画面及资料局限，`assets`/`asset_metadata` 保存实际媒体与说明。编剧据此写稿，用 `source_refs`/`asset_ids` 关联段落；导演读取同样的正文、出处与视觉说明匹配镜头。Remotion 使用已登记的本地素材。多义主题尚未确认的含义写入 `limitations`。
 
 主题任务没有读到来源时停在 `materials` 待办，可补链接或修正配置后恢复。完成包需要刷新内容时，保存新版本再执行。
+
+## 真实视频准备（2026-10-12）
+
+在当前检索预算、超时和已安装工具能力内主动寻找相关真实视频：事件现场与采访、实际操作与流程、真实结果或变化。选择理由是能解释本期论点，而不是凑素材数量。与证据匹配的图片同样可用；没有合适视频不算制作失败，也不设视频数量或时长占比。
+
+检索到视频页面、取得字幕和取得可播放文件分别记录。只有实际取得且通过现有登记校验的文件才进入 `visuals`；说明通过既有 `description` 等字段交接出处、支撑的论点、实测可用区间、画面或声音的局限。无法取得的片段或无法确认的区间写入 `limitations`，不伪造已下载或已测量。
+
+导演优先选择已导入、内容匹配且可用区间足够的真实视频；不得循环填充、用无关实拍制造节奏或把截图动画称为视频。此项只更新既有角色指令，不增加结构字段、工具、审核节点或下载保证。
 
 ## 可选研究目标（32 项）
 
@@ -100,7 +108,7 @@ CLI 调用账本保留原有 `UNKNOWN` 阻断，切换 CLI 或模型不能绕过
 
 模型可通过已配置的技能后端读取网页、字幕及其他格式；实际能力见环境清单，缺少转写 Key 时不能声称已转写。
 
-登录墙、验证码、地区限制或无法读取的格式会记录为缺口。浏览器连接成功不代表各平台登录已验证。图片/截图再利用许可由后续审核确认。
+登录墙、验证码、地区限制或无法读取的格式会记录为缺口。浏览器连接成功不代表各平台登录已验证。素材保留真实出处与已有明确使用限制，个人制作不统一增加许可待核步骤。
 
 原 Meta Muse 任务的失败已按实际调用层复验；当前网页、B站、YouTube 搜索、Reddit 正文及指定知乎文章均有真实返回。2026-10-04 的再次验收取得 B站真实字幕；YouTube 字幕、X 搜索和知乎搜索仍有缺口。完整平台表见 [当前实测状态](videoagents-platform-status.md)，调用层修复见 [工具诊断与修复记录](videoagents-tool-diagnostics.md)。
 
