@@ -112,6 +112,7 @@ class SettingsService:
         result.update({
             "llm_configured": any(value["enabled"] for value in settings["role_models"].values()),
             "ark_api_key_configured": bool(settings.get("ark_api_key")),
+            "zhipu_api_key_configured": bool(settings.get("zhipu_api_key")),
             "cli_availability": cli_availability(),
             "search_configured": (settings.get("search_provider") == "opencli_google" and any(
                 item["id"] == "google" and item["status"] in {"native_installed", "native_ready"} for item in tools)) or bool(settings.get("search_api_key")) and (

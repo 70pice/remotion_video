@@ -73,7 +73,9 @@ def test_real_cache_refresh_preserves_settings_and_custom_claude_name(client, tm
     assert next_result.status_code == 200 and next_result.json()["models"][0]["id"] == "local-after-refresh"
     assert next_result.json()["fetched_at"] == "2026-10-03T08:00:00Z"
     fallback = client.get("/api/models/claude_code_cli?refresh=true")
-    assert fallback.status_code == 200 and fallback.json()["status"] == "unavailable"
-    assert fallback.json()["models"] == []
+    assert fallback.status_code == 200 and fallback.json()["status"] == "ready"
+    assert [item["id"] for item in fallback.json()["models"]] == ["glm-5.3[1m]"]
+    assert fallback.json()["fetched_at"] == ""
+    assert "官方文档" in fallback.json()["message"] and "未验证" in fallback.json()["message"]
     assert client.app.state.repository.setting_values() == before
     assert client.get("/api/settings").json()["role_models"]["review"]["model"] == name

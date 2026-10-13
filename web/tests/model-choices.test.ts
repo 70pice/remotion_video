@@ -9,7 +9,7 @@ import {
   modelFromChoice,
   selectedModelChoice,
 } from "../src/api/modelChoices";
-import { buildRoleModelsPatch, readRoleModels } from "../src/api/roleSettings";
+import { buildRoleModelsPatch, modelRoles, readRoleModels } from "../src/api/roleSettings";
 import type { ModelCatalog } from "../src/api/types";
 import { SettingsForm } from "../src/pages/SettingsPage";
 
@@ -49,6 +49,19 @@ const traeCatalog: ModelCatalog = {
   ],
   message: "",
   fetched_at: "2026-10-06T00:00:00Z",
+};
+const claudeCatalog: ModelCatalog = {
+  provider: "claude_code_cli",
+  status: "ready",
+  models: [{
+    id: "glm-5.3[1m]",
+    display_name: "GLM-5.3 · 1M · max",
+    description: "智谱 Coding Plan：1,000,000 tokens 上下文，最高 max 推理。",
+    is_default: true,
+    hidden: false,
+  }],
+  message: "按官方文档提供的模型选项，未验证当前密钥的调用权限。",
+  fetched_at: "",
 };
 
 describe("Codex model choices", () => {
@@ -99,8 +112,7 @@ describe("Codex model choices", () => {
 type FormProps = Parameters<typeof SettingsForm>[0];
 function renderForm(overrides: Partial<FormProps> = {}): string {
   const roles = readRoleModels({});
-  roles.screenwriter = { ...roles.screenwriter, provider: "codex_cli" };
-  roles.script_reviewer = { ...roles.script_reviewer, provider: "codex_cli" };
+  for (const { id } of modelRoles) roles[id] = { ...roles[id], provider: "codex_cli" };
   const settings = { role_models: roles };
   return renderToStaticMarkup(
     createElement(SettingsForm, {
@@ -213,7 +225,7 @@ describe("dynamic directory form", () => {
     expect(switchedMarkup).toContain('value="claude/custom-id"');
   });
 
-  it("renders the TRAE catalog while writing roles default to Claude Code Doubao", () => {
+  it("renders the TRAE catalog while all roles default to Claude Code GLM", () => {
     const roles = readRoleModels({});
     const settings = { role_models: roles };
     const markup = renderForm({
@@ -227,6 +239,28 @@ describe("dynamic directory form", () => {
     expect(markup).not.toContain('value="catalog:Doubao-Seed-2.1-Pro" selected=""');
     expect(markup).toContain('aria-label="编剧模型名称"');
     expect(markup).toContain('aria-label="文案审查模型名称"');
-    expect(markup.match(/value="doubao-seed-2-1-pro-260915"/g)).toHaveLength(2);
+    expect(markup.match(/value="glm-5.3\[1m\]"/g)).toHaveLength(7);
+  });
+
+  it("offers the documented GLM max/1M choice for all Claude roles without claiming live access", () => {
+    const settings = { role_models: readRoleModels({}) };
+    const markup = renderForm({
+      saved: settings, values: settings, claudeModelCatalog: claudeCatalog,
+    });
+    expect(markup).toContain("Claude Code CLI 文档模型选项");
+    expect(markup).toContain("提供 1 个文档模型选项");
+    expect(markup).toContain("未验证当前密钥的调用权限");
+    expect(markup).toContain("最高 max 推理，1M（1,000,000 tokens）上下文");
+    expect(markup.match(/value="catalog:glm-5.3\[1m\]" selected=""/g)).toHaveLength(7);
+    expect(markup).not.toContain("列表时间（本地）：</p>");
+    expect(markup).not.toContain('aria-label="编剧模型名称"');
+
+    settings.role_models.screenwriter.model = "doubao-seed-2-1-pro-260915";
+    const legacyMarkup = renderForm({
+      saved: settings, values: settings, claudeModelCatalog: claudeCatalog,
+    });
+    expect(legacyMarkup).toContain('aria-label="编剧模型名称"');
+    expect(legacyMarkup).toContain('value="doubao-seed-2-1-pro-260915"');
+    expect(legacyMarkup).toContain('value="custom" selected=""');
   });
 });

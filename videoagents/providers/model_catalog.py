@@ -1,4 +1,4 @@
-"""Query the active Codex CLI's catalog without starting a generation session.
+"""Expose CLI model choices without starting a generation session.
 
 Fall back to the shared cache when the catalog command is unavailable. Another
 client can overwrite that cache. Model names remain unrestricted in settings.
@@ -109,7 +109,17 @@ class ModelCatalogService:
 
     def get(self, provider: ModelProvider, refresh: bool = False) -> ModelCatalog:
         if provider == "claude_code_cli":
-            return ModelCatalog(provider=provider, status="unavailable", message="Claude Code CLI 请直接填写模型名称。", fetched_at="")
+            # Claude has no live account catalog. Keep this documented option
+            # separate from Codex/TRAE caches and from authentication checks.
+            return ModelCatalog(
+                provider=provider, status="ready", fetched_at="",
+                models=[ModelChoice(
+                    id="glm-5.3[1m]", display_name="GLM-5.3 · 1M · max",
+                    description="智谱 Coding Plan：1,000,000 tokens 上下文，最高 max 推理；需配置智谱 API Key。",
+                    is_default=True,
+                )],
+                message="按智谱官方文档提供的模型选项，并非实时账号目录；未验证当前密钥的调用权限。仍可填写其他 Claude Code 支持的模型 ID。",
+            )
         prefix = executable_prefix(provider)
         if not prefix:
             label = "TRAE CLI" if provider == "trae_cli" else "Codex CLI"

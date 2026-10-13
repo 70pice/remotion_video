@@ -5,6 +5,7 @@ import os
 import queue
 import shutil
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -17,6 +18,14 @@ from worker.windows_job import WindowsJob
 
 MAX_OUTPUT_BYTES = 4 * 1024 * 1024
 MAX_AUTH_BYTES = 1024 * 1024
+GLM_MODEL = "glm-5.3[1m]"
+GLM_CONTEXT_TOKENS = 1_000_000
+GLM_CAPABILITIES = "effort,max_effort,thinking,adaptive_thinking"
+CLAUDE_RESEARCH_TOOLS = {
+    "mcp__videoagents_research__skill", "mcp__videoagents_research__search",
+    "mcp__videoagents_research__source", "mcp__videoagents_research__visual",
+    "mcp__videoagents_research__screenshot",
+}
 # The CLI transport needs OpenAI's strict schema subset. Business contracts
 # contain defaults/free-form props, so carry their locally validated JSON as a
 # string instead of silently narrowing the actual production contract.
@@ -120,7 +129,7 @@ def cli_availability() -> dict[str, dict[str, bool]]:
 
 
 def build_arguments(provider: str, prefix: list[str], model: str, directory: Path, schema: Path, *,
-                    research: bool = False) -> list[str]:
+                    research: bool = False, mcp_config: Path | None = None) -> list[str]:
     if provider == "codex_cli":
         args = [*prefix, "-a", "never", "exec"]
         if research:
@@ -163,13 +172,21 @@ def build_arguments(provider: str, prefix: list[str], model: str, directory: Pat
             args.extend(["--model", model])
         return [*args, "-"]
     if provider == "claude_code_cli":
-        args = [*prefix, "--print", "--output-format", "json", "--json-schema",
-                schema.read_text(encoding="utf-8"), "--tools", "", "--disallowedTools", "mcp__*",
-                "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}',
+        if research and mcp_config is None:
+            raise CliFailure("missing_research_tool_config", submitted=False)
+        args = [*prefix, "--print", "--output-format", "stream-json" if research else "json", "--json-schema",
+                schema.read_text(encoding="utf-8"), "--tools", "",
+                "--strict-mcp-config", "--mcp-config", str(mcp_config) if research else '{"mcpServers":{}}',
                 "--setting-sources", "", "--settings", '{"disableAllHooks":true}',
                 "--disable-slash-commands", "--no-session-persistence", "--permission-mode", "dontAsk"]
+        if research:
+            args.extend(["--verbose", "--allowedTools", *sorted(CLAUDE_RESEARCH_TOOLS)])
+        else:
+            args.extend(["--disallowedTools", "mcp__*"])
         if model:
             args.extend(["--model", model])
+        if model.lower().removesuffix("[1m]") == "glm-5.3":
+            args.extend(["--effort", "max"])
         return args
     raise CliFailure("unsupported_cli", submitted=False)
 
@@ -195,13 +212,36 @@ def _research_environment(research: bool) -> dict[str, str]:
 
 
 def _cli_environment(provider: str, research: bool, control: Path,
-                     ark_api_key: str | None = None) -> tuple[dict[str, str], Path | None]:
+                     ark_api_key: str | None = None, zhipu_api_key: str | None = None,
+                     model: str = "") -> tuple[dict[str, str], Path | None]:
     env = _research_environment(research)
-    if provider == "claude_code_cli" and ark_api_key:
+    if provider == "claude_code_cli" and (ark_api_key or zhipu_api_key):
         # Pass the credential only to this child process, never in arguments or graph state.
         env.pop("ANTHROPIC_API_KEY", None)
-        env["ANTHROPIC_AUTH_TOKEN"] = ark_api_key
-        env["ANTHROPIC_BASE_URL"] = "https://ark.cn-beijing.volces.com/api/compatible"
+        env.pop("CLAUDE_CODE_OAUTH_TOKEN", None)
+        for name in ("CLAUDE_CODE_USE_BEDROCK", "CLAUDE_CODE_USE_VERTEX", "CLAUDE_CODE_USE_FOUNDRY"):
+            env.pop(name, None)
+        if zhipu_api_key:
+            if model.lower().removesuffix("[1m]") != "glm-5.3" or ark_api_key:
+                raise CliFailure("invalid_zhipu_model_route", submitted=False)
+            env["ANTHROPIC_AUTH_TOKEN"] = zhipu_api_key
+            env["ANTHROPIC_BASE_URL"] = "https://open.bigmodel.cn/api/anthropic"
+            env.pop("CLAUDE_CODE_DISABLE_1M_CONTEXT", None)
+            env["ANTHROPIC_MODEL"] = GLM_MODEL
+            env["CLAUDE_CODE_SUBAGENT_MODEL"] = GLM_MODEL
+            env["CLAUDE_CODE_EFFORT_LEVEL"] = "max"
+            env["CLAUDE_CODE_MAX_CONTEXT_TOKENS"] = str(GLM_CONTEXT_TOKENS)
+            env["CLAUDE_CODE_AUTO_COMPACT_WINDOW"] = str(GLM_CONTEXT_TOKENS)
+            env["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] = "1"
+            for family in ("OPUS", "SONNET", "HAIKU", "FABLE"):
+                name = f"ANTHROPIC_DEFAULT_{family}_MODEL"
+                env[name] = GLM_MODEL
+                env[name + "_SUPPORTED_CAPABILITIES"] = GLM_CAPABILITIES
+            env["ANTHROPIC_CUSTOM_MODEL_OPTION"] = GLM_MODEL
+            env["ANTHROPIC_CUSTOM_MODEL_OPTION_SUPPORTED_CAPABILITIES"] = GLM_CAPABILITIES
+        else:
+            env["ANTHROPIC_AUTH_TOKEN"] = ark_api_key
+            env["ANTHROPIC_BASE_URL"] = "https://ark.cn-beijing.volces.com/api/compatible"
     if provider not in {"codex_cli", "trae_cli"}:
         return env, None
     if provider == "codex_cli":
@@ -325,14 +365,55 @@ def _claude_result(output: str) -> CliResult:
     return CliResult(_business_object(value.get("structured_output")), value.get("usage"))
 
 
+def _claude_research_event(line: str, audit_handle=None) -> CliResult | None:
+    event = json.loads(line)
+    if not isinstance(event, dict):
+        raise CliFailure("invalid_cli_event")
+    kind = event.get("type")
+    if kind == "result":
+        result = _claude_result(line)
+        _write_audit(audit_handle, {"type": "turn.completed", "status": "completed"})
+        return result
+    if kind == "assistant":
+        message = event.get("message", {})
+        if not isinstance(message, dict) or not isinstance(message.get("content"), list):
+            raise CliFailure("invalid_cli_event")
+        for block in message["content"]:
+            if not isinstance(block, dict):
+                raise CliFailure("invalid_cli_event")
+            if block.get("type") == "tool_use":
+                name = block.get("name")
+                if name not in CLAUDE_RESEARCH_TOOLS | {"StructuredOutput"}:
+                    raise CliFailure("unexpected_tool_event")
+                if name != "StructuredOutput":
+                    _write_audit(audit_handle, {"type": "item.started", "item": {
+                        "type": "mcp_tool_call", "status": "in_progress", "tool_name": name,
+                    }})
+    elif kind == "user":
+        message = event.get("message", {})
+        if not isinstance(message, dict) or not isinstance(message.get("content"), list):
+            raise CliFailure("invalid_cli_event")
+        for block in message["content"]:
+            if isinstance(block, dict) and block.get("type") == "tool_result":
+                _write_audit(audit_handle, {"type": "item.completed", "item": {
+                    "type": "mcp_tool_call", "status": "failed" if block.get("is_error") else "completed",
+                }})
+    elif kind not in {"system", "rate_limit_event"}:
+        raise CliFailure("unexpected_cli_event")
+    return None
+
+
 def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema: dict[str, Any],
             cancelled=lambda: False, *, research_directory: Path | None = None,
-            audit_path: Path | None = None, ark_api_key: str | None = None) -> CliResult:
+            audit_path: Path | None = None, ark_api_key: str | None = None,
+            zhipu_api_key: str | None = None, research_context: dict[str, Any] | None = None) -> CliResult:
     if cancelled():
         raise CliFailure("cli_cancelled", submitted=False)
     research = research_directory is not None
-    if research and provider != "codex_cli":
+    if research and provider not in {"codex_cli", "claude_code_cli"}:
         raise CliFailure("unsupported_research_cli", submitted=False)
+    if research and provider == "claude_code_cli" and not research_context:
+        raise CliFailure("missing_research_tool_config", submitted=False)
     prefix = executable_prefix(provider)
     if prefix is None:
         raise CliFailure("cli_not_installed", submitted=False)
@@ -352,18 +433,36 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
         schema.write_text(json.dumps(WIRE_SCHEMA, ensure_ascii=False), encoding="utf-8")
         source = control / "input.txt"
         prefix_text = ""
-        if research:
+        if research and provider == "codex_cli":
             prefix_text = (
                 "这是素材节点的工具研究任务。你可以使用已安装的研究 skill、web_search、shell 命令和工作区文件，"
                 "但只在当前工作目录写入研究过程文件；不要读取密钥，不要把工具日志放进最终 JSON。"
                 "优先使用 agent-reach 等检索 skill，并按用户配置的平台与预算收集可核验来源、图片或截图线索。\n"
             )
+        elif research:
+            prefix_text = (
+                "这是素材节点的工具研究任务。只使用 videoagents_research MCP 工具读取技能、搜索公开资料并采集来源与画面。"
+                "按用户配置的平台与预算收集可核验来源、图片或截图线索；不要把工具日志放进最终 JSON。\n"
+            )
         transport_prompt = (prefix_text + prompt + "\n业务 JSON schema：\n" + json.dumps(output_schema, ensure_ascii=False)
                             + '\n最终传输格式必须为 {"response_json":"业务 JSON 对象序列化后的字符串"}。'
                             + "response_json 内的对象遵循上面的业务 schema，外层仅有 response_json 一个字段。")
         source.write_text(transport_prompt, encoding="utf-8")
-        args = build_arguments(provider, prefix, model, directory, schema, research=research)
-        environment, staged_auth = _cli_environment(provider, research, control, ark_api_key)
+        mcp_config = None
+        if research and provider == "claude_code_cli":
+            mcp_config = control / "research-mcp.json"
+            research_server = {"command": sys.executable, "args": [
+                "-m", "videoagents.tools.claude_research", "--workspace", str(directory),
+                "--runtime", str(research_context["runtime"]), "--job-id", research_context["job_id"],
+                "--revision", str(research_context["revision"]),
+            ], "env": {"PYTHONPATH": str(Path(__file__).resolve().parents[2]),
+                       "ANTHROPIC_AUTH_TOKEN": "", "ANTHROPIC_API_KEY": "", "CLAUDE_CODE_OAUTH_TOKEN": ""}}
+            mcp_config.write_text(json.dumps({"mcpServers": {"videoagents_research": research_server}}), encoding="utf-8")
+            transport_prompt += ("\n本次只使用 videoagents_research MCP 工具读取技能、搜索公开资料并采集来源与画面。"
+                                 "工具会保存文件并返回真实路径及 SHA256；不使用 shell 或读取本机任意路径。")
+            source.write_text(transport_prompt, encoding="utf-8")
+        args = build_arguments(provider, prefix, model, directory, schema, research=research, mcp_config=mcp_config)
+        environment, staged_auth = _cli_environment(provider, research, control, ark_api_key, zhipu_api_key, model)
         job = WindowsJob()
         audit_handle = None
         try:
@@ -435,12 +534,18 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                         data = item if item is not None else data
                     usage = counts if counts is not None else usage
                     completed |= event_kind == "turn.completed"
+                elif research:
+                    result = _claude_research_event(decoded, audit_handle)
+                    if result is not None:
+                        if completed:
+                            raise CliFailure("duplicate_cli_result")
+                        data, usage, completed = result.data, result.usage, True
                 else:
                     output.append(decoded)
             remaining = max(0.01, deadline - time.monotonic())
             if process.wait(timeout=remaining) != 0:
                 raise CliFailure("cli_nonzero_exit")
-            if provider == "claude_code_cli":
+            if provider == "claude_code_cli" and not research:
                 return _claude_result("\n".join(output))
             if last_agent_message is not None:
                 data = _business_object(json.loads(last_agent_message))

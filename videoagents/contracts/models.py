@@ -1161,6 +1161,7 @@ class SettingsPatch(Contract):
     script_discussion_enabled: bool | None = None  # 兼容旧客户端；执行时始终开启讨论。
     script_discussion_max_rounds: int | None = Field(default=None, ge=1, le=5)
     ark_api_key: str | None = None
+    zhipu_api_key: str | None = None
     search_provider: Literal["none", "opencli_google", "tavily", "google_cse"] | None = None
     search_api_key: str | None = None
     google_search_engine_id: str | None = Field(default=None, max_length=200)

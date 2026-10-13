@@ -428,6 +428,7 @@ export interface SettingsPatch {
   script_discussion_enabled?: boolean | null;
   script_discussion_max_rounds?: number | null;
   ark_api_key?: string | null;
+  zhipu_api_key?: string | null;
   search_provider?: "none" | "opencli_google" | "tavily" | "google_cse" | null;
   search_api_key?: string | null;
   google_search_engine_id?: string | null;

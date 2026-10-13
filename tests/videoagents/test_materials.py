@@ -410,6 +410,8 @@ def test_materials_accepts_verified_video_visual_and_records_metadata(tmp_path, 
 
 def test_director_matches_evidence_by_source_url_when_script_does_not_name_asset(tmp_path):
     repo, service = make_repo(tmp_path)
+    # Test the explicit manual planning path, independently of the default LLM.
+    SettingsService(repo).patch(SettingsPatch(role_models={"director": {"enabled": False}}))
     job = repo.create_job(Brief(topic="Muse是什么", script_text="观点：Muse。", target_seconds=2, width=240, height=426, fps=15))
     image_path = repo.root / "evidence.png"
     image_path.write_bytes(PNG_BYTES)

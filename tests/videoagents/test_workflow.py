@@ -64,6 +64,13 @@ def _seed_completed_research(repo: Repository, service: JobService, job) -> None
 @pytest.fixture
 def manual_job(tmp_path):
     repo = Repository(tmp_path / "runtime")
+    # These workflow fixtures exercise manual director planning and rendering.
+    # Individual preflight tests explicitly enable the model under test below.
+    SettingsService(repo).patch(SettingsPatch(role_models={
+        "director": {"enabled": False, "provider": "codex_cli", "model": "unit-director"},
+        "editing": {"enabled": False, "provider": "codex_cli", "model": "unit-editing"},
+        "review": {"enabled": False, "provider": "codex_cli", "model": "unit-review"},
+    }))
     service = JobService(repo, tmp_path / "project")
     job = repo.create_job(Brief(topic="明确标注的测试流程", script_text="观点：测试流程。", target_seconds=2,
                                 width=240, height=426, fps=15, usage="personal", platform="测试平台"))

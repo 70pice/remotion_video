@@ -4,7 +4,14 @@ import json
 from pathlib import Path
 from typing import Any
 
-from videoagents.providers.cli_runner import CliFailure, executable_prefix, normalize_business_result, run_cli
+from videoagents.providers.cli_runner import (
+    GLM_CONTEXT_TOKENS,
+    GLM_MODEL,
+    CliFailure,
+    executable_prefix,
+    normalize_business_result,
+    run_cli,
+)
 from videoagents.services.settings import SettingsService
 from videoagents.state import VideoState, clean_handoff
 from videoagents.storage import Repository
@@ -93,11 +100,10 @@ class JsonModel:
             raise CapabilityMissing("请在设置中启用此角色的 CLI 模型，或提供人工产物", ["role_models"])
         config = settings["role_models"][role]
         research_mode = research_directory is not None
-        if research_mode and (role != "materials" or config["provider"] != "codex_cli"):
-            raise CapabilityMissing("工具研究模式仅支持素材角色使用 Codex CLI", ["role_models"])
+        if research_mode and (role != "materials" or config["provider"] not in {"codex_cli", "claude_code_cli"}):
+            raise CapabilityMissing("工具研究模式仅支持素材角色使用 Codex 或 Claude Code CLI", ["role_models"])
         ark_model = config["provider"] == "claude_code_cli" and config["model"].lower().startswith("doubao-")
-        if ark_model and not settings.get("ark_api_key"):
-            raise CapabilityMissing("请先配置火山方舟 API Key，供 Claude Code CLI 调用豆包模型", ["ark_api_key"])
+        glm_model = config["provider"] == "claude_code_cli" and config["model"].lower().startswith("glm-")
         schema = output_schema or {"type": "object"}
         provider = "llm:" + role
         command_id = command_id or self.repo.active_command_id(job_id)
@@ -107,11 +113,21 @@ class JsonModel:
             if unsettled:
                 raise CapabilityMissing("当前版本的该角色模型提交状态未知，已阻止重复调用；请对账或修改任务创建新版本", ["llm_operation"],
                                         operation_status="UNKNOWN", operation_id=unsettled["operation_id"])
+        if ark_model and not settings.get("ark_api_key"):
+            raise CapabilityMissing("请先配置火山方舟 API Key，供 Claude Code CLI 调用豆包模型", ["ark_api_key"])
+        if glm_model:
+            if config["model"].lower().removesuffix("[1m]") != "glm-5.3":
+                raise CapabilityMissing("智谱 Coding Plan 当前配置要求 GLM-5.3[1m]", ["role_models"])
+            if not settings.get("zhipu_api_key"):
+                raise CapabilityMissing("请先配置智谱 Coding Plan API Key", ["zhipu_api_key"])
+            config = {**config, "model": GLM_MODEL}
         mode = "research" if research_mode else "structured"
         fingerprint_payload = {"revision": revision, "provider": config["provider"], "model": config["model"],
                                "instruction": instruction, "schema": schema, "context": semantic(context)}
         if research_mode:
             fingerprint_payload["mode"] = mode
+        if glm_model:
+            fingerprint_payload.update(reasoning_effort="max", context_tokens=GLM_CONTEXT_TOKENS)
         input_hash = fingerprint(fingerprint_payload)
         previous = self.repo.operation(job_id, input_hash, provider)
         if previous:
@@ -132,6 +148,8 @@ class JsonModel:
         self.repo.reserve_metric(job_id, revision, "llm_calls", 1, settings["max_llm_calls"])
         ledger = {"command_id": command_id, "revision": revision, "mode": mode,
                   "cli_provider": config["provider"], "model": config["model"]}
+        if glm_model:
+            ledger.update(reasoning_effort="max", context_tokens=GLM_CONTEXT_TOKENS)
         operation = self.repo.retry_rejected_operation(previous["operation_id"], command_id, ledger) if previous else self.repo.start_operation(job_id, input_hash, provider, ledger)
         ledger.update(attempt=operation.get("attempt", 1))
         if not operation.get("new"):
@@ -153,6 +171,10 @@ class JsonModel:
             kwargs = {"research_directory": research_directory, "audit_path": audit_path} if research_mode else {}
             if ark_model:
                 kwargs["ark_api_key"] = settings["ark_api_key"]
+            if glm_model:
+                kwargs["zhipu_api_key"] = settings["zhipu_api_key"]
+            if research_mode and config["provider"] == "claude_code_cli":
+                kwargs["research_context"] = {"runtime": str(self.repo.root), "job_id": job_id, "revision": revision}
             response = run_cli(config["provider"], config["model"], config["timeout_seconds"], prompt, schema,
                                cancelled=lambda: self.cancelled(job_id), **kwargs)
             response_data = normalize_business_result(response.data)

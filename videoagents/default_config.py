@@ -13,16 +13,13 @@ DEFAULT_VOICE_STYLE = (
     "遇到转折和反常识信息时先收一下，再加重真正关键的内容；结论坚定收住。"
     "不要字字加重，不要全程兴奋，也不要一口气读完。"
 )
-DEFAULT_SCRIPT_MODEL = "doubao-seed-2-1-pro-260915"
-DEFAULT_ROLE_MODELS = RoleModels(
-    voice=RoleModelConfig(enabled=True),
-    screenwriter=RoleModelConfig(
+DEFAULT_SCRIPT_MODEL = "glm-5.3[1m]"
+DEFAULT_ROLE_MODELS = RoleModels.model_validate({
+    role: RoleModelConfig(
         enabled=True, provider="claude_code_cli", model=DEFAULT_SCRIPT_MODEL, timeout_seconds=900
-    ),
-    script_reviewer=RoleModelConfig(
-        enabled=True, provider="claude_code_cli", model=DEFAULT_SCRIPT_MODEL, timeout_seconds=900
-    ),
-).model_dump()
+    )
+    for role in RoleModels.model_fields
+}).model_dump()
 DEFAULT_SETTINGS = {
     "role_models": DEFAULT_ROLE_MODELS, "search_provider": "none",
     "google_search_engine_id": "",
@@ -37,4 +34,7 @@ DEFAULT_SETTINGS = {
     "aligner_url": "", "capture_enabled": True, "max_llm_calls": 20,
     "max_voice_chars": 10000, "render_timeout_seconds": 1800,
 }
-SECRET_FIELDS = {"llm_api_key", "search_api_key", "voice_access_token", "voice_api_key", "aligner_api_key", "ark_api_key"}
+SECRET_FIELDS = {
+    "llm_api_key", "search_api_key", "voice_access_token", "voice_api_key", "aligner_api_key",
+    "ark_api_key", "zhipu_api_key",
+}

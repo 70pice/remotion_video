@@ -229,9 +229,14 @@ def test_unavailable_error_and_other_provider_are_sanitized(local_cache, monkeyp
     assert error.status == "error" and error.models == []
     assert private not in error.model_dump_json() and "secret-token" not in error.message
     assert str(local_cache) not in error.message
-    # Claude has no automatic cache catalog and must not inherit Codex entries.
+    # Claude offers documented options, without inheriting Codex cache entries
+    # or claiming live account access.
     claude = service.get("claude_code_cli", refresh=True)
-    assert claude.provider == "claude_code_cli" and claude.status == "unavailable" and claude.models == []
+    assert claude.provider == "claude_code_cli" and claude.status == "ready"
+    assert [item.id for item in claude.models] == ["glm-5.3[1m]"]
+    assert claude.fetched_at == ""
+    assert "官方文档" in claude.message and "未验证" in claude.message
+    assert "1,000,000" in claude.models[0].description and "max" in claude.models[0].description
     monkeypatch.setattr(model_catalog, "executable_prefix", lambda _: None)
     missing_cli = service.get("codex_cli", refresh=True)
     assert missing_cli.status == "unavailable" and missing_cli.models == []
@@ -252,6 +257,22 @@ def test_returned_catalog_mutation_does_not_poison_cached_results(local_cache):
     original.models.clear()
     again = service.get("codex_cli")
     assert [model.id for model in again.models] == ["fixture-model"]
+
+
+def test_claude_documented_choice_needs_no_cli_cache_or_generation(monkeypatch):
+    def forbidden(*args, **kwargs):
+        pytest.fail("documented Claude option must not inspect credentials, query cache or run a CLI")
+
+    monkeypatch.setattr(model_catalog, "executable_prefix", forbidden)
+    monkeypatch.setattr(model_catalog, "read_codex_models", forbidden)
+    monkeypatch.setattr(model_catalog, "read_cli_models", forbidden)
+    monkeypatch.setattr("videoagents.providers.cli_runner.run_cli", forbidden)
+    service = ModelCatalogService()
+    result = service.get("claude_code_cli")
+    result.models.clear()
+    again = service.get("claude_code_cli", refresh=True)
+    assert [item.id for item in again.models] == ["glm-5.3[1m]"]
+    assert again.models[0].is_default is True
 
 
 def test_catalog_never_opens_auth_config_or_launches_generation(local_cache, monkeypatch):

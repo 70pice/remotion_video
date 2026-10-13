@@ -796,6 +796,7 @@ def test_non_director_voice_pending_confirm_stays_voice(tmp_path, monkeypatch):
 
 def test_director_feedback_does_not_reuse_cached_timeline_without_model(tmp_path):
     repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(role_models={"director": {"enabled": False}}))
     service = JobService(repo, tmp_path / "project")
     job = repo.create_job(Brief(script_text="观点：旧分镜。", width=240, height=426, fps=15, usage="personal"))
     script = Script(title="旧分镜", origin="user", revision=job.revision,
@@ -823,6 +824,9 @@ def test_director_feedback_does_not_reuse_cached_timeline_without_model(tmp_path
 @pytest.mark.parametrize("crash_at", ["receipt", "storyboard", "timeline"])
 def test_director_feedback_replay_after_sql_before_applied_receipt_does_not_call_model_twice(tmp_path, monkeypatch, crash_at):
     repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(role_models={"director": {
+        "enabled": False, "provider": "codex_cli", "model": "unit-director",
+    }}))
     service = JobService(repo, tmp_path / "project")
     job = repo.create_job(Brief(script_text="观点：旧分镜。", width=240, height=426, fps=15, usage="personal"))
     script = Script(title="旧分镜", origin="user", revision=job.revision,
@@ -892,6 +896,9 @@ def test_director_feedback_replay_after_sql_before_applied_receipt_does_not_call
 
 def test_director_feedback_rejects_noop_timeline(tmp_path, monkeypatch):
     repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(role_models={"director": {
+        "enabled": False, "provider": "codex_cli", "model": "unit-director",
+    }}))
     service = JobService(repo, tmp_path / "project")
     job = repo.create_job(Brief(script_text="观点：旧分镜。", width=240, height=426, fps=15, usage="personal"))
     script = Script(title="旧分镜", origin="user", revision=job.revision,

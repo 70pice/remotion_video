@@ -48,29 +48,13 @@ export const modelRoles = [
   description: string;
 }>;
 
-export const doubaoScriptModel = "doubao-seed-2-1-pro-260915";
+export const defaultAgentModel = "glm-5.3[1m]";
 
-function defaultRole(role: RoleId): RoleModelConfig {
-  if (role === "screenwriter" || role === "script_reviewer") {
-    return {
-      enabled: true,
-      provider: "claude_code_cli",
-      model: doubaoScriptModel,
-      timeout_seconds: 900,
-    };
-  }
-  if (role === "voice") {
-    return {
-      enabled: true,
-      provider: "codex_cli",
-      model: "",
-      timeout_seconds: 900,
-    };
-  }
+function defaultRole(): RoleModelConfig {
   return {
-    enabled: false,
-    provider: "codex_cli",
-    model: "",
+    enabled: true,
+    provider: "claude_code_cli",
+    model: defaultAgentModel,
     timeout_seconds: 900,
   };
 }
@@ -81,13 +65,13 @@ function fixedRole(role: RoleId, config: RoleModelConfig): RoleModelConfig {
 
 export function readRoleModels(settings: Settings): RoleModels {
   const roles: RoleModels = {
-    materials: defaultRole("materials"),
-    screenwriter: defaultRole("screenwriter"),
-    script_reviewer: defaultRole("script_reviewer"),
-    voice: defaultRole("voice"),
-    director: defaultRole("director"),
-    editing: defaultRole("editing"),
-    review: defaultRole("review"),
+    materials: defaultRole(),
+    screenwriter: defaultRole(),
+    script_reviewer: defaultRole(),
+    voice: defaultRole(),
+    director: defaultRole(),
+    editing: defaultRole(),
+    review: defaultRole(),
   };
   for (const { id } of modelRoles) {
     roles[id] = fixedRole(id, { ...roles[id], ...settings.role_models?.[id] });

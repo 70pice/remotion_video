@@ -249,17 +249,12 @@ def test_seven_role_defaults_and_partial_settings_merge(client):
     roles = {"materials", "screenwriter", "script_reviewer", "voice", "director", "editing", "review"}
     assert set(initial["role_models"]) == roles
     assert initial["max_llm_calls"] == 20
-    assert initial["role_models"]["screenwriter"] == {
-        "enabled": True, "provider": "claude_code_cli",
-        "model": "doubao-seed-2-1-pro-260915", "timeout_seconds": 900,
-    }
-    assert initial["role_models"]["script_reviewer"] == initial["role_models"]["screenwriter"]
     assert all(initial["role_models"][role] == {
-        "enabled": False, "provider": "codex_cli", "model": "", "timeout_seconds": 900,
-    } for role in roles - {"screenwriter", "script_reviewer", "voice"})
-    assert initial["role_models"]["voice"] == {
-        "enabled": True, "provider": "codex_cli", "model": "", "timeout_seconds": 900,
-    }
+        "enabled": True, "provider": "claude_code_cli",
+        "model": "glm-5.3[1m]", "timeout_seconds": 900,
+    } for role in roles)
+    assert initial["voice_model"] == "seed-tts-2.0-expressive"
+    assert initial["voice_provider"] == "none"
     assert initial["llm_configured"] is True
     assert set(initial["cli_availability"]) == {"codex_cli", "trae_cli", "claude_code_cli"}
     assert all(isinstance(value["available"], bool) for value in initial["cli_availability"].values())
@@ -288,6 +283,7 @@ def test_discussion_settings_persist_without_overwriting_writer_or_starting_call
     assert "script_discussion_enabled" not in initial
     assert initial["script_discussion_max_rounds"] == 1
     assert initial["ark_api_key_configured"] is False
+    assert initial["zhipu_api_key_configured"] is False
     response = client.patch("/api/settings", json={
         "script_discussion_enabled": False, "script_discussion_max_rounds": 3,
         "role_models": {"script_reviewer": {"enabled": True, "provider": "claude_code_cli", "model": "review-model"}},
@@ -308,6 +304,29 @@ def test_discussion_settings_persist_without_overwriting_writer_or_starting_call
     with client.app.state.repository.connection() as db:
         assert db.execute("SELECT COUNT(*) FROM commands").fetchone()[0] == 0
         assert db.execute("SELECT COUNT(*) FROM operations").fetchone()[0] == 0
+
+
+def test_zhipu_credential_is_write_only_encrypted_and_env_can_override_it(client, monkeypatch):
+    from videoagents.services.settings import SettingsService
+
+    secret = "UNIT-zhipu-private-key"
+    env_secret = "UNIT-zhipu-env-private-key"
+    response = client.patch("/api/settings", json={"zhipu_api_key": secret})
+    assert response.status_code == 200
+    assert response.json()["zhipu_api_key_configured"] is True
+    assert "zhipu_api_key" not in response.json() and secret not in response.text
+    repo = client.app.state.repository
+    persisted = repo.setting_values()["zhipu_api_key"]
+    assert secret not in persisted
+    assert secret.encode() not in repo.db.read_bytes()
+    assert SettingsService(repo).internal()["zhipu_api_key"] == secret
+    monkeypatch.setenv("VIDEOAGENTS_ZHIPU_API_KEY", env_secret)
+    assert SettingsService(repo).internal()["zhipu_api_key"] == env_secret
+    public = client.get("/api/settings")
+    assert public.json()["zhipu_api_key_configured"] is True
+    assert not any(key.endswith("api_key") for key in public.json())
+    assert secret not in public.text and env_secret not in public.text
+    assert repo.setting_values()["zhipu_api_key"] == persisted
 
 
 def test_legacy_http_credentials_remain_stored_but_are_unused_and_private(client):

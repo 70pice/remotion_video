@@ -2911,6 +2911,18 @@
           "default": null,
           "title": "Ark Api Key"
         },
+        "zhipu_api_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Zhipu Api Key"
+        },
         "search_provider": {
           "anyOf": [
             {

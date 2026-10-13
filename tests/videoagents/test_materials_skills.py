@@ -67,8 +67,10 @@ def state(job):
             "thread_id": "unit", "extras": {}}
 
 
-def test_skills_ingests_real_files_freezes_results_and_removes_tool_artifacts(setup, monkeypatch):
+@pytest.mark.parametrize("provider", ["codex_cli", "claude_code_cli"])
+def test_skills_ingests_real_files_freezes_results_and_removes_tool_artifacts(setup, monkeypatch, provider):
     repo, _, node, job = setup
+    SettingsService(repo).patch(SettingsPatch(role_models={"materials": {"provider": provider}}))
     calls = install_output(monkeypatch, node)
     first = node(state(job))
     saved = repo.get_job(job.job_id)
@@ -222,13 +224,14 @@ def test_skills_never_freezes_empty_research(setup, monkeypatch):
     assert not any(item.kind == "research" for item in repo.get_job(job.job_id).artifacts)
 
 
-def test_skills_requires_codex_and_does_not_silently_fallback(setup, monkeypatch):
+def test_skills_rejects_unsupported_trae_without_silently_falling_back(setup, monkeypatch):
     repo, _, node, job = setup
-    SettingsService(repo).patch(SettingsPatch(role_models={"materials": {"provider": "claude_code_cli"}}))
+    SettingsService(repo).patch(SettingsPatch(role_models={"materials": {"provider": "trae_cli", "model": "unit-trae"}}))
     monkeypatch.setattr("videoagents.providers.llm.run_cli", lambda *a, **k: pytest.fail("unsupported provider reached CLI"))
     result = node(state(job))
     assert result["route"] == "await_input"
-    assert "Codex CLI" in json.dumps(result, ensure_ascii=False)
+    assert "Codex" in json.dumps(result, ensure_ascii=False) and "Claude Code CLI" in json.dumps(result, ensure_ascii=False)
+    assert repo.get_job(job.job_id).pending_input["fields"] == ["role_models"]
 
 
 @pytest.mark.parametrize("inputs", [

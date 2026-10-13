@@ -463,6 +463,9 @@ def test_role_routes_and_unknown_survives_provider_change(tmp_path, monkeypatch)
 
 def test_default_doubao_role_requires_ark_credential(tmp_path, monkeypatch):
     repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(role_models={"screenwriter": {
+        "enabled": True, "provider": "claude_code_cli", "model": "doubao-seed-2-1-pro-260915",
+    }}))
     monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *args: ["fixture-cli"])
     with pytest.raises(CapabilityMissing) as error:
         JsonModel(repo).call("fixture-job", 1, "screenwriter", "test", {}, "command")
@@ -555,17 +558,17 @@ def test_materials_research_uses_codex_tools_without_persisting_workspace_in_ope
     assert str(workspace) not in body and str(audit) not in body
 
 
-def test_research_mode_is_limited_to_materials_codex(tmp_path, monkeypatch):
+def test_research_mode_is_limited_to_materials_supported_clis(tmp_path, monkeypatch):
     repo = Repository(tmp_path / "runtime")
     SettingsService(repo).patch(SettingsPatch(role_models={
-        "materials": {"enabled": True, "provider": "claude_code_cli"},
+        "materials": {"enabled": True, "provider": "trae_cli"},
         "screenwriter": {"enabled": True, "provider": "codex_cli"},
     }))
     monkeypatch.setattr("videoagents.providers.llm.run_cli", lambda *args, **kwargs: pytest.fail("transport should not launch"))
     model = JsonModel(repo)
-    with pytest.raises(CapabilityMissing, match="工具研究模式仅支持素材角色使用 Codex CLI"):
+    with pytest.raises(CapabilityMissing, match="工具研究模式仅支持素材角色使用 Codex 或 Claude Code CLI"):
         model.call("fixture-job", 1, "materials", "test", {}, "command", research_directory=tmp_path / "r1")
-    with pytest.raises(CapabilityMissing, match="工具研究模式仅支持素材角色使用 Codex CLI"):
+    with pytest.raises(CapabilityMissing, match="工具研究模式仅支持素材角色使用 Codex 或 Claude Code CLI"):
         model.call("fixture-job", 1, "screenwriter", "test", {}, "command", research_directory=tmp_path / "r2")
     with repo.connection() as db:
         assert db.execute("SELECT COUNT(*) FROM operations").fetchone()[0] == 0
@@ -573,7 +576,7 @@ def test_research_mode_is_limited_to_materials_codex(tmp_path, monkeypatch):
 
 def test_missing_cli_does_not_reserve_paid_submission(tmp_path, monkeypatch):
     repo = Repository(tmp_path / "runtime")
-    SettingsService(repo).patch(SettingsPatch(role_models={"voice": {"enabled": True}}))
+    SettingsService(repo).patch(SettingsPatch(role_models={"voice": {"enabled": True, "provider": "codex_cli"}}))
     monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *args: None)
     with pytest.raises(CapabilityMissing, match="未找到"):
         JsonModel(repo).call("fixture-job", 1, "voice", "test", {})
@@ -593,7 +596,7 @@ def test_cancelled_role_preserves_job_cancellation_and_submission_receipt(tmp_pa
     job = repo.create_job(Brief(script_text="这是我的主观看法。"))
     repo.update_job(job.job_id, script=Script(title="fixture", origin="user", revision=1,
         segments=[ScriptSegment(segment_id="s1", narration="这是我的主观看法。")]))
-    SettingsService(repo).patch(SettingsPatch(role_models={"voice": {"enabled": True}}, voice_provider="byte_ws",
+    SettingsService(repo).patch(SettingsPatch(role_models={"voice": {"enabled": True, "provider": "codex_cli"}}, voice_provider="byte_ws",
         voice_model="seed-tts-2.0-expressive"))
     monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *args: ["fixture-cli"])
     def cancel(*args, **kwargs):

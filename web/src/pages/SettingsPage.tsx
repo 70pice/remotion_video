@@ -99,6 +99,7 @@ type Field = FieldLabel &
           | "voice_access_token"
           | "voice_api_key"
           | "ark_api_key"
+          | "zhipu_api_key"
           | "search_api_key"
           | "google_search_engine_id"
           | "aligner_url"
@@ -109,9 +110,15 @@ type Field = FieldLabel &
   );
 const sections: { title: string; description: string; fields: Field[] }[] = [
   {
-    title: "文案模型认证",
-    description: "Claude Code CLI 调用豆包 Pro 2.1 时使用火山方舟密钥。",
+    title: "模型认证",
+    description: "Claude Code CLI 调用 GLM 时使用智谱 Coding Plan 密钥；旧豆包模型沿用火山方舟密钥。",
     fields: [
+      {
+        key: "zhipu_api_key",
+        label: "智谱 Coding Plan API Key",
+        secret: true,
+        configured: "zhipu_api_key_configured",
+      },
       {
         key: "ark_api_key",
         label: "火山方舟 API Key",
@@ -353,12 +360,16 @@ interface SettingsFormProps {
   busy: boolean;
   modelCatalog?: ModelCatalog;
   traeModelCatalog?: ModelCatalog;
+  claudeModelCatalog?: ModelCatalog;
   catalogLoading?: boolean;
   traeCatalogLoading?: boolean;
+  claudeCatalogLoading?: boolean;
   catalogError?: string;
   traeCatalogError?: string;
+  claudeCatalogError?: string;
   onRefreshModels?: () => void;
   onRefreshTraeModels?: () => void;
+  onRefreshClaudeModels?: () => void;
   onChange: (key: string, value: unknown) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }
@@ -367,6 +378,7 @@ interface CatalogStatusProps {
   label: string;
   refreshLabel: string;
   description: string;
+  curated?: boolean;
   catalog?: ModelCatalog;
   loading: boolean;
   error: string;
@@ -378,6 +390,7 @@ function CatalogStatus({
   label,
   refreshLabel,
   description,
+  curated = false,
   catalog,
   loading,
   error,
@@ -391,7 +404,7 @@ function CatalogStatus({
       aria-busy={loading}
     >
       <div className="inline-spread">
-        <strong>{label} 本机模型列表</strong>
+        <strong>{label} {curated ? "文档模型选项" : "本机模型列表"}</strong>
         {onRefresh && (
           <button
             type="button"
@@ -408,7 +421,9 @@ function CatalogStatus({
         {loading
           ? "正在读取模型列表；仍可编辑角色配置。"
           : catalog?.status === "ready"
-            ? `已读取 ${catalog.models.length} 个模型${catalog.models.some((entry) => entry.hidden) ? "，含隐藏项" : ""}。`
+            ? curated
+              ? `提供 ${catalog.models.length} 个文档模型选项。`
+              : `已读取 ${catalog.models.length} 个模型${catalog.models.some((entry) => entry.hidden) ? "，含隐藏项" : ""}。`
             : "目录尚不可用，可选择 CLI 默认模型或填写自定义模型 ID。"}
       </p>
       <p className="muted small">{description}</p>
@@ -439,12 +454,16 @@ export function SettingsForm({
   busy,
   modelCatalog,
   traeModelCatalog,
+  claudeModelCatalog,
   catalogLoading = false,
   traeCatalogLoading = false,
+  claudeCatalogLoading = false,
   catalogError = "",
   traeCatalogError = "",
+  claudeCatalogError = "",
   onRefreshModels,
   onRefreshTraeModels,
+  onRefreshClaudeModels,
   onChange,
   onSubmit,
 }: SettingsFormProps) {
@@ -456,6 +475,8 @@ export function SettingsForm({
     modelCatalog?.provider === "codex_cli" ? modelCatalog : undefined;
   const traeCatalog =
     traeModelCatalog?.provider === "trae_cli" ? traeModelCatalog : undefined;
+  const claudeCatalog =
+    claudeModelCatalog?.provider === "claude_code_cli" ? claudeModelCatalog : undefined;
   return (
     <form onSubmit={onSubmit} aria-busy={busy}>
       <fieldset className="editor-fieldset" disabled={busy}>
@@ -463,7 +484,7 @@ export function SettingsForm({
           <h2>七个角色的模型</h2>
           <p className="muted small">
             各角色独立选择本机 CLI 和模型。留空模型名称时使用该 CLI 的默认模型。
-            检测只确认是否安装；运行前请在本机完成相应 CLI 登录。
+            检测只确认是否安装；运行前请完成相应 CLI 登录或配置模型服务密钥。
             仅影响后续实际调用；已有文案、分镜和产物不会自动重做。
           </p>
         </div>
@@ -487,6 +508,17 @@ export function SettingsForm({
           busy={busy}
           onRefresh={onRefreshTraeModels}
         />
+        <CatalogStatus
+          label="Claude Code CLI"
+          refreshLabel="Claude Code"
+          curated
+          description="GLM-5.3 使用智谱 Coding Plan，最高 max 推理，1M（1,000,000 tokens）上下文。文档选项不代表当前密钥已验证可用。"
+          catalog={claudeCatalog}
+          loading={claudeCatalogLoading}
+          error={claudeCatalogError}
+          busy={busy}
+          onRefresh={onRefreshClaudeModels}
+        />
         <div className="settings-grid role-model-grid">
           {modelRoles.map((role) => {
             const config = roles[role.id];
@@ -502,7 +534,7 @@ export function SettingsForm({
                 ? codexCatalog
                 : config.provider === "trae_cli"
                   ? traeCatalog
-                  : undefined;
+                  : claudeCatalog;
             const updateRole = (changes: Partial<typeof config>) => {
               onChange("role_models", {
                 ...roles,
@@ -578,14 +610,14 @@ export function SettingsForm({
                   className={`cli-state ${availability?.available === false ? "cli-unavailable" : ""}`}
                 >
                   {availability?.available === true
-                    ? `已检测到 ${providerLabel}。登录状态由本机 CLI 管理。`
+                    ? `已检测到 ${providerLabel}。认证由本机 CLI 或模型服务密钥管理。`
                     : availability?.available === false
                       ? `未检测到 ${providerLabel}，当前不可用。请先在本机安装并登录。`
                       : `尚未取得 ${providerLabel} 的安装检测结果。`}
                 </p>
                 <div className="form-grid">
                   <div>
-                    {config.provider !== "claude_code_cli" && (
+                    {(config.provider !== "claude_code_cli" || roleCatalog) && (
                       <label>
                         模型
                         <select
@@ -619,7 +651,7 @@ export function SettingsForm({
                         </select>
                       </label>
                     )}
-                    {(config.provider === "claude_code_cli" ||
+                    {((config.provider === "claude_code_cli" && !roleCatalog) ||
                       choice === customModelChoice) && (
                       <label>
                         模型名称
@@ -635,7 +667,11 @@ export function SettingsForm({
                         />
                       </label>
                     )}
-                    {config.provider === "claude_code_cli" ? (
+                    {config.provider === "claude_code_cli" && config.model === "glm-5.3[1m]" ? (
+                      <p className="model-choice-hint">
+                        智谱 GLM-5.3：最高 max 推理，1M（1,000,000 tokens）上下文；使用智谱 Coding Plan 密钥。
+                      </p>
+                    ) : config.provider === "claude_code_cli" && !roleCatalog ? (
                       <p className="model-choice-hint">
                         填写 Claude Code CLI 支持的模型 ID；留空使用其默认模型。
                       </p>
@@ -737,7 +773,7 @@ export function SettingsForm({
               {section.title === "检索与时间对齐" && (
                 <>
                 <p className="muted small">
-                  启用素材角色并选择 Codex CLI 后，可调用已安装的检索技能查资料和采集真实画面。
+                  启用素材角色并选择 Codex CLI 或 Claude Code CLI 后，可调用已安装的检索技能查资料和采集真实画面。
                   平台仍可能需要登录、验证码或服务 Key。
                 </p>
                 <div className="research-skill-list">
@@ -994,12 +1030,16 @@ export function SettingsPage() {
   const [success, setSuccess] = useState("");
   const [modelCatalog, setModelCatalog] = useState<ModelCatalog>();
   const [traeModelCatalog, setTraeModelCatalog] = useState<ModelCatalog>();
+  const [claudeModelCatalog, setClaudeModelCatalog] = useState<ModelCatalog>();
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [traeCatalogLoading, setTraeCatalogLoading] = useState(false);
+  const [claudeCatalogLoading, setClaudeCatalogLoading] = useState(false);
   const [catalogError, setCatalogError] = useState("");
   const [traeCatalogError, setTraeCatalogError] = useState("");
+  const [claudeCatalogError, setClaudeCatalogError] = useState("");
   const catalogRequest = useRef(0);
   const traeCatalogRequest = useRef(0);
+  const claudeCatalogRequest = useRef(0);
   const loadModels = useCallback(async (refresh = false) => {
     const requestId = ++catalogRequest.current;
     setCatalogLoading(true);
@@ -1045,14 +1085,39 @@ export function SettingsPage() {
         setTraeCatalogLoading(false);
     }
   }, []);
+  const loadClaudeModels = useCallback(async (refresh = false) => {
+    const requestId = ++claudeCatalogRequest.current;
+    setClaudeCatalogLoading(true);
+    setClaudeCatalogError("");
+    try {
+      const next = await api.models("claude_code_cli", refresh);
+      if (requestId !== claudeCatalogRequest.current) return;
+      if (next.status === "ready") {
+        setClaudeModelCatalog(next);
+      } else {
+        setClaudeModelCatalog((current) =>
+          current?.status === "ready" ? current : next,
+        );
+        setClaudeCatalogError(next.message || "Claude Code 文档模型选项暂不可用。");
+      }
+    } catch (cause) {
+      if (requestId === claudeCatalogRequest.current)
+        setClaudeCatalogError(explainError(cause));
+    } finally {
+      if (requestId === claudeCatalogRequest.current)
+        setClaudeCatalogLoading(false);
+    }
+  }, []);
   useEffect(() => {
     void loadModels();
     void loadTraeModels();
+    void loadClaudeModels();
     return () => {
       catalogRequest.current += 1;
       traeCatalogRequest.current += 1;
+      claudeCatalogRequest.current += 1;
     };
-  }, [loadModels, loadTraeModels]);
+  }, [loadModels, loadTraeModels, loadClaudeModels]);
   useEffect(() => {
     let active = true;
     void api
@@ -1109,15 +1174,21 @@ export function SettingsPage() {
           busy={busy}
           modelCatalog={modelCatalog}
           traeModelCatalog={traeModelCatalog}
+          claudeModelCatalog={claudeModelCatalog}
           catalogLoading={catalogLoading}
           traeCatalogLoading={traeCatalogLoading}
+          claudeCatalogLoading={claudeCatalogLoading}
           catalogError={catalogError}
           traeCatalogError={traeCatalogError}
+          claudeCatalogError={claudeCatalogError}
           onRefreshModels={() => {
             void loadModels(true);
           }}
           onRefreshTraeModels={() => {
             void loadTraeModels(true);
+          }}
+          onRefreshClaudeModels={() => {
+            void loadClaudeModels(true);
           }}
           onChange={update}
           onSubmit={(event) => {

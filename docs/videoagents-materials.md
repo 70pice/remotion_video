@@ -7,7 +7,7 @@
 
 `materials` 负责检索、读取来源、采集真实图片、网页截图及相关真实视频；编剧只消费冻结的研究结果。导演同时获得素材文件、出处、说明和与口播段落的关联。节点仍统一定义在 `videoagents/nodes/`。
 
-素材节点直接启动 **Codex 模型研究**：模型读取 `agent-reach` 和已安装的互补技能，自行选择检索、网页读取、视频字幕、原图及截图工具。Python 接收并验证最终文件清单，没有单独的规划或固定检索分支。技能安装、各平台实测状态与待配置项见 [检索环境清单](videoagents-research-skills.md)。
+素材节点直接启动模型研究。默认使用 **Claude Code CLI / GLM-5.3、max、1M**，通过项目自己的 `videoagents_research` stdio MCP 工具读取已安装检索技能、选择平台、读取真实正文及下载画面。Claude 内置工具、其他 MCP 和 Hooks 均关闭，不向模型提供任意命令或路径读写能力。显式选择 Codex CLI 时保留原有技能、网页检索和工作目录内 Shell 路径。Python 接收并验证最终文件清单，没有单独的规划或固定检索分支。技能安装、各平台实测状态与待配置项见 [检索环境清单](videoagents-research-skills.md)，模型接入见 [GLM Coding Plan](videoagents-glm-coding-plan.md)。
 
 未安装工具、登录状态未知、页面被拦截、时间与预算不足均作为资料缺口记录。搜索摘要只是线索；实际读取的来源和下载成功的素材另外保存。安装技能不代表账号已经登录，也不保证覆盖全网。
 
@@ -24,14 +24,14 @@
 ```text
 VideoState → MaterialsNode.collect()
   → JsonModel.invoke(brief, assets, settings)
-  → Codex CLI：agent-reach / web_search / shell / 截图技能
+  → Claude Code CLI：受限研究 MCP；或显式配置的 Codex CLI 技能研究
   → MaterialResearch：sources + visuals + limitations
   → Python 核验文件、SHA256、数量、来源关联、图片格式及尺寸
   → 冻结 research / assets → VideoState → 编剧与导演
 ```
 
 业务 Prompt 独立保存在 `videoagents/prompts/materials.md`，`materials.py` 的 `PROMPT` 负责加载该角色规则。没有单独的规划 Prompt、方法、契约或规划产物。
-素材研究目前要求启用素材模型并选择 `codex_cli`；模型关闭或选择尚不支持研究的 CLI 时暂停并提示能力缺口。
+素材研究要求启用素材模型，并选择支持研究的 `claude_code_cli` 或 `codex_cli`；模型关闭或选择尚不支持研究的 CLI 时暂停并提示能力缺口。
 
 每版本研究目录为 `jobs/<job_id>/revisions/<revision>/skills-research/`。
 最终清单中的 `text_file` / `file` 必须为目录内相对路径，文件实际存在且散列一致。
@@ -39,7 +39,7 @@ VideoState → MaterialsNode.collect()
 目录只是执行空间，不进入下一个 Agent 的输入。`material-skill-manifest.json` 与脱敏的
 `material-tool-audit-*.jsonl` 仅用于追溯，`VideoState` 中只传最终研究结果和已登记素材。
 
-搜索调用数属于 Prompt 指令预算；来源与画面数量由 Python 强制限制。
+Claude 研究 MCP 对本次调用累计搜索次数、平台选择、来源数量和下载大小实施限制；原生搜索失败后尝试公开索引也占搜索预算。Codex 路径的搜索次数仍是 Prompt 指令预算；两条路径最终交接均由 Python 校验来源数量和单文件大小，不设画面数量或视频占比要求。
 CLI 调用账本保留原有 `UNKNOWN` 阻断，切换 CLI 或模型不能绕过未知提交。
 已完成的研究同版本复用，不因配置变化自动重新抓取；需要刷新请保存新版本。
 
@@ -98,15 +98,15 @@ CLI 调用账本保留原有 `UNKNOWN` 阻断，切换 CLI 或模型不能绕过
 
 ## 配置与使用
 
-1. 在「系统设置」启用素材角色，选择 Codex CLI 和模型。其他角色的模型仍独立选择。
-2. 确认设置页列出的技能已安装。素材 Agent 可用内置网页检索及 Agent Reach 路由；具体平台/转写服务所需登录或 Key 仍要配置。
+1. 在「系统设置」填写智谱 Coding Plan Key，启用素材角色并选择 Claude Code CLI 的 `glm-5.3[1m]`。默认七个角色使用同一模型；已有角色配置可独立修改。显式选择 Codex CLI 时继续使用原有研究路径。
+2. 确认设置页列出的技能及检索入口可用。Claude 素材 Agent 通过受限 MCP 调用已配置搜索服务或已有原生只读检索适配；具体平台所需登录或 Key 仍要配置。技能指南安装不等于其全部脚本都由 MCP 执行。
 3. 勾选平台。默认七项：全网、X、YouTube、知乎、Reddit、B站、Google。建议给素材角色更充足的超时；同一任务不要求每个平台都有结果，缺口会显示在研究包中。
-4. 开启截图及真实图片下载。Windows 技能浏览器可直接调用 `npx --yes --package @playwright/cli playwright-cli`；系统没有 Bash，不能原样调用其 `.sh` wrapper。
+4. 开启截图及真实图片下载。Claude MCP 截图使用项目既有 Playwright 采集器。Codex 技能浏览器可直接调用 `npx --yes --package @playwright/cli playwright-cli`；Windows 没有 Bash 时不能原样调用其 `.sh` wrapper。
 5. 新建主题任务，输入“Muse是什么”。执行后先查看「素材研究」页签，再查看文案和来源引用。
 
 `opencli doctor` 可诊断浏览器连接。Google CSE 的 JSON API 已停止接受新客户，现有客户需在 2027-01-01 前迁移；保留该配置兼容已有账号。[Google 官方说明](https://developers.google.com/custom-search/v1/overview)。
 
-模型可通过已配置的技能后端读取网页、字幕及其他格式；实际能力见环境清单，缺少转写 Key 时不能声称已转写。
+Claude MCP 直接读取 HTML/纯文本、下载可直接取得的图片和 MP4，以及捕获公开页面截图；搜索返回视频链接或字幕线索不等于取得可播放文件。不解析流媒体播放列表，不执行技能中的任意命令，也不提供自动转写、PDF/OCR 或图片语义理解能力；这些缺口应通过现有人工补充入口解决。GLM-5.3 是文本模型，媒体探测和实际截图成功不能写成已经进行图片内容审查。Codex 路径可通过已配置的技能后端读取字幕及其他格式；实际能力见环境清单，缺少转写 Key 时不能声称已转写。
 
 登录墙、验证码、地区限制或无法读取的格式会记录为缺口。浏览器连接成功不代表各平台登录已验证。素材保留真实出处与已有明确使用限制，个人制作不统一增加许可待核步骤。
 

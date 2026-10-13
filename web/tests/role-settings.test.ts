@@ -24,7 +24,7 @@ describe("independent role model settings", () => {
     expect(markup).not.toContain("private-local-path");
   });
 
-  it("starts writing roles on Claude Code Doubao and keeps all role defaults independent", () => {
+  it("starts all seven roles on Claude Code GLM 1M and keeps role defaults independent", () => {
     const roles = readRoleModels({});
     expect(Object.keys(roles)).toEqual([
       "materials",
@@ -38,28 +38,15 @@ describe("independent role model settings", () => {
     expect(roles.screenwriter).toEqual({
       enabled: true,
       provider: "claude_code_cli",
-      model: "doubao-seed-2-1-pro-260915",
+      model: "glm-5.3[1m]",
       timeout_seconds: 900,
     });
     expect(roles.script_reviewer).toEqual(roles.screenwriter);
-    expect(roles.voice).toEqual({
-      enabled: true,
-      provider: "codex_cli",
-      model: "",
-      timeout_seconds: 900,
-    });
     for (const { id } of modelRoles) {
-      if (id === "screenwriter" || id === "script_reviewer" || id === "voice")
-        continue;
-      expect(roles[id]).toEqual({
-        enabled: false,
-        provider: "codex_cli",
-        model: "",
-        timeout_seconds: 900,
-      });
+      expect(roles[id]).toEqual(roles.screenwriter);
     }
     roles.voice.model = "voice-model";
-    expect(roles.director.model).toBe("");
+    expect(roles.director.model).toBe("glm-5.3[1m]");
   });
 
   it("submits only the changed fields independently for all seven edited roles", () => {
@@ -81,7 +68,7 @@ describe("independent role model settings", () => {
     expect(payload).toEqual({
       role_models: {
         materials: {
-          enabled: true,
+          provider: "codex_cli",
           model: "materials-model",
           timeout_seconds: 30,
         },
@@ -95,29 +82,27 @@ describe("independent role model settings", () => {
           timeout_seconds: 430,
         },
         voice: {
-          provider: "claude_code_cli",
+          model: "",
           timeout_seconds: 630,
         },
         director: {
-          enabled: true,
+          provider: "codex_cli",
           model: "director-model",
           timeout_seconds: 830,
         },
         editing: {
-          enabled: true,
           model: "editing-model",
-          provider: "claude_code_cli",
           timeout_seconds: 1030,
         },
         review: {
-          enabled: true,
+          provider: "codex_cli",
           model: "review-model",
           timeout_seconds: 1230,
         },
       },
     });
-    expect(payload.role_models?.voice?.model).toBeUndefined();
-    expect(payload.role_models?.editing?.provider).toBe("claude_code_cli");
+    expect(payload.role_models?.voice?.model).toBe("");
+    expect(payload.role_models?.editing?.provider).toBeUndefined();
   });
 
   it("saves disabling one role without replacing the other five roles", () => {
@@ -159,6 +144,7 @@ describe("independent role model settings", () => {
     };
     expect(buildRoleModelsPatch(draft, saved)).toEqual({
       voice: { model: "voice-guidance-model" },
+      director: { enabled: false },
     });
 
     const enabledDirector = {
@@ -208,6 +194,7 @@ describe("independent role model settings", () => {
       voice_api_key: "new-voice-key",
       voice_access_token: "",
       ark_api_key: "new-ark-key",
+      zhipu_api_key: "new-zhipu-key",
       search_provider: "tavily",
       search_api_key: "",
       google_search_engine_id: "unit-cx",
@@ -222,12 +209,14 @@ describe("independent role model settings", () => {
       voice_style: "",
       voice_speech_rate: 0,
       ark_api_key: "new-ark-key",
+      zhipu_api_key: "new-zhipu-key",
       search_provider: "tavily",
       google_search_engine_id: "unit-cx",
       research_platforms: ["web", "youtube"],
       research_download_images: false,
       capture_enabled: true,
     });
+    expect(createSettingsPayload({ zhipu_api_key: "", zhipu_api_key_configured: true }, {})).toEqual({});
   });
 
 
@@ -281,7 +270,7 @@ function renderForm(busy: boolean, overrides: Settings = {}): string {
     role_models: readRoleModels({}),
     cli_availability: {
       codex_cli: { available: false },
-      claude_code_cli: { available: true },
+      claude_code_cli: { available: false },
     },
     ...overrides,
   };
@@ -297,20 +286,25 @@ function renderForm(busy: boolean, overrides: Settings = {}): string {
 }
 
 describe("role settings form", () => {
+  it("shows only the configured flag for the write-only Zhipu key", () => {
+    const markup = renderForm(false, { zhipu_api_key_configured: true });
+    const keyField = markup.slice(markup.indexOf("智谱 Coding Plan API Key"));
+    expect(keyField).toMatch(/type="password"[^>]+value=""/);
+    expect(keyField).toContain("● 已配置");
+    expect(keyField).toContain("留空保留现有密钥");
+    expect(markup).toContain("Codex CLI 或 Claude Code CLI");
+  });
+
   it("renders seven accessible role controls and clearly identifies an unavailable CLI", () => {
     const markup = renderForm(false);
     for (const { label } of modelRoles) {
       expect(markup).toContain(`aria-label="启用${label}模型"`);
       expect(markup).toContain(`aria-label="${label}模型提供方"`);
-      expect(markup).toContain(
-        label === "编剧" || label === "文案审查"
-          ? `aria-label="${label}模型名称"`
-          : `aria-label="${label}模型选择"`,
-      );
+      expect(markup).toContain(`aria-label="${label}模型名称"`);
       expect(markup).toContain(`aria-label="${label}模型超时秒数"`);
     }
     expect(markup.match(/value="claude_code_cli"/g)).toHaveLength(7);
-    expect(markup).toContain("未检测到 Codex CLI，当前不可用");
+    expect(markup).toContain("未检测到 Claude Code CLI，当前不可用");
     expect(markup).toContain("检测只确认是否安装");
     expect(markup).toContain(
       "仅影响后续实际调用；已有文案、分镜和产物不会自动重做。",
@@ -330,6 +324,8 @@ describe("role settings form", () => {
     expect(markup).toContain("达到轮数上限仍需修改时，编剧最后改稿一次，再交人工审核");
     expect(markup).toContain("轮数不会自动启用任何 CLI");
     expect(markup).toContain("火山方舟 API Key");
+    expect(markup).toContain("智谱 Coding Plan API Key");
+    expect(markup).toContain("最高 max 推理，1M（1,000,000 tokens）上下文");
     expect(markup).not.toContain("编剧与导演模型");
   });
 
@@ -372,7 +368,7 @@ describe("role settings form", () => {
     for (const { label } of modelRoles) {
       expect(fieldset).toContain(`aria-label="启用${label}模型"`);
     }
-    expect(fieldset).toContain('aria-label="素材模型选择"');
+    expect(fieldset).toContain('aria-label="素材模型名称"');
     expect(fieldset).toContain('aria-label="编剧模型名称"');
     expect(fieldset).toContain('aria-label="文案审查模型名称"');
     expect(fieldset).toContain("新鉴权 API Key");
