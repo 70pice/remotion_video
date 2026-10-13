@@ -1,0 +1,110 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 5,
+  "status": "NEEDS_HUMAN",
+  "pending_token": "02d6361fe3048642c3ebefaa8c82a55d",
+  "assets": [
+    {
+      "asset_id": "90ecf00fd84b45cc88c119240f5166ae",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\5\\sources\\skill-703e1d9c2e1edf49d6757a5c9e095952fea2a57d1d28f15a79db04d6625f8814.mp4",
+      "sha_ok": true,
+      "bytes_ok": true,
+      "owner_ok": true,
+      "width": 480,
+      "height": 270,
+      "r_frame_rate": "25/1",
+      "duration": "13.000000",
+      "full_decode_ok": true
+    },
+    {
+      "asset_id": "5276921d764a4813b343c68f54c7f225",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\5\\sources\\skill-fe5aa7b479fd9b467708b41de9b8578af09d2947b2fe1a86f54cdde18eff5c17.mp4",
+      "sha_ok": true,
+      "bytes_ok": true,
+      "owner_ok": true,
+      "width": 480,
+      "height": 270,
+      "r_frame_rate": "25/1",
+      "duration": "7.000000",
+      "full_decode_ok": true
+    },
+    {
+      "asset_id": "0b61255194854094b26a4a2565504352",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\5\\sources\\skill-831b33e978685bb991dc6e69019a6b98e4672f123315b7eca5242212a279316c.png",
+      "sha_ok": true,
+      "bytes_ok": true,
+      "owner_ok": true,
+      "width": 1000,
+      "height": 2222,
+      "r_frame_rate": "25/1",
+      "full_decode_ok": true
+    },
+    {
+      "asset_id": "7fb4388b7ceb467f84c79b60f5c0edc9",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\5\\sources\\skill-bb08262d1e18578239c51b4f7ad67cd54873d78fcc183bd84ef9eb2f5853eaad.mp4",
+      "sha_ok": true,
+      "bytes_ok": true,
+      "owner_ok": true,
+      "width": 480,
+      "height": 270,
+      "r_frame_rate": "25/1",
+      "duration": "12.000000",
+      "full_decode_ok": true
+    },
+    {
+      "asset_id": "7e5e731b10534335a46cd40d197cf2f9",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\5\\sources\\skill-d02e8db3a0fbbff9a4890467cccb14e19da0ed051c0b604f62eb185a24ecdac4.mp4",
+      "sha_ok": true,
+      "bytes_ok": true,
+      "owner_ok": true,
+      "width": 480,
+      "height": 270,
+      "r_frame_rate": "25/1",
+      "duration": "22.000000",
+      "full_decode_ok": true
+    },
+    {
+      "asset_id": "b611b6b73f0f42f6b8ecf01248fcb65d",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\5\\sources\\skill-d24289110bcfbb7bcf760d54cafb7964f367acde7dfc7360620fe16b7ad93ffa.png",
+      "sha_ok": true,
+      "bytes_ok": true,
+      "owner_ok": true,
+      "width": 1000,
+      "height": 991,
+      "r_frame_rate": "25/1",
+      "full_decode_ok": true
+    },
+    {
+      "asset_id": "a663551d7662451ca858552113f637a3",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\5\\sources\\skill-2935af3869906706afd42075ce61a60fa295153c4ed94b82b0656eb8a0d2e96c.mp4",
+      "sha_ok": true,
+      "bytes_ok": true,
+      "owner_ok": true,
+      "width": 480,
+      "height": 270,
+      "r_frame_rate": "25/1",
+      "duration": "26.000000",
+      "full_decode_ok": true
+    }
+  ],
+  "operations": [
+    {
+      "operation_id": "6c3d212fdbf8441781f50d3a2ae9acfe",
+      "status": "COMPLETED",
+      "revision": 5,
+      "cli_provider": "codex_cli",
+      "model": "gpt-6.1-sol",
+      "reasoning_effort": "xhigh"
+    },
+    {
+      "operation_id": "c34539df84044a7cb5eb6cbe86c3ff32",
+      "status": "UNKNOWN",
+      "revision": 4,
+      "cli_provider": "codex_cli",
+      "model": "gpt-6.1-sol",
+      "reasoning_effort": "xhigh"
+    }
+  ],
+  "script_sha256": "5d7aeb49fd9e63a479220f212d773fc011d11251a45c63830369d0955981968d",
+  "voice_or_render_produced": false
+}

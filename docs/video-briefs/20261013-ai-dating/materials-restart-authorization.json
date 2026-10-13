@@ -39,7 +39,7 @@
     "new_submission_started": false
   },
   "execution": {
-    "checked_at": "2026-10-13T23:18:06.079520+00:00",
+    "checked_at": "2026-10-13T23:44:27.352337+00:00",
     "target_revision": 5,
     "maintenance_commit": "698a69f",
     "targeted_tests_passed": 168,
@@ -47,17 +47,24 @@
     "normal_restart_cli_succeeded": true,
     "normal_run_idempotency_key": "materials-paid-ai-restart-r5-20261014",
     "operation_id": "6c3d212fdbf8441781f50d3a2ae9acfe",
-    "operation_status": "SUBMITTING",
-    "job_status": "RUNNING",
-    "stage": "materials",
+    "operation_status": "COMPLETED",
+    "job_status": "NEEDS_HUMAN",
+    "stage": "script",
     "model": "gpt-6.1-sol",
     "reasoning_effort": "xhigh",
     "new_revision_screenwriter_calls": 0,
     "script_hash_unchanged": true,
     "script_approval_chain_valid": true,
     "old_operation_still_unknown": true,
-    "new_materials_completed": false,
+    "new_materials_completed": true,
     "joint_human_review_approved": false,
-    "new_submission_started": true
+    "new_submission_started": true,
+    "registered_video_assets": 5,
+    "registered_image_assets": 2,
+    "registered_source_bodies": 3,
+    "video_duration_total_seconds": 80,
+    "feishu_attachment_count_verified": 7,
+    "final_verification": "all_7_hashes_sizes_owners_and_full_decodes_passed",
+    "voice_or_render_produced": false
   }
 }

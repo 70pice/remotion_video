@@ -2,7 +2,7 @@
 
 本目录保存监督会话的制作要求、执行记录与正式节点口播的审核副本；副本不替代引擎登记产物，也不构成人审通过。
 
-用户随后明确否决上述普通社交素材，要求重新采集“付费聊天、付费视频、AI欺诈”相关中文画面。上一批14件全部退出本轮候选；飞书23行审计及18个历史附件保留，状态已回读为用户否决。已通过正式素材单独恢复入口启动 revision 5，实际为 RUNNING / materials，Codex `gpt-6.1-sol / xhigh`；操作 `6c3d212fdbf8441781f50d3a2ae9acfe`。原七段文案文件散列和批准链已复验保持有效，新版没有调用编剧。详情见[新采集要求](materials-restart-requirements.md)与[本次授权](materials-restart-authorization.json)。当前执行中，不代表已经交付新素材或通过联合审核。下面保留上一轮及早期执行记录。
+用户否决普通社交素材后，本轮已通过正式素材单独恢复入口完成 revision 5：Codex `gpt-6.1-sol / xhigh` 操作 `6c3d212fdbf8441781f50d3a2ae9acfe` 已 COMPLETED，登记5段视频（合计80秒）、2张图片及3份来源正文，聚焦聊天不足/充值、钻石购买、视频计价与付款、真人身份包装、系统招呼。7个附件已在[飞书素材清单](https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblVOUHrIy3Tq3uh)回读，名称与字节大小匹配登记文件。原七段文案散列未改，新版没有调用编剧；旧 UNKNOWN 和用户否决的14件历史候选保留。任务停在 NEEDS_HUMAN / 文案与素材审核，未配音、摄影或剪辑。五段视频均480×270，部分收费小字清晰度不足；涉案AI自主聊天、三候选回复及预录顶替等真实中文画面仍有缺口，详见[审计说明](materials-restart-review-requirements.txt)、[文件复验](materials-restart-verification.json)、[飞书回读](materials-restart-feishu.json)。[新采集要求](materials-restart-requirements.md)与[本次授权](materials-restart-authorization.json)保留执行依据。下面保留上一轮及早期记录。
 
 2026-10-14 用户要求先审计当前素材。已完成七段覆盖与逐件视觉审计，录入[飞书「素材审计」表](https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblFTK4SmOqXoJkf&view=vewytLjHOv)：23条审计记录、14件原候选及附加联系表/代表帧共18个附件均已回读确认。结论是中文场景已有基础，仍缺真实充值购买页、实际私聊输入框；2段录屏清晰度及原字幕有局限。完整结论见[素材审计报告](materials-audit.md)与[录入验证](materials-audit-feishu.json)。本轮未重新提交生产模型、未登记素材、未通过后续人工门。
 
