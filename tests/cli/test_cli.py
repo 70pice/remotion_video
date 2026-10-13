@@ -125,7 +125,13 @@ def test_run_pauses_at_script_gate_resume_confirms_and_shots_list(tmp_path, monk
     assert paused["status"] == "NEEDS_HUMAN" and paused["stage"] == "script", paused
     run_cli([*argv_tail, "status", job.job_id])
     detail = json.loads(capsys.readouterr().out)
-    assert detail["pending_input"]["node_name"] == "human_review_script"
+    assert detail["pending_input"]["node_name"] == "script_human_gate"
+
+    run_cli([*argv_tail, "resume", job.job_id, "--decision", "confirm",
+             "--note", "CLI TEST：先确认文案与来源，允许素材采集。"])
+    collected = json.loads(capsys.readouterr().out)
+    assert collected["stage"] == "script" and collected["status"] == "NEEDS_HUMAN"
+    assert repo.get_job(job.job_id).pending_input["node_name"] == "human_review_script"
 
     run_cli([*argv_tail, "resume", job.job_id, "--decision", "confirm",
              "--note", "CLI TEST：确认文案与素材，继续制作。"])
@@ -192,6 +198,11 @@ def test_run_failure_returns_nonzero_with_clean_json_stdout(tmp_path, monkeypatc
     monkeypatch.setattr(MaterialsNode, "__call__", boom)
     from videoagents.main import build_parser
     args = build_parser().parse_args(["--runtime-dir", str(runtime), "run", job.job_id])
+    rc = args.handler(args)
+    out = capsys.readouterr().out
+    assert rc == 0 and json.loads(out)["status"] == "NEEDS_HUMAN"
+    args = build_parser().parse_args(["--runtime-dir", str(runtime), "resume", job.job_id,
+                                     "--decision", "confirm", "--note", "UNIT：确认文案并进入素材采集。"])
     rc = args.handler(args)
     out = capsys.readouterr().out
     assert rc == 1, out

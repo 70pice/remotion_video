@@ -13,7 +13,7 @@ from langgraph.types import Command
 from videoagents.contracts import Job
 from videoagents.nodes.await_input import AwaitInputNode
 from videoagents.nodes.clear_tools import ClearToolsNode
-from videoagents.nodes.common import state_context, validate_context_assets
+from videoagents.nodes.common import current_job, request_input, state_context, validate_context_assets
 from videoagents.nodes.component_demo import ComponentDemoNode
 from videoagents.nodes.director import DirectorNode
 from videoagents.nodes.director_demo import DirectorDemoNode
@@ -22,7 +22,14 @@ from videoagents.nodes.gates import AudioGateNode, ScriptGateNode
 from videoagents.nodes.human_review import HumanReviewNode
 from videoagents.nodes.materials import MaterialsNode
 from videoagents.nodes.screenwriter import ScreenwriterNode
+from videoagents.nodes.script_review import (
+    SCRIPT_REVIEW_NODE,
+    SCRIPT_REVIEW_REQUIREMENTS,
+    SCRIPT_REVIEW_TITLE,
+    script_before_materials_is_approved,
+)
 from videoagents.nodes.voice import VoiceNode
+from videoagents.providers.llm import CapabilityMissing
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState
 from videoagents.storage import Conflict, Repository
@@ -48,7 +55,8 @@ class VideoProductionGraph(AbstractContextManager):
         # CLI 内部运行工具，图中只交接最终 JSON，不增加 ToolNode 或工具消息循环。
         graph = StateGraph(VideoState)
         graph.add_node("component_demo", ComponentDemoNode(repository, self.service))
-        graph.add_node("materials", MaterialsNode(repository, self.service))
+        self.materials_node = MaterialsNode(repository, self.service)
+        graph.add_node("materials", self.materials_after_script_review)
         graph.add_node("screenwriter", ScreenwriterNode(repository, self.service))
         graph.add_node("script_gate", ScriptGateNode(repository))
         graph.add_node("voice", VoiceNode(repository, self.service))
@@ -60,6 +68,9 @@ class VideoProductionGraph(AbstractContextManager):
         # Available for manual orchestration; no incoming edge by default.
         self.add_human_review(graph, "human_review", stage="script", title="文案人工审核",
                               confirmation_requirements=("文案表达与事实来源", "截图及素材与文案一致"), next_node="voice")
+        self.add_human_review(graph, SCRIPT_REVIEW_NODE, stage="script", title=SCRIPT_REVIEW_TITLE,
+                              confirmation_requirements=SCRIPT_REVIEW_REQUIREMENTS,
+                              next_node="materials", revise_node="screenwriter")
         self.add_human_review(graph, "human_review_script", stage="script", title="文案与素材人工审核",
                               confirmation_requirements=("首句具体，尽早建立观看理由；主线清楚，结尾自然回应问题",
                                                          "每段口播的来源真实存在，素材清单能支撑对应说法",
@@ -76,8 +87,14 @@ class VideoProductionGraph(AbstractContextManager):
         graph.add_node("after_director_demo_review", self.after_director_demo_review)
         graph.add_conditional_edges(START, self.start_route, {"component_demo": "component_demo", "screenwriter": "screenwriter"})
         self.add_cleanup_edge(graph, "component_demo", {"director_demo": "director_demo", "await_input": "await_input"})
-        self.add_cleanup_edge(graph, "screenwriter", {"materials": "materials", "await_input": "await_input"})
-        self.add_cleanup_edge(graph, "materials", {"human_review_script": "human_review_script", "await_input": "await_input"})
+        self.add_cleanup_edge(graph, "screenwriter", {
+            SCRIPT_REVIEW_NODE: SCRIPT_REVIEW_NODE,
+            "materials": SCRIPT_REVIEW_NODE,  # Older saved writer outputs.
+            "await_input": "await_input",
+        })
+        self.add_cleanup_edge(graph, "materials", {"human_review_script": "human_review_script",
+                                                   SCRIPT_REVIEW_NODE: SCRIPT_REVIEW_NODE,
+                                                   "await_input": "await_input"})
         # 旧 checkpoint 仍可恢复到 script_gate；新文案流程直接进入人工审核。
         graph.add_conditional_edges("script_gate", self.route, {"voice": "human_review_script", "await_input": "await_input"})
         graph.add_conditional_edges("after_script_review", self.route, {"voice": "voice"})
@@ -117,6 +134,19 @@ class VideoProductionGraph(AbstractContextManager):
     def after_script_review(self, state: VideoState) -> dict[str, Any]:
         return state_context(self.repo, state, route="voice")
 
+    def materials_after_script_review(self, state: VideoState) -> dict[str, Any]:
+        """Guard old saved materials/retry routes as well as the normal edge."""
+        job = current_job(self.repo, state)
+        operation = self.repo.unsettled_operation(job.job_id, "llm:materials", job.revision)
+        if operation:
+            error = CapabilityMissing("素材提交结果仍未知，必须先核对或明确授权建立新版草稿",
+                                      ["llm_operation"], operation_id=operation["operation_id"],
+                                      operation_status=operation["status"])
+            return request_input(self.repo, state, "materials", [str(error)], error.fields, error)
+        if not script_before_materials_is_approved(self.repo, job):
+            return state_context(self.repo, state, route=SCRIPT_REVIEW_NODE, stage_review_pending=None)
+        return self.materials_node(state)
+
     def after_director_demo_review(self, state: VideoState) -> dict[str, Any]:
         return state_context(self.repo, state, route="editing")
 
@@ -128,8 +158,8 @@ class VideoProductionGraph(AbstractContextManager):
 
     @staticmethod
     def start_route(state: VideoState) -> str:
-        # The writer designs segments first; materials then collects evidence
-        # and footage against the script's visual needs.
+        # The writer designs segments first; a human approves them before
+        # materials collects evidence and footage against the visual needs.
         return "component_demo" if state.get("action") == "component_demo" else "screenwriter"
 
     @staticmethod

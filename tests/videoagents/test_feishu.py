@@ -17,13 +17,22 @@ class FakeLark:
         self.tables: dict[str, list[dict]] = {}
         self.review_rows: dict[str, dict] = {}
         self.next_record = 100
+        self.review_stage_field = {"name": "阶段", "type": "select", "multiple": False,
+                                   "description": "保留的阶段说明", "default_value": ["逐镜"],
+                                   "options": [{"name": feishu.REVIEW_STAGE_SCRIPT, "hue": "Blue"},
+                                               {"name": feishu.REVIEW_STAGE_SHOTS}]}
 
     def __call__(self, arguments, *, timeout=60):
         self.calls.append(arguments)  # noqa: F841 — 调用轨迹供断言使用
         joined = " ".join(arguments)
         if "+base-create" in joined:
             self.tables = {"审核记录": []}
+            self.review_stage_field = next(item for item in json.loads(arguments[arguments.index("--fields") + 1])
+                                           if item["name"] == "阶段")
             return {"data": {"app": {"app_token": "basetoken123"}}}
+
+        if "+field-get" in joined:
+            return {"data": {"field": self.review_stage_field}}
 
         if "+table-create" in joined:
             name = arguments[arguments.index("--name") + 1]
@@ -104,6 +113,25 @@ def test_missing_folder_token_is_unavailable(tmp_path, job):
     base = FeishuReviewBase(Repository(tmp_path / "runtime"), "")
     with pytest.raises(FeishuUnavailable, match="feishu_folder_token"):
         base.ensure_base(job)
+
+
+def test_old_base_missing_script_stage_is_read_only_and_keeps_old_options_and_reviews(lark, tmp_path, job):
+    repo = Repository(tmp_path / "runtime")
+    lark.tables["审核记录"] = [{"record_id": "old", "fields": {"结论": [feishu.DECISION_CONFIRM]}}]
+    with repo.connection() as db:
+        db.execute("INSERT INTO job_inputs VALUES(?, 'feishu_base_token', 'oldbase')", (job.job_id,))
+    old = dict(lark.review_stage_field)
+    base = FeishuReviewBase(repo, "fld123")
+    with pytest.raises(FeishuUnavailable, match="缺少“文案”"):
+        base.ensure_base(job)
+    assert lark.review_stage_field == old
+    assert lark.tables["审核记录"] == [{"record_id": "old", "fields": {"结论": [feishu.DECISION_CONFIRM]}}]
+    assert not any("+record-delete" in call or "+field-update" in call for call in lark.calls)
+    # Once the existing schema actually has the option, check and cache it.
+    lark.review_stage_field["options"].append({"name": feishu.REVIEW_STAGE_SCRIPT_ONLY})
+    assert base.ensure_base(job) == "oldbase"
+    lark.calls.clear()
+    assert base.ensure_base(job) == "oldbase" and lark.calls == []
 
 
 def test_sync_script_and_assets_is_idempotent(lark, tmp_path, job):
@@ -189,9 +217,21 @@ def test_script_gate_syncs_to_feishu_and_still_pauses(lark, tmp_path, monkeypatc
     repo.enqueue(job.job_id, {"action": "produce", "base_revision": job.revision, "idempotency_key": "unit-feishu-gate"})
     Worker(repo, project).once()
     paused = repo.get_job(job.job_id)
-    assert paused.status == "NEEDS_HUMAN" and paused.pending_input["node_name"] == "human_review_script"
+    assert paused.status == "NEEDS_HUMAN" and paused.pending_input["node_name"] == "script_human_gate"
     assert lark.tables["文案"] and lark.tables["审核记录"]
     assert lark.tables["审核记录"][0]["fields"]["待办令牌"] == paused.pending_input["pending_token"]
+    assert lark.tables["审核记录"][0]["fields"]["阶段"] == [feishu.REVIEW_STAGE_SCRIPT_ONLY]
+    assert not any("+record-upload-attachment" in call for call in lark.calls)
+    # Poll reads this distinct token and confirms only the script gate.
+    lark.tables["审核记录"][0]["fields"]["结论"] = [feishu.DECISION_CONFIRM]
+    decision = base.poll_decision(paused, paused.pending_input["pending_token"])
+    repo.enqueue(job.job_id, {"action": "resume", "base_revision": paused.revision,
+        "pending_token": paused.pending_input["pending_token"], **decision, "idempotency_key": "unit-feishu-script-confirm"})
+    assert Worker(repo, project).once()
+    collected = repo.get_job(job.job_id)
+    assert collected.pending_input["node_name"] == "human_review_script"
+    assert collected.pending_input["pending_token"] != paused.pending_input["pending_token"]
+    assert lark.tables["审核记录"][-1]["fields"]["阶段"] == [feishu.REVIEW_STAGE_SCRIPT]
 
     # When lark-cli breaks entirely the gate still pauses; the message surfaces the gap.
     def broken(arguments, *, timeout=60):

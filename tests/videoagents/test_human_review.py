@@ -123,7 +123,12 @@ def wired_job(tmp_path, monkeypatch):
 def start(repo, project, job, key="UNIT-start"):
     seed_completed_research(repo, project, job)
     repo.enqueue(job.job_id, {"action": "produce", "base_revision": job.revision, "idempotency_key": key})
-    assert Worker(repo, project).once()
+    worker = Worker(repo, project)
+    assert worker.once()
+    before_materials = repo.get_job(job.job_id)
+    assert before_materials.pending_input["node_name"] == "script_human_gate"
+    answer(repo, before_materials, note="UNIT：已审核文案及编剧来源，允许采集素材。", key=key + "-script")
+    assert worker.once()
     return repo.get_job(job.job_id)
 
 
@@ -149,7 +154,7 @@ def test_script_and_director_demo_reviews_are_registered_on_default_flow(tmp_pat
             assert node not in topology.nodes
         assert not any(edge.target == "human_review" and edge.source != "human_review" for edge in topology.edges)
         assert any(edge.source == "clear_materials" and edge.target == "human_review_script" for edge in topology.edges)
-        assert any(edge.source == "clear_screenwriter" and edge.target == "materials" for edge in topology.edges)
+        assert any(edge.source == "clear_screenwriter" and edge.target == "script_human_gate" for edge in topology.edges)
         assert "script_reviewer" not in topology.nodes and "clear_script_reviewer" not in topology.nodes
         edges = {(edge.source, edge.target) for edge in topology.edges}
         assert ("clear_director", "director_demo") in edges
@@ -188,7 +193,7 @@ def test_wired_review_pauses_before_downstream_and_recovers_after_reopen(wired_j
     assert calls == [job.job_id]
     assert current.status == "NEEDS_INPUT" and current.stage == "voice"
     assert current.review is None  # Stage approval does not approve publication.
-    report = next(item for item in current.artifacts if item.kind == "stage_review")
+    report = next(item for item in reversed(current.artifacts) if item.kind == "stage_review")
     receipt = json.loads(repo.artifact_path(report.artifact_id)[0].read_text(encoding="utf-8"))
     assert receipt["note"] == NOTE and receipt["decision"] == "confirm"
     assert receipt["dependency_fingerprint"] == paused.pending_input["dependency_fingerprint"]
@@ -212,13 +217,17 @@ def test_revise_and_cancel_stop_without_running_downstream(wired_job, monkeypatc
         assert current.status == "CANCELLED" and current.pending_input is None and not calls
     else:
         assert current.status == "NEEDS_HUMAN" and current.stage == "script" and not calls
-        assert current.pending_input["node_name"] == "human_review_script"
+        assert current.pending_input["node_name"] == "script_human_gate"
         assert current.pending_input["pending_token"] != paused.pending_input["pending_token"]
         assert current.script.segments[0].narration == "观点：修订后的测试文案。"
-    report = next(item for item in current.artifacts if item.kind == "stage_review")
+    report = next(item for item in reversed(current.artifacts) if item.kind == "stage_review")
     assert json.loads(repo.artifact_path(report.artifact_id)[0].read_text(encoding="utf-8"))["decision"] == decision
     if decision == "revise":
         answer(repo, current, key="UNIT-confirm-revision")
+        Worker(repo, project).once()
+        after_materials = repo.get_job(job.job_id)
+        assert after_materials.pending_input["node_name"] == "human_review_script"
+        answer(repo, after_materials, key="UNIT-confirm-materials-revision")
         Worker(repo, project).once()
         assert calls == [job.job_id]
 
@@ -252,7 +261,7 @@ def test_reclaimed_answer_does_not_answer_downstream_interrupt(wired_job):
     current = repo.get_job(job.job_id)
     assert current.status == "NEEDS_INPUT" and calls == [job.job_id]
     assert current.pending_input["pending_token"] == downstream.pending_input["pending_token"]
-    assert len([item for item in current.artifacts if item.kind == "stage_review"]) == 1
+    assert len([item for item in current.artifacts if item.kind == "stage_review"]) == 2
     repo.finish(command["command_id"])
 
 
@@ -279,8 +288,8 @@ def test_confirmation_receipt_replays_after_sql_save_before_checkpoint(wired_job
         graph.execute(command)
     current = repo.get_job(job.job_id)
     assert calls == [job.job_id] and current.status == "NEEDS_INPUT"
-    assert len([item for item in current.artifacts if item.kind == "stage_review"]) == 1
-    assert len(list((repo.root / "jobs" / job.job_id).rglob("stage-review-*.json"))) == 1
+    assert len([item for item in current.artifacts if item.kind == "stage_review"]) == 2
+    assert len(list((repo.root / "jobs" / job.job_id).rglob("stage-review-*.json"))) == 2
     repo.finish(command["command_id"])
 
 
@@ -336,7 +345,7 @@ def test_changed_version_content_or_policy_cannot_be_approved(wired_job, monkeyp
     Worker(repo, project).once()
     current = repo.get_job(job.job_id)
     assert current.status == "FAILED" and not calls
-    assert not any(item.kind == "stage_review" for item in current.artifacts)
+    assert not any(item.kind == "stage_review" and "human_review_script" in item.name for item in current.artifacts)
 
 
 @pytest.mark.parametrize("change", ["bytes", "metadata"])
@@ -430,7 +439,7 @@ def test_existing_authenticated_resume_accepts_stage_review_and_rejects_stale_to
     Worker(repo, project).once()
     current = repo.get_job(job.job_id)
     assert current.status == "NEEDS_INPUT" and current.stage == "voice"
-    report = next(item for item in current.artifacts if item.kind == "stage_review")
+    report = next(item for item in reversed(current.artifacts) if item.kind == "stage_review")
     receipt = json.loads(repo.artifact_path(report.artifact_id)[0].read_text(encoding="utf-8"))
     assert receipt["decision"] == "confirm"
     assert calls == [job.job_id]
@@ -501,7 +510,7 @@ def test_screenwriter_feedback_replay_after_sql_before_applied_receipt_does_not_
         action="produce", run_id="UNIT-replay", thread_id="UNIT-replay", extras={"human_feedback": feedback}))
     result = ScreenwriterNode(repo, service)(replay)
     assert calls == ["观点：旧稿。"]
-    assert result["route"] == "materials"
+    assert result["route"] == "script_human_gate"
     current = repo.get_job(job.job_id)
     assert current.script.segments[0].narration == "观点：新稿。"
     assert any(item.kind == "human_feedback_applied" for item in current.artifacts)
@@ -573,7 +582,7 @@ def test_screenwriter_consumes_director_feedback_that_requests_copy_rewrite(tmp_
     result = ScreenwriterNode(repo, service)(state)
 
     current = repo.get_job(job.job_id)
-    assert result["route"] == "materials"
+    assert result["route"] == "script_human_gate"
     assert calls == ["UNIT：Demo暴露出结尾太硬，请改旁白文案。"]
     assert current.script.segments[0].narration == "观点：新稿。"
     receipt = next(item for item in current.artifacts if item.kind == "human_feedback_applied")
@@ -976,7 +985,7 @@ def test_revise_route_returns_feedback_to_configured_model_node(tmp_path):
     assert current.status == "RUNNING" and current.pending_input is None
     assert visited and visited[0]["note"] == "UNIT：画面节奏需要返工"
     assert visited[0]["node_name"] == "render_review"
-    report = next(item for item in current.artifacts if item.kind == "stage_review")
+    report = next(item for item in reversed(current.artifacts) if item.kind == "stage_review")
     receipt = json.loads(repo.artifact_path(report.artifact_id)[0].read_text(encoding="utf-8"))
     assert receipt["decision"] == "revise"
     assert receipt["feedback"]["note"] == "UNIT：画面节奏需要返工"

@@ -19,6 +19,7 @@ ASSETS_TABLE = "素材清单"
 SHOTS_TABLE = "镜头编排"
 REVIEW_TABLE = "审核记录"
 REVIEW_STAGE_SCRIPT = "文案与素材"
+REVIEW_STAGE_SCRIPT_ONLY = "文案"
 REVIEW_STAGE_SHOTS = "逐镜"
 DECISION_PENDING = "待审"
 DECISION_CONFIRM = "通过"
@@ -52,7 +53,7 @@ _SHOT_FIELDS = [
 _REVIEW_FIELDS = [
     {"name": "标题", "type": "text"},
     {"name": "阶段", "type": "select", "multiple": False,
-     "options": [{"name": REVIEW_STAGE_SCRIPT}, {"name": REVIEW_STAGE_SHOTS}]},
+     "options": [{"name": REVIEW_STAGE_SCRIPT_ONLY}, {"name": REVIEW_STAGE_SCRIPT}, {"name": REVIEW_STAGE_SHOTS}]},
     {"name": "待办令牌", "type": "text"},
     {"name": "审核要求", "type": "text"},
     {"name": "结论", "type": "select", "multiple": False,
@@ -111,6 +112,7 @@ class FeishuReviewBase:
     def ensure_base(self, job: Job) -> str:
         existing = self.base_token(job.job_id)
         if existing:
+            self._ensure_script_stage(job.job_id, existing)
             return existing
         if not self.folder_token:
             raise FeishuUnavailable("未配置 feishu_folder_token，无法创建飞书表格")
@@ -128,7 +130,29 @@ class FeishuReviewBase:
         with self.repo.connection() as db:
             db.execute("INSERT OR REPLACE INTO job_inputs(job_id, key, value) VALUES(?, 'feishu_base_token', ?)",
                        (job.job_id, token))
+            db.execute("INSERT OR REPLACE INTO job_inputs(job_id, key, value) VALUES(?, 'feishu_script_stage_ready', ?)",
+                       (job.job_id, token))
         return token
+
+    def _ensure_script_stage(self, job_id: str, token: str) -> None:
+        """Check an old Base read-only; never replace its select identities."""
+        with self.repo.connection() as db:
+            ready = db.execute("SELECT value FROM job_inputs WHERE job_id=? AND key='feishu_script_stage_ready'",
+                               (job_id,)).fetchone()
+        if ready and ready[0] == token:
+            return
+        table_id = self._table_id(token, REVIEW_TABLE)
+        payload = _run(["base", "+field-get", "--base-token", token, "--table-id", table_id,
+                        "--field-id", "阶段"])
+        data = payload.get("data", payload)
+        field = data.get("field", data)
+        if field.get("type") != "select" or not isinstance(field.get("options"), list):
+            raise FeishuUnavailable("审核记录的阶段字段不是可扩展的单选配置")
+        if not any(item.get("name") == REVIEW_STAGE_SCRIPT_ONLY for item in field["options"]):
+            raise FeishuUnavailable("旧飞书表格缺少“文案”审核阶段；任务已保留人工待办，可用 CLI resume 兜底")
+        with self.repo.connection() as db:
+            db.execute("INSERT OR REPLACE INTO job_inputs(job_id, key, value) VALUES(?, 'feishu_script_stage_ready', ?)",
+                       (job_id, token))
 
     def _table_id(self, token: str, table: str) -> str:
         listing = _run(["base", "+base-get", "--base-token", token])
@@ -172,7 +196,8 @@ class FeishuReviewBase:
                     # Attachment upload failure is non-fatal; paths still surface via the CLI.
                     continue
 
-    def sync_script_and_assets(self, job: Job) -> str:
+    def sync_script(self, job: Job) -> str:
+        """Present narration and sources before any collection is required."""
         token = self.ensure_base(job)
         script_rows = []
         if job.script:
@@ -185,6 +210,10 @@ class FeishuReviewBase:
                     "画面需求": segment.visual_need,
                 })
         self._rewrite_table(token, SCRIPT_TABLE, "段落ID", script_rows)
+        return token
+
+    def sync_script_and_assets(self, job: Job) -> str:
+        token = self.sync_script(job)
         asset_rows, attachments = [], {}
         for asset in job.assets:
             try:

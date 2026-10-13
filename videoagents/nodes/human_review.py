@@ -15,6 +15,7 @@ from videoagents.nodes.director_review import (
     current_shot_review_artifact,
     director_review_fingerprint,
 )
+from videoagents.nodes.script_review import SCRIPT_REVIEW_NODE, script_review_fingerprint
 from videoagents.services.settings import SettingsService
 from videoagents.state import VideoState
 from videoagents.storage import Conflict, NotFound, Repository
@@ -59,6 +60,8 @@ class HumanReviewNode:
         return current_job(self.repo, state)
 
     def _inputs(self, job: Job) -> str:
+        if self.node_name == SCRIPT_REVIEW_NODE:
+            return script_review_fingerprint(self.repo, job)
         if self.node_name == "director_human_gate":
             # Bind the existing waiting artifacts even after a component
             # contract upgrade, so a rejected old demo can be sent for repair.
@@ -134,6 +137,13 @@ class HumanReviewNode:
             return None
 
     def _subject_snapshot(self, job: Job) -> dict[str, Any]:
+        if self.node_name == SCRIPT_REVIEW_NODE:
+            return {"script": job.script.model_dump() if job.script else None,
+                    "source_refs": list(dict.fromkeys(source for segment in job.script.segments
+                                                      for source in segment.source_refs)) if job.script else [],
+                    "writer_artifacts": [item.model_dump() for item in job.artifacts
+                                         if item.revision == job.revision
+                                         and item.kind in {"script", "writer_tool_audit"}]}
         if self.stage == "script":
             # The human reviews the script and the collected materials together.
             research = self._snapshot_research(job)
@@ -192,6 +202,7 @@ class HumanReviewNode:
         """Mirror this gate into the job's Feishu Bitable; never block the gate."""
         from videoagents.providers.feishu import (
             REVIEW_STAGE_SCRIPT,
+            REVIEW_STAGE_SCRIPT_ONLY,
             REVIEW_STAGE_SHOTS,
             FeishuReviewBase,
             FeishuUnavailable,
@@ -202,7 +213,10 @@ class HumanReviewNode:
             return
         base = FeishuReviewBase(self.repo, settings["feishu_folder_token"])
         try:
-            if self.node_name == "human_review_script":
+            if self.node_name == SCRIPT_REVIEW_NODE:
+                base.sync_script(job)
+                stage_label = REVIEW_STAGE_SCRIPT_ONLY
+            elif self.node_name == "human_review_script":
                 base.sync_script_and_assets(job)
                 stage_label = REVIEW_STAGE_SCRIPT
             elif self.node_name == "director_human_gate" and pending.get("review_mode") == SHOT_REVIEW_MODE:

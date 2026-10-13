@@ -17,6 +17,21 @@ from videoagents.storage import Repository
 from worker.runner import Worker
 
 
+def step(worker):
+    """Downstream fixtures explicitly approve the new pre-collection gate."""
+    executed = worker.once()
+    if executed:
+        for job in worker.repo.list_jobs():
+            pending = job.pending_input or {}
+            if pending.get("node_name") == "script_human_gate":
+                worker.repo.enqueue(job.job_id, {"action": "resume", "base_revision": job.revision,
+                    "pending_token": pending["pending_token"], "decision": "confirm",
+                    "note": "UNIT：已核对文案来源，允许进入素材采集。",
+                    "idempotency_key": "UNIT-pre-materials-" + pending["pending_token"]})
+                assert worker.once()
+    return executed
+
+
 def _tone(seconds=2):
     output = io.BytesIO()
     with wave.open(output, "wb") as media:
@@ -189,7 +204,7 @@ def test_missing_voice_is_persisted_interrupt_not_fake_audio(tmp_path, monkeypat
     approve_script_reviewer(monkeypatch)
     enqueue(repo, job)
     worker = Worker(repo, tmp_path / "project")
-    assert worker.once()
+    assert step(worker)
     paused = confirm_stage_reviews(repo, job.job_id, worker, "missing-voice")
     assert paused.status == "NEEDS_INPUT" and paused.stage == "voice"
     assert not any(item.role == "audio" for item in paused.assets)
@@ -212,7 +227,7 @@ def test_script_confirmation_stops_after_voice_and_keeps_approved_inputs(manual_
     approve_script_reviewer(monkeypatch)
     enqueue(repo, job)
     worker = Worker(repo, service.project_root)
-    assert worker.once()
+    assert step(worker)
     paused = repo.get_job(job.job_id)
     assert paused.pending_input["node_name"] == "human_review_script"
 
@@ -226,7 +241,7 @@ def test_script_confirmation_stops_after_voice_and_keeps_approved_inputs(manual_
                "note": "UNIT：确认当前文案，本次只继续配音并在音频校验后停止。",
                "idempotency_key": "UNIT-stop-after-voice"}
     repo.enqueue(job.job_id, payload)
-    assert worker.once()
+    assert step(worker)
     current = repo.get_job(job.job_id)
     assert current.status == "DRAFT" and current.stage == "voice" and current.pending_input is None
     assert current.script == paused.script and current.assets == paused.assets
@@ -239,7 +254,7 @@ def test_script_confirmation_stops_after_voice_and_keeps_approved_inputs(manual_
     assert any(item.kind == "audio_report" for item in current.artifacts)
     assert any(item.kind == "stage_review" for item in current.artifacts)
     repo.enqueue(job.job_id, payload)
-    assert not worker.once()
+    assert not step(worker)
     with pytest.raises(Conflict, match="幂等键"):
         repo.enqueue(job.job_id, {key: value for key, value in payload.items() if key != "stop_after"})
 
@@ -279,12 +294,12 @@ def stopped_voice_job(manual_job, monkeypatch):
     approve_script_reviewer(monkeypatch)
     enqueue(repo, job)
     worker = Worker(repo, service.project_root)
-    assert worker.once()
+    assert step(worker)
     paused = repo.get_job(job.job_id)
     repo.enqueue(job.job_id, {"action": "resume", "base_revision": paused.revision, "stop_after": "voice",
                  "decision": "confirm", "note": "UNIT：确认当前文案，仅完成配音后停止。",
                  "pending_token": paused.pending_input["pending_token"], "idempotency_key": "UNIT-voice-stop"})
-    assert worker.once()
+    assert step(worker)
     return repo, service, repo.get_job(job.job_id), audio, worker
 
 
@@ -309,7 +324,7 @@ def test_continue_finished_voice_through_director_and_editing_only(manual_job, m
     payload = {"base_revision": voice.revision, "action": "produce", "continue_from": "voice",
                "idempotency_key": "UNIT-continue-video"}
     repo.enqueue(voice.job_id, payload)
-    assert worker.once()
+    assert step(worker)
     result = repo.get_job(voice.job_id)
     assert result.status == "NEEDS_HUMAN" and result.stage == "director"
     assert result.pending_input["node_name"] == "director_human_gate"
@@ -325,7 +340,7 @@ def test_continue_finished_voice_through_director_and_editing_only(manual_job, m
     assert seen[0]["research"] and any(item.get("decision") == "confirm" for item in seen[0]["human_reviews"])
     assert result.review is None and any(item.kind == "final" for item in result.artifacts)
     repo.enqueue(voice.job_id, payload)
-    assert not worker.once()
+    assert not step(worker)
     with repo.connection() as db:
         row = dict(db.execute("SELECT * FROM commands WHERE idempotency_key=?", (payload["idempotency_key"],)).fetchone())
     row["payload"] = json.loads(row["payload"])
@@ -349,7 +364,7 @@ def test_voice_continuation_rejects_changed_inputs_or_missing_confirmation(manua
         repo.update_job(voice.job_id, artifacts=[item for item in voice.artifacts if item.kind != "stage_review"])
     repo.enqueue(voice.job_id, {"base_revision": voice.revision, "action": "produce", "continue_from": "voice",
                  "idempotency_key": "UNIT-invalid-continuation"})
-    assert worker.once()
+    assert step(worker)
     current = repo.get_job(voice.job_id)
     assert current.status == "FAILED" and current.stage == "voice" and current.timeline is None
 
@@ -368,7 +383,7 @@ def completed_visual_job(manual_job, monkeypatch):
     install_isolated_render_double(monkeypatch)
     repo.enqueue(voice.job_id, {"base_revision": voice.revision, "action": "produce", "continue_from": "voice",
                  "idempotency_key": "UNIT-initial-video"})
-    assert worker.once()
+    assert step(worker)
     completed = confirm_stage_reviews(repo, voice.job_id, worker, "UNIT-initial-video-review")
     assert completed.stage == "complete" and completed.status == "DRAFT"
     return repo, service, completed, audio, worker
@@ -404,7 +419,7 @@ def test_completed_video_rebuild_runs_only_director_and_editing_and_is_replay_sa
     payload = {"base_revision": before.revision, "action": "produce", "rebuild_from": "director",
                "idempotency_key": "UNIT-rebuild-visuals"}
     repo.enqueue(before.job_id, payload)
-    assert worker.once()
+    assert step(worker)
     result = repo.get_job(before.job_id)
     assert result.status == "NEEDS_HUMAN" and result.stage == "director"
     assert result.pending_input["node_name"] == "director_human_gate"
@@ -422,7 +437,7 @@ def test_completed_video_rebuild_runs_only_director_and_editing_and_is_replay_sa
         a.artifact_id for a in result.artifacts if a.kind == "final"})
     final_ids = {a.artifact_id for a in result.artifacts if a.kind == "final"}
     repo.enqueue(before.job_id, payload)
-    assert not worker.once()
+    assert not step(worker)
     with repo.connection() as db:
         command = dict(db.execute("SELECT * FROM commands WHERE idempotency_key=?", (payload["idempotency_key"],)).fetchone())
     command["payload"] = json.loads(command["payload"])
@@ -451,7 +466,7 @@ def test_visual_rebuild_rejects_changed_frozen_inputs_or_missing_confirmation(ma
         repo.update_job(before.job_id, artifacts=[a for a in before.artifacts if a.kind != "stage_review"])
     repo.enqueue(before.job_id, {"base_revision": before.revision, "action": "produce", "rebuild_from": "director",
                  "idempotency_key": "UNIT-invalid-visual-rebuild"})
-    assert worker.once()
+    assert step(worker)
     current = repo.get_job(before.job_id)
     assert current.status == "FAILED" and current.stage == "complete"
 
@@ -473,7 +488,7 @@ def test_real_imported_audio_measured_timing_generates_storyboard(manual_job, mo
     approve_script_reviewer(monkeypatch)
     enqueue(repo, job, "storyboard")
     worker = Worker(repo, service.project_root)
-    worker.once()
+    step(worker)
     result = confirm_stage_reviews(repo, job.job_id, worker, "storyboard")
     assert result.status == "DRAFT" and result.stage == "director"
     assert result.timeline.audio_src == asset.timeline_src
@@ -493,7 +508,7 @@ def test_selected_older_audio_is_used_for_storyboard(manual_job, monkeypatch):
     current = repo.get_job(job.job_id)
     enqueue(repo, current, "storyboard")
     worker = Worker(repo, service.project_root)
-    worker.once()
+    step(worker)
     result = confirm_stage_reviews(repo, job.job_id, worker, "selected-audio")
     assert result.timeline.audio_src == first.timeline_src
     assert result.timeline.duration_in_frames == 30
@@ -510,7 +525,7 @@ def test_existing_audio_preserves_narration_and_skips_new_voice_advice(manual_jo
     approve_script_reviewer(monkeypatch, model)
     enqueue(repo, job, "storyboard")
     worker = Worker(repo, service.project_root)
-    worker.once()
+    step(worker)
     current = confirm_stage_reviews(repo, job.job_id, worker, "voice-advice")
     assert current.status == "DRAFT", current.message
     assert calls == []
@@ -612,7 +627,7 @@ def test_voice_model_blocking_or_rewritten_output_cannot_reach_audio_execution(m
     monkeypatch.setattr("videoagents.nodes.voice.audio_duration", lambda *a: pytest.fail("blocked preflight reached audio execution"))
     enqueue(repo, job, "storyboard")
     worker = Worker(repo, service.project_root)
-    worker.once()
+    step(worker)
     current = confirm_stage_reviews(repo, job.job_id, worker, f"voice-blocked-{invalid}")
     assert current.status == "NEEDS_INPUT" and current.stage == "voice"
     assert current.pending_input["thread_id"] and current.pending_input["pending_token"]
@@ -626,7 +641,7 @@ def test_editing_role_preflight_keeps_remotion_execution_and_blocks_findings(man
     approve_script_reviewer(monkeypatch)
     enqueue(repo, job, "storyboard")
     worker = Worker(repo, service.project_root)
-    assert worker.once()
+    assert step(worker)
     storyboard = confirm_stage_reviews(repo, job.job_id, worker, f"editing-setup-{blocking}")
     original_timeline = storyboard.timeline.model_dump()
     SettingsService(repo).patch(SettingsPatch(role_models={"editing": {"enabled": True}}))
@@ -648,13 +663,13 @@ def test_editing_role_preflight_keeps_remotion_execution_and_blocks_findings(man
     monkeypatch.setattr("videoagents.nodes.editing.render", render_double)
     repo.enqueue(storyboard.job_id, {"base_revision": storyboard.revision, "action": "produce",
         "idempotency_key": f"editing-preflight-command-{blocking}"})
-    assert worker.once()
+    assert step(worker)
     script_review = repo.get_job(job.job_id)
     assert script_review.status == "NEEDS_HUMAN" and script_review.stage == "script"
     assert calls == [] and renders == []
     resume(repo, script_review, "confirm", "UNIT TEST：确认文案后进入摄影Demo。",
         f"editing-preflight-script-{blocking}")
-    assert worker.once()
+    assert step(worker)
     demo = repo.get_job(job.job_id)
     assert demo.status == "NEEDS_HUMAN" and demo.stage == "director"
     assert calls == []
@@ -677,7 +692,7 @@ def test_editing_model_unknown_is_a_real_persisted_interrupt(manual_job, monkeyp
     approve_script_reviewer(monkeypatch)
     enqueue(repo, job, "storyboard")
     worker = Worker(repo, service.project_root)
-    assert worker.once()
+    assert step(worker)
     storyboard = confirm_stage_reviews(repo, job.job_id, worker, "unknown-editing-setup")
     SettingsService(repo).patch(SettingsPatch(role_models={"editing": {"enabled": True}}))
     renders = []
@@ -697,12 +712,12 @@ def test_editing_model_unknown_is_a_real_persisted_interrupt(manual_job, monkeyp
     monkeypatch.setattr("videoagents.nodes.editing.render", render_double)
     repo.enqueue(storyboard.job_id, {"base_revision": storyboard.revision, "action": "produce",
         "idempotency_key": "unknown-editing-command"})
-    assert worker.once()
+    assert step(worker)
     script_review = repo.get_job(job.job_id)
     assert script_review.status == "NEEDS_HUMAN" and script_review.stage == "script"
     assert renders == []
     resume(repo, script_review, "confirm", "UNIT TEST：确认文案后进入摄影Demo。", "unknown-editing-script")
-    assert worker.once()
+    assert step(worker)
     demo = repo.get_job(job.job_id)
     assert demo.status == "NEEDS_HUMAN" and demo.stage == "director"
     assert renders == []
@@ -731,7 +746,7 @@ def test_short_reading_shot_returns_to_director_before_editing_model(manual_job,
 
     repo, service, job, _, worker = stopped_voice_job(manual_job, monkeypatch)
     enqueue(repo, job, "storyboard", "UNIT-short-shot-setup")
-    assert worker.once()
+    assert step(worker)
     job = confirm_stage_reviews(repo, job.job_id, worker, "UNIT-short-shot-setup-review")
     timeline = job.timeline.model_copy(deep=True)
     timeline.shots[0].source_label = "UNIT source: requires reading"
@@ -754,7 +769,7 @@ def test_director_repairs_saved_short_shot_with_existing_audio(manual_job, monke
 
     repo, service, job, audio, worker = stopped_voice_job(manual_job, monkeypatch)
     enqueue(repo, job, "storyboard", "UNIT-director-repair-setup")
-    assert worker.once()
+    assert step(worker)
     job = confirm_stage_reviews(repo, job.job_id, worker, "UNIT-director-repair-review")
     timeline = job.timeline.model_copy(deep=True)
     timeline.shots[0].source_label = "UNIT source: requires reading"
@@ -819,7 +834,7 @@ def confirm_stage_reviews(repo, job_id, worker, key_prefix="stage-review"):
         if current.status != "NEEDS_HUMAN" or current.pending_input.get("kind") != "stage_review":
             return current
         resume(repo, current, "confirm", note, f"{key_prefix}-{index}-{current.pending_input['pending_token'][:8]}")
-        assert worker.once()
+        assert step(worker)
     raise AssertionError("stage review confirmation loop did not settle")
 
 
@@ -854,7 +869,7 @@ def test_produce_completes_as_draft_without_final_review(manual_job, monkeypatch
     worker = Worker(repo, service.project_root)
     approve_script_reviewer(monkeypatch)
     enqueue(repo, job)
-    worker.once()
+    step(worker)
     result = confirm_stage_reviews(repo, job.job_id, worker, "draft-complete")
     assert result.status == "DRAFT" and result.stage == "complete" and result.progress == 1
     assert result.pending_input is None and result.review is None
@@ -868,11 +883,11 @@ def test_produce_pauses_for_director_demo_review_before_final_render(manual_job,
     worker = Worker(repo, service.project_root)
     approve_script_reviewer(monkeypatch)
     enqueue(repo, job)
-    assert worker.once()
+    assert step(worker)
     paused = repo.get_job(job.job_id)
     assert paused.pending_input["node_name"] == "human_review_script"
     resume(repo, paused, "confirm", "UNIT TEST：确认文案可以进入配音和摄影Demo。", "demo-gate-script")
-    assert worker.once()
+    assert step(worker)
     demo = repo.get_job(job.job_id)
     assert demo.status == "NEEDS_HUMAN" and demo.stage == "director"
     assert demo.pending_input["node_name"] == "director_human_gate"
@@ -880,7 +895,7 @@ def test_produce_pauses_for_director_demo_review_before_final_render(manual_job,
     assert_director_demo_preview_metadata(repo, demo)
     assert not any(item.kind == "final" for item in demo.artifacts)
     resume(repo, demo, "confirm", "UNIT TEST：确认30秒Demo和摄影表演设计可以进入成片渲染。", "demo-gate-director")
-    assert worker.once()
+    assert step(worker)
     result = repo.get_job(job.job_id)
     assert result.status == "DRAFT" and result.stage == "complete"
     assert any(item.kind == "final" for item in result.artifacts)
@@ -892,10 +907,10 @@ def test_director_demo_revise_reruns_director_and_reuses_voice(manual_job, monke
     worker = Worker(repo, service.project_root)
     approve_script_reviewer(monkeypatch)
     enqueue(repo, job)
-    assert worker.once()
+    assert step(worker)
     script_review = repo.get_job(job.job_id)
     resume(repo, script_review, "confirm", "UNIT TEST：确认文案进入摄影Demo。", "demo-revise-script")
-    assert worker.once()
+    assert step(worker)
     demo = repo.get_job(job.job_id)
     assert demo.pending_input["node_name"] == "director_human_gate"
     original_token = demo.pending_input["pending_token"]
@@ -909,7 +924,7 @@ def test_director_demo_revise_reruns_director_and_reuses_voice(manual_job, monke
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", director_revise_model)
 
     resume(repo, demo, "revise", "UNIT TEST：Demo镜头表演不贴旁白，请摄影重做。", "demo-revise-director")
-    assert worker.once()
+    assert step(worker)
     revised = repo.get_job(job.job_id)
 
     assert revised.status == "NEEDS_HUMAN" and revised.stage == "director"
@@ -929,11 +944,11 @@ def test_director_demo_cancel_or_stale_token_cannot_release_final(manual_job, mo
     worker = Worker(repo, service.project_root)
     approve_script_reviewer(monkeypatch)
     enqueue(repo, job)
-    assert worker.once()
+    assert step(worker)
     script_review = repo.get_job(job.job_id)
     old_token = script_review.pending_input["pending_token"]
     resume(repo, script_review, "confirm", "UNIT TEST：确认文案进入摄影Demo。", "demo-stale-script")
-    assert worker.once()
+    assert step(worker)
     demo = repo.get_job(job.job_id)
     assert demo.pending_input["node_name"] == "director_human_gate"
     with pytest.raises(Conflict):
@@ -943,7 +958,7 @@ def test_director_demo_cancel_or_stale_token_cannot_release_final(manual_job, mo
     assert not any(item.kind == "final" for item in repo.get_job(job.job_id).artifacts)
 
     resume(repo, demo, "cancel", "UNIT TEST：取消当前摄影Demo，不允许渲染成片。", "demo-cancel")
-    assert worker.once()
+    assert step(worker)
     cancelled = repo.get_job(job.job_id)
     assert cancelled.status == "CANCELLED"
     assert not any(item.kind == "final" for item in cancelled.artifacts)
@@ -955,7 +970,7 @@ def test_render_completion_recovers_after_sql_draft_before_graph_checkpoint(manu
     approve_script_reviewer(monkeypatch)
     enqueue(repo, job)
     worker = Worker(repo, service.project_root)
-    worker.once()
+    step(worker)
     paused = repo.get_job(job.job_id)
     assert paused.status == "NEEDS_HUMAN" and paused.pending_input["kind"] == "stage_review"
     resume(repo, paused, "confirm", "UNIT TEST：确认文案可以进入自动渲染。", "draft-render-recovery")
@@ -1118,10 +1133,10 @@ def test_stale_pending_token_same_revision_is_rejected(manual_job):
     repo, service, job, _ = manual_job
     enqueue(repo, job)
     worker = Worker(repo, service.project_root)
-    worker.once()
+    step(worker)
     paused = repo.get_job(job.job_id)
     resume(repo, paused, "confirm", "short", "old-short-answer")
-    worker.once()
+    step(worker)
     current = repo.get_job(job.job_id)
     assert current.revision == paused.revision
     with pytest.raises(Conflict):
