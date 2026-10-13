@@ -2,7 +2,7 @@
 
 本目录保存监督会话提交给图引擎的需求，不是已生成的口播或成片。
 
-当前状态（2026-10-13）：revision 2 已生成正式节点的 script.json，但素材阶段因新的 UNKNOWN / unexpected_cli_event 暂停在 NEEDS_INPUT / materials。文案与素材人工门未到达，未配音、未渲染。音色配置完整，旧操作与实际稿件均保留；源网页乱码与截断的共性修复已验证合入，已有旧稿仍需正式重新核实。
+当前状态（2026-10-13）：按用户新的对照与返工指令，已通过正常 CLI 保存 revision 3 并启动正式编剧，当前 RUNNING / script。本轮增加素材采集之前的文案人工门，生成后先呈递给人，未确认不得启动素材。revision 2 的素材 UNKNOWN 与旧稿均保留；未配音、未渲染。实际进度以任务状态为准。
 
 - 需求文件：[brief.json](brief.json)。约4分钟，抖音竖屏1080×1920、30fps，个人视频。
 - 报告依据：[Anthropic 2026年9月报告](https://www.anthropic.com/threat-intelligence-report-september-2026)的GTG-15001节。2026-10-13已读对应正文；口播须由编剧节点再次亲自读取。
@@ -125,3 +125,12 @@ uv run --python 3.12 videoagents status 08e74bed03e94c6e903c89f7f2fbea64
 - 已实际读取 `episode/2026-10-08-ai-dating-human-handoff` 与 `video/11282038e48f4c8ca29e9a378164f0c6` 的文案。后者根目录 `script-for-review.md` 是最后稿，`revisions/2/` 中的是改开头结尾之前的稿。数字、金币、真人接力、上海亲密度与结尾提醒均与本次稿实质重复；对照及反思见 [revision-3-feedback.md](revision-3-feedback.md)。这些 Git 交付记录时长不能唯一对应用户提供的 199 秒平台作品，不宣称已核实该平台作品。
 - 已准备 revision 3 brief：以开发与批量运营怎样构成收费生意为主问题，避免旧片完整复述，第一句交付具体事实，每段有新增解释，删去审核规避细节，国内案例仅作必要对照；目标约 180 秒，实际时长以后续真实配音为准。旧稿全文只用于对照，不作为本期来源事实，不复用旧素材或运行状态。
 - 共性流程修护已交独立操作者分支：新增素材之前的文案人工门，保留素材之后的对应审核与逐镜门。修复完成并通过回归后，再通过正常 CLI 保存 revision 3 并 run 至文案门，届时呈递新稿，不自动确认或启动素材。
+
+### revision 3 正常入口与文案前置审核验收
+
+- 独立维护 `4bd4a9b` 已合入为 `2b1380e`：编剧输出先到 `script_human_gate`；材料入口校验当前版本、当前文案与真实人工回执，旧直接材料 checkpoint 无回执也会返回文案门。UNKNOWN/SUBMITTING 在前，不能被新门掩盖或重放。保留素材后的联合审与逐镜审。
+- 飞书新增独立“文案”审核阶段，正常同步与 poll 通道可用；新 Base 包含三阶段，旧 Base 缺新选项时只读报不可用、保留 CLI 兜底，没有自动修改旧字段与选项记录。本机仍未配置飞书，未真实建表。
+- 完整 Python 实跑结果为 1185 passed / 3 skipped / 1 failed；唯一失败为旧 `test_restart_unknown` 仍期待写完直接采集。`37b512f` 合入为 `ca191b5` 只更新这一测试，使正规 CLI 先停文案门、确认后才采集，并保留旧操作与文件断言；根定向复验 restart 与新门共 62 passed。没有将失败结果改写成一次新的全套通过记录。
+- 契约、TypeScript、lint、Ruff、diff 检查与 wheel 构建通过；没有改 Remotion 画面实现，本轮未重复时间轴测试，不声称真实渲染验收。
+- 按用户“你协调重新生成”的本轮明确指令，经 `restart-unknown --rebuild-script --acknowledge-possible-usage` 保存同任务 revision 3。授权回执 source_revision=2、target_revision=3；旧材料操作仍 UNKNOWN，旧已登记文件均存在，没有改其供应商状态。
+- 正常 `run` 幂等键 `user-requested-distinct-script-r3-20261013` 已启动新编剧操作 `7411d1353925400ab1b5035c5f6fc173`；实际账本 SUBMITTING，`glm-5.3[1m]` / `xhigh` / 1000000 / research。此时尚未有 revision 3 成稿或任何材料、语音、视频产物；本轮只推进至文案人工门，不自动确认。
