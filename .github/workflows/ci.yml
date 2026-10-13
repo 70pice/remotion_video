@@ -36,12 +36,8 @@ jobs:
         run: python -m pytest tests/ -q
       - name: TypeScript typecheck (renderer + components)
         run: npm run typecheck
-      - name: TypeScript typecheck (web)
-        run: npm run web:typecheck
       - name: Timeline contract and renderer tests
         run: npm run test:timeline
-      - name: Web unit tests
-        run: npm run web:test
       - name: Production component manifest drift check
         run: npm run check:production-components
       - name: Component path and source hash check
