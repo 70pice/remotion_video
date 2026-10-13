@@ -128,7 +128,8 @@ class JsonModel:
         if research_mode:
             fingerprint_payload["mode"] = mode
         if glm_model:
-            fingerprint_payload.update(reasoning_effort="max", context_tokens=GLM_CONTEXT_TOKENS)
+            fingerprint_payload.update(reasoning_effort=settings["glm_reasoning_effort"],
+                                       context_tokens=GLM_CONTEXT_TOKENS)
         input_hash = fingerprint(fingerprint_payload)
         previous = self.repo.operation(job_id, input_hash, provider)
         if previous:
@@ -150,7 +151,7 @@ class JsonModel:
         ledger = {"command_id": command_id, "revision": revision, "mode": mode,
                   "cli_provider": config["provider"], "model": config["model"]}
         if glm_model:
-            ledger.update(reasoning_effort="max", context_tokens=GLM_CONTEXT_TOKENS)
+            ledger.update(reasoning_effort=settings["glm_reasoning_effort"], context_tokens=GLM_CONTEXT_TOKENS)
         operation = self.repo.retry_rejected_operation(previous["operation_id"], command_id, ledger) if previous else self.repo.start_operation(job_id, input_hash, provider, ledger)
         ledger.update(attempt=operation.get("attempt", 1))
         if not operation.get("new"):
@@ -174,6 +175,7 @@ class JsonModel:
                 kwargs["ark_api_key"] = settings["ark_api_key"]
             if glm_model:
                 kwargs["zhipu_api_key"] = settings["zhipu_api_key"]
+                kwargs["glm_reasoning_effort"] = settings["glm_reasoning_effort"]
             if research_mode and config["provider"] == "claude_code_cli":
                 research_context = {"runtime": str(self.repo.root), "job_id": job_id, "revision": revision}
                 if research_tools:

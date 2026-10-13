@@ -2879,6 +2879,22 @@
           "default": null,
           "title": "Role Models"
         },
+        "glm_reasoning_effort": {
+          "anyOf": [
+            {
+              "enum": [
+                "xhigh",
+                "max"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Glm Reasoning Effort"
+        },
         "script_discussion_enabled": {
           "anyOf": [
             {

@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from videoagents.default_config import DEFAULT_GLM_REASONING_EFFORT
 from videoagents.default_config import DEFAULT_SCRIPT_MODEL as GLM_MODEL
 from worker.process_manager import terminate_tree
 from worker.windows_job import WindowsJob
@@ -21,7 +22,7 @@ MAX_OUTPUT_BYTES = 4 * 1024 * 1024
 MAX_AUTH_BYTES = 1024 * 1024
 MAX_STDERR_TAIL_BYTES = 8 * 1024
 GLM_CONTEXT_TOKENS = 1_000_000
-GLM_CAPABILITIES = "effort,max_effort,thinking,adaptive_thinking"
+GLM_CAPABILITIES = "effort,xhigh_effort,max_effort,thinking,adaptive_thinking"
 CLAUDE_RESEARCH_TOOLS = {
     "mcp__videoagents_research__skill", "mcp__videoagents_research__search",
     "mcp__videoagents_research__source", "mcp__videoagents_research__visual",
@@ -130,7 +131,8 @@ def cli_availability() -> dict[str, dict[str, bool]]:
 
 
 def build_arguments(provider: str, prefix: list[str], model: str, directory: Path, schema: Path, *,
-                    research: bool = False, mcp_config: Path | None = None) -> list[str]:
+                    research: bool = False, mcp_config: Path | None = None,
+                    glm_reasoning_effort: str = DEFAULT_GLM_REASONING_EFFORT) -> list[str]:
     if provider == "codex_cli":
         args = [*prefix, "-a", "never", "exec"]
         if research:
@@ -187,7 +189,9 @@ def build_arguments(provider: str, prefix: list[str], model: str, directory: Pat
         if model:
             args.extend(["--model", model])
         if model.lower().removesuffix("[1m]") == "glm-5.3":
-            args.extend(["--effort", "max"])
+            if glm_reasoning_effort not in {"xhigh", "max"}:
+                raise CliFailure("invalid_glm_reasoning_effort", submitted=False)
+            args.extend(["--effort", glm_reasoning_effort])
         return args
     raise CliFailure("unsupported_cli", submitted=False)
 
@@ -214,7 +218,8 @@ def _research_environment(research: bool) -> dict[str, str]:
 
 def _cli_environment(provider: str, research: bool, control: Path,
                      ark_api_key: str | None = None, zhipu_api_key: str | None = None,
-                     model: str = "") -> tuple[dict[str, str], Path | None]:
+                     model: str = "", glm_reasoning_effort: str = DEFAULT_GLM_REASONING_EFFORT,
+                     ) -> tuple[dict[str, str], Path | None]:
     env = _research_environment(research)
     if provider == "claude_code_cli" and (ark_api_key or zhipu_api_key):
         # Pass the credential only to this child process, never in arguments or graph state.
@@ -230,7 +235,7 @@ def _cli_environment(provider: str, research: bool, control: Path,
             env.pop("CLAUDE_CODE_DISABLE_1M_CONTEXT", None)
             env["ANTHROPIC_MODEL"] = GLM_MODEL
             env["CLAUDE_CODE_SUBAGENT_MODEL"] = GLM_MODEL
-            env["CLAUDE_CODE_EFFORT_LEVEL"] = "max"
+            env["CLAUDE_CODE_EFFORT_LEVEL"] = glm_reasoning_effort
             env["CLAUDE_CODE_MAX_CONTEXT_TOKENS"] = str(GLM_CONTEXT_TOKENS)
             env["CLAUDE_CODE_AUTO_COMPACT_WINDOW"] = str(GLM_CONTEXT_TOKENS)
             env["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] = "1"
@@ -407,7 +412,8 @@ def _claude_research_event(line: str, audit_handle=None) -> CliResult | None:
 def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema: dict[str, Any],
             cancelled=lambda: False, *, research_directory: Path | None = None,
             audit_path: Path | None = None, ark_api_key: str | None = None,
-            zhipu_api_key: str | None = None, research_context: dict[str, Any] | None = None) -> CliResult:
+            zhipu_api_key: str | None = None, research_context: dict[str, Any] | None = None,
+            glm_reasoning_effort: str = DEFAULT_GLM_REASONING_EFFORT) -> CliResult:
     if cancelled():
         raise CliFailure("cli_cancelled", submitted=False)
     research = research_directory is not None
@@ -466,8 +472,10 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
             transport_prompt += ("\n本次只使用 videoagents_research MCP 工具读取技能、搜索公开资料并采集来源与画面。"
                                  "工具会保存文件并返回真实路径及 SHA256；不使用 shell 或读取本机任意路径。")
             source.write_text(transport_prompt, encoding="utf-8")
-        args = build_arguments(provider, prefix, model, directory, schema, research=research, mcp_config=mcp_config)
-        environment, staged_auth = _cli_environment(provider, research, control, ark_api_key, zhipu_api_key, model)
+        args = build_arguments(provider, prefix, model, directory, schema, research=research, mcp_config=mcp_config,
+                               glm_reasoning_effort=glm_reasoning_effort)
+        environment, staged_auth = _cli_environment(provider, research, control, ark_api_key, zhipu_api_key, model,
+                                                    glm_reasoning_effort)
         job = WindowsJob()
         audit_handle = None
         try:
