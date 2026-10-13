@@ -4,6 +4,8 @@
 
 当前状态（2026-10-14）：用户引用前次超时及可能再次消耗额度的说明，明确回复“可以”。已通过正常恢复入口保存 revision 4，并实际完成 Claude Code / Doubao 2.1 Pro 编剧操作 `9feb383537714278a770ec24c2f2928d`，终态 COMPLETED；当前 NEEDS_HUMAN / script / script_human_gate。[本期文案审核稿](script-for-review.md)已原样更新为豆包节点新稿，7 段、849 字；[具体待审标记](revision-4-review-notes.md)包含数字笔误与事实范围问题，不改写节点产物或代替用户审核。素材保持 Codex `gpt-6.1-sol / xhigh`，revision 4 素材操作为 0，文案确认前不执行。旧 revision 3 编剧超时 UNKNOWN、revision 2 素材 UNKNOWN 与旧稿均保留；未配音、未渲染。实际进度以任务状态为准。
 
+本版现已录入[飞书逐段审稿表](https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblKkyIRRWs5tqOK&view=vew1IgAISu)：每段一行，原稿旁设“修改意见”。用户可填写意见或展开段落评论；导演读回后汇总，通过既有编剧返工入口处理，不据此自动授予文案通过。
+
 - 需求文件：[brief.json](brief.json)。revision 3 目标约3分钟，抖音竖屏1080×1920、30fps，个人视频；实际时长以后续真实配音为准。
 - 报告依据：[Anthropic 2026年9月报告](https://www.anthropic.com/threat-intelligence-report-september-2026)的GTG-15001节。2026-10-13已读对应正文；口播须由编剧节点再次亲自读取。
 - 中国素材方向：国内真实中文App匹配、聊天、个人资料、充值等界面与中国生活场景，标“同类中文界面示意，非涉案App”。素材实际采集须等文案审核后由正式节点执行。
@@ -192,3 +194,13 @@ uv run --python 3.12 videoagents status 08e74bed03e94c6e903c89f7f2fbea64
 - 正常 `run` 幂等键 `user-authorized-doubao-r4-20261014` 已实际执行操作 `9feb383537714278a770ec24c2f2928d`，模型为 `claude_code_cli` / `doubao-seed-2-1-pro-260915` / research / attempt 1，终态 COMPLETED。第四版独立目录已保存官方正文 `mcp-1ad836e44e3f46278a4fbacbb7ed5cd2.txt`，262339 字节；监督会话已亲自读取其中 GTG-15001 涉案正文。本次有真实豆包新稿，不再仅是配置或启动记录。
 - 新原稿 `script-421c9081.json`，artifact_id=`0a3feb4a63024de6b9bb52089e886c45`，7 段、849 字，origin=model / revision=4，所有 source_refs 仅为官方报告。口播与 visual_need 已原样导出 [script-for-review.md](script-for-review.md)，逐段回读与节点一致、无替换乱码；[第三版旧稿](revisions/3/script-for-review.md)保留。没有对原稿数字笔误或事实边界直接改写，具体待审句子另列 [revision-4-review-notes.md](revision-4-review-notes.md)。
 - 本次脱敏编剧审计 `writer-tool-audit-bdfe61e415f4.jsonl` 有 16 条事件，仍有工具失败；整体模型 COMPLETED 不代表每次工具检索都成功，不宣称已证明前次超时根因或所有未来调用正常。最终正常入口回读 NEEDS_HUMAN / script_human_gate；revision 4 审核回执为 0、素材操作为 0，未执行配音、摄影或剪辑。旧两次 UNKNOWN 保持原状态、旧文件存在。
+
+### 第四版飞书逐段审稿表实际录入
+
+- 用户要求把引用的第四版录入飞书表，逐段评论后修改。录入前将七段原稿、画面需求和字段结构分别准备为 [记录输入](feishu-revision-4-records.json) 与 [字段输入](feishu-script-review-fields.json)，逐段与已登记节点产物比对一致。
+- 飞书使用同一个 video agent 应用及用户本人身份。既有本机应用凭据经 stdin 补齐，未显示密钥；用户完成登录及补充 Base 权限授权后，实际回读为沈佳冰、`identity=user`。短时 device code 仅在本机 DPAPI 加密保存，不进入 Git。
+- 共性维护 `8999d81` 合入为 `46d814d`：按段落、素材、镜头 ID 增量更新引擎字段，保留 record_id、用户字段和评论；旧 Base 可补建“修改意见”。`sync-review` 只同步当前人工待办，不 poll、不 enqueue、不续跑；`--root` 明确允许首次无文件夹时在用户云空间创建，后续人审复用已绑定 Base。78 项定向回归、Ruff、契约、TypeScript、lint、wheel 构建通过。
+- 首次权限申请缺少建表权限，CLI 明确以 missing_scope 拒绝，云空间根目录及标题检索确认未创建 Base；随后补齐完整 Base 域授权。追加维护 `fe6075b` 合入为 `4a9df0f`，仅显示经过严格校验的缺失 scope，不回显原始错误或凭据；35 项定向测试、Ruff、diff 检查与 wheel 构建通过。
+- 通过正常 `videoagents sync-review 08e74bed03e94c6e903c89f7f2fbea64 --root` 实际创建本视频 Base，包含文案、素材清单、镜头编排、审核记录四张表。文案七段、849 字及屏幕文字、来源、画面需求均真实读回并与节点输出一致；“修改意见”移至口播旁，审核记录仍是本版文案待审。
+- 通过正常 `sync-review` 再次同步，真实确认七个 record_id 不变、未产生重复记录；文案视图链接已用 `+url-resolve` 核对，Base 评论读取接口成功返回。资源坐标与验收记录见 [feishu-review-record.json](feishu-review-record.json)。
+- 最终任务仍为 revision 4 / NEEDS_HUMAN / script_human_gate，原待办令牌不变；本次未提交人审决定，revision 4 素材操作仍为 0，没有新的编剧、配音、摄影或剪辑调用。

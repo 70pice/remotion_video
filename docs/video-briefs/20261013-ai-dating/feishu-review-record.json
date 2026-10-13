@@ -1,0 +1,72 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 4,
+  "base_token": "FiiebSriRaMxe3s56nSciW27nle",
+  "base_name": "video-08e74bed-两周至少2.5万人与AI聊天：Claude交友A",
+  "base_url": "https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle",
+  "metadata_keys": [
+    "base_token",
+    "is_advanced",
+    "name",
+    "revision",
+    "url",
+    "workspace_token"
+  ],
+  "tables": {
+    "审核记录": "tblNZJtNYx6gV6VG",
+    "文案": "tblKkyIRRWs5tqOK",
+    "素材清单": "tblVOUHrIy3Tq3uh",
+    "镜头编排": "tbld1dGlTS2AELat"
+  },
+  "segments": [
+    {
+      "segment_id": "s1",
+      "record_id": "reczz28N2a0kSAt6"
+    },
+    {
+      "segment_id": "s2",
+      "record_id": "reczz28N2a0kUceC"
+    },
+    {
+      "segment_id": "s3",
+      "record_id": "reczz28N2a0kQvRw"
+    },
+    {
+      "segment_id": "s4",
+      "record_id": "reczz28N2a0kSzxG"
+    },
+    {
+      "segment_id": "s5",
+      "record_id": "reczz28N2a0kRLuL"
+    },
+    {
+      "segment_id": "s6",
+      "record_id": "reczz28N2a0kQzZB"
+    },
+    {
+      "segment_id": "s7",
+      "record_id": "reczz28N2a0kT4PK"
+    }
+  ],
+  "verified_segment_count": 7,
+  "verified_narration_characters": 849,
+  "content_matches_node_output": true,
+  "feedback_field_exists": true,
+  "pending_token": "ba97f4c38fffc015c412ca0b5e941493",
+  "review_record_id": "reczz28N2a3il2Kh",
+  "review_decision": "待审",
+  "materials_executed": false,
+  "script_table_url": "https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblKkyIRRWs5tqOK&view=vew1IgAISu",
+  "script_view_id": "vew1IgAISu",
+  "visible_fields": [
+    "段落ID",
+    "口播",
+    "修改意见",
+    "屏幕文字",
+    "来源",
+    "画面需求"
+  ],
+  "incremental_resync_record_ids_unchanged": true,
+  "comment_read_api_verified": true,
+  "verified_at": "2026-10-13T21:22:06.607668+00:00"
+}
