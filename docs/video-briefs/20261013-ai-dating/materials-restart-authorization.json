@@ -37,5 +37,27 @@
     ],
     "original_unknown_operation_id": "c34539df84044a7cb5eb6cbe86c3ff32",
     "new_submission_started": false
+  },
+  "execution": {
+    "checked_at": "2026-10-13T23:18:06.079520+00:00",
+    "target_revision": 5,
+    "maintenance_commit": "698a69f",
+    "targeted_tests_passed": 168,
+    "independent_safety_review": "no_blocking_P1_P2",
+    "normal_restart_cli_succeeded": true,
+    "normal_run_idempotency_key": "materials-paid-ai-restart-r5-20261014",
+    "operation_id": "6c3d212fdbf8441781f50d3a2ae9acfe",
+    "operation_status": "SUBMITTING",
+    "job_status": "RUNNING",
+    "stage": "materials",
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh",
+    "new_revision_screenwriter_calls": 0,
+    "script_hash_unchanged": true,
+    "script_approval_chain_valid": true,
+    "old_operation_still_unknown": true,
+    "new_materials_completed": false,
+    "joint_human_review_approved": false,
+    "new_submission_started": true
   }
 }
