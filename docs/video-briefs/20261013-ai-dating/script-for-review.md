@@ -2,7 +2,7 @@
 
 任务：08e74bed03e94c6e903c89f7f2fbea64；revision 4，飞书评论返工后稿。编剧：Claude Code / Doubao 2.1 Pro。
 节点原稿：D:\remotion_video\.runtime\videoagents\jobs\08e74bed03e94c6e903c89f7f2fbea64\revisions\4\script-3698a805.json；artifact_id=d6afeca1685b41dbb949eb2231c53d71。
-状态：NEEDS_HUMAN / script_human_gate；素材尚未执行。
+状态：用户已确认本版文案；素材已执行一次，当前 NEEDS_INPUT / materials / UNKNOWN。详见 [素材执行记录](materials-run-result.json)。
 本文件原样导出正式节点产物；四条用户评论与返工回读见 [修改记录](comment-rewrite-review.md)。
 
 ## 口播全文

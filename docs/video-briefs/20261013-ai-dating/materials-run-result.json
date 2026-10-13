@@ -1,0 +1,67 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 4,
+  "verified_at": "2026-10-13T22:31:38.162327+00:00",
+  "status": "NEEDS_INPUT",
+  "stage": "materials",
+  "message": "CLI 提交后的响应状态未知，已阻止自动重复调用",
+  "pending_input": {
+    "kind": "input",
+    "stage": "materials",
+    "issues": [
+      "CLI 提交后的响应状态未知，已阻止自动重复调用"
+    ],
+    "fields": [
+      "llm_operation"
+    ],
+    "thread_id": "job:08e74bed03e94c6e903c89f7f2fbea64:run:86e1f94c1f424317921761d8a1a5d03f",
+    "revision": 4,
+    "pending_token": "0dd0571b5bf547ddae96f651d904f830",
+    "operation_status": "UNKNOWN",
+    "operation_id": "c34539df84044a7cb5eb6cbe86c3ff32",
+    "interrupt_id": "99c7f2a09ff8d835a7ef88e2b95ffdb2"
+  },
+  "material_operation": {
+    "operation_id": "c34539df84044a7cb5eb6cbe86c3ff32",
+    "status": "UNKNOWN",
+    "attempt": 1,
+    "cli_provider": "codex_cli",
+    "command_id": "89c7363de58c43aaa49389ad23214a5a",
+    "mode": "research",
+    "model": "gpt-6.1-sol",
+    "reason": "PermissionError",
+    "reasoning_effort": "xhigh",
+    "revision": 4
+  },
+  "script_artifact_id": "d6afeca1685b41dbb949eb2231c53d71",
+  "registered_asset_count": 0,
+  "frozen_material_manifest_present": false,
+  "feishu_material_table_count": 0,
+  "feishu_material_table_verified_this_turn": true,
+  "feishu_material_url": "https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblVOUHrIy3Tq3uh",
+  "materials_settings": {
+    "enabled": true,
+    "provider": "codex_cli",
+    "model": "gpt-6.1-sol",
+    "timeout_seconds": 1800,
+    "codex_reasoning_effort": "xhigh"
+  },
+  "next_gate_approved": false,
+  "voice_or_render_started": false,
+  "paid_replay_submitted": false,
+  "diagnosis": "运行900秒未生成完整输出；原生PermissionError很可能来自Windows临时目录收尾掩盖cli_timeout，当前日志无完整traceback，尚不能断言原始异常。",
+  "cleanup_fix": {
+    "maintenance_commit": "f6eb9dd2904dce4d59afea9806ecface64251940",
+    "video_branch_commit": "39ad48d",
+    "scope": "临时目录与进程收尾不再覆盖原始调用结果；不改UNKNOWN记录，不增加重放入口",
+    "maintenance_regressions": 178,
+    "restart_boundary_regressions": 51,
+    "current_branch_cleanup_regressions": 12,
+    "ruff_passed": true,
+    "typecheck_passed": true,
+    "remotion_bundle_passed": true,
+    "contract_check_passed_in_maintenance": true
+  },
+  "current_unknown_unchanged_after_fix": true,
+  "recovery_boundary": "现有restart-unknown的素材恢复要求显式接受可能再次消耗额度并rebuild-script；本轮没有执行，不擅自弃用已通过文案。候选文件没有完整清单，不能替代节点冻结。"
+}

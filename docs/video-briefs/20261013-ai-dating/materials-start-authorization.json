@@ -1,0 +1,14 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 4,
+  "user_open_id": "ou_47b56463dc9887d4e9ecda771941c228",
+  "user_message": "素材动起来吧",
+  "decision": "confirm",
+  "node_name": "script_human_gate",
+  "pending_token": "5b86d66deedaad4007435cd52ac6a8ac",
+  "script_artifact_id": "d6afeca1685b41dbb949eb2231c53d71",
+  "script_artifact_sha256": "5d7aeb49fd9e63a479220f212d773fc011d11251a45c63830369d0955981968d",
+  "recorded_at": "2026-10-13T22:06:16.754985+00:00",
+  "next_gate_approved": false,
+  "note": "用户沈佳冰明确回复“素材动起来吧”，确认飞书本版七段文案，授权通过文案人工门并启动素材。沿用已确认的单案方向，按 visual_need 采集国内真实中文 App 匹配、聊天、头像、充值、访客等界面，标明同类示意非涉案 App；素材完成后交文案与素材人工审核，本次不确认该下一门。"
+}

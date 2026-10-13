@@ -1,0 +1,323 @@
+{
+  "stage_complete": false,
+  "frozen": false,
+  "candidate_directory": ".runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\4\\skills-research\\research",
+  "files": [
+    {
+      "file": "bili-soul-video.mp4",
+      "bytes": 10955859,
+      "sha256": "8e93c046ee97dcc052a58cc5d9cefcbe94560f4d92146e87d2851566e1de3c67",
+      "probe_ok": true,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_type": "video",
+            "width": 394,
+            "height": 854
+          }
+        ],
+        "format": {
+          "duration": "748.234000"
+        }
+      }
+    },
+    {
+      "file": "soul-message-copy.mp4",
+      "bytes": 151943,
+      "sha256": "3c1fdd005a457a3978a21a88ce616bf5bd2100fc6a487e4859232e5dffe2a552",
+      "probe_ok": true,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_type": "video",
+            "width": 394,
+            "height": 854
+          }
+        ],
+        "format": {
+          "duration": "7.001000"
+        }
+      },
+      "decode_ok": true
+    },
+    {
+      "file": "soul-store-01.jpg",
+      "bytes": 496977,
+      "sha256": "7a07c04a135b8ab5c5a87165d23cd367a58f9bba2f9fb8dbcf40140ae383dbf6",
+      "probe_ok": true,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_type": "video",
+            "width": 1284,
+            "height": 2778
+          }
+        ],
+        "format": {
+          "duration": "0.040000"
+        }
+      },
+      "decode_ok": true
+    },
+    {
+      "file": "soul-store-02.jpg",
+      "bytes": 375397,
+      "sha256": "0e05ab312be68e37cc3ef5aeee15cde59e932a94b2164602c40db414d5a23586",
+      "probe_ok": true,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_type": "video",
+            "width": 1284,
+            "height": 2778
+          }
+        ],
+        "format": {
+          "duration": "0.040000"
+        }
+      },
+      "decode_ok": true
+    },
+    {
+      "file": "soul-store-03.jpg",
+      "bytes": 403724,
+      "sha256": "976011dd6dbf80aa23fb9ea8437fc52023c82b0b30dc94e7b762427a4b4d1e43",
+      "probe_ok": true,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_type": "video",
+            "width": 1284,
+            "height": 2778
+          }
+        ],
+        "format": {
+          "duration": "0.040000"
+        }
+      },
+      "decode_ok": true
+    },
+    {
+      "file": "soul-store-04.jpg",
+      "bytes": 365589,
+      "sha256": "84bd1ae7befd6d3e424793552d5f0373d06965bc4e88c2cc883700f251b06e51",
+      "probe_ok": true,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_type": "video",
+            "width": 1284,
+            "height": 2778
+          }
+        ],
+        "format": {
+          "duration": "0.040000"
+        }
+      },
+      "decode_ok": true
+    },
+    {
+      "file": "soul-store-05.jpg",
+      "bytes": 499973,
+      "sha256": "679025b655e14d85b1d7063c76592f717725fe3085c448f3ed4333905fcfc302",
+      "probe_ok": true,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_type": "video",
+            "width": 1284,
+            "height": 2778
+          }
+        ],
+        "format": {
+          "duration": "0.040000"
+        }
+      },
+      "decode_ok": true
+    },
+    {
+      "file": "soul-store-06.jpg",
+      "bytes": 362925,
+      "sha256": "f997f16c00b3970c9f4ae98124fa5ce93109d32898179c7d8d5bcbba95f53998",
+      "probe_ok": true,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_type": "video",
+            "width": 1284,
+            "height": 2778
+          }
+        ],
+        "format": {
+          "duration": "0.040000"
+        }
+      },
+      "decode_ok": true
+    },
+    {
+      "file": "soul-visitor-copy.mp4",
+      "bytes": 220391,
+      "sha256": "9bee3c5458575f43d457aa48754dd6a9372e677d0fa75984b2c841526b5c5205",
+      "probe_ok": true,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_type": "video",
+            "width": 394,
+            "height": 854
+          }
+        ],
+        "format": {
+          "duration": "14.000000"
+        }
+      },
+      "decode_ok": true
+    },
+    {
+      "file": "tantan-store-01.jpg",
+      "bytes": 573581,
+      "sha256": "0ad43bbee1dc7a66ace6390d3f3d1667e4e21ca24a4d3fb62e4544f18c539d9f",
+      "probe_ok": true,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_type": "video",
+            "width": 1284,
+            "height": 2778
+          }
+        ],
+        "format": {
+          "duration": "0.040000"
+        }
+      },
+      "decode_ok": true
+    },
+    {
+      "file": "tantan-store-02.jpg",
+      "bytes": 380331,
+      "sha256": "c06b730bcfcdefecee9a180fcc3065dc978ac59a2006a354ed35dc04d224ca4f",
+      "probe_ok": true,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_type": "video",
+            "width": 1284,
+            "height": 2778
+          }
+        ],
+        "format": {
+          "duration": "0.040000"
+        }
+      },
+      "decode_ok": true
+    },
+    {
+      "file": "tantan-store-03.jpg",
+      "bytes": 416380,
+      "sha256": "bc7933bd81efc7b6a3c1523f6b8c4668539fe994d6e22e20eaffaa194baa0d7f",
+      "probe_ok": true,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_type": "video",
+            "width": 1284,
+            "height": 2778
+          }
+        ],
+        "format": {
+          "duration": "0.040000"
+        }
+      },
+      "decode_ok": true
+    },
+    {
+      "file": "tantan-store-04.jpg",
+      "bytes": 546302,
+      "sha256": "66809b3720e7f4586fbe819ae1ee0db1ec22a39dd0ed85926aaaa2f87c43f684",
+      "probe_ok": true,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_type": "video",
+            "width": 1284,
+            "height": 2778
+          }
+        ],
+        "format": {
+          "duration": "0.040000"
+        }
+      },
+      "decode_ok": true
+    },
+    {
+      "file": "tantan-store-05.jpg",
+      "bytes": 324694,
+      "sha256": "6f00ad02173a7d17f4b0d9ef5f5cd652f7a2afcc8f9d53812239ffd557940cc7",
+      "probe_ok": true,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_type": "video",
+            "width": 1284,
+            "height": 2778
+          }
+        ],
+        "format": {
+          "duration": "0.040000"
+        }
+      },
+      "decode_ok": true
+    },
+    {
+      "file": "tantan-store-06.jpg",
+      "bytes": 506535,
+      "sha256": "8b720acaab59f5aef3afaf5fbefc8ae0120ab1dbff39c4b177e282311c14d056",
+      "probe_ok": true,
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_type": "video",
+            "width": 1284,
+            "height": 2778
+          }
+        ],
+        "format": {
+          "duration": "0.040000"
+        }
+      },
+      "decode_ok": true
+    }
+  ],
+  "all_delivery_candidates_decode_ok": true,
+  "final_selection_made": false
+}
