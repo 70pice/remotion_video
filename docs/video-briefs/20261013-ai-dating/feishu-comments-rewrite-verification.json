@@ -1,0 +1,275 @@
+{
+  "proof": {
+    "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+    "revision": 4,
+    "base_token": "FiiebSriRaMxe3s56nSciW27nle",
+    "base_name": "video-08e74bed-两周至少2.5万人与AI聊天：Claude交友A",
+    "base_url": "https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle",
+    "metadata_keys": [
+      "base_token",
+      "is_advanced",
+      "name",
+      "revision",
+      "url",
+      "workspace_token"
+    ],
+    "tables": {
+      "审核记录": "tblNZJtNYx6gV6VG",
+      "文案": "tblKkyIRRWs5tqOK",
+      "素材清单": "tblVOUHrIy3Tq3uh",
+      "镜头编排": "tbld1dGlTS2AELat"
+    },
+    "segments": [
+      {
+        "segment_id": "s1",
+        "record_id": "reczz28N2a0kSAt6"
+      },
+      {
+        "segment_id": "s2",
+        "record_id": "reczz28N2a0kUceC"
+      },
+      {
+        "segment_id": "s3",
+        "record_id": "reczz28N2a0kQvRw"
+      },
+      {
+        "segment_id": "s4",
+        "record_id": "reczz28N2a0kSzxG"
+      },
+      {
+        "segment_id": "s5",
+        "record_id": "reczz28N2a0kRLuL"
+      },
+      {
+        "segment_id": "s6",
+        "record_id": "reczz28N2a0kQzZB"
+      },
+      {
+        "segment_id": "s7",
+        "record_id": "reczz28N2a0kT4PK"
+      }
+    ],
+    "verified_segment_count": 7,
+    "verified_narration_characters": 814,
+    "content_matches_node_output": true,
+    "feedback_field_exists": true,
+    "pending_token": "5b86d66deedaad4007435cd52ac6a8ac",
+    "review_record_id": "reczz28N3F9q8JE5",
+    "review_decision": "待审",
+    "materials_executed": false,
+    "script_table_url": "https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblKkyIRRWs5tqOK&view=vew1IgAISu",
+    "script_view_id": "vew1IgAISu",
+    "visible_fields": [
+      "段落ID",
+      "口播",
+      "修改意见",
+      "屏幕文字",
+      "来源",
+      "画面需求"
+    ],
+    "incremental_resync_record_ids_unchanged": true,
+    "comment_read_api_verified": true,
+    "verified_at": "2026-10-13T22:00:22.079759+00:00",
+    "comments_preserved": true,
+    "preserved_comment_count": 4,
+    "script_artifact_id": "d6afeca1685b41dbb949eb2231c53d71",
+    "script_artifact_sha256": "5d7aeb49fd9e63a479220f212d773fc011d11251a45c63830369d0955981968d",
+    "completed_rewrite_operations": [
+      {
+        "operation_id": "b088dceefa7b4e30816429b72ab3c3e4",
+        "status": "COMPLETED",
+        "model": "doubao-seed-2-1-pro-260915",
+        "attempt": 1
+      },
+      {
+        "operation_id": "23ceac81a5e04fcd8b45cb21e0857908",
+        "status": "COMPLETED",
+        "model": "doubao-seed-2-1-pro-260915",
+        "attempt": 1
+      }
+    ],
+    "hypothetical_recharge": {
+      "individuals": 25000,
+      "assumed_paying_share": "10%",
+      "assumed_amount_cny": 100,
+      "hypothetical_two_week_recharge_cny": 250000,
+      "actual_revenue_claimed": false
+    }
+  },
+  "current_review_record": {
+    "record_id": "reczz28N3F9q8JE5",
+    "fields": {
+      "标题": "两周至少2.5万人与AI聊天：Claude交友App网络如何运作 · 文案",
+      "阶段": [
+        "文案"
+      ],
+      "待办令牌": "5b86d66deedaad4007435cd52ac6a8ac",
+      "结论": [
+        "待审"
+      ],
+      "意见": null
+    }
+  },
+  "comments": [
+    {
+      "comment_id": "7696270198940109816",
+      "create_time": 1791927544,
+      "is_solved": false,
+      "is_whole": false,
+      "quote": "记录 ",
+      "reply_list": {
+        "replies": [
+          {
+            "content": {
+              "elements": [
+                {
+                  "docs_link": null,
+                  "person": null,
+                  "text_run": {
+                    "text": "第二句话加个钩子 这个视频讲AI社交 虚拟app的 让用户评论或者转发 朋友别上当受骗"
+                  },
+                  "type": "text_run"
+                }
+              ]
+            },
+            "create_time": 1791927544,
+            "extra": {
+              "image_list": [],
+              "notify_extra": {
+                "record": "reczz28N2a0kSAt6",
+                "table": "tblKkyIRRWs5tqOK",
+                "view": "vew1IgAISu"
+              }
+            },
+            "reply_id": "7696270198956887050",
+            "update_time": 1791927573,
+            "user_id": "ou_47b56463dc9887d4e9ecda771941c228"
+          }
+        ]
+      },
+      "solver_user_id": null,
+      "update_time": 1791927573,
+      "user_id": "ou_47b56463dc9887d4e9ecda771941c228"
+    },
+    {
+      "comment_id": "7696269199865285645",
+      "create_time": 1791927311,
+      "is_solved": false,
+      "is_whole": false,
+      "quote": "记录 ",
+      "reply_list": {
+        "replies": [
+          {
+            "content": {
+              "elements": [
+                {
+                  "docs_link": null,
+                  "person": null,
+                  "text_run": {
+                    "text": "赚了多少做一个保守估计"
+                  },
+                  "type": "text_run"
+                }
+              ]
+            },
+            "create_time": 1791927311,
+            "extra": {
+              "image_list": [],
+              "notify_extra": {
+                "record": "reczz28N2a0kRLuL",
+                "table": "tblKkyIRRWs5tqOK",
+                "view": "vew1IgAISu"
+              }
+            },
+            "reply_id": "7696269199877868555",
+            "update_time": 1791927311,
+            "user_id": "ou_47b56463dc9887d4e9ecda771941c228"
+          }
+        ]
+      },
+      "solver_user_id": null,
+      "update_time": 1791927313,
+      "user_id": "ou_47b56463dc9887d4e9ecda771941c228"
+    },
+    {
+      "comment_id": "7696269507932720063",
+      "create_time": 1791927383,
+      "is_solved": false,
+      "is_whole": false,
+      "quote": "记录 ",
+      "reply_list": {
+        "replies": [
+          {
+            "content": {
+              "elements": [
+                {
+                  "docs_link": null,
+                  "person": null,
+                  "text_run": {
+                    "text": "报告没写的地方不用说出来"
+                  },
+                  "type": "text_run"
+                }
+              ]
+            },
+            "create_time": 1791927383,
+            "extra": {
+              "image_list": [],
+              "notify_extra": {
+                "record": "reczz28N2a0kQzZB",
+                "table": "tblKkyIRRWs5tqOK",
+                "view": "vew1IgAISu"
+              }
+            },
+            "reply_id": "7696269507949497378",
+            "update_time": 1791927383,
+            "user_id": "ou_47b56463dc9887d4e9ecda771941c228"
+          }
+        ]
+      },
+      "solver_user_id": null,
+      "update_time": 1791927384,
+      "user_id": "ou_47b56463dc9887d4e9ecda771941c228"
+    },
+    {
+      "comment_id": "7696269875685100568",
+      "create_time": 1791927469,
+      "is_solved": false,
+      "is_whole": false,
+      "quote": "记录 ",
+      "reply_list": {
+        "replies": [
+          {
+            "content": {
+              "elements": [
+                {
+                  "docs_link": null,
+                  "person": null,
+                  "text_run": {
+                    "text": "最后改成 转发这个视频给你那个爱用社交app的朋友 大概这个意思 具体文案你来生产"
+                  },
+                  "type": "text_run"
+                }
+              ]
+            },
+            "create_time": 1791927469,
+            "extra": {
+              "image_list": [],
+              "notify_extra": {
+                "record": "reczz28N2a0kT4PK",
+                "table": "tblKkyIRRWs5tqOK",
+                "view": "vew1IgAISu"
+              }
+            },
+            "reply_id": "7696269875701877777",
+            "update_time": 1791927469,
+            "user_id": "ou_47b56463dc9887d4e9ecda771941c228"
+          }
+        ]
+      },
+      "solver_user_id": null,
+      "update_time": 1791927470,
+      "user_id": "ou_47b56463dc9887d4e9ecda771941c228"
+    }
+  ]
+}

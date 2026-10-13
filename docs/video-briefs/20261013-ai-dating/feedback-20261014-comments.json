@@ -1,0 +1,42 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "reviewed_revision": 4,
+  "reviewed_pending_token": "ba97f4c38fffc015c412ca0b5e941493",
+  "script_table_url": "https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblKkyIRRWs5tqOK&view=vew1IgAISu",
+  "source": "lark-cli drive +list-comments --as user",
+  "author_open_id": "ou_47b56463dc9887d4e9ecda771941c228",
+  "has_more": false,
+  "comments": [
+    {
+      "segment_id": "s1",
+      "record_id": "reczz28N2a0kSAt6",
+      "comment_id": "7696270198940109816",
+      "reply_id": "7696270198956887050",
+      "text": "第二句话加个钩子 这个视频讲AI社交 虚拟app的 让用户评论或者转发 朋友别上当受骗"
+    },
+    {
+      "segment_id": "s5",
+      "record_id": "reczz28N2a0kRLuL",
+      "comment_id": "7696269199865285645",
+      "reply_id": "7696269199877868555",
+      "text": "赚了多少做一个保守估计"
+    },
+    {
+      "segment_id": "s6",
+      "record_id": "reczz28N2a0kQzZB",
+      "comment_id": "7696269507932720063",
+      "reply_id": "7696269507949497378",
+      "text": "报告没写的地方不用说出来"
+    },
+    {
+      "segment_id": "s7",
+      "record_id": "reczz28N2a0kT4PK",
+      "comment_id": "7696269875685100568",
+      "reply_id": "7696269875701877777",
+      "text": "最后改成 转发这个视频给你那个爱用社交app的朋友 大概这个意思 具体文案你来生产"
+    }
+  ],
+  "decision": "revise",
+  "script_approved": false,
+  "material_collection_authorized": false
+}

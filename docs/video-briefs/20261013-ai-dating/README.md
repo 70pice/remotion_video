@@ -2,7 +2,7 @@
 
 本目录保存监督会话的制作要求、执行记录与正式节点口播的审核副本；副本不替代引擎登记产物，也不构成人审通过。
 
-当前状态（2026-10-14）：用户引用前次超时及可能再次消耗额度的说明，明确回复“可以”。已通过正常恢复入口保存 revision 4，并实际完成 Claude Code / Doubao 2.1 Pro 编剧操作 `9feb383537714278a770ec24c2f2928d`，终态 COMPLETED；当前 NEEDS_HUMAN / script / script_human_gate。[本期文案审核稿](script-for-review.md)已原样更新为豆包节点新稿，7 段、849 字；[具体待审标记](revision-4-review-notes.md)包含数字笔误与事实范围问题，不改写节点产物或代替用户审核。素材保持 Codex `gpt-6.1-sol / xhigh`，revision 4 素材操作为 0，文案确认前不执行。旧 revision 3 编剧超时 UNKNOWN、revision 2 素材 UNKNOWN 与旧稿均保留；未配音、未渲染。实际进度以任务状态为准。
+当前状态（2026-10-14）：已读回用户在飞书的四条段落评论，经正常 `resume --decision revise` 交 Claude Code / Doubao 2.1 Pro 编剧修改，并再收紧事实措辞。两次返工操作 `b088dceefa7b4e30816429b72ab3c3e4`、`23ceac81a5e04fcd8b45cb21e0857908` 均 COMPLETED、attempt 1；引擎当前仍为 revision 4 / NEEDS_HUMAN / script_human_gate。[本期文案审核稿](script-for-review.md)原样导出最新节点产物，7 段、814 字；[评论修改记录](comment-rewrite-review.md)列出落实结果与收入测算假设。已回读飞书核对七行口播、屏幕字、来源、画面需求均与节点一致，原记录 ID 和四条评论保留。素材保持 Codex `gpt-6.1-sol / xhigh`，revision 4 素材操作为 0。旧 UNKNOWN 记录与旧稿均保留；本轮没有授予文案通过，未配音、未渲染。实际进度以任务状态为准。
 
 本版现已录入[飞书逐段审稿表](https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblKkyIRRWs5tqOK&view=vew1IgAISu)：每段一行，原稿旁设“修改意见”。用户可填写意见或展开段落评论；导演读回后汇总，通过既有编剧返工入口处理，不据此自动授予文案通过。
 

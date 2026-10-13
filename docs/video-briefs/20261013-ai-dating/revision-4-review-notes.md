@@ -1,5 +1,7 @@
 # 第四版豆包原稿的待审标记
 
+本文件是飞书评论返工前的历史标记。对应原稿保存在 [返工前副本](revisions/4/script-before-comments.md)；2026-10-14 已通过编剧正常返工入口修正下列措辞，结果见 [评论修改记录](comment-rewrite-review.md)。最新待审稿为 [script-for-review.md](script-for-review.md)，不将历史标记或本轮修正视为用户审核通过。
+
 任务 `08e74bed03e94c6e903c89f7f2fbea64`，revision 4。原稿由 Claude Code / Doubao 2.1 Pro 节点生成，操作 `9feb383537714278a770ec24c2f2928d` 已 COMPLETED；以下是监督会话呈递给人工门的标记，不是审核决定，也没有改写节点产物。
 
 ## 具体句子

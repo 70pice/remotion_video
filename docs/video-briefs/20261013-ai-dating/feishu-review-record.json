@@ -49,11 +49,11 @@
     }
   ],
   "verified_segment_count": 7,
-  "verified_narration_characters": 849,
+  "verified_narration_characters": 814,
   "content_matches_node_output": true,
   "feedback_field_exists": true,
-  "pending_token": "ba97f4c38fffc015c412ca0b5e941493",
-  "review_record_id": "reczz28N2a3il2Kh",
+  "pending_token": "5b86d66deedaad4007435cd52ac6a8ac",
+  "review_record_id": "reczz28N3F9q8JE5",
   "review_decision": "待审",
   "materials_executed": false,
   "script_table_url": "https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblKkyIRRWs5tqOK&view=vew1IgAISu",
@@ -68,5 +68,30 @@
   ],
   "incremental_resync_record_ids_unchanged": true,
   "comment_read_api_verified": true,
-  "verified_at": "2026-10-13T21:22:06.607668+00:00"
+  "verified_at": "2026-10-13T22:00:22.079759+00:00",
+  "comments_preserved": true,
+  "preserved_comment_count": 4,
+  "script_artifact_id": "d6afeca1685b41dbb949eb2231c53d71",
+  "script_artifact_sha256": "5d7aeb49fd9e63a479220f212d773fc011d11251a45c63830369d0955981968d",
+  "completed_rewrite_operations": [
+    {
+      "operation_id": "b088dceefa7b4e30816429b72ab3c3e4",
+      "status": "COMPLETED",
+      "model": "doubao-seed-2-1-pro-260915",
+      "attempt": 1
+    },
+    {
+      "operation_id": "23ceac81a5e04fcd8b45cb21e0857908",
+      "status": "COMPLETED",
+      "model": "doubao-seed-2-1-pro-260915",
+      "attempt": 1
+    }
+  ],
+  "hypothetical_recharge": {
+    "individuals": 25000,
+    "assumed_paying_share": "10%",
+    "assumed_amount_cny": 100,
+    "hypothetical_two_week_recharge_cny": 250000,
+    "actual_revenue_claimed": false
+  }
 }
