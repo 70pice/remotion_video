@@ -1,5 +1,7 @@
 # 组件目录整理
 
+> 历史方案：本计划（152 个组件 / 304 Composition）已于 2026-10 完成，组件库现为 187 个社区组件；本文仅作过程记录保留，不代表当前目录结构承诺。
+
 目标：将 152 个组件的实际横版源码与原生竖版源码分别放进 `src/components/component-horizontal`、`src/components/component-vertical`，飞书总目录提供五列、152 行，路径以仓库根目录为起点。
 
 执行顺序：

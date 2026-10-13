@@ -8,12 +8,10 @@ from videoagents.contracts import Brief, SettingsPatch
 from videoagents.nodes.await_input import AwaitInputNode
 from videoagents.nodes.director import DirectorNode
 from videoagents.nodes.editing import EditingNode
-from videoagents.nodes.gates import AudioGateNode, ReviewGateNode, ScriptGateNode, TimelineGateNode
+from videoagents.nodes.gates import AudioGateNode, ScriptGateNode
 from videoagents.nodes.human_review import HumanReviewNode
 from videoagents.nodes.materials import MaterialsNode
-from videoagents.nodes.reviewers import ReviewersNode
 from videoagents.nodes.screenwriter import ScreenwriterNode
-from videoagents.nodes.script_reviewer import ScriptReviewerNode
 from videoagents.nodes.voice import VoiceNode
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
@@ -21,14 +19,14 @@ from videoagents.state import VideoState
 from videoagents.storage import Conflict, Repository
 from worker.process_manager import RenderCancelled
 
-NODE_TYPES = [MaterialsNode, ScreenwriterNode, ScriptReviewerNode, VoiceNode, DirectorNode, EditingNode, ReviewersNode,
-              ScriptGateNode, AudioGateNode, TimelineGateNode, ReviewGateNode, AwaitInputNode, HumanReviewNode]
+NODE_TYPES = [MaterialsNode, ScreenwriterNode, VoiceNode, DirectorNode, EditingNode,
+              ScriptGateNode, AudioGateNode, AwaitInputNode, HumanReviewNode]
 
 
 def make_node(node_type, repo, service):
     if node_type is AwaitInputNode:
         return node_type(repo, service)
-    if node_type in {MaterialsNode, ScreenwriterNode, ScriptReviewerNode, VoiceNode, DirectorNode, EditingNode, ReviewersNode}:
+    if node_type in {MaterialsNode, ScreenwriterNode, VoiceNode, DirectorNode, EditingNode}:
         return node_type(repo, service)
     return node_type(repo)
 
@@ -63,17 +61,9 @@ def test_screenwriter_node_saves_output_and_routes_without_a_graph(tmp_path):
 
     result = ScreenwriterNode(repo, service)(state)
     saved = repo.get_job(job.job_id)
-    assert result["route"] == "script_reviewer" and not result["gate_issues"]
+    # The writer comes first now: a user script flows straight to materials.
+    assert result["route"] == "materials" and not result["gate_issues"]
     assert saved.stage == "script" and saved.status == "RUNNING"
     assert saved.script.segments[0].narration == job.brief.script_text
     artifact = next(item for item in saved.artifacts if item.kind == "script")
     assert json.loads(repo.artifact_path(artifact.artifact_id)[0].read_text(encoding="utf-8")) == saved.script.model_dump()
-    reviewer = ScriptReviewerNode(repo, service)
-    reviewer.model.call = lambda *args, **kwargs: {
-        "decision": "APPROVE", "summary": "UNIT TEST：文案可进入人工审核。", "strengths": [], "issues": [],
-    }
-    review = reviewer({**state, **result})
-    assert review["route"] == "human_review_script" and review["gate_issues"] == []
-    assert review["script"] == saved.script.model_dump()
-    assert review["brief"] == saved.brief.model_dump()
-    assert review["assets"] == [item.model_dump() for item in saved.assets]

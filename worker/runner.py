@@ -45,6 +45,11 @@ class Worker:
                 # No raw request/response/credential dump is exposed through events.
                 self.repo.update_job(job.job_id, job.revision, status="FAILED", message="执行失败：" + type(exc).__name__ + ": " + str(exc)[:700], pending_input=None)
             self.repo.finish(command["command_id"], "FAILED")
+            # The DB message is the durable trace; mirror it to stderr so logs
+            # show the failure without polluting the CLI's JSON stdout.
+            import sys
+            print(f"command {command['command_id']} failed: {type(exc).__name__}: {exc}",
+                  file=sys.stderr, flush=True)
         finally:
             stop.set()
             thread.join(timeout=1)

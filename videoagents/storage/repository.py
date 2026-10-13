@@ -56,6 +56,9 @@ class Repository:
         self.root = runtime_dir.resolve()
         self.root.mkdir(parents=True, exist_ok=True)
         self.db = self.root / "application.sqlite"
+        if os.name != "nt":
+            # Same privacy bar as the settings writer: the DB holds job context.
+            os.chmod(self.root, 0o700)
         with self.connection() as db:
             db.executescript("""
                 CREATE TABLE IF NOT EXISTS jobs(job_id TEXT PRIMARY KEY, body TEXT NOT NULL);
@@ -292,7 +295,7 @@ class Repository:
                     if (pending.get("kind") != "stage_review" or pending.get("stage") != "director"
                             or pending.get("node_name") != "director_human_gate"
                             or payload.get("decision") != "confirm"):
-                        raise Conflict("已阅镜头仅可用于当前导演逐镜审核确认")
+                        raise Conflict("已阅镜头仅可用于当前摄影逐镜审核确认")
                 if payload.get("stop_after") is not None:
                     pending = job.pending_input
                     script_review = (pending.get("kind") == "stage_review" and pending.get("stage") == "script"

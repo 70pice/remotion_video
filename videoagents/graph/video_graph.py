@@ -1,5 +1,6 @@
 """StateGraph registration, routing and durable command execution."""
 
+import os
 import sqlite3
 from contextlib import AbstractContextManager
 from pathlib import Path
@@ -21,7 +22,6 @@ from videoagents.nodes.gates import AudioGateNode, ScriptGateNode
 from videoagents.nodes.human_review import HumanReviewNode
 from videoagents.nodes.materials import MaterialsNode
 from videoagents.nodes.screenwriter import ScreenwriterNode
-from videoagents.nodes.script_reviewer import ScriptReviewerNode
 from videoagents.nodes.voice import VoiceNode
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState
@@ -30,6 +30,7 @@ from videoagents.storage import Conflict, Repository
 REMOVED_REVIEW_NODES = frozenset({
     "timeline_gate", "human_review_timeline", "human_review_render", "reviewers",
     "review_gate", "clear_reviewers", "after_timeline_review", "after_render_review",
+    "script_reviewer", "clear_script_reviewer",
 })
 
 
@@ -38,6 +39,9 @@ class VideoProductionGraph(AbstractContextManager):
         self.repo = repository
         self.service = JobService(repository, project_root) if project_root else JobService(repository)
         self.connection = sqlite3.connect(repository.root / "checkpoints.sqlite", check_same_thread=False, timeout=15)
+        if os.name != "nt":
+            # Checkpoints carry the full business context; match application.sqlite.
+            os.chmod(repository.root / "checkpoints.sqlite", 0o600)
         self.connection.execute("PRAGMA journal_mode=WAL")
         self.checkpointer = SqliteSaver(self.connection)
         # 与 TradingAgents 的 Msg Clear 一样，每个模型角色后先清理，再路由到下一阶段。
@@ -46,7 +50,6 @@ class VideoProductionGraph(AbstractContextManager):
         graph.add_node("component_demo", ComponentDemoNode(repository, self.service))
         graph.add_node("materials", MaterialsNode(repository, self.service))
         graph.add_node("screenwriter", ScreenwriterNode(repository, self.service))
-        graph.add_node("script_reviewer", ScriptReviewerNode(repository, self.service))
         graph.add_node("script_gate", ScriptGateNode(repository))
         graph.add_node("voice", VoiceNode(repository, self.service))
         graph.add_node("audio_gate", AudioGateNode(repository))
@@ -57,31 +60,24 @@ class VideoProductionGraph(AbstractContextManager):
         # Available for manual orchestration; no incoming edge by default.
         self.add_human_review(graph, "human_review", stage="script", title="文案人工审核",
                               confirmation_requirements=("文案表达与事实来源", "截图及素材与文案一致"), next_node="voice")
-        self.add_human_review(graph, "human_review_script", stage="script", title="文案人工审核",
-                              confirmation_requirements=("首句具体，尽早建立观看理由",
-                                                         "主线清楚，结尾自然回应问题",
-                                                         "事实表达有来源，素材引用能支撑文案",
-                                                         "核对机器审查意见与最终文案，人工确认后才可进入配音"),
+        self.add_human_review(graph, "human_review_script", stage="script", title="文案与素材人工审核",
+                              confirmation_requirements=("首句具体，尽早建立观看理由；主线清楚，结尾自然回应问题",
+                                                         "每段口播的来源真实存在，素材清单能支撑对应说法",
+                                                         "素材可用区间、出处与许可说明符合本期用途",
+                                                         "资料缺口已列明；人工确认文案与素材后才可进入配音"),
                               next_node="after_script_review", revise_node="screenwriter")
-        self.add_human_review(graph, "director_human_gate", stage="director", title="导演表演与30秒Demo审核",
-                              confirmation_requirements=("逐段核对导演表演设计是否贴合当前口播",
-                                                         "30秒Demo画面、字幕、配音节奏可以代表本片方向",
+        self.add_human_review(graph, "director_human_gate", stage="director", title="摄影逐镜设计与代表帧审核",
+                              confirmation_requirements=("逐段核对摄影表演设计是否贴合当前口播",
+                                                         "逐镜代表帧 PNG、组件选择与画面动作可以代表本片方向",
                                                          "素材、案例、数字与当前旁白对应，没有用组件Demo词冒充事实",
-                                                         "人工确认后才允许渲染完整成片"),
+                                                         "人工确认整包后才允许渲染完整成片"),
                               next_node="after_director_demo_review", revise_node="director")
         graph.add_node("after_script_review", self.after_script_review)
         graph.add_node("after_director_demo_review", self.after_director_demo_review)
-        graph.add_conditional_edges(START, self.start_route, {"component_demo": "component_demo", "materials": "materials"})
+        graph.add_conditional_edges(START, self.start_route, {"component_demo": "component_demo", "screenwriter": "screenwriter"})
         self.add_cleanup_edge(graph, "component_demo", {"director_demo": "director_demo", "await_input": "await_input"})
-        self.add_cleanup_edge(graph, "materials", {"screenwriter": "screenwriter", "await_input": "await_input"})
-        self.add_cleanup_edge(graph, "screenwriter", {
-            "script_reviewer": "script_reviewer", "human_review_script": "human_review_script",
-            "await_input": "await_input",
-        })
-        self.add_cleanup_edge(graph, "script_reviewer", {
-            "screenwriter": "screenwriter", "human_review_script": "human_review_script",
-            "await_input": "await_input",
-        })
+        self.add_cleanup_edge(graph, "screenwriter", {"materials": "materials", "await_input": "await_input"})
+        self.add_cleanup_edge(graph, "materials", {"human_review_script": "human_review_script", "await_input": "await_input"})
         # 旧 checkpoint 仍可恢复到 script_gate；新文案流程直接进入人工审核。
         graph.add_conditional_edges("script_gate", self.route, {"voice": "human_review_script", "await_input": "await_input"})
         graph.add_conditional_edges("after_script_review", self.route, {"voice": "voice"})
@@ -96,7 +92,7 @@ class VideoProductionGraph(AbstractContextManager):
         })
         graph.add_conditional_edges("after_director_demo_review", self.route, {"editing": "editing"})
         self.add_cleanup_edge(graph, "editing", {"director_demo": "director_demo", "await_input": "await_input", "end": END})
-        graph.add_conditional_edges("await_input", self.route, {"component_demo": "component_demo", "materials": "materials", "screenwriter": "screenwriter", "script_reviewer": "script_reviewer", "voice": "voice", "director": "director", "director_demo": "director_demo", "editing": "editing", "await_input": "await_input", "end": END})
+        graph.add_conditional_edges("await_input", self.route, {"component_demo": "component_demo", "materials": "materials", "screenwriter": "screenwriter", "voice": "voice", "director": "director", "director_demo": "director_demo", "editing": "editing", "await_input": "await_input", "end": END})
         self.graph = graph.compile(checkpointer=self.checkpointer)
 
     def add_cleanup_edge(self, graph: StateGraph, source: str, routes: dict[str, str]) -> None:
@@ -132,7 +128,9 @@ class VideoProductionGraph(AbstractContextManager):
 
     @staticmethod
     def start_route(state: VideoState) -> str:
-        return "component_demo" if state.get("action") == "component_demo" else "materials"
+        # The writer designs segments first; materials then collects evidence
+        # and footage against the script's visual needs.
+        return "component_demo" if state.get("action") == "component_demo" else "screenwriter"
 
     @staticmethod
     def route(state: VideoState) -> str:
@@ -181,7 +179,7 @@ class VideoProductionGraph(AbstractContextManager):
                     return state_context(self.repo, VideoState(job_id=job.job_id), route="end")
                 return self.stop_removed_review(VideoState(job_id=job.job_id, revision=job.revision))
             thread_id = pending["thread_id"]
-            config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 60}
+            config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 120}
             snapshot = self.graph.get_state(config)
             if self.is_removed_review_checkpoint(snapshot):
                 return self.stop_removed_review(snapshot.values)
@@ -215,7 +213,7 @@ class VideoProductionGraph(AbstractContextManager):
             self.sync_pending(config, job)
             return state_context(self.repo, result)
         thread_id = "job:" + job.job_id + ":run:" + command["command_id"]
-        config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 60}
+        config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 120}
         previous = self.graph.get_state(config)
         # A crash reclaims the same command, not a new run; graph resumes saved node work.
         if previous.values:
@@ -239,7 +237,7 @@ class VideoProductionGraph(AbstractContextManager):
         thread_id = command["payload"]["continuation_thread_id"]
         if not thread_id.startswith(f"job:{job.job_id}:run:"):
             raise Conflict("失败续跑的检查点不属于当前任务")
-        config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 60}
+        config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 120}
         saved = self.graph.get_state(config)
         state = saved.values
         if not state or state.get("job_id") != job.job_id or state.get("revision") != job.revision:
@@ -278,7 +276,7 @@ class VideoProductionGraph(AbstractContextManager):
         """Continue frozen audio or rebuild visuals through existing graph nodes."""
         payload = command["payload"]
         rebuilding = payload.get("rebuild_from") == "director"
-        config = {"configurable": {"thread_id": payload["continuation_thread_id"]}, "recursion_limit": 60}
+        config = {"configurable": {"thread_id": payload["continuation_thread_id"]}, "recursion_limit": 120}
         saved = self.graph.get_state(config)
         state = saved.values
         if not state or state.get("job_id") != job.job_id or state.get("revision") != job.revision:

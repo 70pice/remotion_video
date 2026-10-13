@@ -51,14 +51,14 @@ from videoagents.tools.timeline import (
 COMPONENT_PROPS_EXAMPLES = {
     "title": {"eyebrow": "给定主题"}, "keyword": {"keyword": "给定关键词"},
     "evidence": {"highlight": {"x": 0.1, "y": 0.1, "width": 0.5, "height": 0.5}},
-    # 裁剪仅演示参数形状；导演必须使用对应素材经像素核验的区域。
+    # 裁剪仅演示参数形状；摄影必须使用对应素材经像素核验的区域。
     "image_focus": {"focal_x": 0.5, "focal_y": 0.5,
                     "crop": {"x": 0.1, "y": 0.1, "width": 0.5, "height": 0.5}},
     "video": {"start_seconds": 0, "end_seconds": 4.2, "fit": "contain",
               "crop": {"x": 0.2, "y": 0.0, "width": 0.6, "height": 1.0}},
     "comparison": {"left_title": "给定左标题", "left_body": "给定左正文",
                    "right_title": "给定右标题", "right_body": "给定右正文", "right_reveal_frame": 15},
-    # 局部帧只是参数形状示例；真实揭示时机由导演根据当前镜头和实测字幕选择。
+    # 局部帧只是参数形状示例；真实揭示时机由摄影根据当前镜头和实测字幕选择。
     "data": {"items": [
         {"label": "来源中的第一标签", "value": "来源中的第一值", "detail": "来源中的第一说明", "reveal_frame": 0},
         {"label": "来源中的第二标签", "value": "来源中的第二值", "detail": "来源中的第二说明", "reveal_frame": 15},
@@ -89,7 +89,7 @@ class DirectorSegmentPerformance(BaseModel):
     def not_blank(cls, value: str) -> str:
         stripped = value.strip()
         if not stripped:
-            raise ValueError("导演表演方案文字不能为空")
+            raise ValueError("摄影表演方案文字不能为空")
         return stripped
 
     @field_validator("shot_ids")
@@ -97,7 +97,7 @@ class DirectorSegmentPerformance(BaseModel):
     def shot_ids_not_blank(cls, value: list[str]) -> list[str]:
         stripped = [item.strip() for item in value]
         if any(not item for item in stripped):
-            raise ValueError("导演表演方案镜头 ID 不能为空")
+            raise ValueError("摄影表演方案镜头 ID 不能为空")
         return stripped
 
 
@@ -114,7 +114,7 @@ class DirectorDemo(BaseModel):
     def reason_not_blank(cls, value: str) -> str:
         stripped = value.strip()
         if not stripped:
-            raise ValueError("导演 Demo 原因不能为空")
+            raise ValueError("摄影 Demo 原因不能为空")
         return stripped
 
 
@@ -128,7 +128,7 @@ class DirectorPerformancePlan(BaseModel):
 
 
 class DirectorPlan(BaseModel):
-    """导演交付镜头及可审核表演方案；实测音频、字幕和画幅由程序合入最终 Timeline。"""
+    """摄影交付镜头及可审核表演方案；实测音频、字幕和画幅由程序合入最终 Timeline。"""
 
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False, strict=True)
     shots: list[Shot] = Field(min_length=1, max_length=400)
@@ -196,7 +196,7 @@ def _overlap_ids(timeline: Timeline, start_frame: int, end_frame: int) -> list[s
 def _segment_window(alignment: Alignment, segment_id: str, timeline: Timeline) -> tuple[int, int]:
     aligned = [item for item in alignment.segments if item.segment_id == segment_id]
     if not aligned:
-        raise ValueError(f"导演表演方案缺少文案段落 {segment_id} 的实测字幕时间")
+        raise ValueError(f"摄影表演方案缺少文案段落 {segment_id} 的实测字幕时间")
     start = math.floor(min(item.start_ms for item in aligned) * timeline.fps / 1000)
     end = math.ceil(max(item.end_ms for item in aligned) * timeline.fps / 1000)
     start = max(0, min(start, timeline.duration_in_frames - 1))
@@ -250,7 +250,7 @@ def prompt_component_set_registry(path=COMPONENT_SET_REGISTRY_PATH) -> str:
         return "组件套登记摘要格式无效；不能把任何组件套称为已验收。"
     lines = [
         "组件套登记摘要来自 docs/component-set-registry.json；普通生产通过 Shot.set_design 选择整套。",
-        "registration_status=registered 表示完成备案，不等于 review_status=approved；每期仍需导演 Demo 人工审核。",
+        "registration_status=registered 表示完成备案，不等于 review_status=approved；每期仍需摄影 Demo 人工审核。",
         "review_status=approved 才是已验收范例；pending/registered_pending_review/in_development/not_rendered 只能待品鉴参考。",
         "A01-A12、B01-B18 可通过 set_design.set_id 选择；content 使用本期内容，parts 调整内部组件的局部显示时间和安全区域位置尺寸。",
         "生产分镜只能使用当前任务素材和定稿旁白；旧 props.component_set/composition/rich_content 样片标记仍不可用于生产，不能照搬模拟素材、示例坐标或演示数字。",
@@ -325,11 +325,11 @@ def _review_plan_body(plan: dict[str, Any] | None) -> dict[str, Any] | None:
 def _validate_director_plan_payload(payload: dict[str, Any], job: Job, timeline: Timeline,
                                     alignment: Alignment | None = None, *, validate_components: bool = True) -> None:
     if payload.get("job_id") != job.job_id or payload.get("revision") != job.revision:
-        raise ValueError("导演方案任务版本不匹配")
+        raise ValueError("摄影方案任务版本不匹配")
     if payload.get("timeline_fingerprint") != timeline_fingerprint(timeline):
-        raise ValueError("导演方案不匹配当前时间轴")
+        raise ValueError("摄影方案不匹配当前时间轴")
     if payload.get("shots") != [shot.model_dump(mode="json") for shot in timeline.shots]:
-        raise ValueError("导演方案镜头快照不匹配当前时间轴")
+        raise ValueError("摄影方案镜头快照不匹配当前时间轴")
     segment_performances = [
         DirectorSegmentPerformance.model_validate(item)
         for item in payload.get("segment_performances", [])
@@ -339,49 +339,49 @@ def _validate_director_plan_payload(payload: dict[str, Any], job: Job, timeline:
         expected_ids = [segment.segment_id for segment in script_segments]
         actual_ids = [segment.segment_id for segment in segment_performances]
         if actual_ids != expected_ids:
-            raise ValueError("导演表演方案必须与文案段落一一对应")
+            raise ValueError("摄影表演方案必须与文案段落一一对应")
     elif not segment_performances:
-        raise ValueError("导演表演方案不能为空")
+        raise ValueError("摄影表演方案不能为空")
     shot_ids = {shot.shot_id for shot in timeline.shots}
     for item in segment_performances:
         unknown = [shot_id for shot_id in item.shot_ids if shot_id not in shot_ids]
         if unknown:
-            raise ValueError(f"导演表演方案引用不存在的镜头：{', '.join(unknown)}")
+            raise ValueError(f"摄影表演方案引用不存在的镜头：{', '.join(unknown)}")
         if alignment is not None and job.script and item.segment_id in {segment.segment_id for segment in script_segments}:
             start, end = _segment_window(alignment, item.segment_id, timeline)
             overlapping = set(_overlap_ids(timeline, start, end))
             if not overlapping.intersection(item.shot_ids):
-                raise ValueError(f"导演表演方案 {item.segment_id} 的 shot_ids 未覆盖实测段落窗口")
+                raise ValueError(f"摄影表演方案 {item.segment_id} 的 shot_ids 未覆盖实测段落窗口")
     if validate_components:
         required_components = _required_library_components(job)
         expected_usage = component_requirement_usage(timeline, job.brief.usage, required_components)
         usage = payload.get("component_usage")
         if usage is None:
             if required_components:
-                raise ValueError("导演方案缺少库组件使用统计证明")
+                raise ValueError("摄影方案缺少库组件使用统计证明")
         elif usage != expected_usage:
-            raise ValueError("导演方案库组件使用统计不匹配当前时间轴")
+            raise ValueError("摄影方案库组件使用统计不匹配当前时间轴")
         if required_components:
             validate_component_requirements(timeline, job.brief.usage, required_components)
     review_mode = payload.get("review_mode")
     if review_mode is not None:
         if review_mode != "per_shot_stills" or timeline.presentation == "component_sample":
-            raise ValueError("导演审核模式与当前时间轴不一致")
+            raise ValueError("摄影审核模式与当前时间轴不一致")
         reviews = [DirectorShotReviewSpec.model_validate(item) for item in payload.get("shot_reviews", [])]
         if [item.shot_id for item in reviews] != [shot.shot_id for shot in timeline.shots]:
-            raise ValueError("导演逐镜审核设计必须按顺序覆盖每个镜头且不能重复")
+            raise ValueError("摄影逐镜审核设计必须按顺序覆盖每个镜头且不能重复")
         for review, shot in zip(reviews, timeline.shots, strict=True):
             if not shot.start_frame <= review.review_frame < shot.end_frame:
-                raise ValueError(f"导演逐镜审核代表帧必须落在镜头 {shot.shot_id} 内")
+                raise ValueError(f"摄影逐镜审核代表帧必须落在镜头 {shot.shot_id} 内")
         return
     demo = DirectorDemo.model_validate(payload.get("demo"))
     max_demo_frames = min(timeline.duration_in_frames, timeline.fps * MAX_DEMO_SECONDS)
     if demo.end_frame <= demo.start_frame:
-        raise ValueError("导演 Demo 必须是连续时间区间")
+        raise ValueError("摄影 Demo 必须是连续时间区间")
     if demo.end_frame > timeline.duration_in_frames:
-        raise ValueError("导演 Demo 超出当前时间轴")
+        raise ValueError("摄影 Demo 超出当前时间轴")
     if demo.end_frame - demo.start_frame > max_demo_frames:
-        raise ValueError("导演 Demo 必须是连续时间区间且不超过 30 秒")
+        raise ValueError("摄影 Demo 必须是连续时间区间且不超过 30 秒")
 
 
 def _performance_payload(origin: str, job: Job, timeline: Timeline, alignment: Alignment,
@@ -413,7 +413,7 @@ def _performance_payload(origin: str, job: Job, timeline: Timeline, alignment: A
     if review_mode is None and demo is None:
         end_frame = min(timeline.duration_in_frames, timeline.fps * MAX_DEMO_SECONDS)
         demo = DirectorDemo(start_frame=0, end_frame=max(1, end_frame),
-                            reason="默认使用原时间轴前 30 秒作为导演 Demo，不裁剪原 timeline。")
+                            reason="默认使用原时间轴前 30 秒作为摄影 Demo，不裁剪原 timeline。")
     payload = {
         "job_id": job.job_id,
         "revision": job.revision,
@@ -458,10 +458,20 @@ def director_prompt(usage: str) -> str:
     )
 
 
-# Compatibility for tests and callers that import the default prompt. Jobs
-# with an explicit commercial usage receive a license-filtered prompt at call
-# time instead.
-PROMPT = director_prompt("unspecified")
+# Compatibility for tests and callers that read the default prompt. Resolved
+# lazily so importing this module (directly or via the graph) does not parse
+# the three catalog JSON files on every process start. Jobs with an explicit
+# commercial usage receive a license-filtered prompt at call time instead.
+_DEFAULT_PROMPT: str | None = None
+
+
+def __getattr__(name: str):
+    if name == "PROMPT":
+        global _DEFAULT_PROMPT
+        if _DEFAULT_PROMPT is None:
+            _DEFAULT_PROMPT = director_prompt("unspecified")
+        return _DEFAULT_PROMPT
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 class DirectorNode:
@@ -471,7 +481,7 @@ class DirectorNode:
         self._last_director_plan: dict[str, Any] | None = None
 
     def __call__(self, state: VideoState) -> dict[str, Any]:
-        job = start_stage(self.repo, state, "director", "导演根据实测旁白安排镜头与关键画面")
+        job = start_stage(self.repo, state, "director", "摄影根据实测旁白安排镜头与关键画面")
         try:
             feedback_stage = "render" if stage_feedback(state, "render") else "director"
             feedback = stage_feedback(state, feedback_stage)
@@ -481,15 +491,15 @@ class DirectorNode:
                 return request_input(self.repo, state, "voice",
                     [DIRECTOR_VOICE_REVISION_ISSUE],
                     ["voice", "timeline"])
-            audio = next(item for item in job.assets if item.asset_id == state["audio_asset_id"])
-            feedback_stage = "render" if stage_feedback(state, "render") else "director"
-            feedback = stage_feedback(state, feedback_stage)
+            audio = next((item for item in job.assets if item.asset_id == state.get("audio_asset_id")), None)
+            if audio is None:
+                raise ValueError(f"音频素材 {state.get('audio_asset_id')} 不在当前任务素材中，摄影无法安排镜头")
             if (not state.get("extras", {}).get("timeline_rebuild") and feedback and job.timeline
                     and type(feedback.get("timeline")) is dict and job.timeline.model_dump() != feedback["timeline"]):
                 # SQL may commit before either artifact write; restore both outputs before continuing.
                 director_plan = load_current_director_plan(self.repo, job)
                 if not director_plan:
-                    raise ValueError("当前分镜缺少匹配的导演方案，不能用旧 timeline 冒充已审核设计")
+                    raise ValueError("当前分镜缺少匹配的摄影方案，不能用旧 timeline 冒充已审核设计")
                 self.service.write_json(job, "director-plan.json", director_plan, "director_plan")
                 self.service.write_json(job, "storyboard.json", job.timeline.model_dump(), "storyboard")
                 self.service.write_json(job, "timeline.json", job.timeline.model_dump(), "timeline")
@@ -498,7 +508,7 @@ class DirectorNode:
             timeline = self.plan(job, audio, Alignment.model_validate(state["alignment"]), state["duration_seconds"],
                                  state.get("research", {}), state=state)
             if self._last_director_plan and self._last_director_plan.get("origin") == "model_missing_review_plan":
-                raise ValueError("导演模型必须输出 segment_performances 和 shot_reviews，不能只返回镜头后直接进入剪辑")
+                raise ValueError("摄影模型必须输出 segment_performances 和 shot_reviews，不能只返回镜头后直接进入剪辑")
             director_plan = self._last_director_plan or _performance_payload(
                 "fallback", job, timeline, Alignment.model_validate(state["alignment"]), review_mode="per_shot_stills")
             if feedback and type(feedback.get("timeline")) is dict:
@@ -540,11 +550,6 @@ class DirectorNode:
     def _needs_voice_revision(note: str) -> bool:
         return needs_voice_revision(note)
 
-    @classmethod
-    def _needs_voice_or_script(cls, note: str) -> bool:
-        """Compatibility for callers that only need a combined classification."""
-        return cls._needs_script_revision(note) or cls._needs_voice_revision(note)
-
     def next_route(self, state: VideoState) -> str:
         action = state.get("action")
         if action == "storyboard":
@@ -581,16 +586,16 @@ class DirectorNode:
         review_upgrade = bool(previous_plan and previous_plan.get("review_mode") != "per_shot_stills"
                               and job.timeline.presentation != "component_sample")
         if review_upgrade and not model_available:
-            raise CapabilityMissing("旧导演方案需要启用导演模型，为每个镜头重新设计组件理由和审核代表帧",
+            raise CapabilityMissing("旧摄影方案需要启用摄影模型，为每个镜头重新设计组件理由和审核代表帧",
                                     ["role_models", "director_plan"])
         if not rebuilding and feedback and job.timeline and type(feedback.get("timeline")) is dict and job.timeline.model_dump() != feedback["timeline"]:
             self._last_director_plan = load_current_director_plan(self.repo, job) or _performance_payload(
                 "existing_timeline", job, job.timeline, alignment, review_mode="per_shot_stills")
             return job.timeline
         if rebuilding and not model_available:
-            raise CapabilityMissing("重做画面需要启用导演模型重新选择素材和编排镜头，不能直接复用旧分镜", ["role_models", "timeline"])
+            raise CapabilityMissing("重做画面需要启用摄影模型重新选择素材和编排镜头，不能直接复用旧分镜", ["role_models", "timeline"])
         if feedback and not model_available:
-            raise CapabilityMissing("人工返工需要导演模型读取审核意见并重新规划镜头；请启用导演模型或提供新的人工分镜", ["role_models", "timeline"])
+            raise CapabilityMissing("人工返工需要摄影模型读取审核意见并重新规划镜头；请启用摄影模型或提供新的人工分镜", ["role_models", "timeline"])
         if job.timeline and not feedback and not rebuilding:
             validate_timeline(job.timeline, job, asset_metadata)
             expected = [(item.text, item.start_ms, item.end_ms) for item in alignment.segments]
@@ -614,7 +619,7 @@ class DirectorNode:
         if total < 15:
             raise ValueError("视频时长过短，镜头至少需要 15 帧")
         # 段落仅提供候选切点。短段落合入相邻基线镜头，实际字幕全部保留；
-        # 导演可以基于这份提示自由拆镜、合镜或跨段落安排新的切点。
+        # 摄影可以基于这份提示自由拆镜、合镜或跨段落安排新的切点。
         cut_indices, cut_frames = [0], [0]
         for index, segment in enumerate(job.script.segments[1:], 1):
             boundary = starts[segment.segment_id]
@@ -683,7 +688,7 @@ class DirectorNode:
             schema["$defs"]["ComponentSetDesign"]["properties"]["set_id"]["enum"] = list(
                 allowed_component_set_templates(job.brief.usage)
             )
-            # 实测基线只作为本次导演输入；模型输出校验通过前不写入共享 state。
+            # 实测基线只作为本次摄影输入；模型输出校验通过前不写入共享 state。
             reviewed_timeline = feedback.get("timeline") if feedback and type(feedback.get("timeline")) is dict else None
             if review_upgrade and reviewed_timeline is None:
                 reviewed_timeline = job.timeline.model_dump()

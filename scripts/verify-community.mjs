@@ -18,11 +18,28 @@ if (expected.length !== expectedPresetCount || new Set(expected.map((c) => c.com
   throw new Error(`Expected ${expectedPresetCount} unique source compositions.`);
 }
 const manifest = JSON.parse(await readFile(path.join(root, 'licenses/community/video-talkcraft/source-manifest.json'), 'utf8'));
+const normalizeLineEndings = (bytes) => Buffer.from(bytes.toString('utf8').replace(/\r\n/g, '\n'));
+let locallyAdapted = 0;
+let crlfNormalized = 0;
 for (const file of manifest.files) {
-  const hash = createHash('sha256').update(await readFile(path.join(root, file.localPath))).digest('hex');
+  const bytes = await readFile(path.join(root, file.localPath));
+  if (file.local_sha256) {
+    // Same contract as check-component-paths.mjs: locally adapted files are
+    // verified against their adaptation hash, not the upstream original.
+    if (file.local_sha256_normalization !== undefined && file.local_sha256_normalization !== 'lf') {
+      throw new Error(`${file.slug}: unsupported local hash normalization`);
+    }
+    const hash = createHash('sha256').update(file.local_sha256_normalization === 'lf' ? normalizeLineEndings(bytes) : bytes).digest('hex');
+    if (hash !== file.local_sha256) throw new Error(`Locally adapted source modified: ${file.slug}`);
+    locallyAdapted++;
+    continue;
+  }
+  const hash = createHash('sha256').update(normalizeLineEndings(bytes)).digest('hex');
   if (hash !== file.sha256) throw new Error(`Original source modified: ${file.slug}`);
+  if (createHash('sha256').update(bytes).digest('hex') !== file.sha256) crlfNormalized++;
 }
-console.log(`108 original source hashes match. Bundling ${expectedPresetCount} original and ${expectedPresetCount} native portrait previews...`);
+console.log(`108 Talkcraft sources verified (${locallyAdapted} locally adapted, ${crlfNormalized} CRLF-normalized). `
+  + `Bundling ${expectedPresetCount} original and ${expectedPresetCount} native portrait previews...`);
 const registrationSource = await readFile(path.join(root, 'src/components/community/CommunityRoot.tsx'), 'utf8');
 if (/VerticalStage|sourceWidth|sourceHeight/.test(registrationSource)) {
   throw new Error('Portrait registrations must use native layouts, not the old landscape wrapper.');

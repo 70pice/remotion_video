@@ -92,41 +92,28 @@ class VideoState(TypedDict, total=False):
     stage: str  # 当前制作阶段，如 materials、script、voice、director、render、review。
     message: str  # 当前进展、暂停原因或执行结果的说明，供工作台展示。
     progress: float | None  # 当前进度，取值 0～1；无法确定进度时为 None。
-    created_at: str  # 任务创建时间，使用 ISO 8601 字符串。
-    updated_at: str  # 任务最近一次持久化更新时间，使用 ISO 8601 字符串。
     brief: dict[str, Any]  # 制作要求：主题、创作方向、历史原始文案、受众、平台、尺寸、用途和来源链接。
-    director_requirements: dict[str, Any] | None  # 导演阶段的附加硬约束，如库组件最低使用数量。
-    script: dict[str, Any] | None  # 当前完整口播稿及段落的画面文字、来源和素材引用；未生成时为 None。
-    script_discussion: dict[str, Any] | None  # 编剧与文案审查的每轮稿件、意见、回应及讨论状态。
+    director_requirements: dict[str, Any] | None  # 摄影阶段的附加硬约束，如库组件最低使用数量。
+    script: dict[str, Any] | None  # 当前完整口播稿及段落的画面文字、来源、素材引用；未生成时为 None。
     timeline: dict[str, Any] | None  # 可执行分镜：镜头、帧区间、字幕、音频路径及 Remotion 参数。
     assets: list[dict[str, Any]]  # 真实素材清单，包含用途、来源、许可、hash 和文件引用。
     artifacts: list[dict[str, Any]]  # 当前任务保留的产物清单，如研究记录、音频、分镜、成片和审核报告。
     review: dict[str, Any] | None  # 成片检查结果、阻塞项、内容指纹及最终人工确认状态。
-    pending_input: dict[str, Any] | None  # 数据库中的当前人工待办，包含问题、目标阶段和回复绑定 token。
     latest_event_id: int  # 数据库事件水位；比 checkpoint 更新时优先恢复已提交结果，避免旧数据覆盖。
 
     # 各阶段的结果与回执，媒体文件本身通过素材或产物引用传递。
     audio_asset_id: str | None  # 当前选用的音频素材 ID，对应 assets 中的一项。
-    audio: dict[str, Any] | None  # 当前音频素材的完整描述及受控访问 URL，不包含音频字节。
     alignment: dict[str, Any] | None  # 与音频 hash 绑定的字幕时间戳、段落对应关系及核验信息。
-    duration_seconds: float | None  # 当前音频的实测时长，单位秒，供导演计算镜头帧数。
+    duration_seconds: float | None  # 当前音频的实测时长，单位秒，供摄影计算镜头帧数。
     asset_metadata: dict[str, dict[str, Any]]  # 按素材 ID 索引的附加信息，如来源、音频时长和对齐记录。
-    artifact_metadata: dict[str, dict[str, Any]]  # 按产物 ID 索引的附加信息，如渲染时绑定的输入指纹。
     research: dict[str, Any]  # 素材节点最终研究产物：检索歧义、来源正文、图片/截图引用及资料局限；不含工具调用过程。
-    audio_report: dict[str, Any] | None  # 配音核验报告，记录音频 hash、实测时长、来源及对齐核验状态。
-    voice_guidance: dict[str, Any] | None  # 配音角色模型给出的发音、停顿、情绪建议和预检问题。
-    director_plan: dict[str, Any] | None  # 导演的逐段表演、镜头选择、逐镜代表帧设计；旧任务可含Demo区间。
-    director_shot_review: dict[str, Any] | None  # 当前设计绑定的完整逐镜审核包，每镜真实PNG与组件/套清单。
-    editing_guidance: dict[str, Any] | None  # 剪辑角色模型给出的节奏、布局建议和渲染前预检问题。
-    render: dict[str, Any]  # 按产物类型索引的预览、成片、封面、字幕及发布包引用。
+    director_plan: dict[str, Any] | None  # 摄影的逐段表演、镜头选择、逐镜代表帧设计；旧任务可含Demo区间。
     human_reviews: list[dict[str, Any]]  # 累计人工回复及阶段、成片核验回执，保留意见和产物关联。
-    metrics: dict[str, int]  # 当前版本的预算计数，如模型调用次数、搜索次数和配音字符数。
     human_decision: dict[str, Any] | None  # 最近一次人工回复，包含 confirm/revise/cancel、说明及待办绑定信息。
     stage_review_pending: dict[str, Any] | None  # 阶段人工审核重试时保留的待办，延续原内容和审核要求。
     human_review_rounds: dict[str, int]  # 按人工审核节点名记录已处理轮次，用于生成不同轮次的待办身份。
     pending_snapshot: dict[str, Any] | None  # checkpoint 中的原始待办快照，防止旧回复被用于新的待办。
     settings: dict[str, Any]  # 模型和制作配置的公开快照；不含密钥，真实调用仍读取当时的配置。
-    discussion_policy: dict[str, Any]  # 本次执行冻结的讨论轮次及执行/版本身份；旧任务仍可读取 enabled 字段。
     extras: Annotated[dict[str, Any], merge_extras]  # 自定义最终 JSON；浅合并，遗漏保留、None 留值，工具历史字段清除。
 
 
@@ -174,20 +161,13 @@ def clean_handoff(state: VideoState) -> VideoState:
     asset_fields = {"origin", "source_url", "image_url", "description", "width", "height", "collection_key",
                     "duration_seconds", "alignment", "script_fingerprint", "voice_fingerprint",
                     "voice_model", "voice_style", "voice_speech_rate", "renderable"}
-    artifact_fields = {"source_url", "dependency_fingerprint", "director_plan_sha256", "frame_range",
-                       "review_mode", "shot_id", "review_frame", "width", "height"}
-    for name, allowed in (("asset_metadata", asset_fields), ("artifact_metadata", artifact_fields)):
-        if name in result:
-            result[name] = {identifier: {key: value for key, value in metadata.items() if key in allowed}
-                            for identifier, metadata in result[name].items()}
+    if "asset_metadata" in result:
+        result["asset_metadata"] = {identifier: {key: value for key, value in metadata.items() if key in asset_fields}
+                                    for identifier, metadata in result["asset_metadata"].items()}
     if "artifacts" in result:
-        hidden = {item["artifact_id"] for item in result["artifacts"]
-                  if item.get("kind") in {"material_discovery", "material_tool_audit", "material_skill_manifest"}}
         result["artifacts"] = [item for item in result["artifacts"]
-                               if item.get("kind") not in {"material_discovery", "material_tool_audit", "material_skill_manifest"}]
-        if "artifact_metadata" in result:
-            result["artifact_metadata"] = {key: value for key, value in result["artifact_metadata"].items()
-                                           if key not in hidden}
+                               if item.get("kind") not in {"material_discovery", "material_tool_audit",
+                                                           "material_skill_manifest", "writer_tool_audit"}]
     return VideoState(**clear_tool_history(result))
 
 
@@ -200,17 +180,13 @@ def job_context(job: Job) -> VideoState:
         stage=job.stage,
         message=job.message,
         progress=job.progress,
-        created_at=job.created_at,
-        updated_at=job.updated_at,
         brief=job.brief.model_dump(),
         director_requirements=job.director_requirements.model_dump() if job.director_requirements else None,
         script=job.script.model_dump() if job.script else None,
-        script_discussion=job.script_discussion.model_dump() if job.script_discussion else None,
         timeline=job.timeline.model_dump() if job.timeline else None,
         assets=[item.model_dump() for item in job.assets],
         artifacts=[item.model_dump() for item in job.artifacts],
         review=job.review.model_dump() if job.review else None,
-        pending_input=job.pending_input,
         latest_event_id=job.latest_event_id,
     )
 

@@ -48,6 +48,8 @@ class ScriptSegment(Contract):
     screen_text: str = Field(default="", max_length=2000)
     source_refs: list[str] = Field(default_factory=list, max_length=30)
     asset_ids: list[str] = Field(default_factory=list, max_length=30)
+    # 编剧给素材节点的画面需求单：这一段适合什么真实画面/截图/视频及其来源线索。
+    visual_need: str = Field(default="", max_length=500)
 
 
 class Script(Contract):
@@ -742,7 +744,7 @@ B_RICH_ONLY_SET_IDS = B_RICH_SET_IDS - B_BASIC_SET_IDS
 MATERIAL_RICH_RULES: dict[str, dict[str, object]] = {
     "A07": {"items": 3, "supporting": 3},
     "A08": {"items": 3, "supporting": 3},
-    "A09": {"items": 3, "supporting": 3, "metric": "items_count", "focus_items": True},
+    "A09": {"items": 3, "supporting": 3, "metric": "items_count"},
     "A10": {"items": 3, "numeric": 3, "metric": "numeric_sum"},
     "A11": {"items": 3, "supporting": 3},
     "A12": {"items": 3, "supporting": 3},
@@ -1016,7 +1018,7 @@ class ResumeRequest(Contract):
         if self.stop_after is not None and self.decision != "confirm":
             raise ValueError("只跑配音需确认当前文案或继续配音中断")
         if self.director_requirements is not None and self.decision != "revise":
-            raise ValueError("导演制作要求只能随导演返工提交")
+            raise ValueError("摄影制作要求只能随摄影返工提交")
         return self
 
 
@@ -1160,6 +1162,7 @@ class SettingsPatch(Contract):
     role_models: dict[RoleId, RoleModelConfig] | None = None
     script_discussion_enabled: bool | None = None  # 兼容旧客户端；执行时始终开启讨论。
     script_discussion_max_rounds: int | None = Field(default=None, ge=1, le=5)
+    feishu_folder_token: str | None = Field(default=None, max_length=200)  # 每个视频的飞书表格建在该文件夹下
     ark_api_key: str | None = None
     zhipu_api_key: str | None = None
     search_provider: Literal["none", "opencli_google", "tavily", "google_cse"] | None = None

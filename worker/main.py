@@ -23,8 +23,14 @@ def main():
         return
     print("VideoAgents worker ready", flush=True)
     while not stop.is_set():
-        if not worker.once():
-            stop.wait(1)
+        try:
+            if not worker.once():
+                stop.wait(1)
+        except Exception as exc:
+            # Transient storage errors (e.g. a locked sqlite lease) must not
+            # kill the only worker; there is no supervisor to restart it.
+            print(f"worker loop error: {type(exc).__name__}: {exc}", flush=True)
+            stop.wait(5)
 
 
 if __name__ == "__main__":

@@ -202,6 +202,7 @@ def test_llm_rejection_retry_is_explicit_and_unknown_stays_blocked(tmp_path, mon
 @pytest.mark.parametrize("supplied_urls", [[], ["https://example.com/source"]])
 def test_unknown_model_cannot_bypass_barrier_by_refreshing_source_receipts(tmp_path, monkeypatch, supplied_urls):
     from videoagents.contracts import Brief
+    from videoagents.nodes.common import agent_state
     from videoagents.nodes.materials import MaterialsNode
     from videoagents.nodes.screenwriter import ScreenwriterNode
     from videoagents.providers.cli_runner import CliFailure
@@ -232,7 +233,7 @@ def test_unknown_model_cannot_bypass_barrier_by_refreshing_source_receipts(tmp_p
     materials.collect(job)
     writer = ScreenwriterNode(repo, service)
     with pytest.raises(CapabilityMissing) as first_failure:
-        writer.write_script(job)
+        writer.write(job, agent_state(repo, repo.get_job(job.job_id)))
     assert first_failure.value.operation_status == "UNKNOWN"
     first = repo.get_job(job.job_id)
     source = next(item for item in first.artifacts if item.kind == "source")
@@ -240,7 +241,7 @@ def test_unknown_model_cannot_bypass_barrier_by_refreshing_source_receipts(tmp_p
     before = original_path.read_bytes()
     with pytest.raises(CapabilityMissing):
         materials.collect(job)
-        writer.write_script(job)  # Deliberately replay the original stale snapshot.
+        writer.write(job, agent_state(repo, repo.get_job(job.job_id)))  # Replay the stale snapshot.
     assert len(reads) == 1 and len(calls) == 1
     assert original_path.read_bytes() == before
     posted_context = json.loads(calls[0][3].split("上下文：\n", 1)[1])

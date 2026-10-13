@@ -385,14 +385,14 @@ def test_director_requirements_persist_only_through_real_director_revise_gate(tm
 
     def answer_confirm_with_requirements(pending):
         return {
-            "decision": "confirm", "note": "UNIT：确认但错误携带导演要求。",
+            "decision": "confirm", "note": "UNIT：确认但错误携带摄影要求。",
             "pending_token": pending["pending_token"],
             "director_requirements": {"min_library_components": 60},
         }
 
     monkeypatch.setattr("videoagents.nodes.human_review.interrupt", answer_confirm_with_requirements)
     state = {"job_id": job.job_id, "revision": job.revision, "route": "director_human_gate", "thread_id": "UNIT-director-gate"}
-    with pytest.raises(Conflict, match="只能随导演画面返工提交"):
+    with pytest.raises(Conflict, match="只能随摄影画面返工提交"):
         HumanReviewNode(repo, node_name="director_human_gate", stage="director", revise_route="director")(state)
     assert repo.get_job(job.job_id).director_requirements is None
 

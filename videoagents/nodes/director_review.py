@@ -46,21 +46,21 @@ def checked_artifact(repository: Repository, job: Job, artifact: Artifact):
     try:
         path, registered, owner = repository.artifact_path(artifact.artifact_id)
         if owner != job.job_id or registered != artifact or sha256(path) != artifact.sha256:
-            raise Conflict("导演待审产物已改变，请重新生成并审核")
+            raise Conflict("摄影待审产物已改变，请重新生成并审核")
         return path
     except (NotFound, OSError) as exc:
-        raise Conflict("导演待审产物缺失，请重新生成并审核") from exc
+        raise Conflict("摄影待审产物缺失，请重新生成并审核") from exc
 
 
 def current_plan_artifact(repository: Repository, job: Job, *, validate_components: bool = True) -> tuple[Artifact, dict]:
     artifact = next((item for item in reversed(job.artifacts)
                      if item.kind == "director_plan" and item.revision == job.revision), None)
     if artifact is None:
-        raise ValueError("缺少当前导演镜头设计，请返回导演节点")
+        raise ValueError("缺少当前摄影镜头设计，请返回摄影节点")
     checked_artifact(repository, job, artifact)
     plan = load_current_director_plan(repository, job, validate_components=validate_components)
     if plan is None or plan.get("job_id") != job.job_id or plan.get("revision") != job.revision:
-        raise ValueError("导演方案与当前任务或分镜不一致，请重新设计")
+        raise ValueError("摄影方案与当前任务或分镜不一致，请重新设计")
     if plan.get("review_mode") == SHOT_REVIEW_MODE:
         return artifact, plan
     demo = plan.get("demo", {})
@@ -68,25 +68,25 @@ def current_plan_artifact(repository: Repository, job: Job, *, validate_componen
     if (not job.timeline or type(start) is not int or type(end) is not int
             or not 0 <= start < end <= job.timeline.duration_in_frames
             or end - start > 30 * job.timeline.fps):
-        raise ValueError("导演Demo必须是当前时间轴内最长30秒的连续区间")
+        raise ValueError("摄影Demo必须是当前时间轴内最长30秒的连续区间")
     return artifact, plan
 
 
 def current_demo_artifact(repository: Repository, job: Job, *, validate_components: bool = True) -> Artifact:
     plan_artifact, plan = current_plan_artifact(repository, job, validate_components=validate_components)
     if plan.get("review_mode") == SHOT_REVIEW_MODE:
-        raise ValueError("当前导演设计需要逐镜审核包，不能使用旧的30秒Demo")
+        raise ValueError("当前摄影设计需要逐镜审核包，不能使用旧的30秒Demo")
     preview = next((item for item in reversed(job.artifacts)
                     if item.kind == "preview" and item.revision == job.revision), None)
     if preview is None:
-        raise ValueError("当前导演方案尚未生成真实Demo")
+        raise ValueError("当前摄影方案尚未生成真实Demo")
     checked_artifact(repository, job, preview)
     metadata = repository.artifact_metadata(preview.artifact_id)
     demo = plan["demo"]
     if (metadata.get("dependency_fingerprint") != dependency_fingerprint(job)
             or metadata.get("director_plan_sha256") != plan_artifact.sha256
             or metadata.get("frame_range") != [demo["start_frame"], demo["end_frame"]]):
-        raise ValueError("Demo与当前导演方案、素材或时间区间不一致，请重新生成")
+        raise ValueError("Demo与当前摄影方案、素材或时间区间不一致，请重新生成")
     return preview
 
 
@@ -94,11 +94,11 @@ def current_shot_review_artifact(repository: Repository, job: Job, *, validate_c
                                  ) -> tuple[Artifact, dict]:
     plan_artifact, plan = current_plan_artifact(repository, job, validate_components=validate_components)
     if plan.get("review_mode") != SHOT_REVIEW_MODE:
-        raise ValueError("当前导演设计使用旧版Demo审核")
+        raise ValueError("当前摄影设计使用旧版Demo审核")
     artifact = next((item for item in reversed(job.artifacts)
                      if item.kind == "director_shot_review" and item.revision == job.revision), None)
     if artifact is None:
-        raise ValueError("当前导演设计缺少完整逐镜审核包")
+        raise ValueError("当前摄影设计缺少完整逐镜审核包")
     path = checked_artifact(repository, job, artifact)
     try:
         manifest = DirectorShotReviewManifest.model_validate_json(path.read_text(encoding="utf-8"))
@@ -113,7 +113,7 @@ def current_shot_review_artifact(repository: Repository, job: Job, *, validate_c
                 "width": job.timeline.width, "height": job.timeline.height, "fps": job.timeline.fps,
                 "duration_in_frames": job.timeline.duration_in_frames}
     if any(payload.get(key) != value for key, value in expected.items()):
-        raise ValueError("逐镜审核包与当前任务、导演设计或时间轴不一致")
+        raise ValueError("逐镜审核包与当前任务、摄影设计或时间轴不一致")
     metadata = repository.artifact_metadata(artifact.artifact_id)
     if (metadata.get("dependency_fingerprint") != expected["dependency_fingerprint"]
             or metadata.get("director_plan_sha256") != plan_artifact.sha256
@@ -137,7 +137,7 @@ def current_shot_review_artifact(repository: Repository, job: Job, *, validate_c
                           "shot_id": shot.shot_id, "review_frame": spec["review_frame"],
                           "width": manifest.width, "height": manifest.height}
         if any(image_metadata.get(key) != value for key, value in image_expected.items()):
-            raise ValueError("逐镜审核图片的登记信息与导演设计不一致")
+            raise ValueError("逐镜审核图片的登记信息与摄影设计不一致")
     return artifact, payload
 
 
@@ -159,9 +159,9 @@ def director_review_fingerprint(repository: Repository, job: Job, *, validate_co
             path, registered, owner = repository.artifact_path(asset.artifact_id)
             if (owner != job.job_id or registered.sha256 != asset.sha256
                     or sha256(path) != asset.sha256):
-                raise Conflict("导演待审素材已改变，请重新生成并审核")
+                raise Conflict("摄影待审素材已改变，请重新生成并审核")
         except (NotFound, OSError) as exc:
-            raise Conflict("导演待审素材缺失，请重新生成并审核") from exc
+            raise Conflict("摄影待审素材缺失，请重新生成并审核") from exc
     # Downstream editing advice and final outputs must not invalidate replay.
     job_payload = job.model_dump(include={"revision", "brief", "script", "timeline", "assets"})
     if job.director_requirements is not None:

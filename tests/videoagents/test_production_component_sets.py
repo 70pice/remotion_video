@@ -592,8 +592,8 @@ def test_director_plan_preserves_selected_component_set_and_expands_parts(tmp_pa
                 "start_frame": 0,
                 "end_frame": frames,
                 "component_id": _main_component("B02"),
-                "title": "组件套导演选择",
-                "body": "导演模型选择整套组件，音频和字幕由程序保留。",
+                "title": "组件套摄影选择",
+                "body": "摄影模型选择整套组件，音频和字幕由程序保留。",
                 "set_design": {"set_id": "B02", "content": _content("B02", source_refs=["https://example.test/muse"])},
             }],
             "segment_performances": [{

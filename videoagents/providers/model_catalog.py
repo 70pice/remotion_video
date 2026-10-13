@@ -14,6 +14,7 @@ from pathlib import Path
 
 from videoagents.contracts import ModelCatalog, ModelChoice
 from videoagents.contracts.models import ModelProvider
+from videoagents.default_config import DEFAULT_SCRIPT_MODEL
 from videoagents.providers.cli_runner import executable_prefix
 
 MAX_CACHE_BYTES = 4 * 1024 * 1024
@@ -114,7 +115,7 @@ class ModelCatalogService:
             return ModelCatalog(
                 provider=provider, status="ready", fetched_at="",
                 models=[ModelChoice(
-                    id="glm-5.3[1m]", display_name="GLM-5.3 · 1M · max",
+                    id=DEFAULT_SCRIPT_MODEL, display_name="GLM-5.3 · 1M · max",
                     description="智谱 Coding Plan：1,000,000 tokens 上下文，最高 max 推理；需配置智谱 API Key。",
                     is_default=True,
                 )],

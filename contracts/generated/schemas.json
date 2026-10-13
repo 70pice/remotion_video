@@ -1488,6 +1488,12 @@
           "maxItems": 30,
           "title": "Asset Ids",
           "type": "array"
+        },
+        "visual_need": {
+          "default": "",
+          "maxLength": 500,
+          "title": "Visual Need",
+          "type": "string"
         }
       },
       "required": [
@@ -2898,6 +2904,19 @@
           ],
           "default": null,
           "title": "Script Discussion Max Rounds"
+        },
+        "feishu_folder_token": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Feishu Folder Token"
         },
         "ark_api_key": {
           "anyOf": [

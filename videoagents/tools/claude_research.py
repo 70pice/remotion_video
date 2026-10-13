@@ -48,12 +48,19 @@ TOOLS = [
 
 
 class ResearchBridge:
-    def __init__(self, workspace: Path, runtime: Path, job_id: str, revision: int):
+    def __init__(self, workspace: Path, runtime: Path, job_id: str, revision: int,
+                 allowed_tools: set[str] | None = None):
         if not re.fullmatch(r"[0-9a-f]{32}", job_id) or revision < 1:
             raise ValueError("invalid_job_identity")
         self.runtime = runtime.absolute()
         self.workspace = workspace.absolute()
         self.job_id, self.revision = job_id, revision
+        # Roles get different toolsets: the writer reads (skill/search/source),
+        # the materials node also downloads visuals and captures screenshots.
+        self.tools = [item for item in TOOLS if allowed_tools is None or item["name"] in allowed_tools]
+        if not self.tools:
+            raise ValueError("no_research_tools_enabled")
+        self.tool_names = {item["name"] for item in self.tools}
         expected = self.runtime / "jobs" / job_id / "revisions" / str(revision) / "skills-research"
         if self.workspace != expected or not (self.runtime / "application.sqlite").is_file():
             raise ValueError("invalid_research_workspace")
@@ -102,7 +109,7 @@ class ResearchBridge:
 
     def call(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         self.active()
-        tool = next((item for item in TOOLS if item["name"] == name), None)
+        tool = next((item for item in self.tools if item["name"] == name), None)
         if not tool or type(arguments) is not dict:
             raise ValueError("unknown_research_tool")
         schema = tool["inputSchema"]
@@ -286,15 +293,19 @@ def serve(bridge: ResearchBridge, incoming: BinaryIO, outgoing: TextIO) -> None:
                 elif method == "ping":
                     result = {}
                 elif method == "tools/list":
-                    result = {"tools": TOOLS}
+                    result = {"tools": bridge.tools}
                 elif method == "tools/call":
                     try:
                         # Existing backends may log; stdout belongs exclusively to MCP.
                         with contextlib.redirect_stdout(io.StringIO()):
                             payload = bridge.call(params.get("name"), params.get("arguments", {}))
                         result = {"content": [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}]}
-                    except Exception:
-                        result = {"isError": True, "content": [{"type": "text", "text": "Research tool failed; check source access, settings, budget and active revision."}]}
+                    except Exception as exc:
+                        # No traceback (it may echo fetched content), but the
+                        # class name lets the model tell a budget stop from a
+                        # bad URL from an internal bug instead of blind retries.
+                        result = {"isError": True, "content": [{"type": "text", "text":
+                            f"Research tool failed ({type(exc).__name__}); check source access, settings, budget and active revision."}]}
                 else:
                     response = _error(identity, -32601, "Method not found")
                 if result is not None:
@@ -309,10 +320,12 @@ def main() -> int:
     parser.add_argument("--runtime", type=Path, required=True)
     parser.add_argument("--job-id", required=True)
     parser.add_argument("--revision", type=int, required=True)
+    parser.add_argument("--tools", default="", help="逗号分隔的可用工具白名单;留空表示全部")
     args = parser.parse_args()
+    allowed = {name.strip() for name in args.tools.split(",") if name.strip()} or None
     try:
         sys.stdout.reconfigure(encoding="utf-8", newline="\n")
-        bridge = ResearchBridge(args.workspace, args.runtime, args.job_id, args.revision)
+        bridge = ResearchBridge(args.workspace, args.runtime, args.job_id, args.revision, allowed_tools=allowed)
         serve(bridge, sys.stdin.buffer, sys.stdout)
     except Exception:
         print("Research bridge could not start or continue.", file=sys.stderr)

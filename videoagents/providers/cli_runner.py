@@ -13,12 +13,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from videoagents.default_config import DEFAULT_SCRIPT_MODEL as GLM_MODEL
 from worker.process_manager import terminate_tree
 from worker.windows_job import WindowsJob
 
 MAX_OUTPUT_BYTES = 4 * 1024 * 1024
 MAX_AUTH_BYTES = 1024 * 1024
-GLM_MODEL = "glm-5.3[1m]"
+MAX_STDERR_TAIL_BYTES = 8 * 1024
 GLM_CONTEXT_TOKENS = 1_000_000
 GLM_CAPABILITIES = "effort,max_effort,thinking,adaptive_thinking"
 CLAUDE_RESEARCH_TOOLS = {
@@ -225,7 +226,7 @@ def _cli_environment(provider: str, research: bool, control: Path,
             if model.lower().removesuffix("[1m]") != "glm-5.3" or ark_api_key:
                 raise CliFailure("invalid_zhipu_model_route", submitted=False)
             env["ANTHROPIC_AUTH_TOKEN"] = zhipu_api_key
-            env["ANTHROPIC_BASE_URL"] = "https://open.bigmodel.cn/api/anthropic"
+            env["ANTHROPIC_BASE_URL"] = os.getenv("VIDEOAGENTS_ZHIPU_BASE_URL", "https://open.bigmodel.cn/api/anthropic")
             env.pop("CLAUDE_CODE_DISABLE_1M_CONTEXT", None)
             env["ANTHROPIC_MODEL"] = GLM_MODEL
             env["CLAUDE_CODE_SUBAGENT_MODEL"] = GLM_MODEL
@@ -451,11 +452,15 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
         mcp_config = None
         if research and provider == "claude_code_cli":
             mcp_config = control / "research-mcp.json"
-            research_server = {"command": sys.executable, "args": [
+            server_args = [
                 "-m", "videoagents.tools.claude_research", "--workspace", str(directory),
                 "--runtime", str(research_context["runtime"]), "--job-id", research_context["job_id"],
                 "--revision", str(research_context["revision"]),
-            ], "env": {"PYTHONPATH": str(Path(__file__).resolve().parents[2]),
+            ]
+            if research_context.get("tools"):
+                server_args.extend(["--tools", ",".join(research_context["tools"])])
+            research_server = {"command": sys.executable, "args": server_args,
+                "env": {"PYTHONPATH": str(Path(__file__).resolve().parents[2]),
                        "ANTHROPIC_AUTH_TOKEN": "", "ANTHROPIC_API_KEY": "", "CLAUDE_CODE_OAUTH_TOKEN": ""}}
             mcp_config.write_text(json.dumps({"mcpServers": {"videoagents_research": research_server}}), encoding="utf-8")
             transport_prompt += ("\n本次只使用 videoagents_research MCP 工具读取技能、搜索公开资料并采集来源与画面。"
@@ -474,7 +479,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                     if cancelled():
                         raise CliFailure("cli_cancelled", submitted=False)
                     process = subprocess.Popen(args, cwd=directory, stdin=stream, stdout=subprocess.PIPE,
-                                               stderr=subprocess.DEVNULL, shell=False,
+                                               stderr=subprocess.PIPE, shell=False,
                                                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
                                                start_new_session=os.name != "nt",
                                                env=environment)
@@ -487,6 +492,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
             raise
         lines: queue.Queue = queue.Queue(maxsize=64)
         stopped = threading.Event()
+        stderr_tail: list[bytes] = []
         def enqueue(line):
             while not stopped.is_set():
                 try:
@@ -500,11 +506,26 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                     enqueue(line)
             finally:
                 enqueue(None)
+        def read_stderr():
+            # Keep only the last few KB: enough to diagnose a crash or rate
+            # limit, never enough to echo back fetched page content.
+            try:
+                while not stopped.is_set() and (chunk := process.stderr.readline(MAX_OUTPUT_BYTES + 1)):
+                    stderr_tail.append(chunk)
+                    if sum(len(item) for item in stderr_tail) > MAX_STDERR_TAIL_BYTES:
+                        del stderr_tail[:len(stderr_tail) // 2]
+            except (OSError, ValueError):
+                pass
+        def stderr_note() -> str:
+            text = b"".join(stderr_tail[-16:]).decode("utf-8", errors="replace").strip()
+            return ("; stderr: " + text[-1200:]) if text else ""
         reader = threading.Thread(target=read, daemon=True)
+        stderr_reader = threading.Thread(target=read_stderr, daemon=True)
         data, usage, output, size, completed, last_agent_message = None, None, [], 0, False, None
         try:
             job.assign(process)
             reader.start()
+            stderr_reader.start()
             deadline = time.monotonic() + timeout
             while True:
                 if cancelled():
@@ -543,25 +564,39 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 else:
                     output.append(decoded)
             remaining = max(0.01, deadline - time.monotonic())
-            if process.wait(timeout=remaining) != 0:
-                raise CliFailure("cli_nonzero_exit")
+            try:
+                exit_code = process.wait(timeout=remaining)
+            except subprocess.TimeoutExpired as exc:
+                # EOF right at the deadline is still a timeout, not bad output.
+                raise CliFailure("cli_timeout") from exc
+            if exit_code != 0:
+                raise CliFailure("cli_nonzero_exit" + stderr_note())
             if provider == "claude_code_cli" and not research:
                 return _claude_result("\n".join(output))
             if last_agent_message is not None:
                 data = _business_object(json.loads(last_agent_message))
             if not completed or data is None:
-                raise CliFailure("incomplete_cli_result")
+                raise CliFailure("incomplete_cli_result" + stderr_note())
             return CliResult(data, usage)
-        except CliFailure:
+        except CliFailure as exc:
+            if not exc.rejected and exc.submitted:
+                # Attach the captured tail for the operation ledger; the reason
+                # code alone cannot distinguish a crash from a rate limit.
+                note = stderr_note()
+                if note and "stderr" not in str(exc):
+                    exc.args = (str(exc) + note,)
             raise
         except Exception as exc:
-            raise CliFailure("invalid_cli_output") from exc
+            raise CliFailure("invalid_cli_output" + stderr_note()) from exc
         finally:
             stopped.set()
             terminate_tree(process)
             job.close()
             if reader.ident:
                 reader.join(timeout=1)
+            if stderr_reader.ident:
+                stderr_reader.join(timeout=1)
             process.stdout.close()
+            process.stderr.close()
             if audit_handle is not None:
                 audit_handle.close()

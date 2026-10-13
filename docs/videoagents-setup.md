@@ -2,9 +2,9 @@
 
 本项目新增完整 React 工作台，沿用已有 Remotion 组件库。Python 负责工作流、来源记录、音频与审核，Node 负责按冻结时间轴渲染。API 和 worker 分别运行，关闭浏览器不会终止后台任务。
 
-## 首次安装（Windows PowerShell）
+## 首次安装
 
-在 `D:\remotion_video` 执行：
+Windows（PowerShell，示例目录 `D:\remotion_video`）：
 
 ```powershell
 npm install
@@ -12,9 +12,16 @@ $env:UV_PROJECT_ENVIRONMENT = '.venv-videoagents'
 uv sync --python 3.12
 ```
 
-需要 Node 24、uv、Python 3.12、FFmpeg 和 FFprobe。本次开发使用独立 `.venv-videoagents`，原有 `.venv` 保留。依赖版本记录在 `package-lock.json` 和 `uv.lock`。
+macOS / Linux（bash，仓库根目录）：
 
-需要自动截取来源网页时，再安装 Playwright 浏览器：
+```bash
+npm install
+UV_PROJECT_ENVIRONMENT=.venv-videoagents uv sync --python 3.12
+```
+
+需要 Node 24、uv、Python 3.12、FFmpeg 和 FFprobe。FFmpeg/FFprobe 是必备依赖：macOS 用 `brew install ffmpeg` 安装；Windows 需自行安装并加入 PATH。也可用环境变量 `VIDEOAGENTS_FFMPEG` / `VIDEOAGENTS_FFPROBE` 显式指定路径；未指定时工作台在 PATH 上选择能正常解码标准音频的构建，不能解码的构建会被跳过。本次开发使用独立 `.venv-videoagents`，原有 `.venv` 保留。依赖版本记录在 `package-lock.json` 和 `uv.lock`。
+
+需要自动截取来源网页时，再安装 Playwright 浏览器（macOS / Linux 将 `Scripts/python.exe` 换成 `bin/python`）：
 
 ```powershell
 .venv-videoagents/Scripts/python.exe -m playwright install chromium
@@ -24,7 +31,9 @@ uv sync --python 3.12
 
 ## 启动与关闭
 
-```powershell
+`studio:dev` / `studio:start` / `studio:stop` 跨平台：Windows 调用 PowerShell 脚本，macOS / Linux 自动改用同名 bash 脚本，命令一致。
+
+```bash
 npm run studio:dev
 ```
 
@@ -32,14 +41,14 @@ npm run studio:dev
 
 构建并运行同源页面：
 
-```powershell
+```bash
 npm run web:build
 npm run studio:start
 ```
 
 打开 `http://127.0.0.1:8000`。切换开发/构建模式前，先关闭已有工作台：
 
-```powershell
+```bash
 npm run studio:stop
 ```
 
@@ -47,12 +56,12 @@ npm run studio:stop
 
 ## 自动生产
 
-1. 在「设置」分别配置素材、编剧、文案审查、配音、导演和剪辑的 CLI 提供方、模型名称和超时，并启用需要的角色。审核模型配置仅保留给历史记录或自行编排，新生产图不调用它。当前仅支持 Codex CLI 与 Claude Code CLI；模型留空使用对应 CLI 默认模型。素材默认选择「Codex 技能研究」，通过已安装技能检索并保存真实素材；Claude Code 或原有采集方式请选择「固定检索工具」，可使用 OpenCLI Google、Tavily 或已有 Google CSE。平台和预算见 [素材节点与完整平台目录](videoagents-materials.md)，安装清单和当前可用条件见 [研究技能环境](videoagents-research-skills.md)。
+1. 在「设置」分别配置素材、编剧、文案审查、配音、导演和剪辑的 CLI 提供方、模型名称和超时，并启用需要的角色。审核模型配置仅保留给历史记录或自行编排，新生产图不调用它。当前仅支持 Codex CLI 与 Claude Code CLI；模型留空使用对应 CLI 默认模型。素材研究默认使用 Claude Code CLI 及其 `videoagents_research` MCP 检索工具（需先配置智谱 Coding Plan API Key），也可切换为 Codex CLI 技能研究；两条路径共用 OpenCLI Google、Tavily 或 Google CSE 的搜索配置与预算。平台和预算见 [素材节点与完整平台目录](videoagents-materials.md)，安装清单和当前可用条件见 [研究技能环境](videoagents-research-skills.md)。
 2. 配置字节配音：按新版 SOP 选择「字节 WebSocket 双向流式」，填写声音 ID、资源 ID 和 API Key。声音复刻 2.0 使用 `seed-icl-2.0`，语音合成模型默认 `seed-tts-2.0-expressive` 并附带短视频讲述风格；需要稳定但不接受情绪指导的普通合成时，可改用 `seed-tts-2.0-standard`，见 [配音表现力设置](videoagents-voice-performance.md)。资源及音色权限须由实际账号验证。旧 HTTP 接口仍可选择，兼容 API Key 或 App ID + Access Token。
 3. 创建任务，输入主题或文案，设定受众、用途、画幅、帧率和来源链接。
-4. 执行生产，按素材研究 → 编剧及可选文案讨论 → 文案人工确认 → 配音 → 导演 → 渲染推进。「素材研究」页签显示来源快照、图片与截图、检索方式及失败项。缺服务、缺授权记录或缺真实时间戳时，会显示待补充信息。
+4. 执行生产，按素材研究 → 编剧及可选文案讨论 → 文案人工确认 → 配音 → 导演及逐镜 PNG 人工审核 → 渲染推进。「素材研究」页签显示来源快照、图片与截图、检索方式及失败项。缺服务、缺授权记录或缺真实时间戳时，会显示待补充信息。
 5. 在各阶段查看、编辑文案与素材。修改会递增版本并使相关产物和审核失效。
-6. 渲染成功后任务结束，可查看和下载当前成片。新流程不再暂停分镜或成片审核：预览结束为 `DRAFT` / `render`，完整制作结束为 `DRAFT` / `complete`；工作台将当前版本的完整成片显示为“成片已生成”。“历史审核”页签只保留旧审核报告。
+6. 渲染成功后任务结束，可查看和下载当前成片。人工审核共有两个默认环节：文案机器审查通过后暂停等待人工确认；导演完成逐镜设计后由 Remotion 渲染每镜一张真实代表帧 PNG，经逐镜审阅及整包确认后才渲染完整成片（2026-10-11 起，见 [导演逐镜审核](director-shot-review.md)）。预览结束为 `DRAFT` / `render`，完整制作结束为 `DRAFT` / `complete`；工作台将当前版本的完整成片显示为“成片已生成”。“历史审核”页签只保留旧审核报告。
 
 新流程不自动授予 `READY_FOR_PUBLISH`，旧记录仍可读取。本版本产出可下载视频，不自动发布。旧分镜、成片或最终发布审核待办恢复时回到草稿并提示重新提交；新提交的 `review` 动作会明确拒绝。当前编排见 [生产图精简](videoagents-graph-simplification.md)。
 
@@ -64,7 +73,7 @@ npm run studio:stop
 
 ## 每个角色的模型设置
 
-设置页的角色模型分别保存。新安装的编剧与文案审查默认启用 Claude Code CLI，经火山方舟调用豆包 Pro 2.1；其余角色仍按各自设置执行。修改配置只影响后续实际调用，不会自动重做已有产物。文案讨论始终开启，只选择审查轮数，默认 1 轮：编剧提交 → 文案审查 → 若要求修改，编剧改稿；轮数用尽后的最后改稿直接交人工审核。配置、工作区和恢复说明见 [文案讨论](videoagents-script-discussion.md)。各角色的模型作用如下：
+设置页的角色模型分别保存。新安装的七个模型角色默认启用 Claude Code CLI 并调用智谱 GLM `glm-5.3[1m]`（2026-10-13 约定，见 [GLM Coding Plan 接入](videoagents-glm-coding-plan.md)）；已有数据库保留原配置，需通过 Settings 修改。修改配置只影响后续实际调用，不会自动重做已有产物。文案讨论始终开启，只选择审查轮数，默认 1 轮：编剧提交 → 文案审查 → 若要求修改，编剧改稿；轮数用尽后的最后改稿直接交人工审核。配置、工作区和恢复说明见 [文案讨论](videoagents-script-discussion.md)。各角色的模型作用如下：
 
 Codex 每张卡可选择「CLI 默认模型」、CLI 模型列表中的模型或「自定义模型」。工作台通过与角色调用相同的可执行入口运行 `codex debug models` 查询目录，完整保留 CLI 返回的模型，包括隐藏项，不使用固定模型名单。「刷新模型列表」重新查询当前 CLI，不发起模型生成；列表刷新不覆盖未保存的角色配置。[官方 CLI 命令说明](https://learn.chatgpt.com/docs/developer-commands?surface=cli)。
 
@@ -72,7 +81,7 @@ CLI 版本不支持查询命令、查询失败或超时（12 秒）时，回退�
 
 | 角色 | 模型职责 | 后续执行 |
 |---|---|---|
-| 素材 | 默认由 Codex 读取检索技能，完成跨平台研究、歧义判断与真实文件清单；可切回固定工具规划 | 核验实际正文/图片文件、来源关联与 SHA256，冻结后交给编剧与导演 |
+| 素材 | 默认由 Claude Code CLI 调用 MCP 检索工具，完成跨平台研究、歧义判断与真实文件清单；可切换 Codex 技能研究 | 核验实际正文/图片文件、来源关联与 SHA256，冻结后交给编剧与导演 |
 | 编剧 | 根据冻结的真实来源生成初稿，讨论轮读取反馈并改稿 | 本地校验事实来源与素材引用 |
 | 文案审查 | 与编剧讨论事实、逻辑、开头吸引力、口播与画面，给出通过或修改决定 | 继续改稿，或将文案交人工审核；最后改稿不再机器复审 |
 | 配音 | 检查读音、停顿、情绪和文案风险，保存 `voice_guidance` | 字节生成实际音频，或使用导入音频及实测对齐 |
@@ -84,7 +93,7 @@ CLI 版本不支持查询命令、查询失败或超时（12 秒）时，回退�
 
 文案审查后的 `human_review_script` 已接入主流程，人工确认后才进入配音；审核与返工入口见 [人工审核节点](videoagents-human-review.md)。
 
-CLI 必须安装在启动 API 和 worker 的同一系统用户下。Claude Code 调用豆包时，在设置页填入火山方舟 API Key；密钥按 Windows 用户使用 DPAPI 加密保存，不在 GET 响应中回显，调用时只传给子进程环境。先用终端的 `claude --version` 检查安装。设置页的「可用」仅证明找到了启动文件，不能证明密钥、额度或模型访问权限有效。
+CLI 必须安装在启动 API 和 worker 的同一系统用户下。Claude Code 默认走智谱 GLM 路由（填智谱 Coding Plan API Key），也可明确选择火山方舟兼容路由（填方舟 API Key）；密钥按平台加密保存（Windows DPAPI、macOS Keychain、其他平台 base64），不在 GET 响应中回显，调用时只传给子进程环境。先用终端的 `claude --version` 检查安装。设置页的「可用」仅证明找到了启动文件，不能证明密钥、额度或模型访问权限有效。
 
 2026-10-04 核对过一次 App 与 CLI 不一致：App 内置 `0.159.2`，PATH 中的两处 npm 安装均为 `0.153.4`。同一账号、同一个 `gpt-6.1-sol`、同一套工作台隔离参数下，旧版返回「不支持 ChatGPT 账号使用该模型」，新版成功。两处 npm 安装升级到 `0.159.2` 后，工作台实际 `run_cli` 调用也返回了有效结构化结果。这是本机当日验证结果；以后遇到类似问题，应先比较实际执行入口与版本，而不能仅凭模型缓存或错误文案判定账号没有权限。`Get-Command codex -All` 可检查多处安装；升级后的新调用会使用新版，已启动的旧 CLI 会话仍使用原进程。
 
@@ -105,7 +114,7 @@ CLI 外层只接收必填 `response_json` 字符串、拒绝额外字段，解�
 1. 创建带完整文案的任务；保存编剧产出的段落后查看每段 `segment_id`。
 2. 上传真实图片或网页截图，填写来源与授权说明；示意图选择 illustration，不把示意图作为事实证据。
 3. 上传本地 MP3/WAV 等音频，并上传经过验证的对齐 JSON。音频须对应当前文案，字幕时间来自实际音频。
-4. 生成分镜，或在分镜面板编辑镜头并选择组件。组件下拉会按任务用途开放统一生产清单：9 个可传入真实文案/数据/图片/视频的参数化适配器，加 187 个会自动匹配横版或原生竖版实现的社区预设。社区预设只接收统一安全素材槽位和受限 props；Talkcraft 预设受非商业许可限制，商业任务不会出现。
+4. 生成分镜，或在分镜面板编辑镜头并选择组件。组件下拉会按任务用途开放统一生产清单：9 个可传入真实文案/数据/图片/视频的参数化适配器，加 187 个社区预设；生产渲染中部分社区组件有专用原生画面，其余进入统一安全内容槽位，能力边界见 [组件知识库](knowledge/remotion-shot-library.md)。社区预设只接收统一安全素材槽位和受限 props；Talkcraft 预设受非商业许可限制，商业任务不会出现。
 5. 渲染预览、生成最终视频并运行审核。
 
 对齐文件格式：
@@ -134,7 +143,7 @@ videoagents/contracts/       Python 数据契约
 videoagents/graph/           LangGraph 节点与路由
 videoagents/providers/       模型、搜索、字节配音与对齐服务
 videoagents/services/        版本编辑、导入与设置
-videoagents/nodes/           六角色、阶段检查、人工审核及等待输入节点
+videoagents/nodes/           七个模型角色、阶段检查、人工审核及等待输入节点
 videoagents/storage/         SQLite 命令、事件与外部操作台账
 src/video-production/        9 个生产适配器、187 个预设注册与时间轴验证
 contracts/generated/         由 Python 导出的类型、JSON Schema、OpenAPI
@@ -145,13 +154,15 @@ tests/                       后端、工作流与联调测试
 public/videoagents/          渲染用受控素材（不入 Git）
 ```
 
-Windows 配置密钥使用当前用户的 DPAPI 加密后保存在运行数据库，不返回给浏览器，也不放入图状态、时间轴、事件或 Git。恢复加密凭据需要原 Windows 用户；备份运行目录仍按私有配置保存。非 Windows 的兼容路径仅限制文件权限，不提供同等凭据加密。素材来源及授权说明由用户和提供方给出；填写说明不等于系统获得版权许可。
+密钥按平台加密后保存在运行数据库，不返回给浏览器，也不放入图状态、时间轴、事件或 Git：Windows 使用当前用户的 DPAPI，macOS 使用 Keychain（服务名 `VideoAgents`），其他平台回退 base64；旧的 `local:` 记录仍可读取，Windows DPAPI 记录迁到其他系统时无法解密，需重新配置。备份运行目录仍按私有配置保存。素材来源及授权说明由用户和提供方给出；填写说明不等于系统获得版权许可。
 
-接口契约由 Python 导出；改契约后执行：
+接口契约由 Python 导出；改契约后执行（macOS / Linux 将 `Scripts/python.exe` 换成 `bin/python`）：
 
 ```powershell
 .venv-videoagents/Scripts/python.exe scripts/export-contracts.py
 ```
+
+全新检出后 TypeScript 侧会先从 `contracts/generated/` 读取类型；该目录若缺失，先执行上面的导出命令再运行 `npm run typecheck`。
 
 ## 验证与故障排查
 
@@ -163,6 +174,8 @@ Windows 配置密钥使用当前用户的 DPAPI 加密后保存在运行数据�
 删除会清理该任务的记录、全部版本产物元数据、素材元数据、运行目录、公开素材副本和 LangGraph 检查点，
 只操作该任务的所属路径。路径越界或链接提前拒绝；文件清理失败保留取消后的任务记录，可排除占用后重试。
 运行目录与检查点的清理不具备文件系统事务回滚；重试可能继续清理已部分删除的文件。
+
+以下命令为 Windows 写法；macOS / Linux 将 `.venv-videoagents/Scripts/python.exe` 换成 `.venv-videoagents/bin/python` 即可：
 
 ```powershell
 .venv-videoagents/Scripts/python.exe -m pytest

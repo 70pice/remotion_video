@@ -32,7 +32,7 @@ class DirectorDemoNode:
         self.renderer = EditingNode(repository, service)
 
     def __call__(self, state: VideoState) -> dict[str, Any]:
-        job = start_stage(self.repo, state, "director", "导演正在准备逐镜审核画面")
+        job = start_stage(self.repo, state, "director", "摄影正在准备逐镜审核画面")
         try:
             _, plan = current_plan_artifact(self.repo, job)
         except ValueError as exc:
@@ -61,13 +61,13 @@ class DirectorDemoNode:
             message = ("组件套样片已生成，等待人工品鉴反馈"
                        if state.get("action") == "component_demo"
                        else "全部镜头的逐镜审核图片已生成，本次执行结束" if per_shot
-                       else "导演Demo已生成，本次预览执行结束")
+                       else "摄影Demo已生成，本次预览执行结束")
             self.repo.update_job(job.job_id, job.revision, status="DRAFT", stage="director",
                                  message=message, progress=1)
             return state_context(self.repo, state, route="end")
         self.repo.update_job(job.job_id, job.revision, status="RUNNING", stage="director",
                              message="全部镜头的组件选择和真实审核图片已就绪，准备人工审核" if per_shot
-                             else "导演方案和Demo已就绪，准备人工审核", progress=1)
+                             else "摄影方案和Demo已就绪，准备人工审核", progress=1)
         return state_context(self.repo, state, route="director_human_gate")
 
     def render_shots(self, job) -> None:
@@ -87,7 +87,7 @@ class DirectorDemoNode:
 
         def progress(value):
             self.repo.update_job(job.job_id, job.revision, progress=max(0, min(1, value)),
-                                 message="Remotion 正在按导演设计渲染每个镜头的审核图片")
+                                 message="Remotion 正在按摄影设计渲染每个镜头的审核图片")
 
         result = render_shot_reviews(self.service.project_root, timeline_path, request_path, output_manifest,
             config["render_timeout_seconds"], lambda: self.repo.get_job(job.job_id).status == "CANCELLED", progress)
@@ -97,7 +97,7 @@ class DirectorDemoNode:
         current = self.repo.get_job(job.job_id)
         current_plan, _ = current_plan_artifact(self.repo, current)
         if current_plan != plan_artifact or dependency_fingerprint(current) != dependency_fingerprint(job):
-            raise Conflict("逐镜渲染期间导演设计或制作输入已改变，请重新生成审核包")
+            raise Conflict("逐镜渲染期间摄影设计或制作输入已改变，请重新生成审核包")
         images, items = [], []
         image_metadata = {"dependency_fingerprint": dependency_fingerprint(job),
                           "director_plan_sha256": plan_artifact.sha256}

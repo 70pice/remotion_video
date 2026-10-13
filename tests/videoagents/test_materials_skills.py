@@ -36,7 +36,7 @@ def install_output(monkeypatch, node, *, mutate=None, callback=None):
     def invoke(state, role, prompt, **kwargs):
         calls.append(kwargs)
         assert role == "materials" and "$agent-reach" in prompt
-        assert set(kwargs["fields"]) == {"brief", "assets", "settings"}
+        assert set(kwargs["fields"]) == {"brief", "script", "assets", "settings"}
         assert kwargs["output_schema"]["title"] == "MaterialResearch"
         assert "plan" not in kwargs["output_schema"]["properties"]
         folder = kwargs["research_directory"]
@@ -74,7 +74,7 @@ def test_skills_ingests_real_files_freezes_results_and_removes_tool_artifacts(se
     calls = install_output(monkeypatch, node)
     first = node(state(job))
     saved = repo.get_job(job.job_id)
-    assert first["route"] == "screenwriter"
+    assert first["route"] == "human_review_script"
     assert first["research"]["sources"][0]["text"].startswith("已读取的测试正文")
     assert first["research"]["sources"][0]["asset_ids"] == [saved.assets[0].asset_id]
     assert first["research"]["limitations"] == ["Reddit 未登录，本次未完成检索。"]
@@ -101,7 +101,7 @@ def test_skills_strips_browser_only_url_fragments_before_validation(setup, monke
     result = node(state(job))
     saved = repo.get_job(job.job_id)
 
-    assert result["route"] == "screenwriter"
+    assert result["route"] == "human_review_script"
     assert result["research"]["sources"][0]["url"] == URL
     assert result["research"]["visuals"][0]["source_url"] == URL
     assert result["research"]["visuals"][0]["image_url"] == "https://example.com/image.png?size=large"
@@ -131,7 +131,7 @@ def test_skills_freezes_more_than_twenty_visuals_despite_legacy_limit(setup, mon
     result = node(state(job))
     saved = repo.get_job(job.job_id)
 
-    assert result["route"] == "screenwriter"
+    assert result["route"] == "human_review_script"
     assert len(result["research"]["visuals"]) == len(saved.assets) == 25
     assert len({asset.sha256 for asset in saved.assets}) == 25
 
@@ -177,7 +177,7 @@ def test_skills_audit_rebuilds_whitelist_instead_of_publishing_file_contents(set
                           'unit-private-garbage\n', encoding="utf-8")
 
     install_output(monkeypatch, node, mutate=replace_audit)
-    assert node(state(job))["route"] == "screenwriter"
+    assert node(state(job))["route"] == "human_review_script"
     artifact = next(item for item in repo.get_job(job.job_id).artifacts if item.kind == "material_tool_audit")
     content = repo.artifact_path(artifact.artifact_id)[0].read_text(encoding="utf-8")
     assert "unit-private" not in content
@@ -243,7 +243,7 @@ def test_collect_launches_model_for_user_provided_inputs(setup, monkeypatch, inp
     repo, _, node, _ = setup
     job = repo.create_job(Brief(topic="Muse是什么").model_copy(update=inputs))
     calls = install_output(monkeypatch, node)
-    assert node(state(job))["route"] == "screenwriter"
+    assert node(state(job))["route"] == "human_review_script"
     assert len(calls) == 1
 
 

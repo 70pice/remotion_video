@@ -224,7 +224,8 @@ def test_new_production_node_renders_every_frame_and_reuses_complete_package(sho
     state = node_state(repo, job)
     result = node(state)
     assert result["route"] == "director_human_gate"
-    assert result["director_shot_review"]["items"][1]["image"]["kind"] == "shot_review_frame"
+    _, manifest = current_shot_review_artifact(repo, repo.get_job(job.job_id), validate_components=False)
+    assert manifest["items"][1]["image"]["kind"] == "shot_review_frame"
     current = repo.get_job(job.job_id)
     images = [item for item in current.artifacts if item.kind == "shot_review_frame"]
     assert len(images) == 2 and len({item.artifact_id for item in images}) == 2

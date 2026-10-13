@@ -10,7 +10,7 @@ import {promisify} from 'node:util';
 import {fileURLToPath} from 'node:url';
 import {bundle} from '@remotion/bundler';
 import {makeCancelSignal, openBrowser, renderMedia, renderStill, selectComposition} from '@remotion/renderer';
-import {validateTimeline} from '../src/video-production/validation.mjs';
+import {communityComponentIds, validateTimeline} from '../src/video-production/validation.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const publicRoot = path.join(projectRoot, 'public');
@@ -22,6 +22,83 @@ const inside = (root, candidate) => {
   const relative = path.relative(root, candidate);
   return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
 };
+
+// The first ffprobe on PATH may be a stripped build from an IDE that cannot
+// even decode plain PCM WAV. Walk the candidates and keep the first one that
+// proves it can probe a minimal WAV; VIDEOAGENTS_FFPROBE pins one explicitly.
+const silentWav = () => {
+  const sampleRate = 16000;
+  const frames = 800;
+  const data = Buffer.alloc(frames * 2);
+  const header = Buffer.alloc(44);
+  header.write('RIFF', 0, 'ascii');
+  header.writeUInt32LE(36 + data.length, 4);
+  header.write('WAVE', 8, 'ascii');
+  header.write('fmt ', 12, 'ascii');
+  header.writeUInt32LE(16, 16);
+  header.writeUInt16LE(1, 20);
+  header.writeUInt16LE(1, 22);
+  header.writeUInt32LE(sampleRate, 24);
+  header.writeUInt32LE(sampleRate * 2, 28);
+  header.writeUInt16LE(2, 32);
+  header.writeUInt16LE(16, 34);
+  header.write('data', 36, 'ascii');
+  header.writeUInt32LE(data.length, 40);
+  return Buffer.concat([header, data]);
+};
+
+let resolvedFFprobe;
+let resolvedFFmpeg;
+const resolveMediaBinary = async (name, overrideEnv, buildArguments, verify) => {
+  const resolved = name === 'ffprobe' ? resolvedFFprobe : resolvedFFmpeg;
+  if (resolved) return resolved;
+  const override = process.env[overrideEnv];
+  const directories = (process.env.PATH ?? '').split(path.delimiter).filter(Boolean);
+  const candidates = override
+    ? [override]
+    : directories.flatMap((directory) => [path.join(directory, name), path.join(directory, `${name}.exe`)]);
+  const seen = new Set();
+  for (const candidate of candidates) {
+    let stat;
+    try {
+      stat = await fs.stat(candidate);
+    } catch {
+      continue;
+    }
+    if (!stat.isFile() || !(stat.mode & 0o111)) continue;
+    const executable = await fs.realpath(candidate);
+    if (seen.has(executable)) continue;
+    seen.add(executable);
+    const tempFile = path.join(os.tmpdir(), `videoagents-${name}-check-${randomUUID()}.wav`);
+    try {
+      await fs.writeFile(tempFile, silentWav());
+      const {stdout} = await execFileAsync(executable, buildArguments(tempFile), {maxBuffer: 1024 * 1024});
+      if (verify(stdout)) {
+        if (name === 'ffprobe') resolvedFFprobe = executable;
+        else resolvedFFmpeg = executable;
+        return executable;
+      }
+    } catch {
+      // Candidate cannot decode a plain WAV; try the next one.
+    } finally {
+      await fs.rm(tempFile, {force: true});
+    }
+  }
+  throw new Error(override
+    ? `${overrideEnv} (${override}) cannot decode a standard WAV; install a full ${name} build`
+    : `No ${name} on PATH can decode a standard WAV. Install ffmpeg (macOS: brew install ffmpeg) `
+      + `or set ${overrideEnv} to a full build; bundled IDE builds are not sufficient.`);
+};
+
+export const ffprobeExecutable = () => resolveMediaBinary(
+  'ffprobe', 'VIDEOAGENTS_FFPROBE',
+  (tempFile) => ['-v', 'error', '-show_streams', '-of', 'json', tempFile],
+  (stdout) => JSON.parse(stdout).streams?.some((item) => item.codec_type === 'audio'));
+
+export const ffmpegExecutable = () => resolveMediaBinary(
+  'ffmpeg', 'VIDEOAGENTS_FFMPEG',
+  (tempFile) => ['-v', 'error', '-i', tempFile, '-f', 'null', '-'],
+  () => true);
 
 export const parseArgs = (argv) => {
   const options = {};
@@ -186,7 +263,7 @@ const recognizableMedia = (source, header) => {
 const videoProbe = async (file, source) => {
   let stdout;
   try {
-    ({stdout} = await execFileAsync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration:stream=codec_type,duration,width,height',
+    ({stdout} = await execFileAsync(await ffprobeExecutable(), ['-v', 'error', '-show_entries', 'format=duration:stream=codec_type,duration,width,height',
       '-of', 'json', file], {maxBuffer: 1024 * 1024}));
   } catch {
     throw new Error(`Video media must contain a video stream readable by ffprobe: ${source}`);
@@ -213,9 +290,14 @@ export const validateLocalInputs = async (timeline) => {
   validateTimeline(timeline);
   const sources = [...new Set([timeline.audio_src, ...timeline.shots.map((shot) => shot.asset_src)].filter(Boolean))];
   if (!sources.length) return {files: [], videoMetadata: {}};
+  // Same acceptance as validateTimeline: the `video` adapter and community
+  // presets (whose media slots render MP4 via OffthreadVideo) may consume
+  // video; semantic components take images only.
+  const communitySet = new Set(communityComponentIds);
+  const consumesVideo = (componentId) => componentId === 'video' || communitySet.has(componentId);
   const videoShotsBySource = new Map();
   for (const shot of timeline.shots) {
-    if (!['video', 'Snapcn-PhoneFrame'].includes(shot.component_id) || !shot.asset_src || !/\.mp4$/i.test(shot.asset_src)) continue;
+    if (!consumesVideo(shot.component_id) || !shot.asset_src || !/\.mp4$/i.test(shot.asset_src)) continue;
     const items = videoShotsBySource.get(shot.asset_src) ?? [];
     items.push(shot);
     videoShotsBySource.set(shot.asset_src, items);
@@ -247,7 +329,7 @@ export const validateLocalInputs = async (timeline) => {
     }
     const focusShots = timeline.shots.filter((shot) => shot.asset_src === source && shot.props.focus_source_size);
     if (isImage && focusShots.length) {
-      const {stdout} = await execFileAsync('ffprobe', ['-v', 'error', '-show_entries', 'stream=width,height', '-of', 'json', actualFile]);
+      const {stdout} = await execFileAsync(await ffprobeExecutable(), ['-v', 'error', '-show_entries', 'stream=width,height', '-of', 'json', actualFile]);
       const dimensions = JSON.parse(stdout).streams?.[0];
       for (const shot of focusShots) {
         const size = shot.props.focus_source_size;

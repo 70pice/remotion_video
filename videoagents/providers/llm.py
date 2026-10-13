@@ -18,8 +18,8 @@ from videoagents.storage import Repository
 from videoagents.storage.repository import NotFound, fingerprint
 from worker.process_manager import RenderCancelled
 
-ROLE_LABELS = {"materials": "素材", "screenwriter": "编剧", "script_reviewer": "文案审查", "voice": "配音", "director": "导演", "editing": "剪辑", "review": "审核"}
-LEGACY_ROLES = {"screenwriter": "编剧", "director": "导演", "review": "内容审核"}
+ROLE_LABELS = {"materials": "素材", "screenwriter": "编剧", "script_reviewer": "文案审查", "voice": "配音", "director": "摄影", "editing": "剪辑", "review": "审核"}
+LEGACY_ROLES = {"screenwriter": "编剧", "director": "摄影", "review": "内容审核"}
 
 
 class CapabilityMissing(Exception):
@@ -59,15 +59,15 @@ class JsonModel:
 
     def invoke(self, state: VideoState, role: str, instruction: str, *, fields: tuple[str, ...],
                command_id: str = "", output_schema: dict[str, Any] | None = None,
-               research_directory: Path | None = None, audit_path: Path | None = None) -> dict[str, Any]:
+               research_directory: Path | None = None, audit_path: Path | None = None,
+               research_tools: tuple[str, ...] | None = None) -> dict[str, Any]:
         """Agent 只从共享 state 读取最终业务产物，返回本角色最后的 JSON 输出。
 
         Prompt 和输入字段由对应 nodes 文件固定定义。运行水位、路由、预算、
         人工待办和工具/操作回执不发送给模型；提交去重仍由 call 的 SQL 台账维护。
         """
-        allowed = {"brief", "script", "script_discussion", "timeline", "assets", "research", "audio",
-                   "alignment", "duration_seconds", "asset_metadata", "voice_guidance", "editing_guidance",
-                   "review", "render", "settings", "action", "extras"}
+        allowed = {"brief", "script", "script_discussion", "timeline", "assets", "research",
+                   "asset_metadata", "settings", "action", "extras"}
         if set(fields) - allowed:
             raise ValueError("模型输入只能选择共享 state 中的最终业务产物")
         shared = clean_handoff(state)
@@ -88,20 +88,21 @@ class JsonModel:
         if research_directory is not None or audit_path is not None:
             return self.call(state["job_id"], state["revision"], role, instruction, context,
                              command_id, output_schema=output_schema, research_directory=research_directory,
-                             audit_path=audit_path)
+                             audit_path=audit_path, research_tools=research_tools)
         return self.call(state["job_id"], state["revision"], role, instruction, context,
                          command_id, output_schema=output_schema)
 
     def call(self, job_id: str, revision: int, role: str, instruction: str, context: Any,
              command_id: str = "", output_schema: dict[str, Any] | None = None,
-             research_directory: Path | None = None, audit_path: Path | None = None) -> dict[str, Any]:
+             research_directory: Path | None = None, audit_path: Path | None = None,
+             research_tools: tuple[str, ...] | None = None) -> dict[str, Any]:
         settings = SettingsService(self.repo).internal()
         if role not in ROLE_LABELS or not settings["role_models"][role]["enabled"]:
             raise CapabilityMissing("请在设置中启用此角色的 CLI 模型，或提供人工产物", ["role_models"])
         config = settings["role_models"][role]
         research_mode = research_directory is not None
-        if research_mode and (role != "materials" or config["provider"] not in {"codex_cli", "claude_code_cli"}):
-            raise CapabilityMissing("工具研究模式仅支持素材角色使用 Codex 或 Claude Code CLI", ["role_models"])
+        if research_mode and (role not in {"materials", "screenwriter"} or config["provider"] not in {"codex_cli", "claude_code_cli"}):
+            raise CapabilityMissing("工具研究模式仅支持素材或编剧角色使用 Codex 或 Claude Code CLI", ["role_models"])
         ark_model = config["provider"] == "claude_code_cli" and config["model"].lower().startswith("doubao-")
         glm_model = config["provider"] == "claude_code_cli" and config["model"].lower().startswith("glm-")
         schema = output_schema or {"type": "object"}
@@ -174,7 +175,11 @@ class JsonModel:
             if glm_model:
                 kwargs["zhipu_api_key"] = settings["zhipu_api_key"]
             if research_mode and config["provider"] == "claude_code_cli":
-                kwargs["research_context"] = {"runtime": str(self.repo.root), "job_id": job_id, "revision": revision}
+                research_context = {"runtime": str(self.repo.root), "job_id": job_id, "revision": revision}
+                if research_tools:
+                    # e.g. the writer may read sources but not download visuals.
+                    research_context["tools"] = list(research_tools)
+                kwargs["research_context"] = research_context
             response = run_cli(config["provider"], config["model"], config["timeout_seconds"], prompt, schema,
                                cancelled=lambda: self.cancelled(job_id), **kwargs)
             response_data = normalize_business_result(response.data)

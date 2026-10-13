@@ -199,7 +199,7 @@ def test_director_replans_readable_timeline_when_external_director_repair_issues
     assert old.duration_in_frames == 90
     job = node.repo.update_job(job.job_id, job.revision, timeline=old)
     state = VideoState(**job_context(job), run_id="unit-editing-director-repair",
-                       gate_issues=["剪辑发现分镜问题：素材卡文字没有按导演要求放大。"],
+                       gate_issues=["剪辑发现分镜问题：素材卡文字没有按摄影要求放大。"],
                        pending_snapshot={"stage": "director", "fields": ["timeline"]},
                        extras={"component_study": valid_study(job.brief.usage)})
     calls = []
@@ -208,7 +208,7 @@ def test_director_replans_readable_timeline_when_external_director_repair_issues
     def model(job_id, revision, role, instruction, context, command_id="", output_schema=None):
         calls.append(context)
         assert context["timeline"] == old.model_dump()
-        assert context["extras"]["timeline_repair_issues"] == ["剪辑发现分镜问题：素材卡文字没有按导演要求放大。"]
+        assert context["extras"]["timeline_repair_issues"] == ["剪辑发现分镜问题：素材卡文字没有按摄影要求放大。"]
         shot = dict(context["timeline"]["shots"][0], title="放大素材文字后的镜头")
         return {
             "shots": [shot],
@@ -242,7 +242,7 @@ def test_visual_rebuild_without_director_model_cannot_render_old_timeline(tmp_pa
     old = node.plan(job, audio, alignment, 2.0)
     job = node.repo.update_job(job.job_id, job.revision, timeline=old)
     state = VideoState(**job_context(job), extras={"timeline_rebuild": True})
-    with pytest.raises(CapabilityMissing, match="重做画面需要启用导演模型"):
+    with pytest.raises(CapabilityMissing, match="重做画面需要启用摄影模型"):
         node.plan(job, audio, alignment, 2.0, state=state)
 
 
@@ -265,7 +265,7 @@ def test_director_node_uses_single_timeline_call_and_no_component_study_handoff(
             "segment_performances": [{
                 "segment_id": "s1",
                 "shot_ids": [context["timeline"]["shots"][0]["shot_id"]],
-                "component_reason": "节点级生产必须返回导演方案。",
+                "component_reason": "节点级生产必须返回摄影方案。",
                 "visual_action": "沿用基线镜头检查旁白与画面对应关系。",
             }],
             "shot_reviews": [{"shot_id": context["timeline"]["shots"][0]["shot_id"], "review_frame": 15,
@@ -351,7 +351,7 @@ def test_director_node_requires_model_review_plan_before_editing(tmp_path, monke
     result = node(state)
 
     assert result["route"] == "await_input"
-    assert "必须输出 segment_performances 和 shot_reviews" in result["pending_input"]["issues"][0]
+    assert "必须输出 segment_performances 和 shot_reviews" in result["pending_snapshot"]["issues"][0]
     assert node.repo.get_job(job.job_id).timeline is None
 
 
@@ -371,9 +371,9 @@ def test_fresh_director_call_upgrades_legacy_plan_to_every_shot_review(tmp_path,
         calls.append(command_id)
         shots = context["timeline"]["shots"]
         return {"shots": shots, "segment_performances": [{"segment_id": "s1", "shot_ids": [shot["shot_id"] for shot in shots],
-                "component_reason": "本次导演读取旧镜头并为每镜重新设计审核。", "visual_action": "按本次方案检查画面。"}],
+                "component_reason": "本次摄影读取旧镜头并为每镜重新设计审核。", "visual_action": "按本次方案检查画面。"}],
                 "shot_reviews": [{"shot_id": shot["shot_id"], "review_frame": shot["start_frame"] + 15,
-                                  "component_reason": "本次导演逐镜设计。", "visual_action": "稳定帧核对。"} for shot in shots]}
+                                  "component_reason": "本次摄影逐镜设计。", "visual_action": "稳定帧核对。"} for shot in shots]}
     monkeypatch.setattr(node.model, "call", model)
     state = VideoState(**job_context(job), action="produce", run_id="unit-upgrade-legacy", extras={})
     node.plan(job, audio, alignment, 2.0, state=state)

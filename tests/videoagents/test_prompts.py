@@ -16,9 +16,7 @@ from videoagents.nodes import (
     director,
     editing,
     materials,
-    reviewers,
     screenwriter,
-    script_reviewer,
     voice,
 )
 from videoagents.prompts import PROMPTS_DIR, compose, load_prompt, render
@@ -28,11 +26,9 @@ REPO_ROOT = PROMPTS_DIR.parents[1]
 AGENT_NODE_FILES = [
     REPO_ROOT / "videoagents/nodes/materials.py",
     REPO_ROOT / "videoagents/nodes/screenwriter.py",
-    REPO_ROOT / "videoagents/nodes/script_reviewer.py",
     REPO_ROOT / "videoagents/nodes/voice.py",
     REPO_ROOT / "videoagents/nodes/director.py",
     REPO_ROOT / "videoagents/nodes/editing.py",
-    REPO_ROOT / "videoagents/nodes/reviewers.py",
 ]
 
 
@@ -74,11 +70,9 @@ PROMPT_FILES = [
     "materials",
     "screenwriter",
     "screenwriter-rewrite",
-    "script-reviewer",
     "voice",
     "director",
     "editing",
-    "review",
 ]
 
 
@@ -149,14 +143,12 @@ def test_docs_list_agent_final_field_handoff_contract():
     for role, fields in [
         ("materials", "`brief`, `assets`, `settings`"),
         ("screenwriter", "`brief`, `research`, `assets`"),
-        ("script_reviewer", "`brief`, `script`, `script_discussion`, `research`, `assets`"),
         ("voice", "`brief`, `script`, `settings`"),
         (
             "director",
             "`brief`, `script`, `timeline`, `research`, `assets`, `asset_metadata`, `extras`",
         ),
         ("editing", "`brief`, `script`, `timeline`, `assets`, `asset_metadata`, `action`"),
-        ("review", "`brief`, `script`, `timeline`, `assets`, `research`, `alignment`"),
     ]:
         assert f"`{role}`" in nodes_doc
         assert fields in nodes_doc
@@ -274,11 +266,9 @@ def test_nodes_compose_prompts_without_unrendered_placeholders():
         "materials": materials.PROMPT,
         "screenwriter": screenwriter.PROMPT,
         "rewrite": screenwriter.REWRITE_PROMPT,
-        "script_reviewer": script_reviewer.PROMPT,
         "voice": voice.PROMPT,
         "director": director.PROMPT,
         "editing": editing.PROMPT,
-        "reviewers": reviewers.PROMPT,
     }
     for label, prompt in node_prompts.items():
         assert prompt.strip(), label
@@ -292,11 +282,9 @@ def test_nodes_compose_prompts_without_unrendered_placeholders():
     (screenwriter.NARRATIVE_PROMPT, ("screenwriter",)),
     (screenwriter.PROMPT, ("screenwriter",)),
     (screenwriter.REWRITE_PROMPT, ("screenwriter", "screenwriter-rewrite")),
-    (script_reviewer.PROMPT, ("script-reviewer",)),
     (voice.PROMPT, ("voice",)),
     (editing.PROMPT, ("editing",)),
-    (reviewers.PROMPT, ("review",)),
-], ids=["materials", "narrative", "draft", "rewrite", "script-reviewer", "voice", "editing", "review"])
+], ids=["materials", "narrative", "draft", "rewrite", "voice", "editing"])
 def test_runtime_prompts_use_only_their_own_role_files(actual, names):
     assert actual == "\n\n".join(load_prompt(name) for name in names)
 
@@ -305,7 +293,6 @@ def test_shared_style_file_is_absent_and_not_loaded_by_runtime_nodes():
     assert not (PROMPTS_DIR / "shared-style.md").exists()
     assert "shared-style" not in materials.PROMPT
     assert "shared-style" not in screenwriter.PROMPT
-    assert "shared-style" not in script_reviewer.PROMPT
 
 
 def test_director_prompt_injects_props_examples():
@@ -416,25 +403,21 @@ def test_script_prompts_limit_repetition_without_dropping_necessary_evidence_bou
     assert "旧稿的通过结论不能沿用" in screenwriter.REWRITE_PROMPT
     assert "必要事实条件不受字数压制" in screenwriter.PROMPT
     assert "同一边界只说一次" in screenwriter.PROMPT
-    assert "APPROVE 空" in script_reviewer.PROMPT
-    assert "REVISE 非空" in script_reviewer.PROMPT
 
 
 RUNTIME_PROMPTS = [
     materials.PROMPT,
     screenwriter.PROMPT,
     screenwriter.REWRITE_PROMPT,
-    script_reviewer.PROMPT,
     voice.PROMPT,
     director.PROMPT,
     editing.PROMPT,
-    reviewers.PROMPT,
 ]
 
 
 @pytest.mark.parametrize("prompt", RUNTIME_PROMPTS, ids=[
-    "materials", "screenwriter", "screenwriter-rewrite", "script-reviewer",
-    "voice", "director", "editing", "reviewers",
+    "materials", "screenwriter", "screenwriter-rewrite",
+    "voice", "director", "editing",
 ])
 def test_runtime_prompts_do_not_reintroduce_old_ai_interest_audience(prompt):
     assert "前20%" not in prompt
@@ -446,9 +429,8 @@ def test_runtime_prompts_do_not_reintroduce_old_ai_interest_audience(prompt):
     materials.PROMPT,
     screenwriter.PROMPT,
     screenwriter.REWRITE_PROMPT,
-    script_reviewer.PROMPT,
     director.PROMPT,
-], ids=["materials", "screenwriter", "screenwriter-rewrite", "script-reviewer", "director"])
+], ids=["materials", "screenwriter", "screenwriter-rewrite", "director"])
 def test_creative_prompts_target_ordinary_people_unless_brief_overrides(prompt):
     assert "普通人" in prompt
     assert "brief.audience" in prompt or "brief 另有指定才按 brief" in prompt
@@ -471,7 +453,7 @@ def test_prompt_chain_keeps_developer_scenarios_tied_to_topic():
 
 
 def test_director_catalog_retains_developer_presets_with_topic_boundary():
-    # 导演 Prompt 末尾的完整组件清单必然列出 Talkcraft-claude-code 等预设
+    # 摄影 Prompt 末尾的完整组件清单必然列出 Talkcraft-claude-code 等预设
     # ID；正文继续要求主题相关，不能当作通用 AI 氛围。
     body, _, catalog = director.PROMPT.partition("## 本任务允许的完整组件清单")
     assert "本期主题确实相关" in body
@@ -483,8 +465,6 @@ def test_director_catalog_retains_developer_presets_with_topic_boundary():
     ("materials", "不用类比"),
     ("screenwriter", "数字可口语化"),
     ("screenwriter", "不能损坏统计口径"),
-    ("script_reviewer", "难懂数字裸抛"),
-    ("reviewers", "被强行类比"),
 ])
 def test_life_scale_only_required_for_hard_numbers(label, phrase):
     # 生活尺度只用于难懂且影响判断的数字；日期、价格、次数等直观数字不
@@ -492,14 +472,12 @@ def test_life_scale_only_required_for_hard_numbers(label, phrase):
     prompts = {
         "materials": materials.PROMPT,
         "screenwriter": screenwriter.PROMPT,
-        "script_reviewer": script_reviewer.PROMPT,
-        "reviewers": reviewers.PROMPT,
     }
     assert phrase in prompts[label]
 
 
 def test_director_chain_keeps_developer_preset_boundary():
-    # 开发者/代码界面预设的选择边界必须保留在导演主 Prompt。
+    # 开发者/代码界面预设的选择边界必须保留在摄影主 Prompt。
     for phrase in [
         "终端、代码、光标走读类开发者预设",
         "本期主题确实相关",
@@ -535,14 +513,6 @@ def test_director_chain_keeps_developer_preset_boundary():
         ("screenwriter", "opening_visual"),
         ("screenwriter", "final_answer"),
         ("screenwriter", "先用动作或结果解释"),
-        ("script_reviewer", "全稿问题用空字符串"),
-        ("script_reviewer", "script_discussion.rounds[-1].script"),
-        ("script_reviewer", "不用范围、组合 ID 或新 ID"),
-        ("script_reviewer", "新 ID"),
-        ("script_reviewer", "观众会不会看完、看不看得懂、信不信、有没有收获"),
-        ("script_reviewer", "模板腔"),
-        ("script_reviewer", "issues **只放 blocker，2–4 个**"),
-        ("script_reviewer", "禁止要求编剧编造"),
         ("director", "research.visuals"),
         ("director", "artifact_url"),
         ("director", "asset_src=null"),
@@ -565,9 +535,6 @@ def test_director_chain_keeps_developer_preset_boundary():
         ("voice", "交给 screenwriter"),
         ("editing", "时长本身不能单独决定拆镜"),
         ("editing", "notes 只放非阻断观察"),
-        ("reviewers", "购买题是否成对保留付费增量"),
-        ("reviewers", "成片仍须由人工完整播放"),
-        ("reviewers", "本节点不授予发布资格"),
     ],
 )
 def test_contract_wording_survived_prompt_migration(label, phrase):
@@ -575,10 +542,8 @@ def test_contract_wording_survived_prompt_migration(label, phrase):
         "materials": materials.PROMPT,
         "screenwriter": screenwriter.PROMPT,
         "rewrite": screenwriter.REWRITE_PROMPT,
-        "script_reviewer": script_reviewer.PROMPT,
         "voice": voice.PROMPT,
         "director": director.PROMPT,
         "editing": editing.PROMPT,
-        "reviewers": reviewers.PROMPT,
     }
     assert phrase in prompts[label]

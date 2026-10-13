@@ -421,12 +421,14 @@ export interface ScriptSegment {
   screen_text: string;
   source_refs: Array<string>;
   asset_ids: Array<string>;
+  visual_need: string;
 }
 
 export interface SettingsPatch {
   role_models?: Partial<Record<"materials" | "screenwriter" | "script_reviewer" | "voice" | "director" | "editing" | "review", Partial<RoleModelConfig>>> | null;
   script_discussion_enabled?: boolean | null;
   script_discussion_max_rounds?: number | null;
+  feishu_folder_token?: string | null;
   ark_api_key?: string | null;
   zhipu_api_key?: string | null;
   search_provider?: "none" | "opencli_google" | "tavily" | "google_cse" | null;

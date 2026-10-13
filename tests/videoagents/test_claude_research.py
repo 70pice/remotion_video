@@ -238,7 +238,7 @@ def test_video_has_actual_probed_duration_and_honest_direct_mp4_requirement(brid
     data = b"\0\0\0\x20ftypisom" + b"test-video" * 4
     monkeypatch.setattr(research, "safe_get", lambda *_args, **_kwargs: (data, "video/mp4", SOURCE))
     result = bridge.call("visual", {"source_url": SOURCE, "url": SOURCE + ".mp4", "kind": "video",
-                                    "description": "实际操作过程；可用区间需导演结合内容确认"})
+                                    "description": "实际操作过程；可用区间需摄影结合内容确认"})
     assert result["metadata"] == {"duration_seconds": 12.5, "width": 64, "height": 48, "frame_rate": 30.0}
     assert result["visual"]["media_url"] == SOURCE + ".mp4"
     monkeypatch.setattr(research, "safe_get", lambda *_args, **_kwargs: (b"<html>video link only</html>", "text/html", SOURCE))

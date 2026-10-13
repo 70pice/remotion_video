@@ -14,7 +14,7 @@ import ts from 'typescript';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {spring} from 'remotion';
-import {main, outputScale, parseArgs, resolvePreviewFrameRange, selectCoverFrame, snapshotBuiltInAssets, validateLocalInputs} from '../../scripts/render-timeline.mjs';
+import {ffmpegExecutable, main, outputScale, parseArgs, resolvePreviewFrameRange, selectCoverFrame, snapshotBuiltInAssets, validateLocalInputs} from '../../scripts/render-timeline.mjs';
 import {communityComponentIds, productionComponentIds, validateTimeline} from './validation.mjs';
 
 const {structuredClone} = globalThis;
@@ -1056,18 +1056,18 @@ test('video preflight rejects M4A-in-MP4 spoofing and clips shorter than their s
   const audioOnly = Buffer.from('00000018667479704d344120000002004d3441206d7034320000000c6d6461746100000000', 'hex');
   await fs.writeFile(path.join(jobRoot, 'audio-only.mp4'), audioOnly);
   await assert.rejects(validateLocalInputs(timeline), /does not match its allowed format|audio-only MP4/);
-  await execFileAsync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=18x12:d=4',
+  await execFileAsync(await ffmpegExecutable(), ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=18x12:d=4',
     '-an', '-pix_fmt', 'yuv420p', path.join(jobRoot, 'valid.mp4')]);
   timeline.shots[0].asset_src = `videoagents/${jobId}/valid.mp4`;
   timeline.shots[0].props = {start_seconds: 0.5, end_seconds: 3.6};
   const preflight = await validateLocalInputs(timeline);
   assert.deepEqual(preflight.videoMetadata[timeline.shots[0].asset_src], {width: 18, height: 12, duration: 4});
-  await execFileAsync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=16x16:d=1',
+  await execFileAsync(await ffmpegExecutable(), ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=16x16:d=1',
     '-an', '-pix_fmt', 'yuv420p', path.join(jobRoot, 'tiny.mp4')]);
   timeline.shots[0].asset_src = `videoagents/${jobId}/tiny.mp4`;
   timeline.shots[0].props = {start_seconds: 0, end_seconds: 1};
   await assert.rejects(validateLocalInputs(timeline), /too short/);
-  await execFileAsync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=12x24:d=4',
+  await execFileAsync(await ffmpegExecutable(), ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=12x24:d=4',
     '-an', '-pix_fmt', 'yuv420p', path.join(jobRoot, 'phone.mp4')]);
   Object.assign(timeline.shots[0], {component_id: 'Snapcn-PhoneFrame', asset_src: `videoagents/${jobId}/phone.mp4`,
     props: {content_mode: 'media', asset_fit: 'contain', start_seconds: 0, end_seconds: 3,
@@ -1100,7 +1100,7 @@ test('focus preflight measures source dimensions instead of trusting image or vi
   await assert.rejects(validateLocalInputs(timeline), /dimensions must match measured media/);
   timeline.shots[0].props.focus_source_size = {width: 1, height: 1};
   await validateLocalInputs(timeline);
-  await execFileAsync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=12x24:d=4',
+  await execFileAsync(await ffmpegExecutable(), ['-y', '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=12x24:d=4',
     '-an', '-pix_fmt', 'yuv420p', path.join(jobRoot, 'source.mp4')]);
   Object.assign(timeline.shots[0], {component_id: 'video', asset_src: `videoagents/${jobId}/source.mp4`});
   await assert.rejects(validateLocalInputs(timeline), /dimensions must match measured media/);

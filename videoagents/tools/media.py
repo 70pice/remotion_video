@@ -2,9 +2,10 @@
 
 import hashlib
 import json
-import shutil
 import subprocess
 from pathlib import Path
+
+from videoagents.providers.ffmpeg_tools import ffmpeg_executable, ffprobe_executable
 
 
 def sha256(path: Path) -> str:
@@ -16,9 +17,7 @@ def sha256(path: Path) -> str:
 
 
 def probe(path: Path) -> dict:
-    executable = shutil.which("ffprobe")
-    if not executable:
-        raise ValueError("ffprobe 未安装，无法实测媒体时长")
+    executable = ffprobe_executable()
     result = subprocess.run([executable, "-v", "error", "-show_streams", "-show_format", "-of", "json", str(path)],
                             capture_output=True, text=True, timeout=30, check=False)
     if result.returncode:
@@ -37,9 +36,7 @@ def audio_duration(path: Path) -> float:
 
 
 def decode_check(path: Path) -> None:
-    executable = shutil.which("ffmpeg")
-    if not executable:
-        raise ValueError("ffmpeg 未安装，无法完成全片解码审核")
+    executable = ffmpeg_executable()
     result = subprocess.run([executable, "-v", "error", "-xerror", "-i", str(path), "-f", "null", "-"],
                             capture_output=True, text=True, timeout=180, check=False)
     if result.returncode:

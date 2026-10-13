@@ -5,7 +5,7 @@ import json
 import pytest
 
 from videoagents.contracts import SettingsPatch
-from videoagents.nodes import screenwriter, script_reviewer
+from videoagents.nodes import screenwriter
 from videoagents.providers.cli_runner import CliResult
 from videoagents.providers.llm import JsonModel
 from videoagents.services.settings import SettingsService
@@ -13,12 +13,10 @@ from videoagents.storage import Repository
 
 
 @pytest.mark.parametrize("role,instruction,fields", [
-    ("screenwriter", screenwriter.PROMPT, ("brief", "research", "assets")),
+    ("screenwriter", screenwriter.PROMPT, ("brief", "settings")),
     ("screenwriter", screenwriter.REWRITE_PROMPT,
-     ("brief", "script", "script_discussion", "research", "assets", "extras")),
-    ("script_reviewer", script_reviewer.PROMPT,
-     ("brief", "script", "script_discussion", "research", "assets", "extras")),
-], ids=["draft", "rewrite", "review"])
+     ("brief", "script", "research", "assets", "extras")),
+], ids=["draft", "rewrite"])
 def test_script_roles_send_source_body_assets_and_feedback_to_cli(tmp_path, monkeypatch, role, instruction, fields):
     repo = Repository(tmp_path / "runtime")
     SettingsService(repo).patch(SettingsPatch(role_models={role: {
@@ -55,9 +53,10 @@ def test_script_roles_send_source_body_assets_and_feedback_to_cli(tmp_path, monk
     assert instruction in prompt
     assert set(payload) == set(fields)
     assert payload["brief"]["creative_direction"] == state["brief"]["creative_direction"]
-    assert payload["research"]["sources"][0]["text"] == state["research"]["sources"][0]["text"]
-    assert payload["research"]["visuals"][0]["asset_id"] == payload["assets"][0]["asset_id"]
-    assert payload["research"]["limitations"] == ["流量不能证明能力"]
+    if "research" in fields:
+        assert payload["research"]["sources"][0]["text"] == state["research"]["sources"][0]["text"]
+        assert payload["research"]["visuals"][0]["asset_id"] == payload["assets"][0]["asset_id"]
+        assert payload["research"]["limitations"] == ["流量不能证明能力"]
     if "extras" in fields:
         assert payload["extras"]["human_feedback"] == state["extras"]["human_feedback"]
     assert "UNIT-SECRET" not in prompt and "UNIT-TOOL-TRACE" not in prompt
