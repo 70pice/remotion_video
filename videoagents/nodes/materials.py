@@ -26,6 +26,22 @@ from worker.process_manager import RenderCancelled
 PROMPT = load_prompt("materials")
 
 
+def collection_fingerprint(job: Job) -> str:
+    """Bind the research cache to what the collection is supposed to gather.
+
+    The writer now runs first and may revise after materials finished; a new
+    script with new citations or visual needs must invalidate the frozen
+    package so the collector runs again before the human gate.
+    """
+    return fingerprint({
+        "source_urls": sorted(job.brief.source_urls),
+        "segments": [{"segment_id": segment.segment_id,
+                      "source_refs": sorted(segment.source_refs),
+                      "visual_need": segment.visual_need}
+                     for segment in (job.script.segments if job.script else [])],
+    })
+
+
 class MaterialsNode:
     def __init__(self, repository: Repository, service: JobService):
         self.repo, self.service = repository, service
@@ -153,7 +169,8 @@ class MaterialsNode:
         """复用已完成研究，否则直接启动素材模型，再保存其最终产出。"""
         job = self.active(job)
         frozen = self.saved_json(job, "research")
-        if frozen is not None and frozen.get("status", "COMPLETED") == "COMPLETED":
+        if (frozen is not None and frozen.get("status", "COMPLETED") == "COMPLETED"
+                and frozen.get("collection_fingerprint") == collection_fingerprint(job)):
             return frozen
         folder = self.repo.root / "jobs" / job.job_id / "revisions" / str(job.revision) / "skills-research"
         folder.mkdir(parents=True, exist_ok=True)
@@ -290,6 +307,7 @@ class MaterialsNode:
             self.repo.update_job(job.job_id, job.revision, expected_event_id=current.latest_event_id,
                                 brief=current.brief.model_copy(update={"source_urls": known_urls}))
         self.service.write_json(self.active(job), "material-skill-manifest.json", bundle.model_dump(), "material_skill_manifest")
+        research = {**research, "collection_fingerprint": collection_fingerprint(self.active(job))}
         self.service.write_json(self.active(job), "research.json", research, "research")
         return research
 

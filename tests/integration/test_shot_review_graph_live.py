@@ -60,9 +60,16 @@ def test_worker_graph_renders_every_shot_and_waits_for_human(tmp_path, monkeypat
                               for index, text in enumerate(texts)]}
     service.upload(job.job_id, audio, "smoke-tone.wav", "audio", alignment=alignment)
     job = repo.get_job(job.job_id)
+    from videoagents.nodes.materials import collection_fingerprint
+    from videoagents.nodes.screenwriter import ScreenwriterNode
+    from videoagents.state import VideoState
+    ScreenwriterNode(repo, service)(VideoState(job_id=job.job_id, revision=job.revision,
+                                               action="produce", run_id="SMOKE-seed", thread_id="SMOKE-seed"))
+    job = repo.get_job(job.job_id)
     service.write_json(job, "smoke-research.json", {
         "schema_version": "3", "status": "COMPLETED", "sources": [], "visuals": [],
         "limitations": ["SMOKE: explicit empty fixture research; no real cases or video content."],
+        "collection_fingerprint": collection_fingerprint(job),
     }, "research")
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "produce", "idempotency_key": "SMOKE-produce"})
     assert Worker(repo, project).once()

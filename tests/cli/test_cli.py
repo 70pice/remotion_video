@@ -108,9 +108,17 @@ def test_run_pauses_at_script_gate_resume_confirms_and_shots_list(tmp_path, monk
     run_cli([*argv_tail, "upload", job.job_id, str(tone), "--role", "audio",
              "--alignment", str(alignment_file), "--license-note", "CLI TEST fixture tone"])
     capsys.readouterr()
+    from videoagents.nodes.materials import collection_fingerprint
+    from videoagents.nodes.screenwriter import ScreenwriterNode
+    from videoagents.state import VideoState
+    # The alignment upload advanced the revision; seed against the current one.
+    job = repo.get_job(job.job_id)
+    ScreenwriterNode(repo, service)(VideoState(job_id=job.job_id, revision=job.revision,
+                                               action="produce", run_id="UNIT-seed", thread_id="UNIT-seed"))
     service.write_json(repo.get_job(job.job_id), "cli-research.json", {
         "schema_version": "3", "status": "COMPLETED", "sources": [], "visuals": [],
-        "limitations": ["CLI TEST: explicit empty fixture research."]}, "research")
+        "limitations": ["CLI TEST: explicit empty fixture research."],
+        "collection_fingerprint": collection_fingerprint(repo.get_job(job.job_id))}, "research")
 
     run_cli([*argv_tail, "run", job.job_id])
     paused = json.loads(capsys.readouterr().out)
@@ -138,3 +146,54 @@ def test_run_pauses_at_script_gate_resume_confirms_and_shots_list(tmp_path, monk
     # end-to-end MP4 smoke runs in the opt-in live test.
     assert final == {**final, "stage": "complete", "status": "DRAFT"}
     assert final_renders == ["final"]
+
+
+def test_poll_revise_on_per_shot_gate_never_sends_shot_ids(tmp_path, monkeypatch, capsys):
+    """A Feishu 需修改 answer must not carry the whole-package shot list."""
+    from videoagents.providers import feishu
+
+    runtime = tmp_path / "runtime"
+    repo = Repository(runtime)
+    job = repo.create_job(Brief(topic="per-shot revise", script_text="观点：只此一段。"))
+    pending = {"kind": "stage_review", "stage": "director", "node_name": "director_human_gate",
+               "title": "摄影逐镜组件与画面审核", "thread_id": "UNIT-t", "revision": job.revision,
+               "pending_token": "UNIT-token-123456", "review_mode": "per_shot_stills",
+               "required_shot_ids": ["shot1", "shot2"], "confirmation_requirements": ["逐镜核对"],
+               "min_note_length": 10}
+    repo.update_job(job.job_id, job.revision, status="NEEDS_HUMAN", stage="director",
+                    message="等待人工核对", pending_input=pending)
+    monkeypatch.setattr(feishu.FeishuReviewBase, "base_token", lambda self, job_id: "token123")
+    monkeypatch.setattr(feishu.FeishuReviewBase, "_table_id", lambda self, token, table: "tbl1")
+    monkeypatch.setattr(feishu.FeishuReviewBase, "_find_review", lambda self, token, table_id, tok: "rec1")
+    monkeypatch.setattr(feishu.FeishuReviewBase, "poll_decision",
+                        lambda self, job, tok, **kw: {"decision": "revise", "note": "第二镜换成真实截图再审核"})
+
+    from videoagents.main import build_parser
+    args = build_parser().parse_args(["--runtime-dir", str(runtime), "poll", job.job_id])
+    args.handler(args)
+    with repo.connection() as db:
+        row = db.execute("SELECT payload FROM commands ORDER BY rowid DESC LIMIT 1").fetchone()
+    payload = json.loads(row[0])
+    assert payload["decision"] == "revise"
+    assert "reviewed_shot_ids" not in payload
+
+
+def test_run_failure_returns_nonzero_with_clean_json_stdout(tmp_path, monkeypatch, capsys):
+    """A real execution failure exits non-zero while stdout stays pure JSON."""
+    from videoagents.nodes.materials import MaterialsNode
+
+    runtime = tmp_path / "runtime"
+    repo = Repository(runtime)
+    job = repo.create_job(Brief(topic="fail path", script_text="观点：失败路径。"))
+
+    def boom(self, state):
+        raise RuntimeError("UNIT injected failure")
+
+    monkeypatch.setattr(MaterialsNode, "__call__", boom)
+    from videoagents.main import build_parser
+    args = build_parser().parse_args(["--runtime-dir", str(runtime), "run", job.job_id])
+    rc = args.handler(args)
+    out = capsys.readouterr().out
+    assert rc == 1, out
+    summary = json.loads(out)  # stdout must remain parseable JSON
+    assert summary["status"] == "FAILED" and "UNIT injected failure" in summary["message"]

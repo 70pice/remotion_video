@@ -231,8 +231,17 @@ def test_production_graph_clears_each_completed_role_before_real_input_pause(tmp
     service = JobService(repo, tmp_path / "project")
     SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False))
     job = repo.create_job(Brief(script_text="观点：我喜欢这个配色。"))
+    # Stamp the fixture like a real package: run the passthrough writer first,
+    # then seed with the matching collection fingerprint.
+    from videoagents.nodes.materials import collection_fingerprint
+    from videoagents.nodes.screenwriter import ScreenwriterNode
+    from videoagents.state import VideoState
+    ScreenwriterNode(repo, service)(VideoState(job_id=job.job_id, revision=job.revision,
+                                                action="produce", run_id="UNIT-seed", thread_id="UNIT-seed"))
+    job = repo.get_job(job.job_id)
     service.write_json(job, "research.json", {"status": "COMPLETED", "sources": [], "visuals": [],
-                       "limitations": ["UNIT TEST：观点稿无需事实来源，素材包显式为空。"]}, "research")
+                       "limitations": ["UNIT TEST：观点稿无需事实来源，素材包显式为空。"],
+                       "collection_fingerprint": collection_fingerprint(job)}, "research")
     visited = []
     original_clear = ClearToolsNode.__call__
     original_materials = MaterialsNode.__call__
@@ -248,7 +257,7 @@ def test_production_graph_clears_each_completed_role_before_real_input_pause(tmp
 
     monkeypatch.setattr(MaterialsNode, "__call__", materials)
     monkeypatch.setattr(ClearToolsNode, "__call__", clear)
-    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None, **kwargs):
         if role == "script_reviewer":
             return {"decision": "APPROVE", "summary": "UNIT TEST：文案可进入人工审核。", "strengths": [], "issues": []}
         pytest.fail("Offline test reached an unexpected model role")

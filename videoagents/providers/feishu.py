@@ -64,8 +64,11 @@ class FeishuUnavailable(RuntimeError):
 
 
 def _run(arguments: list[str], *, timeout: int = 60) -> dict[str, Any]:
+    # Output format is always selected with --format json; a bare --json would
+    # collide with commands where --json is a VALUE input (batch create/update,
+    # record get/delete), which lark-cli rejects as "flag needs an argument".
     try:
-        result = subprocess.run(["lark-cli", *arguments, "--json"], capture_output=True, text=True,
+        result = subprocess.run(["lark-cli", *arguments, "--format", "json"], capture_output=True, text=True,
                                 timeout=timeout, check=False)
     except (OSError, subprocess.SubprocessError) as exc:
         raise FeishuUnavailable(f"lark-cli 无法执行：{exc}") from exc
@@ -210,9 +213,16 @@ class FeishuReviewBase:
                 "画面动作": item.get("visual_action", ""),
                 "素材引用": item.get("asset_src", ""),
             })
-            image_path = image.get("path")
-            if image_path:
-                attachments[shot_id] = image_path
+            # The manifest stores an Artifact dump (artifact_id/url), not a path;
+            # resolve the real file through the repository before uploading.
+            artifact_id = image.get("artifact_id")
+            if artifact_id:
+                try:
+                    path, _, _ = self.repo.artifact_path(artifact_id)
+                except (ValueError, OSError):
+                    path = None
+                if path:
+                    attachments[shot_id] = str(path)
         self._rewrite_table(token, SHOTS_TABLE, "镜头ID", rows, attachments, "代表帧")
         return token
 
@@ -220,13 +230,16 @@ class FeishuReviewBase:
         """Insert or refresh the pending review row; keyed by 待办令牌."""
         token = self.ensure_base(job)
         table_id = self._table_id(token, REVIEW_TABLE)
-        existing = self._find_review(token, table_id, pending_token)
         fields = {"标题": f"{job.brief.topic[:60]} · {stage}", "阶段": [stage], "待办令牌": pending_token,
-                  "审核要求": requirements, "结论": [DECISION_PENDING], "意见": ""}
+                  "审核要求": requirements}
+        existing = self._find_review(token, table_id, pending_token)
         if existing:
+            # Replayed syncs (worker crash, retry) must never clobber what the
+            # human already filled in; refresh descriptive fields only.
             _run(["base", "+record-batch-update", "--base-token", token, "--table-id", table_id,
                   "--json", json.dumps({"update_records": {existing: fields}}, ensure_ascii=False)])
             return
+        fields.update({"结论": [DECISION_PENDING], "意见": ""})
         _run(["base", "+record-batch-create", "--base-token", token, "--table-id", table_id,
               "--json", json.dumps({"create_records": [fields]}, ensure_ascii=False)])
 
@@ -236,8 +249,12 @@ class FeishuReviewBase:
                 return item.get("record_id")
         return None
 
-    def poll_decision(self, job: Job, pending_token: str) -> dict[str, Any] | None:
-        """Return {'decision': confirm|revise, 'note': str} once the human answered."""
+    def poll_decision(self, job: Job, pending_token: str, *, min_note_length: int = 10) -> dict[str, Any] | None:
+        """Return {'decision': confirm|revise, 'note': str} once the human answered.
+
+        The note must satisfy the human gate's minimum length, so the same
+        answer that poll accepts can never bounce at the gate itself.
+        """
         token = self.base_token(job.job_id)
         if not token:
             return None
@@ -248,13 +265,15 @@ class FeishuReviewBase:
         row = _run(["base", "+record-get", "--base-token", token, "--table-id", table_id,
                     "--record-id", record_id])
         fields = (_records(row) or [{}])[0].get("fields", {})
+        note = _plain(fields.get("意见"))
         decision = _plain(fields.get("结论"))
         if decision == DECISION_CONFIRM:
-            return {"decision": "confirm", "note": _plain(fields.get("意见")) or "飞书审核通过"}
+            # The gate requires a substantive note; an empty 意见 box still
+            # records an explicit human decision, so send a full sentence.
+            return {"decision": "confirm", "note": note or "飞书多维表格人工审核通过（结论：通过）"}
         if decision == DECISION_REVISE:
-            note = _plain(fields.get("意见"))
-            if not note:
-                return None  # 需修改必须附带意见,否则继续等待。
+            if len(note) < max(1, min_note_length):
+                return None  # 需修改必须附带达到门长度的意见,否则继续等待。
             return {"decision": "revise", "note": note}
         return None
 

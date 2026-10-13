@@ -41,6 +41,13 @@ def _drain(worker: Worker) -> list[str]:
     return executed
 
 
+def _finish(repo: Repository, job_id: str) -> int:
+    """Emit the final state and exit non-zero when the run actually failed."""
+    job = repo.get_job(job_id)
+    emit(_job_summary(job))
+    return 1 if job.status == "FAILED" else 0
+
+
 def _job_summary(job: Any) -> dict[str, Any]:
     return {"job_id": job.job_id, "revision": job.revision, "status": job.status, "stage": job.stage,
             "message": job.message, "topic": job.brief.topic,
@@ -69,8 +76,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     repo.enqueue(job.job_id, {"action": args.action, "base_revision": job.revision,
                               "idempotency_key": args.idempotency_key or f"cli-{args.action}-{job.job_id}-{job.revision}"})
     _drain(_worker(repo))
-    emit(_job_summary(repo.get_job(job.job_id)))
-    return 0
+    return _finish(repo, job.job_id)
 
 
 def cmd_retry(args: argparse.Namespace) -> int:
@@ -87,8 +93,7 @@ def cmd_retry(args: argparse.Namespace) -> int:
         base_revision=job.revision, retry_command_id=row[0],
         idempotency_key=f"cli-retry-{row[0][:12]}-{int(time.time())}"))
     _drain(_worker(repo))
-    emit(_job_summary(repo.get_job(args.job_id)))
-    return 0
+    return _finish(repo, args.job_id)
 
 
 def cmd_resume(args: argparse.Namespace) -> int:
@@ -106,8 +111,7 @@ def cmd_resume(args: argparse.Namespace) -> int:
         payload["reviewed_shot_ids"] = [item.strip() for item in args.shot_ids.split(",") if item.strip()]
     repo.enqueue(job.job_id, payload)
     _drain(_worker(repo))
-    emit(_job_summary(repo.get_job(args.job_id)))
-    return 0
+    return _finish(repo, args.job_id)
 
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -179,13 +183,13 @@ def cmd_poll(args: argparse.Namespace) -> int:
                                "pending_token": job.pending_input["pending_token"],
                                "decision": decision["decision"], "note": decision["note"],
                                "idempotency_key": f"feishu-{job.pending_input['pending_token']}"}
-    if job.pending_input.get("review_mode") == "per_shot_stills":
-        # Feishu 通过 is the whole-package confirmation for every listed shot.
+    if decision["decision"] == "confirm" and job.pending_input.get("review_mode") == "per_shot_stills":
+        # Feishu 通过 is the whole-package confirmation for every listed shot;
+        # a revise answer must NOT carry the reviewed-shot list (rejected upstream).
         payload["reviewed_shot_ids"] = list(job.pending_input["required_shot_ids"])
     repo.enqueue(job.job_id, payload)
     _drain(_worker(repo))
-    emit(_job_summary(repo.get_job(args.job_id)))
-    return 0
+    return _finish(repo, args.job_id)
 
 
 def cmd_cancel(args: argparse.Namespace) -> int:

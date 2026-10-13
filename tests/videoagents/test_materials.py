@@ -445,3 +445,32 @@ def test_director_matches_evidence_by_source_url_when_script_does_not_name_asset
     assert timeline.shots[0].component_id == "evidence"
     assert timeline.shots[0].asset_src == evidence.timeline_src
     assert timeline.shots[0].source_label == "example.com"
+
+
+def test_revised_script_invalidates_research_cache(tmp_path, monkeypatch):
+    """A writer revision with new citations/needs must re-run collection."""
+    repo, service = make_repo(tmp_path)
+    job = repo.create_job(Brief(topic="Muse", source_urls=["https://example.com/muse"]))
+    # First collection with the original script.
+    original = Script(title="旧稿", origin="model", revision=job.revision,
+                      segments=[ScriptSegment(segment_id="s1", narration="旧说法。",
+                                              source_refs=["https://example.com/muse"], visual_need="旧画面")])
+    job = repo.update_job(job.job_id, revision=job.revision, script=original)
+    calls = patch_material_model(monkeypatch)
+    node = MaterialsNode(repo, service)
+    first = node.collect(job)
+    assert len(calls) == 1 and first["sources"][0]["url"] == "https://example.com/muse"
+
+    # Same script on replay: frozen package is reused without a model call.
+    node.collect(repo.get_job(job.job_id))
+    assert len(calls) == 1
+
+    # The writer revises with a NEW citation and visual need: the old package
+    # no longer matches the collection demand and must not be reused.
+    revised = Script(title="新稿", origin="model", revision=job.revision,
+                     segments=[ScriptSegment(segment_id="s1", narration="新说法。",
+                                             source_refs=["https://example.com/official"],
+                                             visual_need="官方通报截图")])
+    job = repo.update_job(job.job_id, revision=job.revision, script=revised)
+    node.collect(job)
+    assert len(calls) == 2

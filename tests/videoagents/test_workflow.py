@@ -52,12 +52,21 @@ def _seed_completed_research(repo: Repository, service: JobService, job) -> None
     current = repo.get_job(job.job_id)
     if any(item.kind == "research" and item.revision == current.revision for item in current.artifacts):
         return
+    # Run the user-script passthrough writer first: research packages are
+    # stamped with the script's collection fingerprint, so seed after it.
+    from videoagents.nodes.screenwriter import ScreenwriterNode
+    from videoagents.state import VideoState
+    ScreenwriterNode(repo, service)(VideoState(job_id=job.job_id, revision=job.revision,
+                                                action="produce", run_id="UNIT-seed", thread_id="UNIT-seed"))
+    current = repo.get_job(job.job_id)
+    from videoagents.nodes.materials import collection_fingerprint
     service.write_json(current, "research.json", {
         "schema_version": "3",
         "status": "COMPLETED",
         "sources": [],
         "visuals": [],
         "limitations": ["UNIT TEST：下游流程测试夹具，素材节点研究结果已显式冻结为空。"],
+        "collection_fingerprint": collection_fingerprint(current),
     }, "research")
 
 

@@ -84,12 +84,22 @@ def seed_completed_research(repo: Repository, project, job) -> None:
     current = repo.get_job(job.job_id)
     if any(item.kind == "research" and item.revision == current.revision for item in current.artifacts):
         return
+    # Seed after the passthrough writer so the package fingerprint matches
+    # the script materials will actually see (mirror of the real order).
+    from videoagents.nodes.materials import collection_fingerprint
+    from videoagents.nodes.screenwriter import ScreenwriterNode
+    from videoagents.state import VideoState
+    service = JobService(repo, project)
+    ScreenwriterNode(repo, service)(VideoState(job_id=job.job_id, revision=job.revision,
+                                                action="produce", run_id="UNIT-seed", thread_id="UNIT-seed"))
+    current = repo.get_job(job.job_id)
     JobService(repo, project).write_json(current, "research.json", {
         "schema_version": "3",
         "status": "COMPLETED",
         "sources": [],
         "visuals": [],
         "limitations": ["UNIT TEST：人工审核测试夹具，素材节点研究结果已显式冻结为空。"],
+        "collection_fingerprint": collection_fingerprint(current),
     }, "research")
 
 
