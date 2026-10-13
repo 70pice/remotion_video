@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {readFile, readdir, writeFile} from 'node:fs/promises';
+import {mkdir, readFile, readdir, writeFile} from 'node:fs/promises';
 import path from 'node:path';
 
 const root = process.cwd();
@@ -90,5 +90,7 @@ if (process.argv.includes('--compare-render-baseline')) {
   }
   report.renderComparison = {unchangedCompositions:unchanged,unchangedStills:unchanged*3,horizontalChatPreviewReframed:true};
 }
+// The runtime dir is gitignored; create it on clean checkouts before writing the report.
+await mkdir(path.join(root,'.runtime'),{recursive:true});
 await writeFile(path.join(root,'.runtime/component-path-integrity.json'),JSON.stringify(report,null,2));
 console.log(JSON.stringify(report));
