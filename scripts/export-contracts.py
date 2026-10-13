@@ -64,19 +64,10 @@ def outputs() -> dict[Path, str]:
             lines.append(f"  {field}{'?' if optional else ''}: {ts_type(spec, partial_objects)};")
         lines.extend(["}", ""])
     destination = ROOT / "contracts" / "generated"
-    result = {
+    return {
         destination / "models.ts": "\n".join(lines),
         destination / "schemas.json": json.dumps({"$schema": "https://json-schema.org/draft/2020-12/schema", "$defs": schemas}, ensure_ascii=False, indent=2) + "\n",
     }
-    if (ROOT / "server" / "main.py").exists():
-        import tempfile
-
-        from server.main import create_app
-        # Exporting does not modify the real runtime database or settings.
-        with tempfile.TemporaryDirectory(prefix="videoagents-contract-") as temporary:
-            app = create_app(runtime_dir=Path(temporary))
-            result[destination / "openapi.json"] = json.dumps(app.openapi(), ensure_ascii=False, indent=2) + "\n"
-    return result
 
 
 def main() -> int:

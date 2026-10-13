@@ -6,7 +6,7 @@ import re
 import uuid
 from typing import Any
 
-from videoagents.contracts import Artifact, Job, ScriptDiscussion
+from videoagents.contracts import Artifact, Job
 from videoagents.services.jobs import INVALIDATED, JobService
 from videoagents.services.settings import SettingsService
 from videoagents.state import (
@@ -18,10 +18,14 @@ from videoagents.state import (
     validate_json,
 )
 from videoagents.storage import Conflict, NotFound, Repository
-from videoagents.storage.repository import dumps, fingerprint
 from videoagents.tools.media import sha256
 from videoagents.tools.timeline import safe_media_source
 from worker.process_manager import RenderCancelled
+
+# Marks a job settled back to DRAFT after a human asked for a revision.
+# await_input routes on this exact message, so writers must share the constant
+# instead of retyping the text.
+REVISE_SETTLED_MESSAGE = "请修改对应产物并提交新版本"
 
 SCRIPT_REVISION_PATTERNS = (
     "改旁白文案", "重写旁白", "改口播文案", "改文案正文", "重写文案",
@@ -29,7 +33,7 @@ SCRIPT_REVISION_PATTERNS = (
     "结论前置", "防御性文案",
 )
 
-DIRECTOR_VOICE_REVISION_ISSUE = "成片返工意见涉及语速、发音或音频，导演无法只靠镜头修复；请先调整配音后重新制作。"
+DIRECTOR_VOICE_REVISION_ISSUE = "成片返工意见涉及语速、发音或音频，摄影无法只靠镜头修复；请先调整配音后重新制作。"
 
 VOICE_REVISION_PATTERNS = (
     "改配音", "重配音", "调整配音", "改音频", "重做音频", "调整音频",
@@ -156,10 +160,6 @@ def current_job(repository: Repository, state: VideoState) -> Job:
     changes = {name: getattr(inputs, name) for name in ("brief", "script", "timeline", "assets")
                if getattr(inputs, name) != getattr(job, name)}
     if changes:
-        # 3. 已进入本次文案讨论的输入被冻结，修改必须创建新版本，重新讨论。
-        if (job.script_discussion and job.script_discussion.run_id == state.get("run_id")
-                and job.script_discussion.enabled and job.script_discussion.rounds):
-            raise Conflict("讨论中的文案及其输入请通过保存新版本修改，避免沿用旧稿的审查决定")
         # 人工回复绑定了原来的待审内容，不能在等待回复期间直接替换内容。
         if job.pending_input:
             raise Conflict("人工待办的内容已冻结，请修改并保存新版本后重新执行")
@@ -224,25 +224,19 @@ def state_context(repository: Repository, state: VideoState, **overrides: Any) -
     context["extras"] = restore_unapplied_human_feedback(repository, job, context["extras"])
     metadata = {item.asset_id: repository.asset_metadata(item.asset_id) for item in job.assets}
     context["asset_metadata"] = metadata
-    context["artifact_metadata"] = {item.artifact_id: repository.artifact_metadata(item.artifact_id)
-                                    for item in job.artifacts}
     selected = repository.active_audio(job.job_id) or state.get("audio_asset_id")
     audio = next((item for item in reversed(job.assets) if item.role == "audio"
                   and (not selected or item.asset_id == selected)), None)
     audio_metadata = metadata.get(audio.asset_id, {}) if audio else {}
-    context.update(audio=audio.model_dump() if audio else None,
-                   audio_asset_id=audio.asset_id if audio else None,
+    context.update(audio_asset_id=audio.asset_id if audio else None,
                    alignment=audio_metadata.get("alignment"), duration_seconds=audio_metadata.get("duration_seconds"))
-    context.update(research={}, audio_report=None, voice_guidance=None, editing_guidance=None,
-                   director_plan=None, director_shot_review=None,
-                   render={item.kind: item.model_dump() for item in job.artifacts
-                           if item.kind in {"preview", "final", "cover", "captions", "package"}})
+    context.update(research={}, director_plan=None)
     history = list(state.get("human_reviews", []))
     restored_component_study = False
     for artifact in job.artifacts:
         if artifact.revision != job.revision or artifact.kind not in {
-            "research", "audio_report", "voice_guidance", "editing_guidance", "component_study",
-            "director_plan", "director_shot_review", "stage_review", "human_review", "human_feedback_applied",
+            "research", "component_study",
+            "director_plan", "stage_review", "human_review", "human_feedback_applied",
         }:
             continue
         path, _, owner = repository.artifact_path(artifact.artifact_id)
@@ -272,11 +266,6 @@ def state_context(repository: Repository, state: VideoState, **overrides: Any) -
     if decision and not any(item.get("pending_token") == decision.get("pending_token") for item in history):
         history.append(decision)
     context["human_reviews"] = history
-    if job.script_discussion and job.script_discussion.run_id == state.get("run_id"):
-        context["discussion_policy"] = job.script_discussion.model_dump(include={"run_id", "revision", "enabled", "max_rounds"})
-    with repository.connection() as db:
-        context["metrics"] = {row[0]: row[1] for row in db.execute(
-            "SELECT metric,value FROM run_metrics WHERE job_id=? AND revision=?", (job.job_id, job.revision))}
     context.update(overrides)
     return clean_handoff(context)
 
@@ -429,66 +418,3 @@ def request_input(repository: Repository, state: VideoState, stage: str, issues:
     repository.update_job(state["job_id"], state["revision"], status="NEEDS_INPUT", stage=stage,
                           message="；".join(issues)[:2000], pending_input=pending)
     return state_context(repository, state, route="await_input", gate_issues=issues, pending_snapshot=pending)
-
-
-def current_discussion(repository: Repository, state: VideoState, job: Job) -> ScriptDiscussion:
-    # SQL may be one node ahead after a crash before checkpoint. Reuse the
-    # committed turn, including its frozen policy, instead of calling again.
-    if job.script_discussion and job.script_discussion.run_id == state["run_id"]:
-        discussion = job.script_discussion.model_copy(deep=True)
-    elif state.get("script_discussion") and state["script_discussion"].get("run_id") == state["run_id"]:
-        discussion = ScriptDiscussion.model_validate(state["script_discussion"])
-    elif state.get("discussion_policy") and state["discussion_policy"].get("run_id") == state["run_id"]:
-        policy = state["discussion_policy"]
-        discussion = ScriptDiscussion(**policy, status="DISCUSSING" if policy["enabled"] else "DISABLED")
-    else:
-        settings = SettingsService(repository).internal()
-        discussion = ScriptDiscussion(run_id=state["run_id"], revision=job.revision, enabled=True,
-            max_rounds=settings["script_discussion_max_rounds"], status="DISCUSSING")
-        # Freeze policy before the first model request, including a request
-        # that pauses without producing any draft or graph update.
-        repository.update_job(job.job_id, job.revision, script_discussion=discussion)
-    if discussion.run_id != state["run_id"] or discussion.revision != job.revision:
-        raise Conflict("文案讨论对应的执行或版本已失效")
-    if not discussion.enabled:
-        discussion.enabled = True
-        discussion.status = "DISCUSSING"
-    state["discussion_policy"] = discussion.model_dump(include={"run_id", "revision", "enabled", "max_rounds"})
-    return discussion
-
-
-def save_discussion(repository: Repository, state: VideoState, discussion: ScriptDiscussion) -> Job:
-    """Commit one immutable discussion receipt and its script together in SQL."""
-    job = current_job(repository, state)
-    script = discussion.final_script or discussion.rounds[-1].script
-    script_changed = script != job.script
-    invalidated = {"script", "script_discussion"} | (INVALIDATED if script_changed else set())
-    artifacts = [item for item in job.artifacts if item.kind not in invalidated]
-    folder = repository.root / "jobs" / job.job_id / "revisions" / str(job.revision)
-    folder.mkdir(parents=True, exist_ok=True)
-    for kind, value in (("script", script.model_dump()), ("script_discussion", discussion.model_dump())):
-        encoded = dumps(value)
-        artifact_id = fingerprint({"job_id": job.job_id, "run_id": discussion.run_id,
-                                   "revision": job.revision, "kind": kind, "content": value})[:32]
-        path = folder / f"{kind}-{artifact_id}.json"
-        if path.exists():
-            if path.read_text(encoding="utf-8") != encoded:
-                raise Conflict("文案讨论的冻结记录已改变")
-        else:
-            temporary = path.with_suffix(".pending")
-            temporary.write_text(encoded, encoding="utf-8")
-            temporary.replace(path)
-        artifact = Artifact(artifact_id=artifact_id, kind=kind, name=path.name, mime_type="application/json",
-                            size_bytes=path.stat().st_size, sha256=sha256(path),
-                            url=f"/api/artifacts/{artifact_id}", revision=job.revision)
-        try:
-            _, existing, _ = repository.artifact_path(artifact_id)
-            if existing != artifact:
-                raise Conflict("文案讨论产物与持久化记录不一致")
-        except NotFound:
-            repository.put_artifact(job.job_id, artifact, path)
-        artifacts.append(artifact)
-    changes: dict[str, Any] = {"script": script, "script_discussion": discussion, "artifacts": artifacts}
-    if script_changed:
-        changes.update(timeline=None, review=None)
-    return repository.update_job(job.job_id, job.revision, **changes)

@@ -2,7 +2,7 @@
 
 import pytest
 
-from videoagents.contracts import Asset, Brief, Script, ScriptDiscussion, ScriptSegment
+from videoagents.contracts import Asset, Brief, Script, ScriptSegment
 from videoagents.nodes.screenwriter import ScreenwriterNode, script_issues
 from videoagents.services.jobs import JobService
 from videoagents.storage import Repository
@@ -18,19 +18,20 @@ def test_creative_direction_is_model_input_not_finished_narration(tmp_path, monk
     node = ScreenwriterNode(repository, JobService(repository, tmp_path))
     calls = []
 
-    def write(context, role, instruction, *, fields, output_schema):
+    def write(context, role, instruction, *, fields, output_schema, **kwargs):
         calls.append((context, role, fields, instruction))
         return {"title": "从地铁站怎么找到酒店入口", "segments": [{
             "segment_id": "s1", "narration": "出站后先沿着有路牌的方向走。",
             "screen_text": "先看路牌", "source_refs": [source], "asset_ids": [],
+            "visual_need": "真实路口路牌照片",
         }]}
 
     monkeypatch.setattr(node.model, "invoke", write)
-    script, _ = node.write_script(job, state=state)
+    script = node.write(job, state)
     assert len(calls) == 1
     assert calls[0][0]["brief"]["creative_direction"] == direction
-    assert calls[0][1:3] == ("screenwriter", ("brief", "research", "assets"))
-    assert "不是现成口播稿，据此重新创作" in calls[0][3]
+    assert calls[0][1:3] == ("screenwriter", ("brief", "settings"))
+    assert "不是现成口播稿" in calls[0][3]
     assert script.segments[0].narration != direction
 
 
@@ -46,33 +47,25 @@ def test_rewrite_keeps_human_direction_after_feedback_is_applied(tmp_path, monke
                       segments=[ScriptSegment(segment_id="s1", narration="报告主要统计了付费情况。",
                                               source_refs=[source], asset_ids=[asset.asset_id])])
     job = repository.update_job(job.job_id, script=original, assets=[asset])
-    discussion = ScriptDiscussion(run_id="UNIT-rewrite", revision=job.revision,
-                                  status="EXHAUSTED", max_rounds=1,
-                                  rounds=[{"round": 1, "script": original.model_dump(), "critique": {
-                                      "decision": "REVISE", "summary": "修正判断归属", "issues": [{
-                                          "category": "fact", "concern": "趋势是本期判断。",
-                                          "suggestion": "不要把本期判断归给报告作者。",
-                                      }],
-                                  }}])
     feedback = {"decision": "revise", "note": "用使用深度的差距作主题，保持三个观点。",
                 "applied": applied, "pending_token": "UNIT-feedback", "script": original.model_dump()}
-    state = {"job_id": job.job_id, "revision": job.revision, "run_id": "UNIT-rewrite",
-             "brief": job.brief.model_dump(), "script": original.model_dump(),
-             "assets": [asset.model_dump()], "research": {"sources": [{"url": source}]},
-             "extras": {"human_feedback": {"script": feedback}}}
+    context = {"job_id": job.job_id, "revision": job.revision, "run_id": "UNIT-rewrite",
+               "brief": job.brief.model_dump(), "script": original.model_dump(),
+               "assets": [asset.model_dump()], "research": {"sources": [{"url": source}]},
+               "extras": {"human_feedback": {"script": feedback}}}
     captured = []
 
-    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None, **kwargs):
         captured.append(context)
         value = original.model_dump()
         value["segments"][0]["narration"] = "付费样本中的使用方式存在差别。"
         return {"script": value, "response": "保留人工主题，修正机器指出的问题。"}
 
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
-    ScreenwriterNode(repository, JobService(repository, tmp_path)).rewrite(job, discussion, state)
+    ScreenwriterNode(repository, JobService(repository, tmp_path)).rewrite(job, context, feedback)
     assert captured[0]["extras"]["human_feedback"]["script"] == feedback
-    assert captured[0]["script_discussion"]["rounds"][0]["critique"]["decision"] == "REVISE"
-    assert state["extras"]["human_feedback"]["script"]["applied"] is applied
+    assert captured[0]["script"]["segments"][0]["narration"] == original.segments[0].narration
+    assert context["extras"]["human_feedback"]["script"]["applied"] is applied
 
 
 def test_user_script_does_not_bind_first_video_to_every_paragraph(tmp_path):
@@ -84,7 +77,7 @@ def test_user_script_does_not_bind_first_video_to_every_paragraph(tmp_path):
                   timeline_src=f"videoagents/{job.job_id}/assets/unit.mp4")
     state = {"brief": job.brief.model_dump(), "script": None, "assets": [asset.model_dump()],
              "research": {"sources": [{"url": asset.source_url}]}}
-    script, _ = ScreenwriterNode(repository, JobService(repository, tmp_path)).write_script(job, state=state)
+    script = ScreenwriterNode(repository, JobService(repository, tmp_path)).write(job, state)
     assert len(script.segments) == 2
     assert all(segment.asset_ids == [] for segment in script.segments)
 

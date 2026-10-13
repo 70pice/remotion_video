@@ -8,13 +8,14 @@ from langgraph.types import interrupt
 from pydantic import ValidationError
 
 from videoagents.contracts import Artifact, DirectorRequirements, Job
-from videoagents.nodes.common import current_job, state_context
+from videoagents.nodes.common import REVISE_SETTLED_MESSAGE, current_job, state_context
 from videoagents.nodes.director_review import (
     SHOT_REVIEW_MODE,
     current_plan_artifact,
     current_shot_review_artifact,
     director_review_fingerprint,
 )
+from videoagents.services.settings import SettingsService
 from videoagents.state import VideoState
 from videoagents.storage import Conflict, NotFound, Repository
 from videoagents.storage.repository import dumps, fingerprint
@@ -89,7 +90,7 @@ class HumanReviewNode:
             _, plan = current_plan_artifact(self.repo, job, validate_components=False)
             per_shot = plan.get("review_mode") == SHOT_REVIEW_MODE
             if per_shot:
-                title = "导演逐镜组件与画面审核"
+                title = "摄影逐镜组件与画面审核"
                 requirements = ("逐镜核对组件或组件套、实际内部组件和选择理由",
                                 "逐镜查看真实Remotion代表帧，核对素材可读性、版式和画面表演",
                                 "旁白、案例、数字和来源对应，代表帧只证明该帧画面，不能证明整镜字幕同步",
@@ -119,9 +120,28 @@ class HumanReviewNode:
                            director_shot_review_artifact_id=review.artifact_id)
         return pending
 
+    def _snapshot_research(self, job: Job) -> dict[str, Any] | None:
+        artifact = next((item for item in reversed(job.artifacts)
+                         if item.kind == "research" and item.revision == job.revision), None)
+        if not artifact:
+            return None
+        try:
+            path, _, owner = self.repo.artifact_path(artifact.artifact_id)
+            if owner != job.job_id:
+                return None
+            return json.loads(path.read_text(encoding="utf-8"))
+        except (ValueError, OSError):
+            return None
+
     def _subject_snapshot(self, job: Job) -> dict[str, Any]:
         if self.stage == "script":
-            return {"script": job.script.model_dump() if job.script else None}
+            # The human reviews the script and the collected materials together.
+            research = self._snapshot_research(job)
+            return {"script": job.script.model_dump() if job.script else None,
+                    "assets": [{"asset_id": item.asset_id, "name": item.name, "role": item.role,
+                                "mime_type": item.mime_type, "source_url": item.source_url,
+                                "license_note": item.license_note} for item in job.assets],
+                    "research_limitations": research.get("limitations", []) if research else []}
         if self.stage == "director":
             subject = {"script": job.script.model_dump() if job.script else None,
                        "timeline": job.timeline.model_dump() if job.timeline else None}
@@ -168,12 +188,46 @@ class HumanReviewNode:
         self.repo.update_job(job.job_id, job.revision, status=status, stage=self.stage, message=message,
                              pending_input=None, artifacts=artifacts)
 
+    def _sync_feishu(self, job: Job, pending: dict[str, Any]) -> None:
+        """Mirror this gate into the job's Feishu Bitable; never block the gate."""
+        from videoagents.providers.feishu import (
+            REVIEW_STAGE_SCRIPT,
+            REVIEW_STAGE_SHOTS,
+            FeishuReviewBase,
+            FeishuUnavailable,
+        )
+
+        settings = SettingsService(self.repo).internal()
+        if not (settings.get("feishu_folder_token") or "").strip():
+            return
+        base = FeishuReviewBase(self.repo, settings["feishu_folder_token"])
+        try:
+            if self.node_name == "human_review_script":
+                base.sync_script_and_assets(job)
+                stage_label = REVIEW_STAGE_SCRIPT
+            elif self.node_name == "director_human_gate" and pending.get("review_mode") == SHOT_REVIEW_MODE:
+                _, manifest = current_shot_review_artifact(self.repo, job, validate_components=False)
+                base.sync_shots(job, manifest)
+                stage_label = REVIEW_STAGE_SHOTS
+            else:
+                return
+            base.submit_review(job, stage_label, pending["pending_token"],
+                               "\n".join(pending["confirmation_requirements"]))
+        except FeishuUnavailable as exc:
+            # Non-fatal: the CLI resume command remains the fallback path.
+            try:
+                self.repo.update_job(job.job_id, job.revision,
+                                     message=pending["title"] + f"：等待人工核对（飞书同步失败：{exc}）")
+            except Exception:
+                pass
+
     def __call__(self, state: VideoState) -> dict[str, Any]:
         job = self._job(state)
         pending = self._pending(state, job)
         if job.pending_input != pending or job.status != "NEEDS_HUMAN":
             self.repo.update_job(job.job_id, job.revision, status="NEEDS_HUMAN", stage=self.stage,
                                  message=pending["title"] + "：等待人工核对", pending_input=pending)
+        self._sync_feishu(job, pending)
         answer = interrupt(pending)
         job = self._job(state)
         if self._inputs(job) != pending["dependency_fingerprint"]:
@@ -194,11 +248,11 @@ class HumanReviewNode:
         director_requirements = answer.get("director_requirements")
         if director_requirements is not None:
             if decision != "revise" or self.node_name != "director_human_gate" or self.stage != "director":
-                raise Conflict("导演制作要求只能随导演画面返工提交")
+                raise Conflict("摄影制作要求只能随摄影画面返工提交")
             try:
                 director_requirements = DirectorRequirements.model_validate(director_requirements)
             except ValidationError as exc:
-                raise Conflict("导演制作要求无效") from exc
+                raise Conflict("摄影制作要求无效") from exc
         note = note.strip()
         if decision in {"confirm", "revise"} and len(note) < self.min_note_length:
             pending = dict(pending, pending_token=fingerprint({"previous": pending["pending_token"],
@@ -224,7 +278,7 @@ class HumanReviewNode:
         elif decision == "revise" and self.revise_route:
             status, message, route = "RUNNING", pending["title"] + "要求返工，已返回对应模型节点", "revise"
         elif decision == "revise":
-            status, message, route = "DRAFT", "人工审核要求返工，请修改对应产物并提交新版本", "end"
+            status, message, route = "DRAFT", "人工审核要求返工，" + REVISE_SETTLED_MESSAGE, "end"
         else:
             status, message, route = "CANCELLED", "人工审核已取消任务", "end"
         # Persist the complete revision instruction as part of the immutable

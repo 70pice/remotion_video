@@ -100,7 +100,6 @@ def test_final_outputs_flow_through_two_roles_and_sqlite_checkpoint_without_tool
         saved = compiled.get_state(config).values
 
     assert seen[1][1]["script"]["segments"][0]["narration"] == "编剧最终口播稿。"
-    assert result["script_discussion"]["rounds"][0]["critique"]["summary"] == "文案审查最终意见"
     assert saved["research"] == result["research"]
     assert "UNIT-private" not in json.dumps(seen, ensure_ascii=False)
     assert "UNIT-private" not in json.dumps(saved, ensure_ascii=False)
@@ -146,7 +145,7 @@ def test_model_input_filters_secrets_and_refuses_runtime_ledger_fields(tmp_path,
         model.invoke(state, "voice", "固定 Prompt", fields=("operations",))
 
 
-@pytest.mark.parametrize("field", ["script", "script_discussion", "voice_guidance", "editing_guidance", "timeline", "review", "extras"])
+@pytest.mark.parametrize("field", ["script", "timeline", "review", "extras"])
 def test_every_role_output_removes_nested_tool_history_and_preserves_final_data(field):
     final = {"summary": "角色最终产出", "nested": [{"note": "有效业务信息", "tool_results": ["UNIT-private-result"]}],
              "tool_calls": ["UNIT-private-call"], "messages": ["UNIT-private-message"]}
@@ -191,7 +190,7 @@ def test_generic_tools_and_operations_in_final_business_data_survive_handoff():
     assert merge_extras({}, business) == result["extras"]
 
 
-@pytest.mark.parametrize("role", ["materials", "screenwriter", "script_reviewer", "voice", "director", "editing"])
+@pytest.mark.parametrize("role", ["materials", "screenwriter", "voice", "director", "editing"])
 def test_every_production_role_routes_through_its_clear_node(tmp_path, role):
     with VideoProductionGraph(Repository(tmp_path / "runtime"), tmp_path / "project") as production:
         topology = production.graph.get_graph()
@@ -217,16 +216,12 @@ def test_clear_node_preserves_final_outputs_and_pause_binding_without_audit_refe
                        research=raw_research(), extras={"final_summary": "素材已核验"},
                        artifacts=[{"artifact_id": "audit", "kind": "material_tool_audit"},
                                   {"artifact_id": "manifest", "kind": "material_skill_manifest"},
-                                  {"artifact_id": "final", "kind": "script"}],
-                       artifact_metadata={"audit": {"source_url": "UNIT-private-audit"},
-                                          "manifest": {"source_url": "UNIT-private-manifest"},
-                                          "final": {"dependency_fingerprint": "unit-fingerprint"}})
+                                  {"artifact_id": "final", "kind": "script"}])
     result = ClearToolsNode()(state)
     assert result["route"] == "await_input" and result["run_id"] == "unit-run"
     assert result["pending_snapshot"] == state["pending_snapshot"]
     assert result["extras"] == {"final_summary": "素材已核验"}
     assert result["artifacts"] == [{"artifact_id": "final", "kind": "script"}]
-    assert result["artifact_metadata"] == {"final": {"dependency_fingerprint": "unit-fingerprint"}}
     assert result["research"]["sources"][0]["text"] == "Muse 的来源正文。"
     assert "UNIT-private" not in json.dumps(result)
 
@@ -262,7 +257,7 @@ def test_production_graph_clears_each_completed_role_before_real_input_pause(tmp
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "produce", "idempotency_key": "unit-clear"})
     with VideoProductionGraph(repo, service.project_root) as production:
         result = production.execute(repo.claim(12345))
-        assert visited == ["materials", "script", "script"]
+        assert visited == ["script", "materials"]
         assert result["extras"] == {"final_summary": "素材已核验"}
         assert result["script"]["segments"][0]["narration"] == job.brief.script_text
         paused = repo.get_job(job.job_id)

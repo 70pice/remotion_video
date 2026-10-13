@@ -156,29 +156,34 @@ def test_cancellation_between_active_check_and_material_commit_is_rejected(tmp_p
     assert current.assets == [] and current.artifacts == []
 
 
-def test_materials_pause_and_resume_reruns_materials_before_screenwriter(tmp_path, monkeypatch):
+def test_pause_and_resume_reruns_writer_then_materials(tmp_path, monkeypatch):
     from videoagents.providers.llm import CapabilityMissing, JsonModel
 
     repo, service = make_repo(tmp_path)
     job = repo.create_job(Brief(topic="Muse", source_urls=["https://example.com/muse"]))
-    calls = patch_material_model(monkeypatch)
+    patch_material_model(monkeypatch)
     successful_call = JsonModel.call
     attempts = []
 
-    def flaky_call(self, *args, **kwargs):
-        attempts.append(args[2])
+    def flaky_call(self, job_id, revision, role, instruction, context, command_id="", output_schema=None, **kwargs):
+        attempts.append(role)
         if len(attempts) == 1:
             raise CapabilityMissing("unit transient model failure", ["role_models"])
-        if args[2] == "screenwriter":
-            raise CapabilityMissing("unit stop after materials", ["script"])
-        return successful_call(self, *args, **kwargs)
+        if role == "materials":
+            raise CapabilityMissing("unit stop after writer", ["source_urls"])
+        if role == "screenwriter":
+            return {"title": "Muse", "origin": "model", "revision": revision, "segments": [{
+                "segment_id": "s1", "narration": "Muse 是测试来源里的产品。", "screen_text": "Muse",
+                "source_refs": ["https://example.com/muse"], "asset_ids": []}]}
+        return successful_call(self, job_id, revision, role, instruction, context, command_id,
+                               output_schema=output_schema, **kwargs)
 
     monkeypatch.setattr(JsonModel, "call", flaky_call)
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "produce", "idempotency_key": "unit-produce"})
     assert Worker(repo, service.project_root).once()
     paused = repo.get_job(job.job_id)
-    assert paused.status == "NEEDS_INPUT" and paused.stage == "materials"
-    assert paused.pending_input["stage"] == "materials"
+    assert paused.status == "NEEDS_INPUT" and paused.stage == "script"
+    assert paused.pending_input["stage"] == "script"
 
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "resume", "decision": "confirm",
                               "note": "retry materials", "idempotency_key": "unit-resume",
@@ -186,15 +191,15 @@ def test_materials_pause_and_resume_reruns_materials_before_screenwriter(tmp_pat
     assert Worker(repo, service.project_root).once()
     current = repo.get_job(job.job_id)
 
-    assert attempts == ["materials", "materials", "screenwriter"]
-    assert len(calls) == 1
-    assert any(item.kind == "research" for item in current.artifacts)
+    assert attempts == ["screenwriter", "screenwriter", "materials"]
+    # The writer reran on resume and finished; materials then paused again.
+    assert current.script is not None and current.script.title == "Muse"
     assert current.status == "NEEDS_INPUT"
-    assert current.stage == "script"
+    assert current.stage == "materials"
 
 
-def test_actual_graph_invokes_materials_before_screenwriter(tmp_path, monkeypatch):
-    from videoagents.nodes.common import request_input, state_context
+def test_actual_graph_invokes_screenwriter_before_materials(tmp_path, monkeypatch):
+    from videoagents.nodes.common import state_context
 
     repo, service = make_repo(tmp_path)
     job = repo.create_job(Brief(topic="graph order"))
@@ -204,11 +209,13 @@ def test_actual_graph_invokes_materials_before_screenwriter(tmp_path, monkeypatc
         calls.append("materials")
         self.repo.update_job(state["job_id"], state["revision"], status="RUNNING", stage="materials",
                              message="unit materials")
-        return state_context(self.repo, state, route="screenwriter", research={"sources": []}, gate_issues=[])
+        return state_context(self.repo, state, route="human_review_script", research={"sources": []}, gate_issues=[])
 
     def writer(self, state):
         calls.append("screenwriter")
-        return request_input(self.repo, state, "script", ["unit stop"], ["script"])
+        self.repo.update_job(state["job_id"], state["revision"], status="RUNNING", stage="script",
+                             message="unit writer")
+        return state_context(self.repo, state, route="materials", gate_issues=[])
 
     monkeypatch.setattr("videoagents.nodes.materials.MaterialsNode.__call__", materials)
     monkeypatch.setattr("videoagents.nodes.screenwriter.ScreenwriterNode.__call__", writer)
@@ -217,8 +224,10 @@ def test_actual_graph_invokes_materials_before_screenwriter(tmp_path, monkeypatc
     with VideoProductionGraph(repo, service.project_root) as graph:
         graph.execute(command)
 
-    assert calls == ["materials", "screenwriter"]
-    assert repo.get_job(job.job_id).pending_input["stage"] == "script"
+    # The writer designs the script first; materials then verifies and pauses
+    # at the combined script+materials human gate.
+    assert calls == ["screenwriter", "materials"]
+    assert repo.get_job(job.job_id).status == "NEEDS_HUMAN"
 
 
 def test_materials_node_rejects_cancelled_and_stale_revision_before_commit(tmp_path):
@@ -234,7 +243,7 @@ def test_materials_node_rejects_cancelled_and_stale_revision_before_commit(tmp_p
         MaterialsNode(repo, service)(state_for(job))
 
 
-def test_screenwriter_consumes_frozen_research_and_tamper_is_blocked(tmp_path, monkeypatch):
+def test_screenwriter_draft_reads_brief_and_settings_and_tamper_is_blocked(tmp_path, monkeypatch):
     repo, service = make_repo(tmp_path)
     SettingsService(repo).patch(SettingsPatch(search_provider="tavily", search_api_key="unit-secret",
                                               role_models={"screenwriter": {"enabled": True, "model": "unit-writer"}},
@@ -246,31 +255,32 @@ def test_screenwriter_consumes_frozen_research_and_tamper_is_blocked(tmp_path, m
     MaterialsNode(repo, service)(state_for(job))
     calls = []
 
-    def model_call(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+    def model_call(self, job_id, revision, role, instruction, context, command_id="", output_schema=None, **kwargs):
         calls.append((role, context))
+        # The writer drafts from the brief only; frozen research belongs to the
+        # rewrite path and to the materials node.
+        assert set(context) == {"brief", "settings"}
         return {"title": "Muse是什么", "origin": "model", "revision": revision, "segments": [{
             "segment_id": "s1", "narration": "Muse 是测试来源里的产品。", "screen_text": "Muse",
-            "source_refs": ["https://example.com/muse"], "asset_ids": [context["assets"][0]["asset_id"]],
+            "source_refs": ["https://example.com/muse"], "asset_ids": [],
         }]}
 
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model_call)
-    result = ScreenwriterNode(repo, service)(state_for(repo.get_job(job.job_id)))
+    from videoagents.nodes.common import state_context
+    result = ScreenwriterNode(repo, service)(state_context(repo, state_for(repo.get_job(job.job_id))))
     current = repo.get_job(job.job_id)
 
-    assert result["route"] == "script_reviewer"
+    assert result["route"] == "materials"
     assert calls[0][0] == "screenwriter"
-    assert calls[0][1]["research"]["sources"][0]["url"] == "https://example.com/muse"
-    assert current.script.segments[0].asset_ids == [current.assets[0].asset_id]
 
     research_artifact = next(item for item in current.artifacts if item.kind == "research")
     path, _, _ = repo.artifact_path(research_artifact.artifact_id)
     path.write_text(json.dumps({"sources": []}), encoding="utf-8")
-    repo.update_job(job.job_id, job.revision, script=None)
     with pytest.raises(Conflict, match="上下文引用的阶段记录已改变"):
-        ScreenwriterNode(repo, service).write_script(repo.get_job(job.job_id))
+        state_context(repo, state_for(repo.get_job(job.job_id)))
 
 
-def test_screenwriter_helper_reads_shared_final_output_without_reopening_research(tmp_path, monkeypatch):
+def test_screenwriter_draft_reads_shared_brief_without_reopening_artifacts(tmp_path, monkeypatch):
     repo, service = make_repo(tmp_path)
     job = repo.create_job(Brief(topic="数据库原始主题"))
     node = ScreenwriterNode(repo, service)
@@ -289,11 +299,9 @@ def test_screenwriter_helper_reads_shared_final_output_without_reopening_researc
     monkeypatch.setattr(node.model, "available", lambda role: True)
     monkeypatch.setattr(repo, "artifact_path", lambda *args: pytest.fail("Agent reopened research instead of consuming state"))
 
-    def model_call(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
-        assert set(context) == {"brief", "research", "assets"}
+    def model_call(self, job_id, revision, role, instruction, context, command_id="", output_schema=None, **kwargs):
+        assert "brief" in context and not {"research", "assets", "script"}.intersection(context)
         assert context["brief"]["topic"] == "前节点交接的主题"
-        assert context["research"]["sources"][0]["text"] == "前节点交接的正文。"
-        assert not {"tools", "search_results"}.intersection(context["research"])
         return {"title": context["brief"]["topic"], "segments": [{
             "segment_id": "s1", "narration": "Muse 是来源中的产品。",
             "source_refs": ["https://example.com/muse"], "asset_ids": [],
@@ -301,7 +309,7 @@ def test_screenwriter_helper_reads_shared_final_output_without_reopening_researc
 
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model_call)
 
-    script, _ = node.write_script(job, shared)
+    script = node.write(job, shared)
 
     assert script.title == "前节点交接的主题"
     assert script.origin == "model"
@@ -322,7 +330,7 @@ def test_materials_model_reads_inputs_from_shared_state(tmp_path, monkeypatch):
     assert result["sources"][0]["url"] == "https://example.com/muse"
     assert len(calls) == 1
     assert calls[0][1]["brief"]["topic"] == "shared topic"
-    assert set(calls[0][1]) == {"brief", "assets", "settings"}
+    assert set(calls[0][1]) == {"brief", "script", "assets", "settings"}
     assert calls[0][2]["title"] == "MaterialResearch"
 
 

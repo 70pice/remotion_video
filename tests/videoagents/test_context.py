@@ -14,14 +14,12 @@ from videoagents.contracts import (
     Finding,
     Review,
     Script,
-    ScriptDiscussion,
-    ScriptDiscussionRound,
     ScriptSegment,
     SettingsPatch,
     Shot,
     Timeline,
 )
-from videoagents.nodes.common import current_discussion, current_job, request_input, state_context
+from videoagents.nodes.common import current_job, request_input, state_context
 from videoagents.nodes.gates import ScriptGateNode
 from videoagents.nodes.screenwriter import ScreenwriterNode
 from videoagents.services.jobs import JobService
@@ -98,7 +96,8 @@ def test_job_context_projects_all_persisted_business_fields(tmp_path):
     assert context["assets"] == []
     assert context["artifacts"] == []
     assert context["review"] is None
-    assert context["pending_input"] is None
+    # pending_input lives on the Job row, not in the shared state.
+    assert "pending_input" not in context
 
 
 def test_screenwriter_returns_latest_job_context_after_saving_script_and_artifacts(tmp_path):
@@ -114,14 +113,11 @@ def test_screenwriter_returns_latest_job_context_after_saving_script_and_artifac
     result = ScreenwriterNode(repo, service)(state)
     saved = repo.get_job(job.job_id)
 
-    assert result["route"] == "script_reviewer"
+    assert result["route"] == "materials"
     assert result["status"] == saved.status == "RUNNING"
     assert result["stage"] == saved.stage == "script"
     assert result["brief"] == saved.brief.model_dump()
     assert result["script"] == saved.script.model_dump()
-    assert result["script_discussion"]["enabled"] is True
-    assert result["script_discussion"]["status"] == "DISCUSSING"
-    assert len(result["script_discussion"]["rounds"]) == 1
     assert result["artifacts"] == [item.model_dump() for item in saved.artifacts]
     assert result["settings"]["voice_configured"] is True
     assert result["settings"]["voice_api_key_configured"] is True
@@ -142,7 +138,7 @@ def test_request_input_returns_pending_input_in_shared_context(tmp_path):
     assert result["route"] == "await_input"
     assert result["status"] == saved.status == "NEEDS_INPUT"
     assert result["stage"] == saved.stage == "script"
-    assert result["pending_input"] == saved.pending_input == result["pending_snapshot"]
+    assert saved.pending_input == result["pending_snapshot"]
     assert result["gate_issues"] == ["UNIT TEST: need human input"]
 
 
@@ -206,7 +202,8 @@ def test_legacy_minimal_state_is_completed_from_sql_context(tmp_path):
     assert result["assets"] == []
     assert result["settings"]["voice_configured"] is False
     assert result["asset_metadata"] == {}
-    assert result["metrics"] == {}
+    # Budget counters live in run_metrics, not in the shared state.
+    assert "metrics" not in result
 
 
 def test_sql_ahead_context_wins_over_stale_business_patch(tmp_path):
@@ -264,22 +261,6 @@ def test_explicit_none_clears_script_and_invalidates_downstream_outputs(tmp_path
     assert saved.status == "RUNNING"
 
 
-def test_generic_business_patch_is_rejected_during_active_discussion(tmp_path):
-    repo = Repository(tmp_path / "runtime")
-    job = repo.create_job(Brief(script_text="观点：讨论冻结。"))
-    discussion = ScriptDiscussion(run_id="UNIT-discussion", revision=job.revision, enabled=True,
-                                  max_rounds=2, status="DISCUSSING",
-                                  rounds=[ScriptDiscussionRound(round=1, script=_script(job.revision))])
-    job = repo.update_job(job.job_id, job.revision, script=_script(job.revision),
-                          script_discussion=discussion)
-
-    with pytest.raises(Conflict, match="讨论中的文案"):
-        current_job(repo, VideoState(job_id=job.job_id, revision=job.revision,
-                                    latest_event_id=job.latest_event_id, action="produce",
-                                    run_id="UNIT-discussion", thread_id="UNIT-discussion",
-                                    script=_script(job.revision, "观点：绕过讨论的新文案。").model_dump()))
-
-
 def test_extras_are_shallow_merged_and_json_only():
     assert merge_extras({"keep": "yes", "null_value": "old"}, {"null_value": None, "new": 1}) == {
         "keep": "yes", "null_value": None, "new": 1,
@@ -316,7 +297,9 @@ def test_context_contains_public_receipts_without_runtime_secrets(tmp_path):
 
     assert context["settings"]["search_configured"] is True
     assert context["settings"]["voice_api_key_configured"] is True
-    assert context["metrics"] == {"llm_calls": 1}
+    assert "metrics" not in context
+    with repo.connection() as db:
+        assert db.execute("SELECT value FROM run_metrics WHERE metric='llm_calls'").fetchone()[0] == 1
     assert "operations" not in context
     # 台账继续用于提交去重和对账，只是不再作为 Agent 间的交接内容。
     with repo.connection() as db:
@@ -338,32 +321,6 @@ def test_state_context_drops_stale_component_study_when_artifact_is_missing(tmp_
     assert context["extras"]["component_study"] is None
 
 
-@pytest.mark.parametrize("enabled,max_rounds", [(True, 5), (False, 3)])
-def test_new_run_freezes_fresh_discussion_policy_instead_of_reusing_previous_run(tmp_path, enabled, max_rounds):
-    repo = Repository(tmp_path / "runtime")
-    SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=enabled,
-                                              script_discussion_max_rounds=max_rounds))
-    job = repo.create_job(Brief(script_text="观点：新 run 不能复用旧讨论。"))
-    previous = ScriptDiscussion(run_id="OLD-run", revision=job.revision, enabled=True,
-                                max_rounds=1, status="APPROVED",
-                                rounds=[ScriptDiscussionRound(round=1, script=_script(job.revision))])
-    job = repo.update_job(job.job_id, job.revision, script_discussion=previous)
-    state = VideoState(job_id=job.job_id, revision=job.revision, action="produce",
-                       run_id="NEW-run", thread_id="NEW-thread")
-
-    discussion = current_discussion(repo, state, job)
-    saved = repo.get_job(job.job_id)
-
-    assert discussion.run_id == "NEW-run"
-    assert discussion.enabled is True
-    assert discussion.max_rounds == max_rounds
-    assert discussion.status == "DISCUSSING"
-    assert discussion.rounds == []
-    assert saved.script_discussion.run_id == "NEW-run"
-    assert state["discussion_policy"] == {"run_id": "NEW-run", "revision": job.revision,
-                                          "enabled": True, "max_rounds": max_rounds}
-
-
 def test_request_input_commits_custom_state_patch_before_pending_event(tmp_path):
     repo = Repository(tmp_path / "runtime")
     job = repo.create_job(Brief(script_text="观点：请求输入前先保存上下文。"))
@@ -379,7 +336,7 @@ def test_request_input_commits_custom_state_patch_before_pending_event(tmp_path)
     assert saved.status == "NEEDS_INPUT"
     assert saved.script == script
     assert result["script"] == script.model_dump()
-    assert result["pending_input"] == saved.pending_input
+    assert "pending_input" not in result
     assert saved.latest_event_id > job.latest_event_id + 1
 
 
@@ -438,14 +395,15 @@ def test_state_context_loads_stage_receipts_audio_metadata_and_business_json(tmp
                             extras={}))
 
     assert context["audio_asset_id"] == audio.asset_id
-    assert context["audio"] == audio.model_dump()
+    assert "audio" not in context
     assert context["alignment"] == alignment
     assert context["duration_seconds"] == 0.5
     assert context["asset_metadata"][audio.asset_id]["origin"] == "upload"
     assert context["research"] == {"sources": [{"url": "https://example.test"}]}
-    assert context["audio_report"] == {"verified": True}
-    assert context["voice_guidance"] == {"delivery_notes": ["慢一点"]}
-    assert context["editing_guidance"] == {"layout_notes": ["标题加粗"]}
+    # Guidance/audio receipts remain artifacts on the job; the shared state no
+    # longer mirrors them (nothing downstream read them there).
+    current = repo.get_job(job.job_id)
+    assert {item.kind for item in current.artifacts} >= {"audio_report", "voice_guidance", "editing_guidance"}
     assert context["extras"]["component_study"] == {"usage": "unspecified", "video_first": True}
     assert context["human_reviews"] == [{**{"decision": "confirm", "pending_token": "UNIT-token",
                                             "note": "已人工确认"}, "artifact_id": stage_review.artifact_id}]

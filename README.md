@@ -1,28 +1,38 @@
 # AI 科普视频工作台
 
-**VideoAgents 全栈视频工作台**通过 React 前端、FastAPI 接口、多 Agent 工作流和
-Remotion 渲染，制作面向关心 AI 如何影响自己的钱、工作和生活的普通人看的
-AI 科普、避坑、案例和工具判断视频。作者身份是大厂程序员，但默认不要求
-观众主动关注 AI、懂编程或懂 AI 专业术语；素材、文案、配音、导演和剪辑共同把
-专业信息翻译成生活与工作中能听懂、能判断、能使用的内容。运行
-`npm run studio:dev` 后打开 `http://127.0.0.1:5173`。首次安装、配置、操作和
-故障排查见 [VideoAgents 使用说明](docs/videoagents-setup.md)；代码 Review 入口
-见 [实现与验证记录](docs/videoagents-implementation-status.md)，原方案见
-[工作流设计](docs/videoagents-design.md)。React 学习阅读顺序见
-[前端说明](web/README.md)。
+**VideoAgents** 通过 `videoagents` CLI、Python 图引擎(多 Agent 工作流)和 Remotion 渲染,
+制作面向关心 AI 如何影响自己的钱、工作和生活的普通人看的 AI 科普、避坑、案例和工具判断视频。
+作者身份是大厂程序员,但默认不要求观众主动关注 AI、懂编程或懂专业术语。2026-10-13 起**没有
+Web 前端和 HTTP 服务**:监督由导演会话(强模型 CLI,见 [docs/roles/director.md](docs/roles/director.md))
+通过命令行驱动,人工审核在**飞书多维表格**(一个视频一个 Base,见
+[docs/roles/feishu.md](docs/roles/feishu.md))。
 
-当前生产图在文案通过机器检查后等待人工确认，再完成配音和导演设计。
-导演为每个镜头列明组件或组件套、选型理由和画面动作，由 Remotion 渲染一张真实
-代表帧 PNG；全部镜头经逐镜审阅及整包确认后才进入完整成片渲染。
-成片生成后结束，缺素材或执行能力不足时仍可补充输入并续跑；详见
-[导演逐镜审核](docs/director-shot-review.md) 和 [生产图精简](docs/videoagents-graph-simplification.md)。
+## 快速开始
 
-每个正式视频应使用一条独立任务分支，建议按 `video/<job_id>` 命名。运行数据、
-素材、音频、分镜、成片和 checkpoint 都以 `job_id` 与 `revision` 隔离；跨视频
-复用必须显式导入为当前任务素材或来源，不能直接引用另一个视频的运行目录。
+```bash
+npm ci && npm run generate:contracts        # Node 依赖 + 契约
+python -m pip install -e . pytest           # Python 3.12(或用 .venv-videoagents)
+brew install ffmpeg                          # macOS;二进制需能解码标准 WAV
+# 配置:videoagents settings set zhipu_api_key <key>
+#       videoagents settings set feishu_folder_token <飞书文件夹token>
+videoagents create --brief brief.json        # 建任务
+videoagents run <job_id>                     # 执行到下一个人工门(渲染建议后台跑)
+videoagents status <job_id>                  # 阶段/待办/产物路径
+videoagents poll <job_id>                    # 读飞书「审核记录」决定并续跑(resume 为兜底)
+videoagents shots <job_id>                   # 逐镜审核包(PNG 路径+组件清单)
+```
 
-下面保留原有单集视频作为渲染兼容性回归样片。它不是当前账号的受众定位，
-也不是 Agent 的选题或文案示例；正式生产统一从 VideoAgents 工作流进入。
+当前生产图:**编剧(最前,带只读检索)→ 素材(按画面需求单取证)→ 人工审文案与素材 → 配音 →
+摄影(镜头设计与逐镜代表帧)→ 人工逐镜审核 → 剪辑成片**。全部检查见 `npm run check:all`;
+详见 [AGENTS.md](AGENTS.md)、[角色条例](docs/roles/README.md)、
+[使用说明](docs/videoagents-setup.md) 与 [实现与验证记录](docs/videoagents-implementation-status.md)。
+
+每个正式视频应使用一条独立任务分支,建议按 `video/<job_id>` 命名。运行数据、
+素材、音频、分镜、成片和 checkpoint 都以 `job_id` 与 `revision` 隔离;跨视频
+复用必须显式导入为当前任务素材或来源,不能直接引用另一个视频的运行目录。
+
+下面保留原有单集视频作为渲染兼容性回归样片。它不是当前账号的受众定位,
+也不是 Agent 的选题或文案示例;正式生产统一从 VideoAgents 工作流进入。
 
 历史第一版：**AI 写完代码，就算完成了吗？**。依据用户提供的
 《AI Coding 大厂中的发展历程（三）》改编，8 个镜头，1080×1920，30 fps，
@@ -30,17 +40,17 @@ AI 科普、避坑、案例和工具判断视频。作者身份是大厂程序�
 
 ## 在本机看结果
 
-- 成片：`out/ai-coding-v1.mp4`
-- 播放页：`out/index.html`，双击可以离线播放成片。
+- 成片：`out/ai-coding-v1.mp4`（`out/` 不入 Git，新检出不自带；按下方「重做一集」用 `npm run render` 本地生成）。
+- 播放页：`out/index.html`，双击可以离线播放成片（同为本地生成产物）。
 - 口播与分镜：`episodes/001-ai-coding/script-and-storyboard.md`
 - 预览、编辑：`npm run dev`，在 Remotion Studio 中选择 `AiScience`。
 
 ## 重做一集
 
 1. 修改 `episodes/001-ai-coding/episode.json` 的文案和镜头信息。
-2. 首次安装：`npm ci`；`python -m venv .venv`；`.\.venv\Scripts\python.exe -m pip install -r scripts/requirements.txt`。
-3. 生成配音/字幕/时间线：`.\.venv\Scripts\python.exe scripts/prepare_episode.py`。
-4. 检查：`npm run typecheck`、`npm run lint`、`npm run check:captions`、`.\.venv\Scripts\python.exe scripts/validate_episode.py`。
+2. 首次安装：`npm ci`；`python -m venv .venv`；Windows 执行 `.\.venv\Scripts\python.exe -m pip install -r scripts/requirements.txt`，macOS / Linux 执行 `.venv/bin/python -m pip install -r scripts/requirements.txt`。另需 FFmpeg/FFprobe：macOS 用 `brew install ffmpeg`，Windows 自行安装并加入 PATH，或用 `VIDEOAGENTS_FFMPEG` / `VIDEOAGENTS_FFPROBE` 环境变量显式指定。
+3. 生成配音/字幕/时间线：Windows 用 `.\.venv\Scripts\python.exe scripts/prepare_episode.py`，macOS / Linux 用 `.venv/bin/python scripts/prepare_episode.py`。
+4. 检查：`npm run typecheck`、`npm run lint`、`npm run check:captions`，再按平台用对应 Python 入口执行 `scripts/validate_episode.py`。
 5. 导出：`npm run render`。重新生成封面：`npm run still`。
 
 需要联网获取依赖、初次下载 Chrome 和生成配音；成片及播放页可离线查看。不要手动修改 `src/episode.generated.json`，它由脚本生成。每镜头缓存配音和词级时间戳，文案/声音参数不变时复用，失败后可重跑，不重复生成已成功的镜头。
@@ -85,8 +95,10 @@ Remotion 系列统一固定 4.0.532。该版本修复 4.0.531 发布包中的空
 Studio 分两个同名文件夹：`component-horizontal` 展示 187 个横版演示；`component-vertical` 展示对应的 187 个 1080×1920 / 30fps 原生竖屏演示，共 374 个 Composition。竖屏使用独立布局：文字分行、对比上下排列、界面内容纵向展开、图表和动画路径使用竖屏坐标。Bits 聊天组件的横版演示使用1280×720，其余横版沿用来源画布。详见 [原生竖屏说明](docs/native-portrait.md)。
 
 VideoAgents 的生产 Timeline 已开放全部 187 个社区组件，并提供 9 个可参数化
-适配器，共 196 个稳定 `component_id`。同一社区组件不拆成两个生产 ID，渲染器
-会根据 timeline 方向自动选择横版或原生竖版实现。统一清单由
+适配器，共 196 个稳定 `component_id`。同一社区组件不拆成两个生产 ID。374 个
+Composition 服务 Studio 预览与组件校验；生产 timeline 中部分组件有专用原生
+画面，其余渲染为安全内容槽位的统一画面，能力边界详见
+[组件知识库](docs/knowledge/remotion-shot-library.md)。统一清单由
 `scripts/build-production-component-manifest.mjs` 从组件目录和使用指南生成到
 `videoagents/component-manifest.json`，Python 导演/校验、React 分镜编辑器和
 Remotion registry 共用；运行 `npm run check:production-components` 可检查清单

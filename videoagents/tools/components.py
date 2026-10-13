@@ -507,7 +507,7 @@ def validate_component_requirements(timeline: Any, usage: str, required: int) ->
         raise ValueError("；".join(issues))
     if required and usage_payload["library_count"] < required:
         raise ValueError(
-            f"导演分镜只使用了 {usage_payload['library_count']} 个不同原生库组件，"
+            f"摄影分镜只使用了 {usage_payload['library_count']} 个不同原生库组件，"
             f"本片要求至少 {required} 个；基础语义组件和非原生组件不计数"
         )
     return usage_payload
@@ -640,7 +640,7 @@ def component_source_guide() -> dict[str, Any]:
         ],
         "inspection_limits": [
             "组件资料来自使用指南、入口文件和竖版源码静态摘录；没有逐像素渲染观看全部动画。",
-            "预设内部 demo 文案或图片不能当成本期素材；生产时只使用任务导入素材和导演填写的安全内容槽位。",
+            "预设内部 demo 文案或图片不能当成本期素材；生产时只使用任务导入素材和摄影填写的安全内容槽位。",
         ],
     }
     return {**guide, "source_fingerprint": _json_hash(guide)}

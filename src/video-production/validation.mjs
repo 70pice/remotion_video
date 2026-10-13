@@ -172,9 +172,9 @@ const validateRichNoMaterialContent = (shot, name, setId, fps) => {
     const items = validateRichTextArray(content.items, `${name}.props.rich_content.items`, 3);
     const metric = validateRichMetric(content.metric, `${name}.props.rich_content.metric`);
     if (metric.value !== items.length) fail(`${name}: rich metric value must equal item count`);
-    if (setId === 'B05') validateRichTextArray(content.supporting_items, `${name}.props.rich_content.supporting_items`, 3, 32, 96);
+    if (setId === 'B05') validateRichTextArray(content.supporting_items, `${name}.props.rich_content.supporting_items`, 3, 24, 64);
   } else if (setId === 'B03') {
-    validateRichTextArray(content.items, `${name}.props.rich_content.items`, 2, 32, 64);
+    validateRichTextArray(content.items, `${name}.props.rich_content.items`, 2, 24, 64);
     validateRichNumericItems(content.numeric_items, `${name}.props.rich_content.numeric_items`, 2);
     if (content.metric !== undefined) fail(`${name}: B03 rich content does not accept metric`);
   } else if (setId === 'B04') {
@@ -185,14 +185,14 @@ const validateRichNoMaterialContent = (shot, name, setId, fps) => {
     }
   } else if (setId === 'B06') {
     const items = validateRichTextArray(content.items, `${name}.props.rich_content.items`, [2, 3]);
-    validateRichTextArray(content.supporting_items, `${name}.props.rich_content.supporting_items`, 2, 32, 64);
+    validateRichTextArray(content.supporting_items, `${name}.props.rich_content.supporting_items`, 2, 24, 64);
     const metric = validateRichMetric(content.metric, `${name}.props.rich_content.metric`);
     if (metric.value !== items.length) fail(`${name}: rich metric value must equal action item count`);
   } else if (expandedNoMaterialSetIds.has(setId)) {
     const rule = expandedRichRules[setId];
     const items = validateRichTextArray(content.items, `${name}.props.rich_content.items`, rule.items, 24, 64);
     const support = rule.supporting ? validateRichTextArray(content.supporting_items,
-      `${name}.props.rich_content.supporting_items`, rule.supporting, 32, rule.supporting * 32) : [];
+      `${name}.props.rich_content.supporting_items`, rule.supporting, 24, 64) : [];
     const metric = validateRichMetric(content.metric, `${name}.props.rich_content.metric`);
     const numbers = rule.numeric ? validateRichNumericItems(content.numeric_items,
       `${name}.props.rich_content.numeric_items`, rule.numeric) : [];
@@ -242,8 +242,8 @@ const validateMaterialRichContent = (shot, name, setId, fps, timeline) => {
   text(content.body, `${name}.props.rich_content.body`, 60, true);
   if (content.title !== shot.title || content.body !== shot.body) fail(`${name}: rich_content title/body must match shot title/body`);
   text(content.takeaway, `${name}.props.rich_content.takeaway`, 18, true);
-  const items = validateRichTextArray(content.items, `${name}.props.rich_content.items`, 3, 18, 60);
-  if (setId !== 'A10') validateRichTextArray(content.supporting_items, `${name}.props.rich_content.supporting_items`, 3, 18, 60);
+  const items = validateRichTextArray(content.items, `${name}.props.rich_content.items`, 3, 24, 64);
+  if (setId !== 'A10') validateRichTextArray(content.supporting_items, `${name}.props.rich_content.supporting_items`, 3, 24, 64);
   if (setId === 'A10') {
     const metric = validateRichMetric(content.metric, `${name}.props.rich_content.metric`);
     const numbers = validateRichNumericItems(content.numeric_items, `${name}.props.rich_content.numeric_items`, 3);
@@ -779,12 +779,14 @@ export const validateTimeline = (input) => {
   integer(timeline.width, 'width', 240, 3840);
   integer(timeline.height, 'height', 240, 3840);
   if (timeline.width % 2 || timeline.height % 2) fail('width and height must be even for H.264');
-  integer(timeline.fps, 'fps', 1, 60);
-  integer(timeline.duration_in_frames, 'duration_in_frames', 1, timeline.fps * 3600);
+  integer(timeline.fps, 'fps', 15, 60);
+  integer(timeline.duration_in_frames, 'duration_in_frames', 1, 108000);
+  // Keep the Python contract: at most 1800 seconds regardless of fps.
+  if (timeline.duration_in_frames > timeline.fps * 1800) fail('duration_in_frames exceeds the 1800 second limit');
   validateMediaSource(timeline.audio_src, timeline.job_id, 'audio_src');
   if (timeline.audio_src && !/\.(wav|mp3|m4a|aac|ogg)$/i.test(timeline.audio_src)) fail('audio_src has an unsupported audio extension');
   if (presentation === 'component_sample' && timeline.audio_src) fail('component_sample presentation must be silent without audio_src');
-  if (!Array.isArray(timeline.shots) || timeline.shots.length < 1 || timeline.shots.length > 3000) fail('shots must contain 1 to 3000 shots');
+  if (!Array.isArray(timeline.shots) || timeline.shots.length < 1 || timeline.shots.length > 400) fail('shots must contain 1 to 400 shots');
   let expectedStart = 0;
   const identifiers = new Set();
   timeline.shots.forEach((raw, index) => {
@@ -872,7 +874,7 @@ export const validateTimeline = (input) => {
     validateLayers(shot, name);
   });
   if (expectedStart !== timeline.duration_in_frames) fail('shots must end at duration_in_frames');
-  if (!Array.isArray(timeline.captions) || timeline.captions.length > 20000) fail('captions must be an array of at most 20000 segments');
+  if (!Array.isArray(timeline.captions) || timeline.captions.length > 5000) fail('captions must be an array of at most 5000 segments');
   if (presentation === 'component_sample' && timeline.captions.length) fail('component_sample presentation must not include captions');
   if (timeline.captions.length && !timeline.audio_src) fail('captions require the aligned source audio');
   let previousEnd = 0;

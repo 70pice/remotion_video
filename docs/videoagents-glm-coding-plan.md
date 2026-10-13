@@ -7,9 +7,11 @@ GPT-6.1 Sol 由操作者会话负责监控任务事件、定位失败、修复�
 ## 本机配置
 
 1. 使用当前 Claude Code 安装方式升级。已有 WinGet 安装使用 `winget upgrade --id Anthropic.ClaudeCode --exact`；升级后用 `claude --version` 验证实际版本。智谱接入文档要求至少 2.1.140，具体以当前安装器和 CLI 行为为准。
-2. 在系统设置中填入智谱 Coding Plan API Key。Windows 下项目将 `zhipu_api_key` 使用当前账户的 DPAPI 保存；公开 Settings 仅返回是否已配置。密钥不写入角色输入、命令参数、仓库或工具审计。
-3. 七个角色启用 Claude Code CLI、选择 `glm-5.3[1m]`。新安装的角色默认值已统一；已有数据库保留原配置，需通过 Settings 服务修改。旧豆包 Claude 兼容路由仍可明确选择，GLM 路由不会因豆包 Key 已存在而改用豆包。
+2. 在系统设置中填入智谱 Coding Plan API Key。密钥按平台加密保存在运行数据库：Windows 使用当前账户的 DPAPI，macOS 使用 Keychain（服务名 `VideoAgents`），其他平台回退 base64；公开 Settings 仅返回是否已配置，旧的 `local:` 记录仍可读取。密钥不写入角色输入、命令参数、仓库或工具审计。
+3. 七个角色启用 Claude Code CLI、选择 `glm-5.3[1m]`。新安装的角色默认值已统一；已有数据库保留原配置，需通过 Settings 服务修改。旧豆包 Claude 兼容路由仍可明确选择，GLM 路由不会因豆包 Key 已存在而改用豆包。GLM 子进程默认使用智谱官方 endpoint `https://open.bigmodel.cn/api/anthropic`，需要覆盖时设置 `VIDEOAGENTS_ZHIPU_BASE_URL` 环境变量。
 4. 确认搜索入口、截图能力及原有字节 TTS 配置仍可用，随后通过任务 API 发起生产。仅修改模型配置不能证明真实工具调用或最终视频制作已完成。
+
+macOS 等价说明：Claude Code 按所用包管理器（npm、brew 等）安装与升级，同样以 `claude --version` 验证；下文的 `%USERPROFILE%\.claude\settings.json` 对应 `~/.claude/settings.json`；`winget upgrade` 替换为所用包管理器的升级命令。项目保存在运行数据库中的密钥在 macOS 使用 Keychain（服务名 `VideoAgents`），同样只进入本机私有配置。
 
 独立使用 Claude 时，合并 `%USERPROFILE%\.claude\settings.json` 的 `env` 配置，不覆盖已有设置。主要配置如下，Key 只填入本机私有文件：
 

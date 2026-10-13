@@ -20,7 +20,7 @@ from videoagents.state import VideoState
 from videoagents.storage import Conflict, Repository
 from videoagents.tools import components
 
-NOTE = "UNIT：旧版 Demo 审核后只要求导演重做画面，不应被新的组件清单约束卡死。"
+NOTE = "UNIT：旧版 Demo 审核后只要求摄影重做画面，不应被新的组件清单约束卡死。"
 
 
 def write_native_manifest(tmp_path, monkeypatch, *, min_visible_frames: int) -> None:
@@ -48,12 +48,12 @@ def seeded_director_review(tmp_path, monkeypatch):
     write_native_manifest(tmp_path, monkeypatch, min_visible_frames=30)
     repo = Repository(tmp_path / "runtime")
     service = JobService(repo, tmp_path / "project")
-    job = repo.create_job(Brief(script_text="观点：旧导演计划。", target_seconds=2, usage="personal"))
+    job = repo.create_job(Brief(script_text="观点：旧摄影计划。", target_seconds=2, usage="personal"))
     script = Script(
-        title="旧导演计划",
+        title="旧摄影计划",
         origin="user",
         revision=job.revision,
-        segments=[ScriptSegment(segment_id="s1", narration="观点：旧导演计划。")],
+        segments=[ScriptSegment(segment_id="s1", narration="观点：旧摄影计划。")],
     )
     timeline = Timeline(
         job_id=job.job_id,
@@ -85,7 +85,7 @@ def seeded_director_review(tmp_path, monkeypatch):
         origin="manual",
         verified=True,
         audio_sha256="a" * 64,
-        segments=[AlignmentSegment(segment_id="s1", text="观点：旧导演计划。", start_ms=0, end_ms=2000)],
+        segments=[AlignmentSegment(segment_id="s1", text="观点：旧摄影计划。", start_ms=0, end_ms=2000)],
     )
     plan = _performance_payload("UNIT", job, timeline, alignment)
     plan_artifact = service.write_json(job, "director-plan.json", plan, "director_plan")
@@ -105,7 +105,7 @@ def seeded_director_review(tmp_path, monkeypatch):
         repo,
         node_name="director_human_gate",
         stage="director",
-        title="导演 Demo 审核",
+        title="摄影 Demo 审核",
         confirmation_requirements=("核对 Demo",),
         min_note_length=0,
         revise_route="director",
@@ -155,7 +155,7 @@ def test_director_demo_revise_survives_native_catalog_drift(tmp_path, monkeypatc
     assert feedback["decision"] == "revise"
     assert feedback["target"] == "director"
     assert feedback["applied"] is False
-    assert feedback["script"]["segments"][0]["narration"] == "观点：旧导演计划。"
+    assert feedback["script"]["segments"][0]["narration"] == "观点：旧摄影计划。"
     assert feedback["timeline"]["shots"][0]["component_id"] == "Rve-QuoteCard"
     assert feedback["director_plan"]["component_usage"]["library_ids"] == ["Rve-QuoteCard"]
 

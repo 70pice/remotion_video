@@ -153,7 +153,7 @@ D:\remotion_video\
 ├─ worker/                      持久命令领取、租约、恢复、进程管理
 ├─ videoagents/
 │  ├─ graph/video_graph.py       StateGraph 注册、条件边、checkpoint 与恢复
-│  ├─ nodes/                    六角色、阶段检查、人工审核及等待输入节点
+│  ├─ nodes/                    七个模型角色、阶段检查、人工审核及等待输入节点
 │  ├─ contracts/                canonical Pydantic 契约
 │  ├─ providers/                LLM、搜索、字节、对齐、出站校验
 │  ├─ services/                 版本编辑、导入及 write-only 设置

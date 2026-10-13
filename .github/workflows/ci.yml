@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ffmpeg
+        # The pipeline resolves ffmpeg/ffprobe from PATH and probes real decode
+        # capability; the runner has none by default.
+        run: brew install ffmpeg
+      - name: Install Python project
+        run: python -m pip install -e . pytest
+      - name: Install Node dependencies
+        run: npm ci
+      - name: Regenerate contracts and fail on drift
+        run: npm run check:contracts
+      - name: Python tests
+        run: python -m pytest tests/ -q
+      - name: TypeScript typecheck (renderer + components)
+        run: npm run typecheck
+      - name: TypeScript typecheck (web)
+        run: npm run web:typecheck
+      - name: Timeline contract and renderer tests
+        run: npm run test:timeline
+      - name: Web unit tests
+        run: npm run web:test
+      - name: Production component manifest drift check
+        run: npm run check:production-components
+      - name: Component path and source hash check
+        run: npm run check:component-paths
+      - name: ESLint
+        run: npm run lint

@@ -23,7 +23,16 @@ def terminate_tree(process: subprocess.Popen) -> None:
         subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"], capture_output=True, timeout=15, check=False)
     else:
         import signal
-        os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+        try:
+            os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+        except ProcessLookupError:
+            # The process exited between poll() and getpgid(); nothing to kill.
+            if process.poll() is not None:
+                return
+            try:
+                process.terminate()
+            except ProcessLookupError:
+                return
     try:
         process.wait(timeout=10)
     except subprocess.TimeoutExpired:

@@ -32,6 +32,7 @@ DEFAULT_SETTINGS = {
     "voice_model": "seed-tts-2.0-expressive",
     "voice_style": DEFAULT_VOICE_STYLE, "voice_speech_rate": 0,
     "aligner_url": "", "capture_enabled": True, "max_llm_calls": 20,
+    "feishu_folder_token": "",
     "max_voice_chars": 10000, "render_timeout_seconds": 1800,
 }
 SECRET_FIELDS = {

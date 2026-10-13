@@ -1,7 +1,6 @@
 """Exercise default interrupt/resume wiring without paid models or real renders."""
 
 from collections import Counter
-from copy import deepcopy
 
 import pytest
 from langgraph.types import Command
@@ -10,11 +9,7 @@ from videoagents.contracts import (
     Alignment,
     Brief,
     Script,
-    ScriptCritique,
-    ScriptDiscussion,
-    ScriptDiscussionRound,
     ScriptSegment,
-    SettingsPatch,
     Shot,
     Timeline,
 )
@@ -27,10 +22,8 @@ from videoagents.nodes.gates import AudioGateNode, ScriptGateNode
 from videoagents.nodes.materials import MaterialsNode
 from videoagents.nodes.reviewers import dependency_fingerprint
 from videoagents.nodes.screenwriter import ScreenwriterNode
-from videoagents.nodes.script_reviewer import ScriptReviewerNode
 from videoagents.nodes.voice import VoiceNode
 from videoagents.services.jobs import JobService
-from videoagents.services.settings import SettingsService
 from videoagents.state import VideoState, merge_extras
 from videoagents.storage import Repository
 
@@ -104,9 +97,8 @@ def staged_pipeline(tmp_path, monkeypatch):
         return invoke
 
     for cls, name, route, stage in (
-        (MaterialsNode, "materials", "screenwriter", "materials"),
-        (ScreenwriterNode, "screenwriter", "script_reviewer", "script"),
-        (ScriptReviewerNode, "script_reviewer", "human_review_script", "script"),
+        (ScreenwriterNode, "screenwriter", "materials", "script"),
+        (MaterialsNode, "materials", "human_review_script", "materials"),
         (ScriptGateNode, "script_gate", "voice", "script"),
         (VoiceNode, "voice", "audio_gate", "voice"),
         (AudioGateNode, "audio_gate", "director", "voice"),
@@ -162,7 +154,7 @@ def test_director_demo_revise_returns_to_director_and_requires_fresh_demo_approv
     current, _ = run_or_resume(staged_pipeline, "confirm")
     token = current.pending_input["pending_token"]
     before = calls.copy()
-    note = "UNIT：Demo节奏不对，请导演重做表演设计。"
+    note = "UNIT：Demo节奏不对，请摄影重做表演设计。"
 
     current, checkpoint = run_or_resume(staged_pipeline, "revise", note)
 
@@ -187,56 +179,3 @@ def test_script_revise_returns_to_writer_and_requires_a_fresh_approval(staged_pi
     assert feedback_seen[-1] == ("screenwriter", "script", note)
     assert calls["voice"] == before["voice"] and calls["editing"] == before["editing"]
     assert current.status == "NEEDS_HUMAN"
-
-
-@pytest.mark.parametrize("prior_rounds", [1, 2, 5])
-def test_discussion_rewrite_sql_before_feedback_receipt_replays_without_second_model_call(tmp_path, monkeypatch, prior_rounds):
-    repo = Repository(tmp_path / "runtime")
-    service = JobService(repo, tmp_path / "project")
-    job = repo.create_job(Brief(topic="UNIT：讨论返工恢复"))
-    original = Script(title="UNIT", origin="user", revision=job.revision,
-                      segments=[ScriptSegment(segment_id="s1", narration="观点：UNIT 旧稿。")])
-    discussion = ScriptDiscussion(run_id="UNIT-discussion-replay", revision=job.revision,
-        enabled=True, max_rounds=max(2, prior_rounds), status="APPROVED",
-        rounds=[ScriptDiscussionRound(round=index + 1, script=original,
-                                      critique=ScriptCritique(decision="APPROVE", summary="UNIT 机器已审旧稿。"))
-                for index in range(prior_rounds)])
-    repo.update_job(job.job_id, job.revision, script=original, script_discussion=discussion)
-    SettingsService(repo).patch(SettingsPatch(role_models={"screenwriter": {"enabled": True}}))
-    state = state_context(repo, VideoState(job_id=job.job_id, revision=job.revision,
-        run_id=discussion.run_id, thread_id="UNIT-discussion-replay", action="produce",
-        extras={"human_feedback": {"script": {"decision": "revise", "stage": "script",
-            "note": "UNIT：请改写当前稿件，之后重新进行文案审核。", "pending_token": "UNIT-new-feedback",
-            "applied": False, "script": original.model_dump()}}}))
-    checkpoint_before_node = deepcopy(state)
-    calls = []
-
-    def model(*args, **kwargs):
-        calls.append(1)
-        rewritten = original.model_dump()
-        rewritten["segments"][0]["narration"] = "观点：UNIT 已实际改写的稿件。"
-        return {"script": rewritten, "response": "UNIT：已修改稿件，等待复审。"}
-
-    monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
-    from videoagents.nodes import screenwriter
-
-    save_receipt = screenwriter.mark_feedback_applied
-
-    def crash_before_receipt(*args, **kwargs):
-        raise SystemExit("UNIT：模拟新稿已提交，反馈消费回执未提交")
-
-    monkeypatch.setattr(screenwriter, "mark_feedback_applied", crash_before_receipt)
-    with pytest.raises(SystemExit):
-        ScreenwriterNode(repo, service)(state)
-    saved = repo.get_job(job.job_id).script_discussion
-    assert saved.status == "DISCUSSING"
-    assert saved.max_rounds == discussion.max_rounds
-    assert len(saved.rounds) == 1 and saved.rounds[0].critique is None
-    assert saved.rounds[0].round == 1
-
-    monkeypatch.setattr(screenwriter, "mark_feedback_applied", save_receipt)
-    result = ScreenwriterNode(repo, service)(checkpoint_before_node)
-    assert calls == [1]
-    assert len(repo.get_job(job.job_id).script_discussion.rounds) == 1
-    assert result["route"] == "script_reviewer"
-    assert result["extras"]["human_feedback"]["script"]["applied"] is True

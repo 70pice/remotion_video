@@ -48,6 +48,48 @@ def test_python_and_node_reject_same_invalid_props(component, props):
     assert result.returncode == 1
 
 
+def _node_rejects(data) -> None:
+    module = (PROJECT_ROOT / "src/video-production/validation.mjs").as_uri()
+    code = "import {validateTimeline} from " + json.dumps(module) + "; let input=''; for await(const c of process.stdin) input+=c; try{validateTimeline(JSON.parse(input));process.exit(0)}catch{process.exit(1)}"
+    result = subprocess.run(["node", "--input-type=module", "-e", code], input=json.dumps(data), text=True, capture_output=True, check=False)
+    assert result.returncode == 1
+
+
+@pytest.mark.parametrize(("mutation", "error_match"), [
+    # The timeline-level bounds must stay identical on both sides; they had
+    # drifted once (fps 1 vs 15, 3000 vs 400 shots, 20000 vs 5000 captions).
+    (lambda data: {**data, "fps": 14}, "fps"),
+    (lambda data: {**data, "fps": 61}, "fps"),
+    (lambda data: {**data, "duration_in_frames": 15 * 1800 + 1}, "1800"),
+    (lambda data: {**data, "duration_in_frames": 108001}, "duration_in_frames"),
+])
+def test_python_and_node_reject_same_timeline_bounds(mutation, error_match):
+    data = mutation(timeline())
+    shots = data["shots"]
+    shots[0]["end_frame"] = data["duration_in_frames"]
+    with pytest.raises(ValueError, match=error_match):
+        Timeline.model_validate(data)
+    _node_rejects(data)
+
+
+def test_python_and_node_reject_same_shot_and_caption_counts():
+    data = timeline()
+    data["shots"] = [dict(shot, shot_id=f"shot-{index}", start_frame=index, end_frame=index + 1)
+                     for index, shot in enumerate(data["shots"] * 401)]
+    data["duration_in_frames"] = 401
+    with pytest.raises(ValueError):
+        Timeline.model_validate(data)
+    _node_rejects(data)
+
+    data = timeline()
+    data["audio_src"] = "videoagents/unit-test/assets/voice.wav"
+    data["captions"] = [{"text": "字", "start_ms": index, "end_ms": index + 0.5}
+                        for index in range(0, 5001)]
+    with pytest.raises(ValueError):
+        Timeline.model_validate(data)
+    _node_rejects(data)
+
+
 def test_props_fact_values_must_be_provided_not_invented():
     with pytest.raises(ValueError):
         validate_timeline(Timeline.model_validate(timeline("data")), job())

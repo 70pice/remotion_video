@@ -1,9 +1,16 @@
-"""Write-only credentials persisted with Windows DPAPI for this user's account."""
+"""Credentials persisted per platform: DPAPI on Windows, Keychain on macOS.
+
+数据库只保存引用或加密数据：``dpapi:`` / ``keychain:`` 前缀指向系统凭据库，
+``local:`` 是早期安装与其他平台的 base64 回退。密钥不进入角色输入、命令参数、
+仓库或工具审计。
+"""
 
 import base64
 import ctypes
 import json
 import os
+import subprocess
+import sys
 from copy import deepcopy
 from ctypes import wintypes
 from typing import Any
@@ -13,6 +20,8 @@ from videoagents.default_config import DEFAULT_SETTINGS, SECRET_FIELDS
 from videoagents.providers.network import validate_url
 from videoagents.storage import Repository
 from videoagents.storage.repository import fingerprint
+
+KEYCHAIN_SERVICE = "VideoAgents"
 
 
 def voice_fingerprint(config: dict[str, Any]) -> str:
@@ -39,7 +48,32 @@ def enforce_fixed_role_settings(role_models: dict[str, Any]) -> dict[str, Any]:
     return roles
 
 
-def protect(value: str) -> str:
+class SecretUnavailable(ValueError):
+    """The stored credential cannot be decrypted on this machine; reconfigure it."""
+
+
+def _keychain_write(account: str, value: str) -> None:
+    result = subprocess.run(
+        ["/usr/bin/security", "add-generic-password", "-s", KEYCHAIN_SERVICE, "-a", account, "-w", value, "-U"],
+        capture_output=True, text=True, timeout=15, check=False)
+    if result.returncode:
+        raise ValueError("无法写入 macOS 钥匙串；请确认登录钥匙串已解锁，或改用 VIDEOAGENTS_ 环境变量提供密钥")
+
+
+def _keychain_read(account: str) -> str:
+    result = subprocess.run(
+        ["/usr/bin/security", "find-generic-password", "-s", KEYCHAIN_SERVICE, "-a", account, "-w"],
+        capture_output=True, text=True, timeout=15, check=False)
+    if result.returncode:
+        raise SecretUnavailable(f"钥匙串中没有凭据 {account} 或当前用户无法读取；请重新保存")
+    return result.stdout.rstrip("\n")
+
+
+def protect(name: str, value: str) -> str:
+    if sys.platform == "darwin":
+        # The database keeps only the reference; the secret stays in Keychain.
+        _keychain_write(name, value)
+        return "keychain:" + name
     if os.name != "nt":
         return "local:" + base64.b64encode(value.encode()).decode()
     class Blob(ctypes.Structure):
@@ -55,13 +89,21 @@ def protect(value: str) -> str:
         ctypes.windll.kernel32.LocalFree(target.pbData)
 
 
-def unprotect(value: str) -> str:
-    kind, raw = value.split(":", 1)
+def unprotect(name: str, value: str) -> str:
+    kind, _, raw = value.partition(":")
+    if kind == "keychain":
+        if sys.platform != "darwin":
+            raise SecretUnavailable("该凭据保存在 macOS 钥匙串中，只能在原机器读取")
+        return _keychain_read(name)
     data = base64.b64decode(raw)
     if kind == "local":
         return data.decode("utf-8")
+    if kind != "dpapi":
+        raise SecretUnavailable("凭据格式无法识别，请重新保存")
     if os.name != "nt":
-        raise OSError("Windows 保护的凭据只能由原用户恢复")
+        # A DB moved from Windows keeps rows that only the original user can
+        # decrypt; treat them as unconfigured instead of breaking Settings.
+        raise SecretUnavailable("Windows 保护的凭据只能由原用户恢复，请重新配置")
     class Blob(ctypes.Structure):
         _fields_ = [("cbData", wintypes.DWORD), ("pbData", ctypes.POINTER(ctypes.c_ubyte))]
     buffer = (ctypes.c_ubyte * len(data)).from_buffer_copy(data)
@@ -89,7 +131,15 @@ class SettingsService:
                 # Preserve old encrypted rows without decrypting unused HTTP
                 # credentials, including after moving a DB to another user.
                 continue
-            result[key] = unprotect(value) if key in SECRET_FIELDS else json.loads(value)
+            if key in SECRET_FIELDS:
+                try:
+                    result[key] = unprotect(key, value)
+                except SecretUnavailable:
+                    # Unreadable rows (moved DB, deleted keychain item) behave
+                    # like unset; the env override below can still supply it.
+                    continue
+            else:
+                result[key] = json.loads(value)
         # 新 WebSocket 制作默认原速；旧 HTTP 不支持该参数，也沿用原速。
         if result["voice_provider"] == "byte_http" and "voice_speech_rate" not in stored:
             result["voice_speech_rate"] = 0
@@ -158,7 +208,7 @@ class SettingsService:
                 allowed |= {ws_endpoint}
             if voice["voice_endpoint"] not in allowed:
                 raise ValueError("字节接口必须使用与所选配音服务匹配的官方 HTTP 或 WebSocket 地址")
-        self.repo.write_settings({key: protect(value) if key in SECRET_FIELDS else json.dumps(value, ensure_ascii=False)
+        self.repo.write_settings({key: protect(key, value) if key in SECRET_FIELDS else json.dumps(value, ensure_ascii=False)
                                   for key, value in values.items()})
         if os.name != "nt":
             os.chmod(self.repo.db, 0o600)

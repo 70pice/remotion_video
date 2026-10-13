@@ -3,7 +3,6 @@
 import array
 import math
 import os
-import shutil
 import subprocess
 import sys
 import time
@@ -24,6 +23,7 @@ from videoagents.nodes.common import agent_state, request_input, start_stage, st
 from videoagents.prompts import load_prompt
 from videoagents.providers.aligner import align
 from videoagents.providers.byte_voice import SubmissionUnknown, synthesize
+from videoagents.providers.ffmpeg_tools import ffmpeg_executable
 from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService, supports_voice_style, voice_fingerprint
@@ -353,9 +353,7 @@ def _ffmpeg_supports_filter(executable: str, filter_name: str) -> bool:
 def stitch_segment_audio(segments: list[SegmentAudio], output: Path, cancelled) -> list[SegmentClip]:
     if cancelled():
         raise RenderCancelled("任务已取消")
-    executable = shutil.which("ffmpeg")
-    if not executable:
-        raise ValueError("ffmpeg 未安装，无法拼接逐段配音")
+    executable = ffmpeg_executable()
     measured = []
     for segment in segments:
         if cancelled():

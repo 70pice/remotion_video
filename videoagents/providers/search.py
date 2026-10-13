@@ -55,8 +55,6 @@ def search(repository: Repository, query: str, job_id: str = "", revision: int =
     if job_id and repository.unsettled_operation(job_id, provider_name, revision, search_scope):
         raise CapabilityMissing("此范围的搜索已有未决提交，调整结果数量不能重复提交；请对账或补充来源", ["search_operation"])
     if previous:
-        if previous["status"] == "COMPLETED":
-            return previous["result"]
         if previous["status"] != "REJECTED" or not command_id or previous.get("command_id") == command_id:
             raise CapabilityMissing("此搜索已有未决提交，未自动重试；请核对搜索配置或补充来源链接", ["search_operation"])
     operation, ledger = None, {"command_id": command_id, "revision": revision,

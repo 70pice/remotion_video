@@ -8,6 +8,7 @@ from langgraph.types import interrupt
 from videoagents.contracts import Job
 from videoagents.nodes.common import (
     DIRECTOR_VOICE_REVISION_ISSUE,
+    REVISE_SETTLED_MESSAGE,
     current_job,
     needs_script_revision,
     needs_voice_revision,
@@ -86,14 +87,14 @@ class AwaitInputNode:
             raise Conflict("中断输入记录不存在")
         if pending.get("kind") != "input" or pending.get("stage") == "review":
             raise Conflict("成片审核流程已移除，请重新提交制作任务")
-        if job.status == "DRAFT" and job.pending_input is None and job.message == "请修改对应产物并提交新版本":
+        if job.status == "DRAFT" and job.pending_input is None and job.message == REVISE_SETTLED_MESSAGE:
             return state_context(self.repo, state, route="end")
         decision = interrupt(pending)
         if decision.get("decision") == "cancel":
             job = self.repo.cancel(job.job_id)
             return state_context(self.repo, state, route="end", human_decision={**pending, **decision})
         if decision.get("decision") == "revise":
-            job = self.repo.update_job(job.job_id, job.revision, status="DRAFT", message="请修改对应产物并提交新版本", pending_input=None)
+            job = self.repo.update_job(job.job_id, job.revision, status="DRAFT", message=REVISE_SETTLED_MESSAGE, pending_input=None)
             return state_context(self.repo, state, route="end", human_decision={**pending, **decision})
         if decision.get("decision") != "confirm":
             raise Conflict("恢复决定无效")
@@ -105,8 +106,5 @@ class AwaitInputNode:
             target = "director"
         if target == "director" and _stale_editing_preflight(self.repo, job, pending):
             target = "editing"
-        if target == "screenwriter" and not state.get("research") and not job.script and not job.brief.script_text.strip():
-            # 兼容此前暂停在编剧的旧图：恢复时先补素材，编剧不自行联网采集。
-            target = "materials"
         return state_context(self.repo, state, route=target, human_decision={**pending, **decision})
 

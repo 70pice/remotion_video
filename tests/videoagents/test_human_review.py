@@ -46,8 +46,8 @@ def director_model_response(context, shots):
         "segment_performances": [{
             "segment_id": segment_id,
             "shot_ids": shot_ids,
-            "component_reason": "UNIT TEST：导演说明组件如何承接口播。",
-            "visual_action": "UNIT TEST：导演说明本段画面如何表演。",
+            "component_reason": "UNIT TEST：摄影说明组件如何承接口播。",
+            "visual_action": "UNIT TEST：摄影说明本段画面如何表演。",
         }],
         "shot_reviews": [{"shot_id": shot["shot_id"], "review_frame": shot["start_frame"],
                           "component_reason": "UNIT TEST：说明逐镜选择理由。",
@@ -60,7 +60,7 @@ def director_model_response(context, shots):
     }
 
 def approve_script_reviewer(monkeypatch, handler=None):
-    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None, **kwargs):
         if role == "script_reviewer":
             return {"decision": "APPROVE", "summary": "UNIT TEST：文案可进入人工审核。", "strengths": [], "issues": []}
         if handler:
@@ -138,7 +138,9 @@ def test_script_and_director_demo_reviews_are_registered_on_default_flow(tmp_pat
                      "after_timeline_review", "after_render_review"):
             assert node not in topology.nodes
         assert not any(edge.target == "human_review" and edge.source != "human_review" for edge in topology.edges)
-        assert any(edge.source == "clear_script_reviewer" and edge.target == "human_review_script" for edge in topology.edges)
+        assert any(edge.source == "clear_materials" and edge.target == "human_review_script" for edge in topology.edges)
+        assert any(edge.source == "clear_screenwriter" and edge.target == "materials" for edge in topology.edges)
+        assert "script_reviewer" not in topology.nodes and "clear_script_reviewer" not in topology.nodes
         edges = {(edge.source, edge.target) for edge in topology.edges}
         assert ("clear_director", "director_demo") in edges
         if "clear_director_demo" in topology.nodes:
@@ -163,7 +165,7 @@ def test_wired_review_pauses_before_downstream_and_recovers_after_reopen(wired_j
     paused = start(repo, project, job)
     assert paused.status == "NEEDS_HUMAN" and paused.stage == "script"
     assert paused.pending_input["kind"] == "stage_review"
-    assert paused.pending_input["title"] == "文案人工审核"
+    assert paused.pending_input["title"] == "文案与素材人工审核"
     assert paused.pending_input["revision"] == paused.revision
     assert paused.review is None and not calls
     with VideoProductionGraph(repo, project) as graph:
@@ -404,27 +406,24 @@ def test_confirm_to_end_finishes_as_draft_without_publish_approval(tmp_path):
         assert not graph.get_state(config).next
 
 
-def test_existing_authenticated_resume_api_accepts_stage_review_and_rejects_stale_token(wired_job):
-    from fastapi.testclient import TestClient
-
-    from server.main import create_app
-
+def test_existing_authenticated_resume_accepts_stage_review_and_rejects_stale_token(wired_job):
     repo, project, job, calls = wired_job
     paused = start(repo, project, job)
-    app = create_app(repo.root, project)
-    with TestClient(app) as client:
-        client.headers["X-CSRF-Token"] = client.get("/api/session").json()["csrf_token"]
-        payload = {"base_revision": paused.revision, "pending_token": "UNIT-stale-token-0000",
-                   "decision": "confirm", "note": NOTE, "idempotency_key": "UNIT-api-answer"}
-        assert client.post(f"/api/jobs/{job.job_id}/resume", json=payload).status_code == 409
-        payload["pending_token"] = paused.pending_input["pending_token"]
-        assert client.post(f"/api/jobs/{job.job_id}/resume", json=payload).status_code == 202
-        Worker(repo, project).once()
-        current = client.get(f"/api/jobs/{job.job_id}").json()
-        assert current["status"] == "NEEDS_INPUT" and current["stage"] == "voice"
-        report = next(item for item in current["artifacts"] if item["kind"] == "stage_review")
-        assert client.get(report["url"]).json()["decision"] == "confirm"
-        assert calls == [job.job_id]
+    stale = {"base_revision": paused.revision, "action": "resume", "pending_token": "UNIT-stale-token-0000",
+             "decision": "confirm", "note": NOTE, "idempotency_key": "UNIT-api-answer"}
+    with pytest.raises(Conflict):
+        repo.enqueue(job.job_id, stale)
+    current = repo.get_job(job.job_id)
+    assert current.status == "NEEDS_HUMAN"  # the stale answer did not advance anything
+
+    answer(repo, paused, "confirm", NOTE, key="UNIT-api-answer")
+    Worker(repo, project).once()
+    current = repo.get_job(job.job_id)
+    assert current.status == "NEEDS_INPUT" and current.stage == "voice"
+    report = next(item for item in current.artifacts if item.kind == "stage_review")
+    receipt = json.loads(repo.artifact_path(report.artifact_id)[0].read_text(encoding="utf-8"))
+    assert receipt["decision"] == "confirm"
+    assert calls == [job.job_id]
 
 
 def test_screenwriter_feedback_bypasses_existing_script_cache(tmp_path, monkeypatch):
@@ -437,7 +436,7 @@ def test_screenwriter_feedback_bypasses_existing_script_cache(tmp_path, monkeypa
     SettingsService(repo).patch(SettingsPatch(role_models={"screenwriter": {"enabled": True, "provider": "codex_cli"}}))
     calls = []
 
-    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None, **kwargs):
         calls.append((role, context, command_id))
         return {"response": "已按人工意见重写", "script": {"title": "新稿", "origin": "model",
             "revision": job.revision, "segments": [{"segment_id": "s1", "narration": "观点：新稿。"}]}}
@@ -446,7 +445,7 @@ def test_screenwriter_feedback_bypasses_existing_script_cache(tmp_path, monkeypa
     state = state_context(repo, VideoState(job_id=job.job_id, revision=job.revision, action="produce",
         run_id="UNIT-rewrite", thread_id="UNIT-rewrite", extras={"human_feedback": {"script": {
         "decision": "revise", "note": "UNIT：请重写旧稿", "pending_token": "UNIT-token"}}}))
-    rewritten, _ = ScreenwriterNode(repo, service).write_script(repo.get_job(job.job_id), state)
+    rewritten = ScreenwriterNode(repo, service).current_or_new(repo.get_job(job.job_id), state)
     assert rewritten.segments[0].narration == "观点：新稿。"
     assert calls and calls[0][0] == "screenwriter" and calls[0][2].endswith(":script-revise")
     assert calls[0][1]["extras"]["human_feedback"]["script"]["note"] == "UNIT：请重写旧稿"
@@ -467,7 +466,7 @@ def test_screenwriter_feedback_replay_after_sql_before_applied_receipt_does_not_
                             "pending_token": "UNIT-token", "script": old.model_dump()}}
     calls = []
 
-    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None, **kwargs):
         calls.append(context["script"]["segments"][0]["narration"])
         return {"response": "已改", "script": {"title": "新稿", "origin": "model",
             "revision": revision, "segments": [{"segment_id": "s1", "narration": "观点：新稿。"}]}}
@@ -492,7 +491,7 @@ def test_screenwriter_feedback_replay_after_sql_before_applied_receipt_does_not_
         action="produce", run_id="UNIT-replay", thread_id="UNIT-replay", extras={"human_feedback": feedback}))
     result = ScreenwriterNode(repo, service)(replay)
     assert calls == ["观点：旧稿。"]
-    assert result["route"] == "script_reviewer"
+    assert result["route"] == "materials"
     current = repo.get_job(job.job_id)
     assert current.script.segments[0].narration == "观点：新稿。"
     assert any(item.kind == "human_feedback_applied" for item in current.artifacts)
@@ -524,7 +523,7 @@ def test_screenwriter_feedback_rejects_noop_rewrite(tmp_path, monkeypatch):
     SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False,
         role_models={"screenwriter": {"enabled": True, "provider": "codex_cli"}}))
 
-    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None, **kwargs):
         return {"response": "没有实际修改", "script": dict(old.model_dump(), origin="model", revision=revision)}
 
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
@@ -549,9 +548,9 @@ def test_screenwriter_consumes_director_feedback_that_requests_copy_rewrite(tmp_
         role_models={"screenwriter": {"enabled": True, "provider": "codex_cli"}}))
     calls = []
 
-    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None, **kwargs):
         calls.append(context["extras"]["human_feedback"]["director"]["note"])
-        return {"response": "已按导演 Demo 审核意见改稿", "script": {"title": "新稿", "origin": "model",
+        return {"response": "已按摄影 Demo 审核意见改稿", "script": {"title": "新稿", "origin": "model",
             "revision": revision, "segments": [{"segment_id": "s1", "narration": "观点：新稿。"}]}}
 
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
@@ -564,7 +563,7 @@ def test_screenwriter_consumes_director_feedback_that_requests_copy_rewrite(tmp_
     result = ScreenwriterNode(repo, service)(state)
 
     current = repo.get_job(job.job_id)
-    assert result["route"] == "script_reviewer"
+    assert result["route"] == "materials"
     assert calls == ["UNIT：Demo暴露出结尾太硬，请改旁白文案。"]
     assert current.script.segments[0].narration == "观点：新稿。"
     receipt = next(item for item in current.artifacts if item.kind == "human_feedback_applied")
@@ -582,7 +581,7 @@ def test_screenwriter_rejects_noop_director_copy_rewrite(tmp_path, monkeypatch):
     SettingsService(repo).patch(SettingsPatch(script_discussion_enabled=False,
         role_models={"screenwriter": {"enabled": True, "provider": "codex_cli"}}))
 
-    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None, **kwargs):
         return {"response": "没有实际修改", "script": dict(old.model_dump(), origin="model", revision=revision)}
 
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call", model)
@@ -671,7 +670,7 @@ def test_screenwriter_consumes_director_feedback_targeted_to_writer():
     state = VideoState(job_id="UNIT-job", revision=1, action="produce", extras={"human_feedback": {
         "director": {
             "decision": "revise",
-            "note": "UNIT：导演Demo审核要求编剧处理。",
+            "note": "UNIT：摄影Demo审核要求编剧处理。",
             "pending_token": "UNIT-director-writer",
             "target": "screenwriter",
             "applied": False,
@@ -703,11 +702,14 @@ def test_director_feedback_allows_visual_mismatch_language_without_voice_block(t
     repo = Repository(tmp_path / "runtime")
     service = JobService(repo, tmp_path / "project")
     node = DirectorNode(repo, service)
-    assert not node._needs_voice_or_script("画面与旁白不对应，请重新匹配素材和镜头")
-    assert not node._needs_voice_or_script("保留已确认原稿、原音频、全部字幕时间戳和总帧数，只修改画面，不回到编剧或重配音")
+    assert not node._needs_script_revision("画面与旁白不对应，请重新匹配素材和镜头")
+    assert not (node._needs_script_revision("画面与旁白不对应，请重新匹配素材和镜头")
+                or node._needs_voice_revision("画面与旁白不对应，请重新匹配素材和镜头"))
+    assert not (node._needs_script_revision("保留已确认原稿、原音频、全部字幕时间戳和总帧数，只修改画面，不回到编剧或重配音")
+                or node._needs_voice_revision("保留已确认原稿、原音频、全部字幕时间戳和总帧数，只修改画面，不回到编剧或重配音"))
     assert not node._needs_voice_revision("保留原音频，不回到编剧或重配音")
     assert not node._needs_voice_revision("不要改音频，保留原音频，只重新安排镜头")
-    assert node._needs_voice_or_script("语速太快，请调整语速后再做视频")
+    assert node._needs_voice_revision("语速太快，请调整语速后再做视频")
     assert node._needs_voice_revision("这里读音错误，请改发音")
     assert node._needs_voice_revision("这版音频不对，请重配音")
     assert node._needs_voice_revision("不要改画面，重配音")
@@ -729,7 +731,7 @@ def test_director_feedback_allows_visual_mismatch_language_without_voice_block(t
 def test_legacy_director_voice_pending_confirm_routes_by_feedback_intent(tmp_path, monkeypatch, note, expected_route):
     repo = Repository(tmp_path / "runtime")
     service = JobService(repo, tmp_path / "project")
-    job = repo.create_job(Brief(script_text="观点：导演返工恢复测试。"))
+    job = repo.create_job(Brief(script_text="观点：摄影返工恢复测试。"))
     pending = {
         "kind": "input",
         "stage": "voice",
@@ -846,7 +848,7 @@ def test_director_feedback_replay_after_sql_before_applied_receipt_does_not_call
     SettingsService(repo).patch(SettingsPatch(role_models={"director": {"enabled": True, "provider": "codex_cli"}}))
     calls = []
 
-    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None, **kwargs):
         calls.append(context["timeline"]["shots"][0]["body"])
         shots = [dict(item, body="观点：新分镜画面。") for item in context["timeline"]["shots"]]
         return director_model_response(context, shots)
@@ -915,7 +917,7 @@ def test_director_feedback_rejects_noop_timeline(tmp_path, monkeypatch):
     old_timeline = DirectorNode(repo, service).plan(repo.get_job(job.job_id), audio, alignment, 1.0, state=initial)
     repo.update_job(job.job_id, timeline=old_timeline)
     SettingsService(repo).patch(SettingsPatch(role_models={"director": {"enabled": True, "provider": "codex_cli"}}))
-    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
+    def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None, **kwargs):
         return director_model_response(context, context["timeline"]["shots"])
 
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.available", lambda *args: True)

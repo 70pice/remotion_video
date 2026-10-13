@@ -32,10 +32,10 @@ class MaterialsNode:
         self.model = JsonModel(repository)
 
     def __call__(self, state: VideoState) -> dict[str, Any]:
-        job = start_stage(self.repo, state, "materials", "素材节点正在跨平台检索知识并采集图片与截图")
+        job = start_stage(self.repo, state, "materials", "素材节点正在按文案清单核验来源并采集真实画面")
         try:
             research = self.collect(job, state)
-            return state_context(self.repo, state, route="screenwriter", research=research, gate_issues=[])
+            return state_context(self.repo, state, route="human_review_script", research=research, gate_issues=[])
         except (CapabilityMissing, ValueError) as exc:
             return request_input(self.repo, state, "materials", [str(exc)], getattr(exc, "fields", ["source_urls", "assets"]), exc)
 
@@ -160,10 +160,7 @@ class MaterialsNode:
         context = agent_state(self.repo, job, state)
         # sink 在模型可写目录之外；每次调用独立命名，避免重放覆盖已登记记录。
         audit_path = folder.parent / f"material-tool-events-{uuid.uuid4().hex[:12]}.jsonl"
-        try:
-            output = self.model.invoke(context, "materials", PROMPT, fields=("brief", "assets", "settings"),
-                output_schema=MaterialResearch.model_json_schema(), research_directory=folder, audit_path=audit_path)
-        finally:
+        def register_audit_snapshot() -> None:
             # 只登记 runner 输出的脱敏事件摘要；异常时也保留用于定位缺口。
             current = self.active(job)
             snapshot = folder.parent / f"material-tool-audit-{uuid.uuid4().hex[:12]}.jsonl"
@@ -171,6 +168,19 @@ class MaterialsNode:
                 artifact = self.service.register_artifact(current, snapshot, "material_tool_audit", "application/x-ndjson")
                 self.repo.update_job(job.job_id, job.revision, expected_event_id=current.latest_event_id,
                     artifacts=[item for item in current.artifacts if item.kind != "material_tool_audit"] + [artifact])
+
+        try:
+            output = self.model.invoke(context, "materials", PROMPT, fields=("brief", "script", "assets", "settings"),
+                output_schema=MaterialResearch.model_json_schema(), research_directory=folder, audit_path=audit_path)
+        except BaseException:
+            # Best effort only: a persistence failure here must never replace
+            # the model's own failure, which is what the operator needs to see.
+            try:
+                register_audit_snapshot()
+            except Exception:
+                pass
+            raise
+        register_audit_snapshot()
         return self.save_research(job, output, folder)
 
     def save_research(self, job: Job, output: dict, folder: Path) -> dict:
@@ -238,7 +248,7 @@ class MaterialsNode:
         research = {"schema_version": "3", "status": "COMPLETED", "sources": [], "visuals": [],
                     "limitations": list(bundle.limitations), "collected_at": now()}
         if not bundle.visuals and (settings["capture_enabled"] or settings["research_download_images"]):
-            research["limitations"].append("本次未取得真实图片或截图，导演仍需补充画面素材。")
+            research["limitations"].append("本次未取得真实图片或截图，摄影仍需补充画面素材。")
         for item in bundle.sources:
             existing = next((artifact for artifact in self.active(job).artifacts
                              if artifact.kind == "source" and artifact.revision == job.revision

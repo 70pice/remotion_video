@@ -6,7 +6,7 @@ import math
 import re
 import uuid
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Any, get_args
 
 from videoagents.contracts import (
     Asset,
@@ -17,6 +17,7 @@ from videoagents.contracts import (
     ShotLayer,
     Timeline,
 )
+from videoagents.contracts.models import ComponentSetId
 from videoagents.nodes.common import start_stage, state_context
 from videoagents.nodes.director import (
     _required_library_components,
@@ -29,13 +30,13 @@ from videoagents.storage import Repository
 from videoagents.tools.components import component_requirement_usage, validate_component_requirements
 from videoagents.tools.timeline import safe_media_source, validate_timeline
 
-SetId = Literal["A01", "A02", "A03", "A04", "A05", "A06", "A07", "A08", "A09", "A10", "A11", "A12", "B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B09", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18"]
+SetId = ComponentSetId
 RECIPE_VERSION = "component-demo-v2"
 B_RECIPE_VERSION = "component-demo-v3"
 B_RICH_RECIPE_VERSION = "component-demo-v4"
 MATERIAL_RICH_RECIPE_VERSION = "component-demo-v5"
 MATERIAL_RICH_SET_IDS = {f"A{index:02d}" for index in range(7, 13)}
-VALID_SET_IDS = {f"A{index:02d}" for index in range(1, 13)} | {f"B{index:02d}" for index in range(1, 19)}
+VALID_SET_IDS = set(get_args(ComponentSetId))
 MATERIAL_RICH_COMPONENTS = {
     "A07": "Talkcraft-slow-push-in",
     "A08": "Snapcn-PhoneFrame",
@@ -681,136 +682,6 @@ def _validate_focus_steps(raw: object, total_frames: int) -> list[dict[str, Any]
     return steps
 
 
-def _metric_parts(value: object) -> tuple[int, str] | None:
-    match = re.fullmatch(r"([0-9]{1,5})([\u4e00-\u9fff]{1,2})", value) if isinstance(value, str) else None
-    if not match:
-        return None
-    number = int(match.group(1))
-    if number > 99999:
-        return None
-    return number, match.group(2)
-
-
-def _numeric_item_parts(value: object) -> tuple[int, str] | None:
-    match = re.fullmatch(r"[^:\n]{1,12}:([0-9]{1,5})([\u4e00-\u9fff]{1,2})", value) if isinstance(value, str) else None
-    if not match:
-        return None
-    number = int(match.group(1))
-    if number > 99999:
-        return None
-    return number, match.group(2)
-
-
-def _validate_metric(metric: object, *, context: str) -> tuple[int, str]:
-    if not isinstance(metric, dict) or set(metric) - {"label", "value", "detail"} or not {"label", "value"} <= set(metric):
-        raise ValueError(f"{context} 必须提供 metric")
-    parts = _metric_parts(metric.get("value"))
-    if parts is None:
-        raise ValueError(f"{context} metric.value 必须是 0..99999 的 ASCII 整数加 1 到 2 个汉字单位，不能使用百分比、小数或混合文本")
-    return parts
-
-
-def _validate_numeric_items(items: object, *, count: int, context: str) -> tuple[list[tuple[int, str]], str]:
-    if not isinstance(items, list) or len(items) != count:
-        raise ValueError(f"{context} numeric_items 必须提供 exactly {count} 项")
-    parsed = []
-    unit = None
-    for item in items:
-        parts = _numeric_item_parts(item)
-        if parts is None:
-            raise ValueError(f"{context} numeric_items 每项必须是 标签:ASCII整数+1到2个汉字单位")
-        if unit is None:
-            unit = parts[1]
-        elif unit != parts[1]:
-            raise ValueError(f"{context} numeric_items 必须使用同一个单位")
-        parsed.append(parts)
-    return parsed, unit or ""
-
-
-def _validate_basic_b_content(set_id: str, content: dict[str, Any]) -> None:
-    items = content.get("items")
-    metric = content.get("metric")
-    if content.get("numeric_items") is not None or content.get("supporting_items") is not None:
-        raise ValueError("basic B 无素材组件套不接受 numeric_items 或 supporting_items")
-    if set_id in {"B01", "B02"}:
-        if items is not None or metric is not None:
-            raise ValueError(f"{set_id} 只接受 title/body/takeaway")
-        return
-    if set_id == "B03":
-        if not isinstance(items, list) or len(items) != 2 or metric is not None:
-            raise ValueError("B03 对比组件必须提供 exactly 2 个 items 且不能提供 metric")
-        return
-    if set_id == "B04":
-        if items is not None:
-            raise ValueError("B04 数字组件必须只提供 metric")
-        _validate_metric(metric, context="B04")
-        return
-    if set_id == "B05":
-        if not isinstance(items, list) or len(items) != 3 or metric is not None:
-            raise ValueError("B05 步骤组件必须提供 exactly 3 个 items 且不能提供 metric")
-        return
-    if set_id == "B06" and (not isinstance(items, list) or not 2 <= len(items) <= 3 or metric is not None):
-        raise ValueError("B06 结论组件必须提供 2 到 3 个 items 且不能提供 metric")
-
-
-def _validate_rich_b_content(set_id: str, content: dict[str, Any], *, duration: float) -> None:
-    if duration < 12:
-        raise ValueError("rich B 无素材组件套 duration_seconds 至少 12 秒")
-    if len(content.get("title", "")) > 18 or len(content.get("body", "")) > 60 or len(content.get("takeaway", "")) > 18:
-        raise ValueError("rich content title/body/takeaway 分别不能超过 18/60/18 字")
-    items = content.get("items")
-    if items is not None and (any(len(item) > 24 for item in items) or sum(len(item) for item in items) > 64):
-        raise ValueError("rich items 每项不能超过 24 字且合计不超过 64 字")
-    metric = content.get("metric")
-    numeric_items = content.get("numeric_items")
-    supporting_items = content.get("supporting_items")
-    if set_id in {"B01", "B02"}:
-        if not isinstance(items, list) or len(items) != 3:
-            raise ValueError(f"{set_id} rich 必须提供 exactly 3 个 items")
-        metric_parts = _validate_metric(metric, context=f"{set_id} rich")
-        if metric_parts[0] != len(items):
-            raise ValueError(f"{set_id} rich metric.value 数字必须等于 items 条数")
-        if numeric_items is not None or supporting_items is not None:
-            raise ValueError(f"{set_id} rich 不接受 numeric_items 或 supporting_items")
-        return
-    if set_id == "B03":
-        if not isinstance(items, list) or len(items) != 2 or metric is not None or supporting_items is not None:
-            raise ValueError("B03 rich 必须提供 exactly 2 个 items、exactly 2 个 numeric_items，且不能提供 metric/supporting_items")
-        _validate_numeric_items(numeric_items, count=2, context="B03 rich")
-        return
-    if set_id == "B04":
-        if items is not None or supporting_items is not None:
-            raise ValueError("B04 rich 不接受 items 或 supporting_items")
-        metric_parts = _validate_metric(metric, context="B04 rich")
-        numeric_parts, unit = _validate_numeric_items(numeric_items, count=3, context="B04 rich")
-        if metric_parts[1] != unit or metric_parts[0] != sum(number for number, _ in numeric_parts):
-            raise ValueError("B04 rich metric.value 必须等于 3 个 numeric_items 的同单位求和")
-        return
-    if set_id == "B05":
-        if not isinstance(items, list) or len(items) != 3 or not isinstance(supporting_items, list) or len(supporting_items) != 3:
-            raise ValueError("B05 rich 必须提供 exactly 3 个 items 和 exactly 3 个 supporting_items")
-        metric_parts = _validate_metric(metric, context="B05 rich")
-        if metric_parts[0] != len(items):
-            raise ValueError("B05 rich metric.value 数字必须等于 items 条数")
-        if numeric_items is not None:
-            raise ValueError("B05 rich 不接受 numeric_items")
-        return
-    if not isinstance(items, list) or not 2 <= len(items) <= 3 or not isinstance(supporting_items, list) or len(supporting_items) != 2:
-        raise ValueError("B06 rich 必须提供 2 到 3 个 items 和 exactly 2 个 supporting_items")
-    metric_parts = _validate_metric(metric, context="B06 rich")
-    if metric_parts[0] != len(items):
-        raise ValueError("B06 rich metric.value 数字必须等于 items 条数")
-    if numeric_items is not None:
-        raise ValueError("B06 rich 不接受 numeric_items")
-
-
-def _validate_b_content(set_id: str, content: dict[str, Any], *, composition: str, duration: float) -> None:
-    if composition == "rich":
-        _validate_rich_b_content(set_id, content, duration=duration)
-    else:
-        _validate_basic_b_content(set_id, content)
-
-
 def _guided_recipe(total_frames: int, steps: list[dict[str, Any]]) -> DemoRecipe:
     first = steps[0]["instruction"]
     return DemoRecipe(
@@ -896,7 +767,7 @@ class ComponentDemoNode:
         self.repo, self.service = repository, service
 
     def __call__(self, state: VideoState) -> dict[str, Any]:
-        start_stage(self.repo, state, "director", "组件套样片正在生成导演 Demo 方案")
+        start_stage(self.repo, state, "director", "组件套样片正在生成摄影 Demo 方案")
         try:
             job = self.repo.get_job(state["job_id"])
             request = self._request(state)
@@ -924,12 +795,14 @@ class ComponentDemoNode:
             plan = self._plan(job, timeline, recipe, request)
             _validate_director_plan_payload(plan, job, timeline)
 
-            stale = {"preview", "final", "cover", "captions", "review", "package", "storyboard", "timeline", "editing_guidance", "human_review", "component_study", "director_plan"}
+            stale = {"preview", "final", "cover", "captions", "review", "package", "storyboard", "timeline",
+                     "editing_guidance", "human_review", "component_study", "director_plan",
+                     "director_shot_review", "shot_review_frame"}
             current = self.repo.get_job(job.job_id)
             artifacts = [item for item in current.artifacts if item.kind not in stale]
             job = self.repo.update_job(job.job_id, job.revision, expected_event_id=current.latest_event_id,
                                        timeline=timeline, review=None, progress=None, artifacts=artifacts,
-                                       status="RUNNING", stage="director", message="组件套导演 Demo 方案已生成")
+                                       status="RUNNING", stage="director", message="组件套摄影 Demo 方案已生成")
             self.service.write_json(job, f"component-demo-{set_id.lower()}-director-plan.json", plan, "director_plan")
             return state_context(self.repo, state, route="director_demo", gate_issues=[])
         except ValueError as exc:
@@ -1237,7 +1110,7 @@ class ComponentDemoNode:
             "demo": {
                 "start_frame": 0,
                 "end_frame": timeline.duration_in_frames,
-                "reason": f"组件套 {recipe.set_id} 静音视觉样片，连续 {duration_seconds:.1f} 秒，供导演 Demo 预览。",
+                "reason": f"组件套 {recipe.set_id} 静音视觉样片，连续 {duration_seconds:.1f} 秒，供摄影 Demo 预览。",
             },
             "component_usage": component_requirement_usage(timeline, job.brief.usage, _required_library_components(job)),
             "component_demo_recipe": {

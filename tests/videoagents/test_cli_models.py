@@ -558,20 +558,29 @@ def test_materials_research_uses_codex_tools_without_persisting_workspace_in_ope
     assert str(workspace) not in body and str(audit) not in body
 
 
-def test_research_mode_is_limited_to_materials_supported_clis(tmp_path, monkeypatch):
+def test_research_mode_is_limited_to_materials_and_writer_supported_clis(tmp_path, monkeypatch):
+    from videoagents.providers.cli_runner import CliResult
+
     repo = Repository(tmp_path / "runtime")
     SettingsService(repo).patch(SettingsPatch(role_models={
         "materials": {"enabled": True, "provider": "trae_cli"},
-        "screenwriter": {"enabled": True, "provider": "codex_cli"},
+        "screenwriter": {"enabled": True, "provider": "trae_cli"},
     }))
     monkeypatch.setattr("videoagents.providers.llm.run_cli", lambda *args, **kwargs: pytest.fail("transport should not launch"))
     model = JsonModel(repo)
-    with pytest.raises(CapabilityMissing, match="工具研究模式仅支持素材角色使用 Codex 或 Claude Code CLI"):
+    with pytest.raises(CapabilityMissing, match="工具研究模式仅支持素材或编剧角色"):
         model.call("fixture-job", 1, "materials", "test", {}, "command", research_directory=tmp_path / "r1")
-    with pytest.raises(CapabilityMissing, match="工具研究模式仅支持素材角色使用 Codex 或 Claude Code CLI"):
+    with pytest.raises(CapabilityMissing, match="工具研究模式仅支持素材或编剧角色"):
         model.call("fixture-job", 1, "screenwriter", "test", {}, "command", research_directory=tmp_path / "r2")
     with repo.connection() as db:
         assert db.execute("SELECT COUNT(*) FROM operations").fetchone()[0] == 0
+
+    # The writer on a supported CLI may use research mode and reaches the transport.
+    SettingsService(repo).patch(SettingsPatch(role_models={"screenwriter": {"enabled": True, "provider": "codex_cli"}}))
+    monkeypatch.setattr("videoagents.providers.llm.run_cli",
+                        lambda *args, **kwargs: CliResult({"ok": True}))
+    assert model.call("fixture-job", 1, "screenwriter", "test", {}, "command",
+                      research_directory=tmp_path / "r3") == {"ok": True}
 
 
 def test_missing_cli_does_not_reserve_paid_submission(tmp_path, monkeypatch):

@@ -10,6 +10,9 @@ def test_command_prefix_falls_back_to_user_local_bin(tmp_path, monkeypatch):
     local_bin.mkdir(parents=True)
     executable = local_bin / ("yt-dlp.exe" if os.name == "nt" else "yt-dlp")
     executable.write_text("", encoding="utf-8")
+    if os.name != "nt":
+        # shutil.which on POSIX requires the executable bit.
+        executable.chmod(0o755)
 
     monkeypatch.setenv("PATH", str(tmp_path / "empty"))
     monkeypatch.setattr(research, "_user_local_bin", lambda: local_bin)
@@ -50,6 +53,10 @@ def test_command_prefix_keeps_path_precedence(tmp_path, monkeypatch):
     path_executable = path_bin / f"bili{suffix}"
     local_executable.write_text("", encoding="utf-8")
     path_executable.write_text("", encoding="utf-8")
+    if os.name != "nt":
+        # shutil.which on POSIX requires the executable bit.
+        local_executable.chmod(0o755)
+        path_executable.chmod(0o755)
 
     monkeypatch.setenv("PATH", str(path_bin))
     monkeypatch.setattr(research, "_user_local_bin", lambda: local_bin)
