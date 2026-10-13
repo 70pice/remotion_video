@@ -350,8 +350,21 @@ def test_materials_rebuild_script_preserves_old_results_audit_and_unknown_and_re
     monkeypatch.setattr("videoagents.nodes.materials.MaterialsNode.collect", collect)
     monkeypatch.setattr("sys.argv", ["videoagents", "--runtime-dir", str(repo.root), "run", job.job_id])
     assert main() == 0
+    assert calls == ["script"]  # Rebuilding never starts collection before approval.
+    assert json.loads(capsys.readouterr().out)["status"] == "NEEDS_HUMAN"
+    paused = repo.get_job(job.job_id)
+    assert paused.stage == "script" and paused.pending_input["node_name"] == "script_human_gate"
+    assert paused.script.title == "UNIT fresh writer" and paused.script.revision == 2
+    monkeypatch.setattr("sys.argv", ["videoagents", "--runtime-dir", str(repo.root), "resume", job.job_id,
+                                     "--decision", "confirm", "--note",
+                                     "UNIT: reviewed the new script and sources; allow material collection."])
+    assert main() == 0
     assert calls == ["script", "materials"]
     assert json.loads(capsys.readouterr().out)["status"] == "NEEDS_INPUT"
+    assert repo.operation(job.job_id, "unit-model-input", "llm:materials") == old_operation
+    assert repo.operation(job.job_id, "unit-completed-writer", "llm:screenwriter") == old_writer
+    for artifact_id, path in old_paths.items():
+        assert repo.artifact_path(artifact_id)[0] == path and path.is_file()
 
 
 @pytest.mark.parametrize("invalid", ["human_gate", "wrong_role", "submitting", "active_command", "voice", "director", "render"])
