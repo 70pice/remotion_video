@@ -6,10 +6,6 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
-    "check:captions": "node scripts/check-captions.mjs",
-    "prepare:episode": "python scripts/prepare_episode.py",
-    "render": "remotion render src/index.ts AiScience out/ai-coding-v1.mp4 --codec=h264 --crf=18 --concurrency=4",
-    "still": "remotion still src/index.ts AiScience out/cover.png --frame=60",
     "check:components": "node scripts/verify-community.mjs",
     "catalog:components": "node scripts/build-component-catalog.mjs",
     "generate:contracts": "node scripts/run-python.mjs scripts/export-contracts.py",
