@@ -2,7 +2,7 @@
 
 本目录保存监督会话提交给图引擎的需求，不是已生成的口播或成片。
 
-当前状态（2026-10-13）：两份密钥已加密保存，生产设置为 GLM-5.3[1m] / xhigh；任务暂停在 `NEEDS_INPUT / script`，首次提交 `UNKNOWN / cli_output_limit`。未得到正式文案或视频；不能重放未决提交。
+当前状态（2026-10-13）：用户已明确授权新尝试，正常 CLI 保存同一视频的 revision 2 并启动，当前 `RUNNING / script`；GLM-5.3[1m] / xhigh / 1M 的真实提交记录已回读。音色配置完整，尚未配音；文案和素材尚未生成，两个人工门均未批准。revision 1 的 UNKNOWN / cli_output_limit 和原审计完整保留。
 
 - 需求文件：[brief.json](brief.json)。约4分钟，抖音竖屏1080×1920、30fps，个人视频。
 - 报告依据：[Anthropic 2026年9月报告](https://www.anthropic.com/threat-intelligence-report-september-2026)的GTG-15001节。2026-10-13已读对应正文；口播须由编剧节点再次亲自读取。
@@ -86,4 +86,14 @@ uv run --python 3.12 videoagents status 08e74bed03e94c6e903c89f7f2fbea64
 - 用户引用上一条关于重跑可能再次消耗智谱额度的说明，明确回复“允许”，同时提供音色 ID。此授权只用于本次新的编剧尝试；旧 UNKNOWN 记录保留，不改为失败或已结算，也不替代后续两个人工审核门。
 - 音色 `S_FEftI5R52` 已通过正常 `videoagents settings set` 保存。按[字节官方状态查询接口](https://docs.volcengine.com/docs/DoubaoVoice/SoundReplicaAPI-V3?lang=zh)做只读查询，实际 HTTP 200、训练状态 2、支持模型类型 1 和 5；没有执行训练、试听或合成。
 - 根据[所用 WebSocket V3 官方文档](https://docs.volcengine.com/docs/DoubaoVoice/WebSocketBidirectionalStreaming-V3?lang=zh)，类型 5 对应声音复刻 2.0，正常 CLI 已补充 `voice_resource_id=seed-icl-2.0`，仍使用 `seed-tts-2.0-expressive`、`speech_rate=10`。公开 Settings 回读 `voice_configured=true`，仅说明配置完整，真实配音要等人工文案与素材门之后由图引擎执行。
-- 正在补齐显式授权后升新版草稿的正常 CLI 入口，修护验证完成后才提交新的编剧执行。
+- 显式授权后升新版草稿的正常 CLI 入口已实现并验证，详见下文实际执行。
+
+
+### 显式授权入口与 revision 2 实际启动
+
+- 共性修护通过维护提交 `9a91328` 合入。`restart-unknown` 仅接受当前编剧 UNKNOWN 输入待办，需要明确承认可能已消耗额度及非空授权说明；正常保存新版 DRAFT，不自动执行，不修改旧 UNKNOWN，不替代人工审核。
+- 维护 worktree 的259项定向与完整Python1097项通过、3项环境性跳过；Ruff、契约、TypeScript、lint通过。合入后本视频分支再验证86项CLI/queue/人审回归、契约、TypeScript与diff检查通过。
+- 正常 CLI `restart-unknown` 指定旧操作 `560106d6ee24433e8be3be0f6bf10e6a`，完整记录用户明确回复“允许”以及接受可能已消耗额度的说明，使用本目录修正的brief，真实回读revision 2 / DRAFT。
+- 只读回读确认授权回执source_revision=1 / target_revision=2 / acknowledged=true；旧操作仍UNKNOWN，旧审计文件存在。没有修改供应商结算状态。
+- 随后正常 `run`，幂等键 `user-authorized-screenwriter-r2-20261013`，回读revision 2 / RUNNING / script。新操作 `01423dff24d54faaabf8dfb0f9f49592` 状态SUBMITTING，model=glm-5.3[1m]、reasoning_effort=xhigh、context_tokens=1000000、mode=research。
+- 这只是新的实际启动记录；没有文案、素材包、配音、镜头PNG或成片可交付。后续以实际正常入口状态与产物为准，不自动重复新的未知付费提交。
