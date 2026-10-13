@@ -57,3 +57,42 @@ def test_lark_missing_binary_fails_without_launch(monkeypatch):
     monkeypatch.setattr(feishu.subprocess, "run", lambda *a, **k: pytest.fail("no executable to launch"))
     with pytest.raises(feishu.FeishuUnavailable, match="lark-cli"):
         feishu._run(["auth", "status"])
+
+
+def test_lark_missing_scope_reports_only_valid_scope_names(monkeypatch):
+    scopes = ["base:app:create", "base:table:read", "base:table:create", "base:table:update", "base:table:delete"]
+    error = {"ok": False, "identity": "user", "error": {
+        "type": "authorization", "subtype": "missing_scope", "missing_scopes": scopes,
+        "message": "secret-token-in-message", "hint": "secret-token-in-hint"}}
+    monkeypatch.setattr(feishu, "executable_prefix", lambda *a: ["fixture-lark"])
+    monkeypatch.setattr(feishu.subprocess, "run", lambda argv, **k: subprocess.CompletedProcess(
+        argv, 3, "secret-token-in-stdout", json.dumps(error)))
+    with pytest.raises(feishu.FeishuUnavailable) as caught:
+        feishu._run(["base", "+base-create"])
+    detail = str(caught.value)
+    assert all(scope in detail for scope in scopes)
+    assert "缺少用户授权权限" in detail
+    assert "secret-token" not in detail
+
+
+@pytest.mark.parametrize("payload", [
+    "raw-output-secret-token",
+    {"ok": False, "error": {"type": "internal", "message": "secret-token", "hint": "secret-token"}},
+    {"ok": False, "error": {"type": "authorization", "subtype": "missing_scope", "missing_scopes": "secret-token"}},
+    {"ok": False, "error": {"type": "authorization", "subtype": "missing_scope",
+                             "missing_scopes": ["base:app:create", "base:secret-token\nAPI_KEY=secret-token"]}},
+    {"ok": False, "error": {"type": "authorization", "subtype": "missing_scope",
+                             "missing_scopes": ["base:app:create\"}],\"api_key\":\"secret-token"]}},
+    {"ok": False, "error": {"type": "authorization", "subtype": "missing_scope",
+                             "missing_scopes": ["base:app:create", 123]}},
+    {"ok": False, "error": ["secret-token"]},
+    ["secret-token"],
+])
+def test_lark_error_and_invalid_scopes_stay_redacted(monkeypatch, payload):
+    monkeypatch.setattr(feishu, "executable_prefix", lambda *a: ["fixture-lark"])
+    stderr = payload if isinstance(payload, str) else json.dumps(payload)
+    monkeypatch.setattr(feishu.subprocess, "run", lambda argv, **k: subprocess.CompletedProcess(
+        argv, 3, "API_KEY=secret-token", stderr))
+    with pytest.raises(feishu.FeishuUnavailable) as caught:
+        feishu._run(["base", "+base-create"])
+    assert str(caught.value) == "lark-cli 用户身份调用失败（退出码 3）；请检查用户授权与权限"

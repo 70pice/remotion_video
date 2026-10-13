@@ -8,6 +8,7 @@ CLI 的 poll 命令读回决定并走既有 resume 通道。飞书不可用时�
 
 import json
 import os
+import re
 import subprocess
 from typing import Any
 
@@ -81,7 +82,20 @@ def _run(arguments: list[str], *, timeout: int = 60) -> dict[str, Any]:
     except (OSError, subprocess.SubprocessError) as exc:
         raise FeishuUnavailable("lark-cli 无法执行；请检查本机 CLI") from exc
     if result.returncode != 0:
-        raise FeishuUnavailable(f"lark-cli 用户身份调用失败（退出码 {result.returncode}）；请检查用户授权与权限")
+        hint = "请检查用户授权与权限"
+        try:
+            payload = json.loads(result.stderr or result.stdout)
+        except ValueError:
+            payload = None
+        error = payload.get("error") if isinstance(payload, dict) and payload.get("ok") is False else None
+        if isinstance(error, dict) and error.get("type") == "authorization" and error.get("subtype") == "missing_scope":
+            scopes = error.get("missing_scopes")
+            if (isinstance(scopes, list) and 1 <= len(scopes) <= 50
+                    and all(isinstance(scope, str) and len(scope) <= 128
+                            and re.fullmatch(r"[a-z][a-z0-9_]{0,31}(?::[a-z][a-z0-9_.]{0,63}){1,3}", scope)
+                            for scope in scopes)):
+                hint = "缺少用户授权权限（missing_scope）：" + ", ".join(dict.fromkeys(scopes)) + "；请补充这些权限后再同步"
+        raise FeishuUnavailable(f"lark-cli 用户身份调用失败（退出码 {result.returncode}）；{hint}")
     try:
         return json.loads(result.stdout)
     except ValueError as exc:
