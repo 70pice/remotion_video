@@ -2,7 +2,7 @@
 
 本目录保存监督会话提交给图引擎的需求，不是已生成的口播或成片。
 
-当前状态（2026-10-13）：用户已明确授权新尝试，正常 CLI 保存同一视频的 revision 2 并启动，当前 `RUNNING / script`；GLM-5.3[1m] / xhigh / 1M 的真实提交记录已回读。音色配置完整，尚未配音；文案和素材尚未生成，两个人工门均未批准。revision 1 的 UNKNOWN / cli_output_limit 和原审计完整保留。
+当前状态（2026-10-13）：revision 2 已生成正式节点的 script.json，但素材阶段因新的 UNKNOWN / unexpected_cli_event 暂停在 NEEDS_INPUT / materials。文案与素材人工门未到达，未配音、未渲染。音色配置完整，旧操作与实际稿件均保留；源网页乱码与截断的共性修复已验证合入，已有旧稿仍需正式重新核实。
 
 - 需求文件：[brief.json](brief.json)。约4分钟，抖音竖屏1080×1920、30fps，个人视频。
 - 报告依据：[Anthropic 2026年9月报告](https://www.anthropic.com/threat-intelligence-report-september-2026)的GTG-15001节。2026-10-13已读对应正文；口播须由编剧节点再次亲自读取。
@@ -97,3 +97,13 @@ uv run --python 3.12 videoagents status 08e74bed03e94c6e903c89f7f2fbea64
 - 只读回读确认授权回执source_revision=1 / target_revision=2 / acknowledged=true；旧操作仍UNKNOWN，旧审计文件存在。没有修改供应商结算状态。
 - 随后正常 `run`，幂等键 `user-authorized-screenwriter-r2-20261013`，回读revision 2 / RUNNING / script。新操作 `01423dff24d54faaabf8dfb0f9f49592` 状态SUBMITTING，model=glm-5.3[1m]、reasoning_effort=xhigh、context_tokens=1000000、mode=research。
 - 这只是新的实际启动记录；没有文案、素材包、配音、镜头PNG或成片可交付。后续以实际正常入口状态与产物为准，不自动重复新的未知付费提交。
+
+
+### revision 2 实际停止与证据修护
+
+- 编剧操作 `01423dff24d54faaabf8dfb0f9f49592` 已COMPLETED；revision 2 的真实 `script.json` 登记为artifact `361e06dd07ab4dcc9a44d442c71fd396`。这是一份初稿，不是人审通过或已核实完成。
+- 素材操作 `2013f7e0f2be44a8b6613f2718750429` 是新的UNKNOWN，reason=unexpected_cli_event；CLI正常返回NEEDS_INPUT/materials。脱敏审计有26条MCP启动/完成记录；最后四条启动后未收到完整终态。原始顶层事件类型未保留，因此不能据此断言是某种进度事件。未重放此付费调用。
+- 旧来源文件实测：央广正文3905字符中2903个U+FFFD；HTML meta声明GB2312，固定UTF-8误解码。Anthropic网页全文258835字符，GTG-15001首次出现在227706，旧来源只提供前16000字符，未包含关键章节。目录或第三方解读不能代替编剧亲读根基报告。
+- 共性源码维护 `a219aef` / `ad4282b` 已合入：尊重BOM、HTTP/HTML声明编码，保留256Ki字符有界正文，素材共享state使用同一预算；3MiB下载、公网与逐跳限制不变。维护回归119 passed / 2权限skip；合入后70 passed / 2权限skip、契约、TypeScript和diff检查通过。实网只读验收中文正常、官方涉案章节可读取，没有更新当前job产物或源文件。
+- 本目录brief已补充正式重新核实原报告、区分两案可调门槛、删去无关审核规避工程细节等制作要求。这里只准备新版需求，尚未对真实job提交新revision或重跑；用户当前的继续指令用于完成必要修护与诊断，不写成新的未知付费提交授权。
+- 配音、逐镜、成片均未产生；两个人工审核门均未批准，飞书认证未完成。
