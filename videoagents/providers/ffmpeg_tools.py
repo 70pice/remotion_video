@@ -56,12 +56,13 @@ def _candidates(name: str, override: str | None) -> list[str]:
 def _ffprobe_decodes_wav(executable: str) -> bool:
     import tempfile
 
-    with tempfile.NamedTemporaryFile(suffix=".wav") as handle:
-        handle.write(_SILENT_WAV.getvalue())
-        handle.flush()
+    with tempfile.TemporaryDirectory(prefix="videoagents-ffprobe-check-") as directory:
+        source = Path(directory) / "probe.wav"
+        # Close the writer before spawning: Windows locks open temporary files.
+        source.write_bytes(_SILENT_WAV.getvalue())
         try:
             result = subprocess.run(
-                [executable, "-v", "error", "-show_streams", "-show_format", "-of", "json", handle.name],
+                [executable, "-v", "error", "-show_streams", "-show_format", "-of", "json", str(source)],
                 capture_output=True, text=True, timeout=PROBE_TIMEOUT_SECONDS, check=False,
             )
         except (OSError, subprocess.SubprocessError):
@@ -78,12 +79,12 @@ def _ffprobe_decodes_wav(executable: str) -> bool:
 def _ffmpeg_decodes_wav(executable: str) -> bool:
     import tempfile
 
-    with tempfile.NamedTemporaryFile(suffix=".wav") as handle:
-        handle.write(_SILENT_WAV.getvalue())
-        handle.flush()
+    with tempfile.TemporaryDirectory(prefix="videoagents-ffmpeg-check-") as directory:
+        source = Path(directory) / "probe.wav"
+        source.write_bytes(_SILENT_WAV.getvalue())
         try:
             result = subprocess.run(
-                [executable, "-v", "error", "-xerror", "-i", handle.name, "-f", "null", "-"],
+                [executable, "-v", "error", "-xerror", "-i", str(source), "-f", "null", "-"],
                 capture_output=True, text=True, timeout=PROBE_TIMEOUT_SECONDS, check=False,
             )
         except (OSError, subprocess.SubprocessError):

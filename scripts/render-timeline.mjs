@@ -65,7 +65,7 @@ const resolveMediaBinary = async (name, overrideEnv, buildArguments, verify) => 
     } catch {
       continue;
     }
-    if (!stat.isFile() || !(stat.mode & 0o111)) continue;
+    if (!stat.isFile() || (process.platform !== 'win32' && !(stat.mode & 0o111))) continue;
     const executable = await fs.realpath(candidate);
     if (seen.has(executable)) continue;
     seen.add(executable);
