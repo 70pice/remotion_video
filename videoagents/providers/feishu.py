@@ -7,10 +7,12 @@ CLI 的 poll 命令读回决定并走既有 resume 通道。飞书不可用时�
 """
 
 import json
+import os
 import subprocess
 from typing import Any
 
 from videoagents.contracts import Job
+from videoagents.providers.cli_runner import executable_prefix
 
 SCRIPT_TABLE = "文案"
 ASSETS_TABLE = "素材清单"
@@ -67,9 +69,13 @@ def _run(arguments: list[str], *, timeout: int = 60) -> dict[str, Any]:
     # Output format is always selected with --format json; a bare --json would
     # collide with commands where --json is a VALUE input (batch create/update,
     # record get/delete), which lark-cli rejects as "flag needs an argument".
+    prefix = executable_prefix("lark_cli")
+    if prefix is None:
+        raise FeishuUnavailable("未找到可执行的 lark-cli；请安装完整 CLI 或设置 VIDEOAGENTS_LARK_CLI_EXECUTABLE")
     try:
-        result = subprocess.run(["lark-cli", *arguments, "--format", "json"], capture_output=True, text=True,
-                                timeout=timeout, check=False)
+        result = subprocess.run([*prefix, *arguments, "--format", "json"], capture_output=True, text=True,
+                                encoding="utf-8", timeout=timeout, check=False, shell=False,
+                                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
     except (OSError, subprocess.SubprocessError) as exc:
         raise FeishuUnavailable(f"lark-cli 无法执行：{exc}") from exc
     if result.returncode != 0:
