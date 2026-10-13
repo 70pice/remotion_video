@@ -577,6 +577,7 @@ def test_research_mode_is_limited_to_materials_and_writer_supported_clis(tmp_pat
 
     # The writer on a supported CLI may use research mode and reaches the transport.
     SettingsService(repo).patch(SettingsPatch(role_models={"screenwriter": {"enabled": True, "provider": "codex_cli"}}))
+    monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda _: ["unit-cli"])
     monkeypatch.setattr("videoagents.providers.llm.run_cli",
                         lambda *args, **kwargs: CliResult({"ok": True}))
     assert model.call("fixture-job", 1, "screenwriter", "test", {}, "command",
