@@ -32,15 +32,19 @@ def test_codex_arguments_select_effort_without_changing_tool_permissions(tmp_pat
 
 @pytest.mark.parametrize("research", [False, True])
 def test_settings_to_real_fixture_process_receives_xhigh_and_records_ledger(tmp_path, monkeypatch, research):
+    monkeypatch.delenv("PYTHONUTF8", raising=False)
+    monkeypatch.delenv("PYTHONIOENCODING", raising=False)
     path = tmp_path / "fixture.py"
     path.write_text(
         "import sys,json\n"
+        "sys.stdin.reconfigure(encoding='utf-8',errors='strict')\n"
+        "sys.stdout.reconfigure(encoding='utf-8',errors='strict')\n"
         "args=sys.argv[1:]\n"
         "configs=[args[i+1] for i,v in enumerate(args) if v=='-c']\n"
         "result={'effort':[v for v in configs if v.startswith('model_reasoning_effort=')],"
         "'model':args[args.index('--model')+1],'prompt':sys.stdin.read()}\n"
-        "wire={'response_json':json.dumps(result)}\n"
-        "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(wire)}}))\n"
+        "wire={'response_json':json.dumps(result,ensure_ascii=False)}\n"
+        "print(json.dumps({'type':'item.completed','item':{'type':'agent_message','text':json.dumps(wire,ensure_ascii=False)}},ensure_ascii=False))\n"
         "print(json.dumps({'type':'turn.completed'}))\n", encoding="utf-8",
     )
     source_home = tmp_path / "source-home"
