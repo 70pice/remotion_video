@@ -582,6 +582,19 @@ class RestartUnknownRequest(Contract):
     note: str = Field(min_length=1, max_length=3000)
     brief: Brief | None = None
     rebuild_script: bool = Field(default=False, strict=True)
+    materials_only: bool = Field(default=False, strict=True)
+    materials_note: str = Field(default="", max_length=30000)
+
+    @model_validator(mode="after")
+    def restart_scope(self):
+        if self.materials_only and (self.rebuild_script or self.brief is not None):
+            raise ValueError("只重采素材不能同时重写文案或修改 Brief")
+        if self.materials_only and not self.materials_note.strip():
+            raise ValueError("只重采素材需要明确的素材采集要求")
+        if self.materials_note and not self.materials_only:
+            raise ValueError("素材采集要求只能用于 materials_only 重启")
+        self.materials_note = self.materials_note.strip()
+        return self
 
     @field_validator("acknowledge_possible_usage", mode="before")
     @classmethod

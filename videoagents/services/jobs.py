@@ -89,6 +89,18 @@ class JobService:
         request = RestartUnknownRequest.model_validate(request.model_dump())
 
         def edit(job: Job) -> Job:
+            if request.materials_only:
+                # Keep immutable pre-collection evidence at its original revision.
+                # The authorization chain validates it; no new confirm is forged.
+                job.revision += 1
+                job.script = job.script.model_copy(update={"revision": job.revision})
+                job.assets = []
+                job.artifacts = [item for item in job.artifacts
+                                 if item.kind in {"script", "writer_tool_audit", "source", "stage_review"}]
+                job.timeline = job.script_discussion = job.review = job.pending_input = job.progress = None
+                job.status, job.stage = "DRAFT", "idle"
+                job.message = "已授权仅重采素材，沿用原文案批准依据；旧提交仍 UNKNOWN，请通过 run 执行"
+                return job
             # Rebuilding after materials must also discard the completed old script.
             job.script = None
             updated = self._edit_draft(job, DraftRequest(

@@ -85,7 +85,9 @@ class VideoProductionGraph(AbstractContextManager):
                               next_node="after_director_demo_review", revise_node="director")
         graph.add_node("after_script_review", self.after_script_review)
         graph.add_node("after_director_demo_review", self.after_director_demo_review)
-        graph.add_conditional_edges(START, self.start_route, {"component_demo": "component_demo", "screenwriter": "screenwriter"})
+        graph.add_conditional_edges(START, self.start_route, {
+            "component_demo": "component_demo", "screenwriter": "screenwriter", "materials": "materials",
+        })
         self.add_cleanup_edge(graph, "component_demo", {"director_demo": "director_demo", "await_input": "await_input"})
         self.add_cleanup_edge(graph, "screenwriter", {
             SCRIPT_REVIEW_NODE: SCRIPT_REVIEW_NODE,
@@ -156,11 +158,17 @@ class VideoProductionGraph(AbstractContextManager):
         with self.checkpointer.lock:
             self.connection.close()
 
-    @staticmethod
-    def start_route(state: VideoState) -> str:
+    def start_route(self, state: VideoState) -> str:
         # The writer designs segments first; a human approves them before
         # materials collects evidence and footage against the visual needs.
-        return "component_demo" if state.get("action") == "component_demo" else "screenwriter"
+        if state.get("action") == "component_demo":
+            return "component_demo"
+        job = current_job(self.repo, state)
+        if self.repo.materials_restart_receipt(job.job_id, job.revision):
+            if not script_before_materials_is_approved(self.repo, job):
+                raise Conflict("仅素材重启的原文案批准依据无效")
+            return "materials"
+        return "screenwriter"
 
     @staticmethod
     def route(state: VideoState) -> str:

@@ -324,6 +324,8 @@ export interface RestartUnknownRequest {
   note: string;
   brief?: Brief | null;
   rebuild_script?: boolean;
+  materials_only?: boolean;
+  materials_note?: string;
 }
 
 export interface ResumeRequest {

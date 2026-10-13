@@ -2627,6 +2627,17 @@
           "default": false,
           "title": "Rebuild Script",
           "type": "boolean"
+        },
+        "materials_only": {
+          "default": false,
+          "title": "Materials Only",
+          "type": "boolean"
+        },
+        "materials_note": {
+          "default": "",
+          "maxLength": 30000,
+          "title": "Materials Note",
+          "type": "string"
         }
       },
       "required": [

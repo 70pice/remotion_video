@@ -174,6 +174,9 @@ class Repository:
         # Default requests must still match authorizations saved before this flag existed.
         if not request.rebuild_script:
             payload.pop("rebuild_script")
+        if not request.materials_only:
+            payload.pop("materials_only")
+            payload.pop("materials_note")
         digest = fingerprint(payload)
         with self.connection(immediate=True) as db:
             job = self._get(db, job_id)
@@ -188,13 +191,15 @@ class Repository:
             self.check_editable(db, job, request.base_revision)
             pending = job.pending_input or {}
             providers = {"script": {"llm:screenwriter", "llm:编剧"}}
-            if request.rebuild_script:
+            if request.rebuild_script or request.materials_only:
                 providers["materials"] = {"llm:materials"}
+            if request.materials_only:
+                providers.pop("script")
             if (job.status != "NEEDS_INPUT" or job.stage not in providers or pending.get("kind") != "input"
                     or pending.get("operation_status") != "UNKNOWN"
                     or pending.get("operation_id") != request.operation_id
                     or pending.get("revision") != job.revision or pending.get("stage") != job.stage):
-                raise Conflict("只可恢复编剧 UNKNOWN；素材 UNKNOWN 须明确 rebuild_script 以重走编剧与素材")
+                raise Conflict("素材 UNKNOWN 须明确 rebuild_script 或 materials_only；其他阶段不能通过此入口重启")
             operation = db.execute("SELECT job_id,provider,status,body FROM operations WHERE operation_id=?",
                                    (request.operation_id,)).fetchone()
             if (not operation or operation["job_id"] != job_id or operation["status"] != "UNKNOWN"
@@ -216,17 +221,35 @@ class Repository:
                        "previous_artifacts": [{"artifact_id": row["artifact_id"], "path": row["path"]}
                                               for row in db.execute("SELECT artifact_id,path FROM artifacts WHERE job_id=?",
                                                                     (job_id,))]}
+            if request.materials_only:
+                from videoagents.nodes.script_review import preserve_approved_script
+
+                receipt.update(materials_only=True, materials_note=request.materials_note,
+                               previous_job=job.model_dump(),
+                               preserved_script=preserve_approved_script(self, job))
             updated = Job.model_validate(transform(job).model_dump())
             if updated.revision != receipt["target_revision"] or updated.status != "DRAFT":
                 raise Conflict("重启授权只能保存一个新版草稿")
             receipt["brief"] = updated.brief.model_dump()
             db.execute("INSERT INTO job_inputs VALUES(?,?,?)", (job_id, key, dumps(receipt)))
-            return self._save(db, updated, "unknown_restart_authorized", {
+            event = {
                 field: receipt[field] for field in (
                     "operation_id", "operation_status", "provider", "source_revision", "target_revision",
                     "acknowledge_possible_usage", "rebuild_script", "note", "previous_artifacts",
                 )
-            })
+            }
+            if request.materials_only:
+                event.update(materials_only=True, materials_note=request.materials_note,
+                             preserved_script=receipt["preserved_script"])
+            return self._save(db, updated, "unknown_restart_authorized", event)
+
+    def materials_restart_receipt(self, job_id: str, revision: int) -> dict[str, Any] | None:
+        """Read the explicit authorization; it is never a new human approval."""
+        with self.connection() as db:
+            rows = db.execute("SELECT value FROM job_inputs WHERE job_id=? "
+                              "AND key LIKE 'authorized_model_restart:%'", (job_id,)).fetchall()
+        return next((receipt for row in rows if (receipt := json.loads(row[0])).get("materials_only") is True
+                     and receipt.get("target_revision") == revision), None)
 
     def delete_job(self, job_id: str, base_revision: int, cleanup: Any) -> None:
         """Delete a cancelled, idle job while excluding concurrent queue/edit writes."""
