@@ -14,6 +14,7 @@ DEFAULT_VOICE_STYLE = (
     "不要字字加重，不要全程兴奋，也不要一口气读完。"
 )
 DEFAULT_SCRIPT_MODEL = "glm-5.3[1m]"
+DEFAULT_GLM_REASONING_EFFORT = "max"
 DEFAULT_ROLE_MODELS = RoleModels.model_validate({
     role: RoleModelConfig(
         enabled=True, provider="claude_code_cli", model=DEFAULT_SCRIPT_MODEL, timeout_seconds=900
@@ -21,7 +22,8 @@ DEFAULT_ROLE_MODELS = RoleModels.model_validate({
     for role in RoleModels.model_fields
 }).model_dump()
 DEFAULT_SETTINGS = {
-    "role_models": DEFAULT_ROLE_MODELS, "search_provider": "none",
+    "role_models": DEFAULT_ROLE_MODELS, "glm_reasoning_effort": DEFAULT_GLM_REASONING_EFFORT,
+    "search_provider": "none",
     "google_search_engine_id": "",
     "research_platforms": ["web", "x", "youtube", "zhihu", "reddit", "bilibili", "google"],
     "research_results_per_platform": 3, "research_max_searches": 8, "research_max_sources": 12,

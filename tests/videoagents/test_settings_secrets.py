@@ -46,7 +46,10 @@ def test_keychain_reference_on_other_platform_is_unavailable(monkeypatch):
 def test_internal_skips_unreadable_secret_instead_of_crashing(tmp_path, monkeypatch):
     from videoagents.storage import Repository
 
-    monkeypatch.setattr(settings_module.sys, "platform", "linux", raising=False)
+    def unavailable(name, value):
+        raise SecretUnavailable("credential unavailable on this machine")
+
+    monkeypatch.setattr(settings_module, "unprotect", unavailable)
     repo = Repository(tmp_path)
     repo.write_settings({"zhipu_api_key": "dpapi:" + base64.b64encode(b"moved").decode()})
     service = settings_module.SettingsService(repo)

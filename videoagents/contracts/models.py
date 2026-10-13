@@ -1160,6 +1160,7 @@ class MaterialResearch(Contract):
 
 class SettingsPatch(Contract):
     role_models: dict[RoleId, RoleModelConfig] | None = None
+    glm_reasoning_effort: Literal["xhigh", "max"] | None = None
     script_discussion_enabled: bool | None = None  # 兼容旧客户端；执行时始终开启讨论。
     script_discussion_max_rounds: int | None = Field(default=None, ge=1, le=5)
     feishu_folder_token: str | None = Field(default=None, max_length=200)  # 每个视频的飞书表格建在该文件夹下

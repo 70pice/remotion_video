@@ -426,6 +426,7 @@ export interface ScriptSegment {
 
 export interface SettingsPatch {
   role_models?: Partial<Record<"materials" | "screenwriter" | "script_reviewer" | "voice" | "director" | "editing" | "review", Partial<RoleModelConfig>>> | null;
+  glm_reasoning_effort?: "xhigh" | "max" | null;
   script_discussion_enabled?: boolean | null;
   script_discussion_max_rounds?: number | null;
   feishu_folder_token?: string | null;
