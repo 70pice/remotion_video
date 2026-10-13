@@ -1,0 +1,425 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 4,
+  "base_token": "FiiebSriRaMxe3s56nSciW27nle",
+  "name": "素材审计",
+  "creation_response": {
+    "fields": [
+      {
+        "default_value": null,
+        "name": "审计项",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      },
+      {
+        "default_value": null,
+        "name": "关联段落",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      },
+      {
+        "default_value": null,
+        "name": "结论",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      },
+      {
+        "name": "预览文件",
+        "style": {
+          "type": "plain"
+        },
+        "type": "attachment"
+      },
+      {
+        "default_value": null,
+        "name": "可支持内容",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      },
+      {
+        "default_value": null,
+        "name": "问题与边界",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      },
+      {
+        "default_value": null,
+        "name": "尺寸与时长",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      },
+      {
+        "default_value": null,
+        "name": "出处",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      },
+      {
+        "default_value": null,
+        "name": "下一步",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      },
+      {
+        "default_value": null,
+        "name": "你的意见",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      },
+      {
+        "default_value": null,
+        "name": "状态",
+        "style": {
+          "type": "plain"
+        },
+        "type": "text"
+      }
+    ],
+    "table": {
+      "fields": [
+        {
+          "default_value": null,
+          "name": "审计项",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        },
+        {
+          "default_value": null,
+          "name": "关联段落",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        },
+        {
+          "default_value": null,
+          "name": "结论",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        },
+        {
+          "name": "预览文件",
+          "style": {
+            "type": "plain"
+          },
+          "type": "attachment"
+        },
+        {
+          "default_value": null,
+          "name": "可支持内容",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        },
+        {
+          "default_value": null,
+          "name": "问题与边界",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        },
+        {
+          "default_value": null,
+          "name": "尺寸与时长",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        },
+        {
+          "default_value": null,
+          "name": "出处",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        },
+        {
+          "default_value": null,
+          "name": "下一步",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        },
+        {
+          "default_value": null,
+          "name": "你的意见",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        },
+        {
+          "default_value": null,
+          "name": "状态",
+          "style": {
+            "type": "plain"
+          },
+          "type": "text"
+        }
+      ],
+      "id": "tblFTK4SmOqXoJkf",
+      "name": "素材审计",
+      "views": [
+        {
+          "_meta": {
+            "filter": null,
+            "group": [],
+            "sort": [],
+            "visible_fields": "11 fields"
+          },
+          "id": "vewtI87VoK",
+          "name": "表格",
+          "type": "grid"
+        }
+      ]
+    },
+    "views": [
+      {
+        "_meta": {
+          "filter": null,
+          "group": [],
+          "sort": [],
+          "visible_fields": "11 fields"
+        },
+        "id": "vewytLjHOv",
+        "name": "逐项审计",
+        "type": "grid"
+      }
+    ]
+  },
+  "production_gate_changed": false,
+  "table_id": "tblFTK4SmOqXoJkf",
+  "view_id": "vewytLjHOv",
+  "url": "https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblFTK4SmOqXoJkf&view=vewytLjHOv",
+  "hash_verified_files": 15,
+  "source_inventory_unchanged": true,
+  "records": {
+    "00｜总审计：有基础，关键画面不足": "reczz28N47OaKBy4",
+    "01｜s1｜两万五人开头": "reczz28N47OaMQ4d",
+    "02｜s2｜Claude开发与陪聊": "reczz28N47OaNEcU",
+    "03｜s3｜匹配流与真人分工": "reczz28N47OaJzrt",
+    "04｜s4｜三候选回复与头像": "reczz28N47OaMxaG",
+    "05｜s5｜额度、金币与假设流水": "reczz28N47OaKwf3",
+    "06｜s6｜假互动与预录顶替": "reczz28N47OaLum4",
+    "07｜s7｜封禁与本期判断": "reczz28N47OaMNot",
+    "10｜探探01｜滑卡资料｜tantan-store-01.jpg": "reczz28N47OaLLRV",
+    "11｜探探02｜配对成功｜tantan-store-02.jpg": "reczz28N47OaLueO",
+    "12｜探探03｜消息预览｜tantan-store-03.jpg": "reczz28N47OaLmxC",
+    "13｜探探04｜个人资料｜tantan-store-04.jpg": "reczz28N47OaLmvZ",
+    "14｜探探05｜语音闪聊入口｜tantan-store-05.jpg": "reczz28N47OaLtO7",
+    "15｜探探06｜动态流｜tantan-store-06.jpg": "reczz28N47OaLY9W",
+    "16｜Soul01｜公开评论AI功能｜soul-store-01.jpg": "reczz28N47OaMPTq",
+    "17｜Soul02｜星球匹配入口｜soul-store-02.jpg": "reczz28N47OaJez3",
+    "18｜Soul03｜派对房间列表｜soul-store-03.jpg": "reczz28N47OaMBXk",
+    "19｜Soul04｜兴趣群广场｜soul-store-04.jpg": "reczz28N47OaJjKF",
+    "20｜Soul05｜捏脸头像｜soul-store-05.jpg": "reczz28N47OaJVol",
+    "21｜Soul06｜MBTI百分比｜soul-store-06.jpg": "reczz28N47OaN9pq",
+    "22｜Soul录屏｜消息列表｜soul-message-copy.mp4": "reczz28N47OaN0ze",
+    "23｜Soul录屏｜访客提示入口｜soul-visitor-copy.mp4": "reczz28N47OaK4OQ",
+    "90｜排除项与计数口径": "reczz28N47OaJpY6"
+  },
+  "row_count": 23,
+  "readback": {
+    "verified_at": "2026-10-13T22:50:40.912618+00:00",
+    "rows": 23,
+    "all_text_fields_match": true,
+    "preview_attachments": 18,
+    "primary_candidates_with_previews": 14,
+    "items": [
+      {
+        "audit_item": "00｜总审计：有基础，关键画面不足",
+        "record_id": "reczz28N47OaKBy4",
+        "attachments": [
+          "tantan-store-contact.jpg",
+          "soul-store-contact.jpg"
+        ]
+      },
+      {
+        "audit_item": "01｜s1｜两万五人开头",
+        "record_id": "reczz28N47OaMQ4d",
+        "attachments": []
+      },
+      {
+        "audit_item": "02｜s2｜Claude开发与陪聊",
+        "record_id": "reczz28N47OaNEcU",
+        "attachments": []
+      },
+      {
+        "audit_item": "03｜s3｜匹配流与真人分工",
+        "record_id": "reczz28N47OaJzrt",
+        "attachments": []
+      },
+      {
+        "audit_item": "04｜s4｜三候选回复与头像",
+        "record_id": "reczz28N47OaMxaG",
+        "attachments": []
+      },
+      {
+        "audit_item": "05｜s5｜额度、金币与假设流水",
+        "record_id": "reczz28N47OaKwf3",
+        "attachments": []
+      },
+      {
+        "audit_item": "06｜s6｜假互动与预录顶替",
+        "record_id": "reczz28N47OaLum4",
+        "attachments": []
+      },
+      {
+        "audit_item": "07｜s7｜封禁与本期判断",
+        "record_id": "reczz28N47OaMNot",
+        "attachments": []
+      },
+      {
+        "audit_item": "10｜探探01｜滑卡资料｜tantan-store-01.jpg",
+        "record_id": "reczz28N47OaLLRV",
+        "attachments": [
+          "tantan-store-01.jpg"
+        ]
+      },
+      {
+        "audit_item": "11｜探探02｜配对成功｜tantan-store-02.jpg",
+        "record_id": "reczz28N47OaLueO",
+        "attachments": [
+          "tantan-store-02.jpg"
+        ]
+      },
+      {
+        "audit_item": "12｜探探03｜消息预览｜tantan-store-03.jpg",
+        "record_id": "reczz28N47OaLmxC",
+        "attachments": [
+          "tantan-store-03.jpg"
+        ]
+      },
+      {
+        "audit_item": "13｜探探04｜个人资料｜tantan-store-04.jpg",
+        "record_id": "reczz28N47OaLmvZ",
+        "attachments": [
+          "tantan-store-04.jpg"
+        ]
+      },
+      {
+        "audit_item": "14｜探探05｜语音闪聊入口｜tantan-store-05.jpg",
+        "record_id": "reczz28N47OaLtO7",
+        "attachments": [
+          "tantan-store-05.jpg"
+        ]
+      },
+      {
+        "audit_item": "15｜探探06｜动态流｜tantan-store-06.jpg",
+        "record_id": "reczz28N47OaLY9W",
+        "attachments": [
+          "tantan-store-06.jpg"
+        ]
+      },
+      {
+        "audit_item": "16｜Soul01｜公开评论AI功能｜soul-store-01.jpg",
+        "record_id": "reczz28N47OaMPTq",
+        "attachments": [
+          "soul-store-01.jpg"
+        ]
+      },
+      {
+        "audit_item": "17｜Soul02｜星球匹配入口｜soul-store-02.jpg",
+        "record_id": "reczz28N47OaJez3",
+        "attachments": [
+          "soul-store-02.jpg"
+        ]
+      },
+      {
+        "audit_item": "18｜Soul03｜派对房间列表｜soul-store-03.jpg",
+        "record_id": "reczz28N47OaMBXk",
+        "attachments": [
+          "soul-store-03.jpg"
+        ]
+      },
+      {
+        "audit_item": "19｜Soul04｜兴趣群广场｜soul-store-04.jpg",
+        "record_id": "reczz28N47OaJjKF",
+        "attachments": [
+          "soul-store-04.jpg"
+        ]
+      },
+      {
+        "audit_item": "20｜Soul05｜捏脸头像｜soul-store-05.jpg",
+        "record_id": "reczz28N47OaJVol",
+        "attachments": [
+          "soul-store-05.jpg"
+        ]
+      },
+      {
+        "audit_item": "21｜Soul06｜MBTI百分比｜soul-store-06.jpg",
+        "record_id": "reczz28N47OaN9pq",
+        "attachments": [
+          "soul-store-06.jpg"
+        ]
+      },
+      {
+        "audit_item": "22｜Soul录屏｜消息列表｜soul-message-copy.mp4",
+        "record_id": "reczz28N47OaN0ze",
+        "attachments": [
+          "soul-message-copy.mp4",
+          "soul-message-delivery-frame.png"
+        ]
+      },
+      {
+        "audit_item": "23｜Soul录屏｜访客提示入口｜soul-visitor-copy.mp4",
+        "record_id": "reczz28N47OaK4OQ",
+        "attachments": [
+          "soul-visitor-copy.mp4",
+          "soul-visitor-delivery-frame.png"
+        ]
+      },
+      {
+        "audit_item": "90｜排除项与计数口径",
+        "record_id": "reczz28N47OaJpY6",
+        "attachments": []
+      }
+    ]
+  },
+  "production_readback": {
+    "verified_at": "2026-10-13T22:51:27.997011+00:00",
+    "status": "NEEDS_INPUT",
+    "stage": "materials",
+    "revision": 4,
+    "pending_input_unchanged": true,
+    "operation_id": "c34539df84044a7cb5eb6cbe86c3ff32",
+    "operation_status": "UNKNOWN",
+    "script_sha256": "5d7aeb49fd9e63a479220f212d773fc011d11251a45c63830369d0955981968d",
+    "script_unchanged": true,
+    "production_table_counts": {
+      "script": 7,
+      "materials": 0,
+      "shots": 0,
+      "review": 3
+    },
+    "voice_or_render_started": false,
+    "paid_replay_submitted": false,
+    "production_gate_changed": false
+  }
+}
