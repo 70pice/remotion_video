@@ -575,6 +575,28 @@ class DraftRequest(Contract):
     timeline: Timeline | None = None
 
 
+class RestartUnknownRequest(Contract):
+    base_revision: int = Field(ge=1)
+    operation_id: str = Field(pattern=r"^[a-f0-9]{32}$")
+    acknowledge_possible_usage: Literal[True]
+    note: str = Field(min_length=1, max_length=3000)
+    brief: Brief | None = None
+
+    @field_validator("acknowledge_possible_usage", mode="before")
+    @classmethod
+    def explicit_acknowledgement(cls, value: Any) -> Any:
+        if value is not True:
+            raise ValueError("必须明确承认旧提交可能已消耗额度")
+        return value
+
+    @field_validator("note")
+    @classmethod
+    def nonblank_note(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("授权说明不能为空")
+        return value.strip()
+
+
 class RunRequest(Contract):
     base_revision: int = Field(ge=1)
     action: Literal["produce", "voice", "storyboard", "preview", "final", "review"]

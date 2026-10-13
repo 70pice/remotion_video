@@ -2588,6 +2588,51 @@
       "title": "ModelCatalog",
       "type": "object"
     },
+    "RestartUnknownRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "base_revision": {
+          "minimum": 1,
+          "title": "Base Revision",
+          "type": "integer"
+        },
+        "operation_id": {
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "acknowledge_possible_usage": {
+          "const": true,
+          "title": "Acknowledge Possible Usage",
+          "type": "boolean"
+        },
+        "note": {
+          "maxLength": 3000,
+          "minLength": 1,
+          "title": "Note",
+          "type": "string"
+        },
+        "brief": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Brief"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "base_revision",
+        "operation_id",
+        "acknowledge_possible_usage",
+        "note"
+      ],
+      "title": "RestartUnknownRequest",
+      "type": "object"
+    },
     "ResumeRequest": {
       "additionalProperties": false,
       "properties": {

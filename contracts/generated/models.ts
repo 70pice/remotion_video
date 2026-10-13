@@ -317,6 +317,14 @@ export interface ModelFinding {
   blocking: boolean;
 }
 
+export interface RestartUnknownRequest {
+  base_revision: number;
+  operation_id: string;
+  acknowledge_possible_usage: true;
+  note: string;
+  brief?: Brief | null;
+}
+
 export interface ResumeRequest {
   base_revision: number;
   decision: "confirm" | "revise" | "cancel";

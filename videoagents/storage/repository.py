@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
 
-from videoagents.contracts import Artifact, Asset, Brief, Job
+from videoagents.contracts import Artifact, Asset, Brief, Job, RestartUnknownRequest
 
 
 class Conflict(Exception):
@@ -116,11 +116,13 @@ class Repository:
             jobs = [Job.model_validate_json(row[0]) for row in db.execute("SELECT body FROM jobs")]
         return sorted(jobs, key=lambda item: item.updated_at, reverse=True)
 
-    def _save(self, db: sqlite3.Connection, job: Job, event: str = "updated") -> Job:
+    def _save(self, db: sqlite3.Connection, job: Job, event: str = "updated",
+              event_details: dict[str, Any] | None = None) -> Job:
         job.updated_at = now()
         event_body = {"type": event, "job_id": job.job_id, "revision": job.revision,
                       "status": job.status, "stage": job.stage, "message": job.message,
                       "progress": job.progress, "updated_at": job.updated_at}
+        event_body.update(event_details or {})
         result = db.execute("INSERT INTO events(job_id,created_at,body) VALUES(?,?,?)",
                             (job.job_id, now(), dumps(event_body)))
         job.latest_event_id = result.lastrowid or 0
@@ -164,6 +166,59 @@ class Repository:
             self.check_editable(db, job, base_revision)
             updated = transform(job)
             return self._save(db, Job.model_validate(updated.model_dump()), "revision")
+
+    def restart_unknown(self, job_id: str, request: RestartUnknownRequest, transform: Any) -> Job:
+        """Authorize one new revision atomically; never settle or replay the old call."""
+        key = "authorized_model_restart:" + request.operation_id
+        digest = fingerprint(request.model_dump(exclude={"base_revision"}))
+        with self.connection(immediate=True) as db:
+            job = self._get(db, job_id)
+            previous = db.execute("SELECT value FROM job_inputs WHERE job_id=? AND key=?", (job_id, key)).fetchone()
+            if previous:
+                receipt = json.loads(previous[0])
+                if receipt["request_hash"] != digest:
+                    raise Conflict("同一个未知操作不能用于不同的重启授权")
+                if request.base_revision not in {receipt["source_revision"], receipt["target_revision"]}:
+                    raise Conflict("重启授权的任务版本不匹配")
+                return job
+            self.check_editable(db, job, request.base_revision)
+            pending = job.pending_input or {}
+            if (job.status != "NEEDS_INPUT" or job.stage != "script" or pending.get("kind") != "input"
+                    or pending.get("operation_status") != "UNKNOWN"
+                    or pending.get("operation_id") != request.operation_id
+                    or pending.get("revision") != job.revision or pending.get("stage") != job.stage):
+                raise Conflict("只可对当前输入待办绑定的 UNKNOWN 模型提交授权创建新版本")
+            operation = db.execute("SELECT job_id,provider,status,body FROM operations WHERE operation_id=?",
+                                   (request.operation_id,)).fetchone()
+            if (not operation or operation["job_id"] != job_id or operation["status"] != "UNKNOWN"
+                    or operation["provider"] not in {"llm:screenwriter", "llm:编剧"}
+                    or json.loads(operation["body"]).get("revision") != job.revision):
+                raise Conflict("未知操作不属于当前任务版本与模型角色，或尚未停止提交")
+            unsettled = db.execute("SELECT operation_id,body FROM operations WHERE job_id=? "
+                                   "AND status IN ('SUBMITTING','UNKNOWN') AND operation_id<>?",
+                                   (job_id, request.operation_id)).fetchall()
+            if any(self._operation_revision(row["body"], job.revision) == job.revision for row in unsettled):
+                raise Conflict("当前版本仍有其他未决提交，不能通过单次授权一起重启")
+            receipt = {"operation_id": request.operation_id, "operation_status": "UNKNOWN",
+                       "provider": operation["provider"], "source_revision": job.revision,
+                       "target_revision": job.revision + 1, "acknowledge_possible_usage": True,
+                       "note": request.note, "request_hash": digest, "authorized_at": now(),
+                       "previous_pending_input": pending, "previous_brief": job.brief.model_dump(),
+                       "previous_script": job.script.model_dump() if job.script else None,
+                       "previous_artifacts": [{"artifact_id": row["artifact_id"], "path": row["path"]}
+                                              for row in db.execute("SELECT artifact_id,path FROM artifacts WHERE job_id=?",
+                                                                    (job_id,))]}
+            updated = Job.model_validate(transform(job).model_dump())
+            if updated.revision != receipt["target_revision"] or updated.status != "DRAFT":
+                raise Conflict("重启授权只能保存一个新版草稿")
+            receipt["brief"] = updated.brief.model_dump()
+            db.execute("INSERT INTO job_inputs VALUES(?,?,?)", (job_id, key, dumps(receipt)))
+            return self._save(db, updated, "unknown_restart_authorized", {
+                field: receipt[field] for field in (
+                    "operation_id", "operation_status", "provider", "source_revision", "target_revision",
+                    "acknowledge_possible_usage", "note", "previous_artifacts",
+                )
+            })
 
     def delete_job(self, job_id: str, base_revision: int, cleanup: Any) -> None:
         """Delete a cancelled, idle job while excluding concurrent queue/edit writes."""

@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from videoagents.contracts import Brief, RetryFailedRunRequest, SettingsPatch
+from videoagents.contracts import Brief, RestartUnknownRequest, RetryFailedRunRequest, SettingsPatch
 from videoagents.default_config import PROJECT_ROOT, RUNTIME_ROOT
 from videoagents.nodes.director_review import current_shot_review_artifact
 from videoagents.services.jobs import JobService
@@ -66,6 +66,21 @@ def cmd_create(args: argparse.Namespace) -> int:
         if args.usage:
             payload["usage"] = args.usage
     job = repo.create_job(Brief.model_validate(payload))
+    emit(_job_summary(job))
+    return 0
+
+
+def cmd_restart_unknown(args: argparse.Namespace) -> int:
+    repo = _repository(args)
+    try:
+        brief = json.loads(Path(args.brief).read_text(encoding="utf-8")) if args.brief else None
+        request = RestartUnknownRequest.model_validate({
+            "base_revision": repo.get_job(args.job_id).revision, "operation_id": args.operation_id,
+            "acknowledge_possible_usage": args.acknowledge_possible_usage, "note": args.note, "brief": brief,
+        })
+        job = JobService(repo, PROJECT_ROOT).restart_unknown(args.job_id, request)
+    except (ValueError, OSError) as exc:
+        raise Conflict(str(exc)) from exc
     emit(_job_summary(job))
     return 0
 
@@ -256,6 +271,15 @@ def build_parser() -> argparse.ArgumentParser:
     retry = sub.add_parser("retry", help="失败续跑")
     retry.add_argument("job_id")
     retry.set_defaults(handler=cmd_retry)
+
+    restart = sub.add_parser("restart-unknown", help="明确接受可能计费后重新编剧：保存新版草稿，不自动执行")
+    restart.add_argument("job_id")
+    restart.add_argument("--operation-id", required=True, help="当前 UNKNOWN 编剧模型操作 ID")
+    restart.add_argument("--acknowledge-possible-usage", action="store_true", required=True,
+                         help="明确承认旧提交可能已消耗额度")
+    restart.add_argument("--note", required=True, help="用户授权依据与重启说明")
+    restart.add_argument("--brief", default="", help="可选：新版完整 Brief JSON 文件")
+    restart.set_defaults(handler=cmd_restart_unknown)
 
     resume = sub.add_parser("resume", help="回复人工审核(飞书不可用时的兜底入口)")
     resume.add_argument("job_id")
