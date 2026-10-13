@@ -2,7 +2,7 @@
 
 本目录保存监督会话的制作要求、执行记录与正式节点口播的审核副本；副本不替代引擎登记产物，也不构成人审通过。
 
-当前状态（2026-10-14）：素材已配置为 Codex `gpt-6.1-sol / xhigh`，文案仍为 Claude Code / Doubao 2.1 Pro。本次已通过正常返工入口重新启动编剧，但 900 秒后超时，revision 3 / NEEDS_INPUT / script；新编剧操作 `515a815f0a5e4baf85e0230e52168023` 为 UNKNOWN / cli_timeout，没有新文案。[本期文案审核稿](script-for-review.md)仍是此前 GLM 节点产物，不能标为豆包新稿。没有确认通过、没有启动 revision 3 素材。revision 2 的素材 UNKNOWN 与旧稿均保留；未配音、未渲染。实际进度以任务状态为准。
+当前状态（2026-10-14）：用户引用前次超时及可能再次消耗额度的说明，明确回复“可以”。已通过正常恢复入口保存 revision 4，并实际完成 Claude Code / Doubao 2.1 Pro 编剧操作 `9feb383537714278a770ec24c2f2928d`，终态 COMPLETED；当前 NEEDS_HUMAN / script / script_human_gate。[本期文案审核稿](script-for-review.md)已原样更新为豆包节点新稿，7 段、849 字；[具体待审标记](revision-4-review-notes.md)包含数字笔误与事实范围问题，不改写节点产物或代替用户审核。素材保持 Codex `gpt-6.1-sol / xhigh`，revision 4 素材操作为 0，文案确认前不执行。旧 revision 3 编剧超时 UNKNOWN、revision 2 素材 UNKNOWN 与旧稿均保留；未配音、未渲染。实际进度以任务状态为准。
 
 - 需求文件：[brief.json](brief.json)。revision 3 目标约3分钟，抖音竖屏1080×1920、30fps，个人视频；实际时长以后续真实配音为准。
 - 报告依据：[Anthropic 2026年9月报告](https://www.anthropic.com/threat-intelligence-report-september-2026)的GTG-15001节。2026-10-13已读对应正文；口播须由编剧节点再次亲自读取。
@@ -184,3 +184,11 @@ uv run --python 3.12 videoagents status 08e74bed03e94c6e903c89f7f2fbea64
 - 只读诊断确认三处共性代码缺陷：编剧研究调用沿用“这是素材节点”的传输前缀；编剧返工遗漏公开检索设置；MCP 异常处理仅返回异常类名，丢失已知安全错误代码。独立维护提交 `4d41236` 已合入，明确区分编剧证据读取与素材采集、为返工传入过滤后的公开配置、只返回静态白名单错误代码与恢复指引。编剧 MCP 仍限 skill/search/source，未知异常不泄露正文或类名；没有提高预算或超时，也没有扩大工具权限。三处缺陷已修复，但现有审计不能证明它们就是本次超时根因。
 - 主分支独立回归先发现结构化 Codex 测试子进程依赖 Windows 默认编码；独立维护提交 `49ebd9a` 仅修该 fixture，明确 UTF-8 并主动移除外部编码变量，保留真实本地子进程、中文传输、模型/档位和 COMPLETED 台账断言。合入后本轮最终定向回归 293 passed / 2 skipped（Windows 账户无创建符号链接权限），Ruff、契约检查、TypeScript、lint 与 `uv build --wheel` 通过。没有真实 Codex 素材生成、配音或渲染，不把本地 fixture 验收当作供应商生成验收。
 - 本次 UNKNOWN 继续保留。若用户明确接受本次不确定提交可能已消耗额度并允许再提交，具体恢复入口为 `restart-unknown`，指定操作 `515a815f0a5e4baf85e0230e52168023`、`--acknowledge-possible-usage` 与 [当前完整 brief](brief.json)，保存同任务新版本 DRAFT，再正常 `run`。不手改台账或审核标记；新版文案完成后仍停素材前文案门，没有用户确认就不执行素材。
+
+### 用户授权后的第四版豆包调用
+
+- 已通过 `botmux quoted` 读取消息 `om_x100b63d36278d0a8cf56877c760d440`，确认用户“可以”针对的是“再次提交一次豆包文案，可能再次消耗额度，成稿后先审核”。[授权依据](20261014-doubao-rerun-authorized.txt)只记录这一次新提交，不授予任何人工门通过，也不覆盖未来新的 UNKNOWN。
+- 正常 `restart-unknown` 指定旧操作 `515a815f0a5e4baf85e0230e52168023`，明确接受可能已有用量并使用当前完整 brief，真实回读 revision 4 / DRAFT。授权回执 source_revision=3 / target_revision=4 / acknowledged=true；说明仅按契约去除末尾换行，472 字符回读一致。当前 brief 与文件字段一致、旧登记文件均存在、旧操作仍 UNKNOWN，新版尚无操作时才启动。
+- 正常 `run` 幂等键 `user-authorized-doubao-r4-20261014` 已实际执行操作 `9feb383537714278a770ec24c2f2928d`，模型为 `claude_code_cli` / `doubao-seed-2-1-pro-260915` / research / attempt 1，终态 COMPLETED。第四版独立目录已保存官方正文 `mcp-1ad836e44e3f46278a4fbacbb7ed5cd2.txt`，262339 字节；监督会话已亲自读取其中 GTG-15001 涉案正文。本次有真实豆包新稿，不再仅是配置或启动记录。
+- 新原稿 `script-421c9081.json`，artifact_id=`0a3feb4a63024de6b9bb52089e886c45`，7 段、849 字，origin=model / revision=4，所有 source_refs 仅为官方报告。口播与 visual_need 已原样导出 [script-for-review.md](script-for-review.md)，逐段回读与节点一致、无替换乱码；[第三版旧稿](revisions/3/script-for-review.md)保留。没有对原稿数字笔误或事实边界直接改写，具体待审句子另列 [revision-4-review-notes.md](revision-4-review-notes.md)。
+- 本次脱敏编剧审计 `writer-tool-audit-bdfe61e415f4.jsonl` 有 16 条事件，仍有工具失败；整体模型 COMPLETED 不代表每次工具检索都成功，不宣称已证明前次超时根因或所有未来调用正常。最终正常入口回读 NEEDS_HUMAN / script_human_gate；revision 4 审核回执为 0、素材操作为 0，未执行配音、摄影或剪辑。旧两次 UNKNOWN 保持原状态、旧文件存在。
