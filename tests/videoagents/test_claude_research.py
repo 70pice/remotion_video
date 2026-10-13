@@ -273,6 +273,67 @@ def rpc(method, identity=1, params=None):
     return json.dumps(value, ensure_ascii=False).encode() + b"\n"
 
 
+def tool_result(bridge, name, arguments):
+    output = io.StringIO()
+    incoming = rpc("initialize") + rpc("tools/call", 2, {"name": name, "arguments": arguments})
+    research.serve(bridge, io.BytesIO(incoming), output)
+    return json.loads(output.getvalue().splitlines()[-1])["result"]
+
+
+@pytest.mark.parametrize("failure", ["skill", "platform", "search_budget", "inactive"])
+def test_stdio_known_failures_identify_safe_code_and_specific_recovery(bridge, monkeypatch, failure):
+    if failure == "skill":
+        monkeypatch.setattr(research, "research_skill_catalog", lambda: [])
+        name, arguments = "skill", {"name": "missing-skill"}
+        code, recovery_terms = "research_skill_unavailable", ["search", "source"]
+    elif failure == "platform":
+        bridge.settings["research_platforms"] = ["web"]
+        name, arguments = "search", {"query": "公开证据", "platforms": ["reddit"]}
+        code, recovery_terms = "research_platform_disabled", ["configured", "platforms"]
+    elif failure == "search_budget":
+        bridge.searches = bridge.settings["research_max_searches"]
+        name, arguments = "search", {"query": "公开证据", "platforms": ["web"]}
+        code, recovery_terms = "research_search_budget_exhausted", ["Stop", "limitations"]
+    else:
+        bridge.repo.update_job(bridge.job_id, bridge.revision, status="CANCELLED")
+        name, arguments = "source", {"url": SOURCE, "platform": "web"}
+        code, recovery_terms = "inactive_research_revision", ["Stop", "revision"]
+    result = tool_result(bridge, name, arguments)
+    assert result["isError"] is True
+    payload = json.loads(result["content"][0]["text"])
+    assert payload["error_code"] == code
+    assert all(term in payload["recovery"] for term in recovery_terms)
+    assert not list(bridge.workspace.iterdir())
+
+
+@pytest.mark.parametrize("error", [ValueError("arbitrary-secret"),
+                                  ValueError("research_skill_unavailable", "arbitrary-secret"),
+                                  ValueError("research_search_budget_exhausted\narbitrary-secret"),
+                                  RuntimeError("research_skill_unavailable"),
+                                  RuntimeError("research_skill_unavailable arbitrary-secret")])
+def test_stdio_unknown_exception_args_never_become_error_codes_or_recovery(bridge, monkeypatch, error):
+    def fail(*_args):
+        raise error
+    monkeypatch.setattr(bridge, "call", fail)
+    result = tool_result(bridge, "source", {})
+    payload = json.loads(result["content"][0]["text"])
+    assert payload["error_code"] == "research_tool_failed"
+    assert "arbitrary-secret" not in json.dumps(result)
+    assert "ValueError" not in json.dumps(result) and "RuntimeError" not in json.dumps(result)
+
+
+def test_writer_bridge_advertises_only_read_tools_and_rejects_visual_collection(bridge, monkeypatch):
+    writer = research.ResearchBridge(bridge.workspace, bridge.runtime, bridge.job_id, bridge.revision,
+                                     allowed_tools={"skill", "search", "source"})
+    assert writer.tool_names == {"skill", "search", "source"}
+    monkeypatch.setattr(research, "safe_get", lambda *a, **k: pytest.fail("must not download"))
+    result = tool_result(writer, "visual", {"source_url": SOURCE, "url": IMAGE,
+                                          "kind": "image", "description": "禁止下载"})
+    assert result["isError"] is True
+    assert json.loads(result["content"][0]["text"])["error_code"] == "unknown_research_tool"
+    assert not list(bridge.workspace.iterdir())
+
+
 def test_stdio_sanitizes_errors_and_does_not_emit_tool_prints(bridge, monkeypatch):
     secret = "test-secret-must-not-appear"
 

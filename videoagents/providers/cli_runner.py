@@ -509,12 +509,14 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
             audit_path: Path | None = None, ark_api_key: str | None = None,
             zhipu_api_key: str | None = None, research_context: dict[str, Any] | None = None,
             glm_reasoning_effort: str = DEFAULT_GLM_REASONING_EFFORT,
-            codex_reasoning_effort: str | None = None) -> CliResult:
+            codex_reasoning_effort: str | None = None, research_role: str = "materials") -> CliResult:
     if cancelled():
         raise CliFailure("cli_cancelled", submitted=False)
     research = research_directory is not None
     if research and provider not in {"codex_cli", "claude_code_cli"}:
         raise CliFailure("unsupported_research_cli", submitted=False)
+    if research and research_role not in {"materials", "screenwriter"}:
+        raise CliFailure("unsupported_research_role", submitted=False)
     if research and provider == "claude_code_cli" and not research_context:
         raise CliFailure("missing_research_tool_config", submitted=False)
     prefix = executable_prefix(provider)
@@ -536,16 +538,21 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
         schema.write_text(json.dumps(WIRE_SCHEMA, ensure_ascii=False), encoding="utf-8")
         source = control / "input.txt"
         prefix_text = ""
+        research_task = ("这是编剧节点的证据研究任务。" if research_role == "screenwriter" else
+                         "这是素材节点的工具研究任务。")
+        research_goal = ("按用户配置的平台与预算读取并核验来源正文，为本角色写作提供证据；不采集画面。"
+                         if research_role == "screenwriter" else
+                         "按用户配置的平台与预算收集可核验来源、图片或截图线索并采集画面。")
         if research and provider == "codex_cli":
             prefix_text = (
-                "这是素材节点的工具研究任务。你可以使用已安装的研究 skill、web_search、shell 命令和工作区文件，"
+                research_task + "你可以使用已安装的研究 skill、web_search、shell 命令和工作区文件，"
                 "但只在当前工作目录写入研究过程文件；不要读取密钥，不要把工具日志放进最终 JSON。"
-                "优先使用 agent-reach 等检索 skill，并按用户配置的平台与预算收集可核验来源、图片或截图线索。\n"
+                "优先使用 agent-reach 等检索 skill。" + research_goal + "\n"
             )
         elif research:
             prefix_text = (
-                "这是素材节点的工具研究任务。只使用 videoagents_research MCP 工具读取技能、搜索公开资料并采集来源与画面。"
-                "按用户配置的平台与预算收集可核验来源、图片或截图线索；不要把工具日志放进最终 JSON。\n"
+                research_task + "只使用本次启用的 videoagents_research MCP 工具。"
+                + research_goal + "不要把工具日志放进最终 JSON。\n"
             )
         transport_prompt = (prefix_text + prompt + "\n业务 JSON schema：\n" + json.dumps(output_schema, ensure_ascii=False)
                             + '\n最终传输格式必须为 {"response_json":"业务 JSON 对象序列化后的字符串"}。'
@@ -565,7 +572,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 "env": {"PYTHONPATH": str(Path(__file__).resolve().parents[2]),
                        "ANTHROPIC_AUTH_TOKEN": "", "ANTHROPIC_API_KEY": "", "CLAUDE_CODE_OAUTH_TOKEN": ""}}
             mcp_config.write_text(json.dumps({"mcpServers": {"videoagents_research": research_server}}), encoding="utf-8")
-            transport_prompt += ("\n本次只使用 videoagents_research MCP 工具读取技能、搜索公开资料并采集来源与画面。"
+            transport_prompt += ("\n本次只使用启用的 videoagents_research MCP 工具。" + research_goal +
                                  "工具会保存文件并返回真实路径及 SHA256；不使用 shell 或读取本机任意路径。")
             source.write_text(transport_prompt, encoding="utf-8")
         args = build_arguments(provider, prefix, model, directory, schema, research=research, mcp_config=mcp_config,

@@ -177,7 +177,7 @@ class ScreenwriterNode:
     def rewrite(self, job: Job, context: dict[str, Any], feedback: dict[str, Any]) -> Script:
         if type(feedback.get("script")) is dict:
             context = {**context, "script": feedback["script"]}
-        fields = ("brief", "script", "research", "assets")
+        fields = ("brief", "script", "research", "assets", "settings")
         if context.get("extras", {}).get("human_feedback"):
             fields = (*fields, "extras")
         folder, audit_path = self._research_directory(job)

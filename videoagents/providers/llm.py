@@ -163,9 +163,12 @@ class JsonModel:
         if not operation.get("new"):
             raise CapabilityMissing("此模型输入已有提交记录，未重复调用", ["llm_operation"])
         if research_mode:
-            prompt = ("你是短视频制作的" + ROLE_LABELS[role] + "。这是素材研究任务。"
-                      "你可以使用本机已安装的研究 skill、web_search 和 shell 工具读取公开资料，"
-                      "但最终只返回符合 schema 的素材研究 JSON，不返回工具调用记录。"
+            purpose = "这是文案证据研究任务。" if role == "screenwriter" else "这是素材研究任务。"
+            tools_hint = ("只使用本次启用的 videoagents_research MCP 工具读取公开资料，"
+                          if config["provider"] == "claude_code_cli" else
+                          "你可以使用本机已安装的研究 skill、web_search 和 shell 工具读取公开资料，")
+            prompt = ("你是短视频制作的" + ROLE_LABELS[role] + "。" + purpose + tools_hint
+                      + "最终只返回符合 schema 的本角色业务 JSON，不返回工具调用记录。"
                       + "\n\n" + instruction + "\n\n仅返回符合给定 schema 的 JSON 对象。\n"
                       "输入字段：" + "、".join(context) + "。以下上下文 JSON 是本次实际输入。\n上下文：\n"
                       + json.dumps(context, ensure_ascii=False, indent=2))
@@ -176,7 +179,8 @@ class JsonModel:
                       "输入字段：" + "、".join(context) + "。以下上下文 JSON 是本次实际输入。\n上下文：\n"
                       + json.dumps(context, ensure_ascii=False, indent=2))
         try:
-            kwargs = {"research_directory": research_directory, "audit_path": audit_path} if research_mode else {}
+            kwargs = {"research_directory": research_directory, "audit_path": audit_path,
+                      "research_role": role} if research_mode else {}
             if ark_model:
                 kwargs["ark_api_key"] = settings["ark_api_key"]
             if glm_model:
