@@ -11,5 +11,31 @@
   "feishu_table": "tblFTK4SmOqXoJkf",
   "update_response_ok": true,
   "historical_status_readback_verified": true,
-  "historical_attachment_count_readback": 18
+  "historical_attachment_count_readback": 18,
+  "pre_restart_validation": {
+    "checked_at": "2026-10-13T23:04:13.493639+00:00",
+    "source_revision": 4,
+    "script_human_gate_actually_approved": true,
+    "script_artifact_id": "d6afeca1685b41dbb949eb2231c53d71",
+    "script_sha256": "5d7aeb49fd9e63a479220f212d773fc011d11251a45c63830369d0955981968d",
+    "source_body_files_now_verified": [
+      {
+        "file": "mcp-08dcc4dc241b41b689d955087f701e5b.txt",
+        "bytes": 262339,
+        "sha256": "ccc75470e9eb9bfe310e42a09c50e5903ea4868c9f3fd695206943cc2922c55c"
+      },
+      {
+        "file": "mcp-1ad836e44e3f46278a4fbacbb7ed5cd2.txt",
+        "bytes": 262339,
+        "sha256": "ccc75470e9eb9bfe310e42a09c50e5903ea4868c9f3fd695206943cc2922c55c"
+      },
+      {
+        "file": "mcp-382b5c328154487ab41989c71e70fef3.txt",
+        "bytes": 262339,
+        "sha256": "ccc75470e9eb9bfe310e42a09c50e5903ea4868c9f3fd695206943cc2922c55c"
+      }
+    ],
+    "original_unknown_operation_id": "c34539df84044a7cb5eb6cbe86c3ff32",
+    "new_submission_started": false
+  }
 }
