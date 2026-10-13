@@ -165,3 +165,10 @@ uv run --python 3.12 videoagents status 08e74bed03e94c6e903c89f7f2fbea64
 - 首句包含四月两周窗口、至少25000用户与AI人设聊天及“宣传全真人”的反差；7段只讲这一网络的开发、分工、收费、伪造互动和处置，不含国内另案。source_refs只有官方报告。所有画面需求改为国内中文界面、中文证据卡及示意，不使用美国App画面。
 - [审核稿](script-for-review.md)由正式节点776字符口播、来源和画面需求原样导出，逐段回读一致，中文无U+FFFD。它不是人工创作成稿，不替代审核；真实时长尚待配音。
 - 新返工回执的1790字符说明与提交文件回读完全一致，decision=revise。revision 3素材操作数仍为0，revision 2材料UNKNOWN不变，没有执行配音、摄影或剪辑；文案确认后才会按中国素材清单采集。
+
+### 文案模型切换为豆包 2.1 Pro
+
+- 2026-10-14，用户明确指定文案节点走 Claude Code + Doubao 2.1 Pro。本机 SettingsService 已仅将 `role_models.screenwriter` 改为 `claude_code_cli` / `doubao-seed-2-1-pro-260915`，保留启用状态与 900 秒超时；其他角色仍使用 GLM-5.3[1m] / xhigh，配音配置不变。这是本机角色设置，不修改仓库的 GLM 默认值。
+- 模型 ID 已查阅[火山方舟官方模型列表](https://docs.volcengine.com/docs/ark/model-list?lang=zh)。使用项目已有 Ark Anthropic 兼容路由 `https://ark.cn-beijing.volces.com/api/compatible`；密钥通过 SettingsService 保存为 Windows DPAPI 加密数据，不写入仓库或制作输入。
+- 新进程回读确认只改变 screenwriter 配置，其他设置一致；调用环境选择 Ark 凭据与兼容地址。现有 Ark 子进程凭据、缺密钥阻断、系统凭据与 GLM 路由回归共 25 项通过，未发起真实豆包生成请求，因此不宣称当前密钥权限或新稿生成已验收。
+- 当前任务仍为 revision 3 / NEEDS_HUMAN / script，最近文案 `script-799f4211.json` 仍是此前 GLM 节点产物；切换设置不改旧产物与审核结果。下一次正常编剧调用使用新配置，文案确认前不启动素材。
