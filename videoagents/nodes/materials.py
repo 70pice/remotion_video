@@ -19,6 +19,7 @@ from videoagents.state import VideoState
 from videoagents.storage import Conflict, Repository
 from videoagents.storage.repository import fingerprint, now
 from videoagents.tools.media import decode_check, detect_media, probe, sha256, video_metadata
+from videoagents.tools.sources import MAX_SOURCE_TEXT_CHARS
 from worker.process_manager import RenderCancelled
 
 # 研究行为仅由素材角色自己的 Markdown Prompt 定义。
@@ -224,7 +225,7 @@ class MaterialsNode:
                 raise ValueError("技能来源正文必须是 UTF-8 文本") from exc
             if not text:
                 raise ValueError("技能来源正文为空")
-            files[item.text_file], texts[item.url] = path, text[:16000]
+            files[item.text_file], texts[item.url] = path, text[:MAX_SOURCE_TEXT_CHARS]
         for item in bundle.visuals:
             if item.source_url not in urls:
                 raise ValueError("技能画面没有关联已读取的来源")
