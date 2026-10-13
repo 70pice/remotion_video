@@ -311,6 +311,32 @@ def test_stdio_invalid_json_and_params_are_protocol_errors(bridge):
     assert [item["error"]["code"] for item in responses] == [-32700, -32602]
 
 
+@pytest.mark.parametrize("character", ["\U0001f600", "\x01"])
+def test_bounded_long_source_survives_utf8_file_and_single_cli_event(bridge, monkeypatch, character):
+    from videoagents.providers.cli_runner import MAX_EVENT_BYTES
+    from videoagents.tools.sources import MAX_SOURCE_TEXT_CHARS
+
+    text = character * MAX_SOURCE_TEXT_CHARS
+    monkeypatch.setattr("videoagents.tools.sources.safe_get", lambda *_args, **_kwargs:
+                        (f"<p>{text}</p>".encode(), "text/html", SOURCE))
+    output = io.StringIO()
+    incoming = (rpc("initialize", params={"protocolVersion": "2025-11-25"})
+                + rpc("tools/call", 2, {"name": "source", "arguments": {"url": SOURCE, "platform": "web"}}))
+
+    research.serve(bridge, io.BytesIO(incoming), output)
+
+    response = json.loads(output.getvalue().splitlines()[-1])
+    content = response["result"]["content"]
+    payload = json.loads(content[0]["text"])
+    path = bridge.workspace / payload["source"]["text_file"]
+    assert payload["text"] == text
+    assert path.read_text(encoding="utf-8") == text
+    assert path.stat().st_size <= 1024 * 1024
+    assert payload["source"]["sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+    event = {"type": "user", "message": {"content": [{"type": "tool_result", "content": content}]}}
+    assert len(json.dumps(event, ensure_ascii=False).encode()) < MAX_EVENT_BYTES
+
+
 def test_real_module_startup_and_tools_list_are_stdio_only(bridge):
     result = subprocess.run([sys.executable, "-m", "videoagents.tools.claude_research", "--workspace", str(bridge.workspace),
                              "--runtime", str(bridge.runtime), "--job-id", bridge.job_id, "--revision", str(bridge.revision)],
