@@ -209,9 +209,9 @@ class HumanReviewNode:
         )
 
         settings = SettingsService(self.repo).internal()
-        if not (settings.get("feishu_folder_token") or "").strip():
+        base = FeishuReviewBase(self.repo, settings.get("feishu_folder_token", ""))
+        if not base.folder_token and not base.base_token(job.job_id):
             return
-        base = FeishuReviewBase(self.repo, settings["feishu_folder_token"])
         try:
             if self.node_name == SCRIPT_REVIEW_NODE:
                 base.sync_script(job)

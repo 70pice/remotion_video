@@ -31,6 +31,7 @@ _SCRIPT_FIELDS = [
     {"name": "屏幕文字", "type": "text"},
     {"name": "来源", "type": "text"},
     {"name": "画面需求", "type": "text"},
+    {"name": "修改意见", "type": "text"},
 ]
 _ASSET_FIELDS = [
     {"name": "素材ID", "type": "text"},
@@ -74,14 +75,13 @@ def _run(arguments: list[str], *, timeout: int = 60) -> dict[str, Any]:
     if prefix is None:
         raise FeishuUnavailable("未找到可执行的 lark-cli；请安装完整 CLI 或设置 VIDEOAGENTS_LARK_CLI_EXECUTABLE")
     try:
-        result = subprocess.run([*prefix, *arguments, "--format", "json"], capture_output=True, text=True,
+        result = subprocess.run([*prefix, *arguments, "--format", "json", "--as", "user"], capture_output=True, text=True,
                                 encoding="utf-8", timeout=timeout, check=False, shell=False,
                                 creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
     except (OSError, subprocess.SubprocessError) as exc:
-        raise FeishuUnavailable(f"lark-cli 无法执行：{exc}") from exc
+        raise FeishuUnavailable("lark-cli 无法执行；请检查本机 CLI") from exc
     if result.returncode != 0:
-        detail = (result.stderr or result.stdout or "").strip().splitlines()[-1:] or ["unknown error"]
-        raise FeishuUnavailable(f"lark-cli 调用失败：{detail[0][:300]}")
+        raise FeishuUnavailable(f"lark-cli 用户身份调用失败（退出码 {result.returncode}）；请检查用户授权与权限")
     try:
         return json.loads(result.stdout)
     except ValueError as exc:
@@ -89,19 +89,35 @@ def _run(arguments: list[str], *, timeout: int = 60) -> dict[str, Any]:
 
 
 def _records(payload: dict[str, Any]) -> list[dict[str, Any]]:
-    data = payload.get("data", payload)
+    # Current CLI JSON is the Base v3 parallel-array matrix, not nested rows.
+    data = payload if "record_id_list" in payload else payload.get("data", payload)
+    if not isinstance(data, dict):
+        raise FeishuUnavailable("飞书记录返回格式不完整，停止同步以免重复创建")
+    if data.get("ignored_fields"):
+        raise FeishuUnavailable("飞书未返回请求的字段，停止同步以免重复创建")
+    if "record_id_list" in data:
+        fields, ids, rows = data.get("fields"), data["record_id_list"], data.get("data")
+        if (not isinstance(fields, list) or not all(isinstance(field, str) for field in fields)
+                or len(fields) != len(set(fields))
+                or not isinstance(ids, list) or not all(isinstance(rid, str) and rid for rid in ids)
+                or not isinstance(rows, list) or len(ids) != len(rows)
+                or any(not isinstance(row, list) or len(row) != len(fields) for row in rows)):
+            raise FeishuUnavailable("飞书记录矩阵不完整，停止同步以免重复创建")
+        return [{"record_id": rid, "fields": dict(zip(fields, row, strict=True))}
+                for rid, row in zip(ids, rows, strict=True)]
     for key in ("items", "records"):
         if isinstance(data.get(key), list):
             return data[key]
-    return []
+    raise FeishuUnavailable("飞书记录返回格式不完整，停止同步以免重复创建")
 
 
 class FeishuReviewBase:
-    """One video, one Bitable; content tables are rewritten, review rows are keyed."""
+    """One video, one Base; keyed updates preserve record IDs and human fields."""
 
-    def __init__(self, repository, folder_token: str):
+    def __init__(self, repository, folder_token: str, *, allow_root_creation: bool = False):
         self.repo = repository
         self.folder_token = (folder_token or "").strip()
+        self.allow_root_creation = allow_root_creation
 
     def base_token(self, job_id: str) -> str | None:
         with self.repo.connection() as db:
@@ -114,13 +130,17 @@ class FeishuReviewBase:
         if existing:
             self._ensure_script_stage(job.job_id, existing)
             return existing
-        if not self.folder_token:
+        if not self.folder_token and not self.allow_root_creation:
             raise FeishuUnavailable("未配置 feishu_folder_token，无法创建飞书表格")
         name = f"video-{job.job_id[:8]}-{(job.brief.topic or 'untitled')[:24]}"
-        created = _run(["base", "+base-create", "--name", name, "--folder-token", self.folder_token,
-                        "--table-name", REVIEW_TABLE, "--fields", json.dumps(_REVIEW_FIELDS, ensure_ascii=False)])
+        arguments = ["base", "+base-create", "--name", name, "--table-name", REVIEW_TABLE,
+                     "--fields", json.dumps(_REVIEW_FIELDS, ensure_ascii=False)]
+        if self.folder_token:
+            arguments.extend(["--folder-token", self.folder_token])
+        created = _run(arguments)
         data = created.get("data", created)
-        token = (data.get("app", {}) or {}).get("app_token") or data.get("app_token")
+        base = data.get("base") or data.get("app") or data
+        token = base.get("base_token") or base.get("app_token")
         if not token:
             raise FeishuUnavailable("创建飞书表格未返回 app_token")
         for table, fields in ((SCRIPT_TABLE, _SCRIPT_FIELDS), (ASSETS_TABLE, _ASSET_FIELDS),
@@ -155,33 +175,76 @@ class FeishuReviewBase:
                        (job_id, token))
 
     def _table_id(self, token: str, table: str) -> str:
-        listing = _run(["base", "+base-get", "--base-token", token])
+        listing = _run(["base", "+table-list", "--base-token", token])
         data = listing.get("data", listing)
-        tables = (data.get("app", {}) or data).get("tables", [])
+        tables = data.get("tables", data.get("items", []))
         for item in tables:
             if item.get("name") == table:
-                return item.get("table_id", "")
+                table_id = item.get("table_id") or item.get("id")
+                if table_id:
+                    return table_id
         raise FeishuUnavailable(f"飞书表格中找不到数据表 {table}")
 
+    def _ensure_script_feedback_field(self, token: str, table_id: str) -> None:
+        payload = _run(["base", "+field-list", "--base-token", token, "--table-id", table_id])
+        data = payload.get("data", payload)
+        fields = data.get("fields", data.get("items"))
+        if not isinstance(fields, list):
+            raise FeishuUnavailable("无法读取文案字段，停止修改表结构")
+        matching = [field for field in fields if field.get("name") == "修改意见"]
+        if matching:
+            if len(matching) != 1 or matching[0].get("type") != "text":
+                raise FeishuUnavailable("文案“修改意见”字段须为唯一文本字段，保留现有数据")
+            return
+        _run(["base", "+field-create", "--base-token", token, "--table-id", table_id,
+              "--json", json.dumps({"name": "修改意见", "type": "text"}, ensure_ascii=False)])
+
     def _list_records(self, token: str, table_id: str, fields: list[str]) -> list[dict[str, Any]]:
-        arguments = ["base", "+record-list", "--base-token", token, "--table-id", table_id]
+        arguments = ["base", "+record-list", "--base-token", token, "--table-id", table_id, "--limit", "200"]
         for field in fields:
             arguments.extend(["--field-id", field])
-        return _records(_run(arguments))
+        records, offset, revision = [], 0, None
+        for _ in range(100):
+            payload = _run([*arguments, "--offset", str(offset)])
+            page = _records(payload)
+            data = payload if "record_id_list" in payload else payload.get("data", payload)
+            if revision is not None and data.get("rev") != revision:
+                raise FeishuUnavailable("飞书记录在分页期间发生变化，请重新同步")
+            revision = data.get("rev")
+            records.extend(page)
+            if not data.get("has_more", False):
+                return records
+            next_offset = data.get("next_offset", offset + len(page))
+            if not isinstance(next_offset, int) or next_offset <= offset:
+                raise FeishuUnavailable("飞书记录分页不完整，停止同步")
+            offset = next_offset
+        raise FeishuUnavailable("飞书记录分页超过同步上限，停止同步")
 
     def _rewrite_table(self, token: str, table: str, key_field: str, records: list[dict[str, Any]],
                        attachments: dict[str, str] | None = None, attachment_field: str = "") -> None:
-        """Idempotent sync: clear the table, recreate rows, then attach files."""
+        """Update managed fields by key; keep human fields, comments and old rows."""
         table_id = self._table_id(token, table)
+        if table == SCRIPT_TABLE:
+            self._ensure_script_feedback_field(token, table_id)
+        by_key = {}
         for item in self._list_records(token, table_id, [key_field]):
-            record_id = item.get("record_id")
-            if record_id:
-                _run(["base", "+record-delete", "--base-token", token, "--table-id", table_id,
-                      "--record-id", record_id, "--yes"])
+            key = _plain(item.get("fields", {}).get(key_field))
+            if key:
+                if key in by_key or not item.get("record_id"):
+                    raise FeishuUnavailable(f"飞书 {table} 的 {key_field} 重复或记录ID缺失，停止同步")
+                by_key[key] = item["record_id"]
         payload = [{key: value for key, value in row.items() if not key.startswith("_")} for row in records]
-        if payload:
+        keys = [_plain(row.get(key_field)) for row in payload]
+        if any(not key for key in keys) or len(keys) != len(set(keys)):
+            raise FeishuUnavailable(f"待同步 {table} 的 {key_field} 为空或重复")
+        updates = {by_key[key]: row for key, row in zip(keys, payload, strict=True) if key in by_key}
+        creates = [row for key, row in zip(keys, payload, strict=True) if key not in by_key]
+        if updates:
+            _run(["base", "+record-batch-update", "--base-token", token, "--table-id", table_id,
+                  "--json", json.dumps({"update_records": updates}, ensure_ascii=False)])
+        if creates:
             _run(["base", "+record-batch-create", "--base-token", token, "--table-id", table_id,
-                  "--json", json.dumps({"create_records": payload}, ensure_ascii=False)])
+                  "--json", json.dumps({"create_records": creates}, ensure_ascii=False)])
         if attachments:
             by_key = {_plain(item.get("fields", {}).get(key_field)): item.get("record_id")
                       for item in self._list_records(token, table_id, [key_field])}

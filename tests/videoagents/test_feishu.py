@@ -17,6 +17,7 @@ class FakeLark:
         self.tables: dict[str, list[dict]] = {}
         self.review_rows: dict[str, dict] = {}
         self.next_record = 100
+        self.fields: dict[str, list[dict]] = {}
         self.review_stage_field = {"name": "阶段", "type": "select", "multiple": False,
                                    "description": "保留的阶段说明", "default_value": ["逐镜"],
                                    "options": [{"name": feishu.REVIEW_STAGE_SCRIPT, "hue": "Blue"},
@@ -33,11 +34,22 @@ class FakeLark:
 
         if "+field-get" in joined:
             return {"data": {"field": self.review_stage_field}}
+        if "+field-list" in joined:
+            table = arguments[arguments.index("--table-id") + 1].removeprefix("tbl_")
+            return {"data": {"fields": self.fields.get(table, [])}}
+        if "+field-create" in joined:
+            table = arguments[arguments.index("--table-id") + 1].removeprefix("tbl_")
+            field = json.loads(arguments[arguments.index("--json") + 1])
+            self.fields.setdefault(table, []).append(field)
+            return {"data": {"field": field}}
 
         if "+table-create" in joined:
             name = arguments[arguments.index("--name") + 1]
             self.tables[name] = []
+            self.fields[name] = json.loads(arguments[arguments.index("--fields") + 1])
             return {"data": {"table_id": f"tbl_{name}"}}
+        if "+table-list" in joined:
+            return {"data": {"tables": [{"name": name, "id": f"tbl_{name}"} for name in self.tables]}}
         if "+base-get" in joined:
             return {"data": {"app": {"tables": [{"name": name, "table_id": f"tbl_{name}"}
                                                 for name in self.tables]}}}
@@ -151,9 +163,107 @@ def test_sync_script_and_assets_is_idempotent(lark, tmp_path, job):
     rows = lark.tables["文案"]
     assert [r["fields"]["段落ID"] for r in rows] == ["s1", "s2"]
     assert rows[0]["fields"]["画面需求"] == "按本段内容寻找真实画面"
-    # Resync rewrites instead of duplicating.
+    record_ids = [row["record_id"] for row in rows]
+    rows[0]["fields"].update({"修改意见": "第一段数字要解释口径", "用户自建字段": "保留"})
+    rows[0]["native_comments"] = ["逐段评论跟随记录"]
+    script.segments[0].narration = "更新后的第一段。"
+    job = repo.update_job(job.job_id, job.revision, script=script)
     base.sync_script_and_assets(job)
     assert len(lark.tables["文案"]) == 2
+    assert [row["record_id"] for row in lark.tables["文案"]] == record_ids
+    assert rows[0]["fields"]["口播"] == "更新后的第一段。"
+    assert rows[0]["fields"]["修改意见"] == "第一段数字要解释口径"
+    assert rows[0]["fields"]["用户自建字段"] == "保留"
+    assert rows[0]["native_comments"] == ["逐段评论跟随记录"]
+    assert not any("+record-delete" in call for call in lark.calls)
+
+
+def test_script_sync_keeps_removed_and_manual_rows_and_adds_feedback_field_once(lark, tmp_path, job):
+    from videoagents.contracts import Script, ScriptSegment
+
+    repo = Repository(tmp_path / "runtime")
+    base = FeishuReviewBase(repo, "fld123")
+    base.ensure_base(job)
+    lark.fields["文案"] = [field for field in lark.fields["文案"] if field["name"] != "修改意见"]
+    old = {"record_id": "old", "fields": {"段落ID": "old-segment", "修改意见": "保留旧意见"}}
+    manual = {"record_id": "manual", "fields": {"段落ID": "", "口播": "用户记录"}}
+    lark.tables["文案"] = [old, manual]
+    script = Script(title="t", origin="user", revision=job.revision,
+                    segments=[ScriptSegment(segment_id=f"s{i}", narration=f"第{i}段。") for i in range(7)])
+    job = repo.update_job(job.job_id, job.revision, script=script)
+    base.sync_script(job)
+    base.sync_script(job)
+    assert len(lark.tables["文案"]) == 9
+    assert lark.tables["文案"][:2] == [old, manual]
+    creates = [call for call in lark.calls if "+field-create" in call]
+    assert len(creates) == 1
+    assert json.loads(creates[0][creates[0].index("--json") + 1]) == {"name": "修改意见", "type": "text"}
+
+
+def test_duplicate_segment_ids_refuse_writes(lark, tmp_path, job):
+    from videoagents.contracts import Script, ScriptSegment
+
+    repo = Repository(tmp_path / "runtime")
+    base = FeishuReviewBase(repo, "fld123")
+    base.ensure_base(job)
+    script = Script(title="t", origin="user", revision=job.revision,
+                    segments=[ScriptSegment(segment_id="s1", narration="一。")])
+    job = repo.update_job(job.job_id, job.revision, script=script)
+    lark.tables["文案"] = [{"record_id": rid, "fields": {"段落ID": "s1"}} for rid in ("a", "b")]
+    lark.calls.clear()
+    with pytest.raises(FeishuUnavailable, match="重复"):
+        base.sync_script(job)
+    assert not any("+record-batch-create" in call or "+record-batch-update" in call for call in lark.calls)
+
+
+def test_explicit_root_creation_only(lark, tmp_path, job):
+    base = FeishuReviewBase(Repository(tmp_path / "runtime"), "", allow_root_creation=True)
+    assert base.ensure_base(job) == "basetoken123"
+    created = next(call for call in lark.calls if "+base-create" in call)
+    assert "--folder-token" not in created
+
+
+def test_current_cli_matrix_is_decoded_and_invalid_shape_is_rejected():
+    payload = {"ok": True, "data": {"fields": ["段落ID", "修改意见"], "field_id_list": ["fld1", "fld2"],
+        "field_type_list": ["text", "text"], "record_id_list": ["rec1", "rec2"],
+        "data": [["s1", "第一段说清数字。"], ["s2", None]], "has_more": False, "timezone": "Asia/Shanghai"}}
+    assert feishu._records(payload) == [
+        {"record_id": "rec1", "fields": {"段落ID": "s1", "修改意见": "第一段说清数字。"}},
+        {"record_id": "rec2", "fields": {"段落ID": "s2", "修改意见": None}}]
+    payload["data"]["data"] = [["s1"]]
+    with pytest.raises(FeishuUnavailable):
+        feishu._records(payload)
+
+
+def test_record_pagination_reads_all_keys_before_upsert(tmp_path, job, monkeypatch):
+    base = FeishuReviewBase(Repository(tmp_path / "runtime"), "fld123")
+    calls = []
+
+    def paged(arguments, *, timeout=60):
+        calls.append(arguments)
+        offset = int(arguments[arguments.index("--offset") + 1])
+        assert arguments[arguments.index("--limit") + 1] == "200"
+        return {"data": {"fields": ["段落ID"], "record_id_list": [f"rec{offset}"],
+                         "data": [[f"s{offset}"]], "has_more": offset == 0, "rev": 2}}
+
+    monkeypatch.setattr(feishu, "_run", paged)
+    records = base._list_records("token", "tbl1", ["段落ID"])
+    assert [row["record_id"] for row in records] == ["rec0", "rec1"]
+    assert len(calls) == 2
+
+
+def test_ignored_key_field_never_becomes_empty_lookup():
+    with pytest.raises(FeishuUnavailable, match="字段"):
+        feishu._records({"data": {"fields": [], "record_id_list": ["rec1"], "data": [[]],
+                                  "ignored_fields": [{"name": "段落ID"}]}})
+
+
+def test_unconfigured_new_job_gate_does_not_call_lark(tmp_path, job, monkeypatch):
+    from videoagents.nodes.human_review import HumanReviewNode
+
+    repo = Repository(tmp_path / "runtime")
+    monkeypatch.setattr(feishu, "_run", lambda *a, **k: pytest.fail("missing folder must not call lark"))
+    HumanReviewNode(repo)._sync_feishu(job, {})
 
 
 def test_submit_review_is_keyed_by_pending_token(lark, tmp_path, job):
@@ -189,7 +299,8 @@ def test_plain_handles_lark_text_segments():
     assert _plain(None) == ""
 
 
-def test_script_gate_syncs_to_feishu_and_still_pauses(lark, tmp_path, monkeypatch):
+@pytest.mark.parametrize("clear_folder", [False, True])
+def test_script_gate_syncs_to_feishu_and_still_pauses(lark, tmp_path, monkeypatch, clear_folder):
     """The gate mirrors content before waiting; failure degrades to CLI-only review."""
     from videoagents.contracts import SettingsPatch
     from videoagents.services.jobs import JobService
@@ -213,6 +324,8 @@ def test_script_gate_syncs_to_feishu_and_still_pauses(lark, tmp_path, monkeypatc
         "collection_fingerprint": collection_fingerprint(job)}, "research")
     base = FeishuReviewBase(repo, "fld123")
     base.ensure_base(job)
+    if clear_folder:
+        SettingsService(repo).patch(SettingsPatch(feishu_folder_token=""))
     lark.calls.clear()
     repo.enqueue(job.job_id, {"action": "produce", "base_revision": job.revision, "idempotency_key": "unit-feishu-gate"})
     Worker(repo, project).once()
@@ -328,7 +441,7 @@ def test_feishu_commands_match_real_lark_cli_parsing(tmp_path, job, monkeypatch)
 
     # Classify flag usage from the REAL lark-cli help before the subprocess
     # module gets monkeypatched below (patching subprocess.run is global).
-    commands = ["+base-create", "+table-create", "+base-get", "+record-list", "+record-delete",
+    commands = ["+base-create", "+table-create", "+table-list", "+field-list", "+field-create", "+record-list",
                 "+record-batch-create", "+record-batch-update", "+record-get", "+record-upload-attachment"]
     value_json_commands, boolean_json_commands = set(), set()
     prefix = executable_prefix("lark_cli")
@@ -342,25 +455,39 @@ def test_feishu_commands_match_real_lark_cli_parsing(tmp_path, job, monkeypatch)
 
     repo = Repository(tmp_path / "runtime")
     captured: list[list[str]] = []
-    state = {"records": {}, "tables": {"审核记录": []}}
+    state = {"records": {}, "tables": {"审核记录": []}, "fields": {}}
+
+    def matrix(fields, records):
+        return {"ok": True, "data": {
+            "fields": fields, "field_id_list": [f"fld{i}" for i in range(len(fields))],
+            "field_type_list": ["text"] * len(fields), "record_id_list": list(records),
+            "data": [[row.get(field) for field in fields] for row in records.values()],
+            "has_more": False, "timezone": "Asia/Shanghai"}}
 
     def fake_execute(argv, **kwargs):
         captured.append(list(argv))
         joined = " ".join(argv)
         if "+base-create" in joined:
-            return {"data": {"app": {"app_token": "t1"}}}
+            return {"data": {"base": {"base_token": "t1"}}}
         if "+table-create" in joined:
             name = argv[argv.index("--name") + 1]
             state["tables"][name] = []
+            state["fields"][name] = json_module.loads(argv[argv.index("--fields") + 1])
             return {"data": {}}
-        if "+base-get" in joined:
-            return {"data": {"app": {"tables": [{"name": n, "table_id": f"tbl_{n}"} for n in state["tables"]]}}}
+        if "+table-list" in joined:
+            return {"data": {"tables": [{"name": n, "id": f"tbl_{n}"} for n in state["tables"]]}}
+        if "+field-list" in joined:
+            table = argv[argv.index("--table-id") + 1].removeprefix("tbl_")
+            return {"data": {"fields": state["fields"][table]}}
+        if "+field-create" in joined:
+            table = argv[argv.index("--table-id") + 1].removeprefix("tbl_")
+            field = json_module.loads(argv[argv.index("--json") + 1])
+            state["fields"][table].append(field)
+            return {"data": {"field": field}}
         if "+record-list" in joined:
             table = argv[argv.index("--table-id") + 1].removeprefix("tbl_")
             fields = [a for i, a in enumerate(argv) if i and argv[i - 1] == "--field-id"]
-            return {"data": {"items": [{"record_id": rid,
-                                        "fields": {f: row.get(f) for f in fields}}
-                                       for rid, row in state["records"].get(table, {}).items()]}}
+            return matrix(fields, state["records"].get(table, {}))
         if "+record-delete" in joined:
             table = argv[argv.index("--table-id") + 1].removeprefix("tbl_")
             rid = argv[argv.index("--record-id") + 1]
@@ -382,7 +509,8 @@ def test_feishu_commands_match_real_lark_cli_parsing(tmp_path, job, monkeypatch)
         if "+record-get" in joined:
             table = argv[argv.index("--table-id") + 1].removeprefix("tbl_")
             rid = argv[argv.index("--record-id") + 1]
-            return {"data": {"items": [{"record_id": rid, "fields": state["records"][table][rid]}]}}
+            row = state["records"][table][rid]
+            return matrix(list(row), {rid: row})
         if "+record-upload-attachment" in joined:
             return {"data": {}}
         raise AssertionError(f"unexpected call: {joined}")
@@ -404,8 +532,13 @@ def test_feishu_commands_match_real_lark_cli_parsing(tmp_path, job, monkeypatch)
                                             source_refs=["https://example.com/a"], visual_need="v")])
     job = repo.update_job(job.job_id, job.revision, script=script)
     base.sync_script_and_assets(job)
+    row = state["records"]["文案"]["rec1"]
+    row["修改意见"] = "请在第一段解释用户数量"
+    base.sync_script_and_assets(job)
+    assert state["records"]["文案"] == {"rec1": row}
+    assert row["修改意见"] == "请在第一段解释用户数量"
     base.submit_review(job, feishu.REVIEW_STAGE_SCRIPT, "tokp", "要求")
-    base.poll_decision(job, "tokp")
+    assert base.poll_decision(job, "tokp") is None
 
     for argv in captured:
         assert argv[:len(prefix)] == prefix
@@ -413,6 +546,7 @@ def test_feishu_commands_match_real_lark_cli_parsing(tmp_path, job, monkeypatch)
         # The output format is always selected explicitly.
         index = argv.index("--format")
         assert index is not None and argv[index + 1] == "json", argv
+        assert argv[argv.index("--as") + 1] == "user"
         for position, item in enumerate(argv):
             if item == "--json":
                 # On value-taking commands --json must always carry a payload.

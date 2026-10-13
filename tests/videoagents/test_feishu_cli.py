@@ -42,7 +42,7 @@ def test_lark_transport_preserves_utf8_json_arguments_without_shell(tmp_path, mo
     arguments = ["base", "+record-batch-create", "--json", payload]
 
     def fake_run(argv, **kwargs):
-        assert argv == [str(executable.resolve()), *arguments, "--format", "json"]
+        assert argv == [str(executable.resolve()), *arguments, "--format", "json", "--as", "user"]
         assert kwargs["shell"] is False
         assert kwargs["encoding"] == "utf-8" and kwargs["timeout"] == 180
         return subprocess.CompletedProcess(argv, 0, '{"ok":true,"data":{"name":"中文"}}', "")

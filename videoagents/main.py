@@ -208,6 +208,49 @@ def cmd_poll(args: argparse.Namespace) -> int:
     return _finish(repo, args.job_id)
 
 
+def cmd_sync_review(args: argparse.Namespace) -> int:
+    """Mirror the current human gate without reading a decision or advancing it."""
+    from videoagents.providers.feishu import (
+        REVIEW_STAGE_SCRIPT,
+        REVIEW_STAGE_SCRIPT_ONLY,
+        REVIEW_STAGE_SHOTS,
+        FeishuReviewBase,
+        FeishuUnavailable,
+    )
+
+    repo = _repository(args)
+    job = repo.get_job(args.job_id)
+    pending = job.pending_input
+    if job.status != "NEEDS_HUMAN" or not pending:
+        emit({"error": "任务没有当前人工审核待办", "status": job.status})
+        return 2
+    node = pending.get("node_name")
+    if node not in {"script_human_gate", "human_review_script", "director_human_gate"} or (
+            node == "director_human_gate" and pending.get("review_mode") != "per_shot_stills"):
+        emit({"error": "当前待办不支持飞书同步", "status": job.status})
+        return 2
+    settings = SettingsService(repo).internal()
+    base = FeishuReviewBase(repo, settings.get("feishu_folder_token", ""), allow_root_creation=args.root)
+    try:
+        if node == "script_human_gate":
+            base.sync_script(job)
+            stage = REVIEW_STAGE_SCRIPT_ONLY
+        elif node == "human_review_script":
+            base.sync_script_and_assets(job)
+            stage = REVIEW_STAGE_SCRIPT
+        else:
+            _, manifest = current_shot_review_artifact(repo, job, validate_components=False)
+            base.sync_shots(job, manifest)
+            stage = REVIEW_STAGE_SHOTS
+        base.submit_review(job, stage, pending["pending_token"],
+                           "\n".join(pending["confirmation_requirements"]))
+    except (FeishuUnavailable, ValueError) as exc:
+        emit({"error": str(exc), "status": job.status})
+        return 2
+    emit({**_job_summary(job), "synced": True})
+    return 0
+
+
 def cmd_cancel(args: argparse.Namespace) -> int:
     repo = _repository(args)
     job = repo.cancel(args.job_id)
@@ -295,6 +338,11 @@ def build_parser() -> argparse.ArgumentParser:
     poll = sub.add_parser("poll", help="读取飞书审核记录中的人工决定并续跑")
     poll.add_argument("job_id")
     poll.set_defaults(handler=cmd_poll)
+
+    sync = sub.add_parser("sync-review", help="仅同步当前人工审核资料到飞书，不续跑")
+    sync.add_argument("job_id")
+    sync.add_argument("--root", action="store_true", help="明确允许未配置文件夹时在用户云空间根目录创建 Base")
+    sync.set_defaults(handler=cmd_sync_review)
 
     status = sub.add_parser("status", help="任务状态;不带 job_id 列出全部")
     status.add_argument("job_id", nargs="?", default="")
