@@ -323,6 +323,7 @@ export interface RestartUnknownRequest {
   acknowledge_possible_usage: true;
   note: string;
   brief?: Brief | null;
+  rebuild_script?: boolean;
 }
 
 export interface ResumeRequest {

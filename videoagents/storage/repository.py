@@ -170,7 +170,11 @@ class Repository:
     def restart_unknown(self, job_id: str, request: RestartUnknownRequest, transform: Any) -> Job:
         """Authorize one new revision atomically; never settle or replay the old call."""
         key = "authorized_model_restart:" + request.operation_id
-        digest = fingerprint(request.model_dump(exclude={"base_revision"}))
+        payload = request.model_dump(exclude={"base_revision"})
+        # Default requests must still match authorizations saved before this flag existed.
+        if not request.rebuild_script:
+            payload.pop("rebuild_script")
+        digest = fingerprint(payload)
         with self.connection(immediate=True) as db:
             job = self._get(db, job_id)
             previous = db.execute("SELECT value FROM job_inputs WHERE job_id=? AND key=?", (job_id, key)).fetchone()
@@ -183,15 +187,18 @@ class Repository:
                 return job
             self.check_editable(db, job, request.base_revision)
             pending = job.pending_input or {}
-            if (job.status != "NEEDS_INPUT" or job.stage != "script" or pending.get("kind") != "input"
+            providers = {"script": {"llm:screenwriter", "llm:编剧"}}
+            if request.rebuild_script:
+                providers["materials"] = {"llm:materials"}
+            if (job.status != "NEEDS_INPUT" or job.stage not in providers or pending.get("kind") != "input"
                     or pending.get("operation_status") != "UNKNOWN"
                     or pending.get("operation_id") != request.operation_id
                     or pending.get("revision") != job.revision or pending.get("stage") != job.stage):
-                raise Conflict("只可对当前输入待办绑定的 UNKNOWN 模型提交授权创建新版本")
+                raise Conflict("只可恢复编剧 UNKNOWN；素材 UNKNOWN 须明确 rebuild_script 以重走编剧与素材")
             operation = db.execute("SELECT job_id,provider,status,body FROM operations WHERE operation_id=?",
                                    (request.operation_id,)).fetchone()
             if (not operation or operation["job_id"] != job_id or operation["status"] != "UNKNOWN"
-                    or operation["provider"] not in {"llm:screenwriter", "llm:编剧"}
+                    or operation["provider"] not in providers[job.stage]
                     or json.loads(operation["body"]).get("revision") != job.revision):
                 raise Conflict("未知操作不属于当前任务版本与模型角色，或尚未停止提交")
             unsettled = db.execute("SELECT operation_id,body FROM operations WHERE job_id=? "
@@ -202,6 +209,7 @@ class Repository:
             receipt = {"operation_id": request.operation_id, "operation_status": "UNKNOWN",
                        "provider": operation["provider"], "source_revision": job.revision,
                        "target_revision": job.revision + 1, "acknowledge_possible_usage": True,
+                       "rebuild_script": request.rebuild_script,
                        "note": request.note, "request_hash": digest, "authorized_at": now(),
                        "previous_pending_input": pending, "previous_brief": job.brief.model_dump(),
                        "previous_script": job.script.model_dump() if job.script else None,
@@ -216,7 +224,7 @@ class Repository:
             return self._save(db, updated, "unknown_restart_authorized", {
                 field: receipt[field] for field in (
                     "operation_id", "operation_status", "provider", "source_revision", "target_revision",
-                    "acknowledge_possible_usage", "note", "previous_artifacts",
+                    "acknowledge_possible_usage", "rebuild_script", "note", "previous_artifacts",
                 )
             })
 

@@ -9,6 +9,7 @@ from videoagents.main import build_parser, main
 from videoagents.providers.llm import CapabilityMissing
 from videoagents.services.jobs import JobService
 from videoagents.storage import Conflict, Repository
+from videoagents.storage.repository import fingerprint
 
 
 def paused_job(tmp_path, *, operation_status="UNKNOWN", provider="llm:screenwriter", revision=1):
@@ -41,6 +42,14 @@ def request(operation, **changes):
 def test_restart_requires_explicit_acknowledgement_and_nonblank_note(changes):
     with pytest.raises(ValidationError):
         request({"operation_id": "a" * 32}, **changes)
+
+
+def test_rebuild_script_is_an_explicit_boolean_with_a_backward_compatible_default():
+    operation = {"operation_id": "a" * 32}
+    assert request(operation).rebuild_script is False
+    for invalid in (1, "true"):
+        with pytest.raises(ValidationError):
+            request(operation, rebuild_script=invalid)
 
 
 def test_restart_without_acknowledgement_is_not_a_valid_request():
@@ -84,6 +93,9 @@ def test_restart_preserves_unknown_and_snapshots_and_does_not_enqueue(tmp_path):
     assert receipt["previous_pending_input"] == job.pending_input
     assert receipt["previous_brief"] == job.brief.model_dump()
     assert receipt["brief"] == new_brief.model_dump()
+    # Existing authorizations were fingerprinted before rebuild_script existed.
+    legacy_payload = request(operation, brief=new_brief).model_dump(exclude={"base_revision", "rebuild_script"})
+    assert receipt["request_hash"] == fingerprint(legacy_payload)
 
 
 def test_restart_without_brief_runs_a_fresh_writer_and_keeps_old_script_file(tmp_path, monkeypatch, capsys):
@@ -256,3 +268,129 @@ def test_cli_restart_reports_empty_brief_and_rolls_back(tmp_path, monkeypatch, c
     assert repo.get_job(job.job_id).revision == 1
     with repo.connection() as db:
         assert db.execute("SELECT COUNT(*) FROM job_inputs").fetchone()[0] == 0
+
+
+def paused_materials_job(tmp_path):
+    repo, job, operation = paused_job(tmp_path, provider="llm:materials")
+    script = Script(title="UNIT completed old script", origin="model", revision=1,
+                    segments=[ScriptSegment(segment_id="s1", narration="UNIT old completed narration")])
+    job = repo.update_job(job.job_id, stage="materials", script=script,
+                          pending_input={**job.pending_input, "stage": "materials"})
+    service = JobService(repo)
+    script_artifact = service.write_json(job, "old-script.json", script.model_dump(), "script")
+    audit = service.write_json(job, "material-audit.json", {"tool": "UNIT source"}, "material_tool_audit")
+    research = service.write_json(job, "old-research.json", {"status": "COMPLETED"}, "research")
+    ledger = {"revision": 1, "command_id": "unit-old-command", "reason": "unexpected_cli_event"}
+    repo.finish_operation(operation["operation_id"], "UNKNOWN", ledger)
+    completed_writer = repo.start_operation(job.job_id, "unit-completed-writer", "llm:screenwriter", {"revision": 1})
+    repo.finish_operation(completed_writer["operation_id"], "COMPLETED", {"revision": 1, "result": script.model_dump()})
+    return repo, repo.get_job(job.job_id), operation, (script_artifact, audit, research)
+
+
+def test_materials_unknown_without_rebuild_script_keeps_the_completed_script_and_pending(tmp_path):
+    repo, job, operation, _ = paused_materials_job(tmp_path)
+    before_events = repo.events_after(job.job_id, 0)
+    with pytest.raises(Conflict):
+        JobService(repo).restart_unknown(job.job_id, request(operation))
+    assert repo.get_job(job.job_id) == job
+    assert repo.events_after(job.job_id, 0) == before_events
+
+
+def test_materials_rebuild_at_revision_two_keeps_prior_revision_unknown(tmp_path):
+    repo, job, operation, _ = paused_materials_job(tmp_path)
+    repo.update_job(job.job_id, revision=2, script=job.script.model_copy(update={"revision": 2}),
+                    pending_input={**job.pending_input, "revision": 2})
+    repo.finish_operation(operation["operation_id"], "UNKNOWN", {"revision": 2, "reason": "unexpected_cli_event"})
+    earlier = repo.start_operation(job.job_id, "unit-prior-unknown", "llm:screenwriter", {"revision": 1})
+    repo.finish_operation(earlier["operation_id"], "UNKNOWN", {"revision": 1, "reason": "cli_output_limit"})
+    updated = JobService(repo).restart_unknown(job.job_id, request(operation, base_revision=2, rebuild_script=True))
+    assert updated.revision == 3 and updated.script is None
+    assert repo.operation(job.job_id, "unit-prior-unknown", "llm:screenwriter")["status"] == "UNKNOWN"
+    assert repo.operation(job.job_id, "unit-model-input", "llm:materials")["status"] == "UNKNOWN"
+
+
+def test_materials_rebuild_script_preserves_old_results_audit_and_unknown_and_rewrites_normally(tmp_path, monkeypatch, capsys):
+    repo, job, operation, artifacts = paused_materials_job(tmp_path)
+    old_operation = repo.operation(job.job_id, "unit-model-input", "llm:materials")
+    old_writer = repo.operation(job.job_id, "unit-completed-writer", "llm:screenwriter")
+    old_paths = {artifact.artifact_id: repo.artifact_path(artifact.artifact_id)[0] for artifact in artifacts}
+    service = JobService(repo)
+    updated = service.restart_unknown(job.job_id, request(operation, rebuild_script=True))
+    assert (updated.revision, updated.status, updated.stage) == (2, "DRAFT", "idle")
+    assert updated.script is None and updated.pending_input is None and updated.review is None
+    assert not any(artifact.kind in {"script", "research", "source"} for artifact in updated.artifacts)
+    assert repo.operation(job.job_id, "unit-model-input", "llm:materials") == old_operation
+    assert repo.operation(job.job_id, "unit-completed-writer", "llm:screenwriter") == old_writer
+    event = repo.events_after(job.job_id, 0)[-1]["payload"]
+    assert event["rebuild_script"] is True
+    with repo.connection() as db:
+        assert db.execute("SELECT COUNT(*) FROM commands").fetchone()[0] == 0
+        receipt = json.loads(db.execute("SELECT value FROM job_inputs WHERE job_id=? AND key=?", (
+            job.job_id, "authorized_model_restart:" + operation["operation_id"],
+        )).fetchone()[0])
+    assert receipt["rebuild_script"] is True and receipt["previous_script"] == job.script.model_dump()
+    for artifact_id, path in old_paths.items():
+        assert repo.artifact_path(artifact_id)[0] == path and path.is_file()
+        assert {"artifact_id": artifact_id, "path": str(path)} in receipt["previous_artifacts"]
+    assert service.restart_unknown(job.job_id, request(operation, rebuild_script=True, base_revision=2)).revision == 2
+    with pytest.raises(Conflict):
+        service.restart_unknown(job.job_id, request(operation, rebuild_script=False))
+    calls = []
+    def write(self, current, context):
+        calls.append("script")
+        assert current.script is None
+        return Script(title="UNIT fresh writer", origin="model", revision=current.revision,
+                      segments=[ScriptSegment(segment_id="s1", narration="UNIT revised narration")])
+    def collect(self, current, state):
+        calls.append("materials")
+        assert current.revision == 2 and current.script.title == "UNIT fresh writer"
+        assert self.saved_json(current, "research") is None
+        raise CapabilityMissing("UNIT fresh materials stopped without supplier call")
+    monkeypatch.setattr("videoagents.nodes.screenwriter.ScreenwriterNode.write", write)
+    monkeypatch.setattr("videoagents.nodes.materials.MaterialsNode.collect", collect)
+    monkeypatch.setattr("sys.argv", ["videoagents", "--runtime-dir", str(repo.root), "run", job.job_id])
+    assert main() == 0
+    assert calls == ["script", "materials"]
+    assert json.loads(capsys.readouterr().out)["status"] == "NEEDS_INPUT"
+
+
+@pytest.mark.parametrize("invalid", ["human_gate", "wrong_role", "submitting", "active_command", "voice", "director", "render"])
+def test_rebuild_script_flag_does_not_bypass_existing_guards(tmp_path, invalid):
+    repo, job, operation, _ = paused_materials_job(tmp_path)
+    if invalid == "human_gate":
+        repo.update_job(job.job_id, status="NEEDS_HUMAN",
+                        pending_input={**job.pending_input, "kind": "stage_review"})
+    elif invalid == "submitting":
+        repo.finish_operation(operation["operation_id"], "SUBMITTING", {"revision": 1})
+    elif invalid == "active_command":
+        repo.enqueue(job.job_id, {"action": "resume", "base_revision": 1,
+            "pending_token": job.pending_input["pending_token"], "decision": "confirm",
+            "note": "UNIT", "idempotency_key": "unit-active-materials"})
+        repo.update_job(job.job_id, status="NEEDS_INPUT", stage="materials", pending_input=job.pending_input)
+    else:
+        stage = "materials" if invalid == "wrong_role" else invalid
+        repo.update_job(job.job_id, stage=stage, pending_input={**job.pending_input, "stage": stage})
+        with repo.connection() as db:
+            provider = "llm:screenwriter" if invalid == "wrong_role" else "llm:" + {"render": "editing"}.get(stage, stage)
+            db.execute("UPDATE operations SET provider=? WHERE operation_id=?", (provider, operation["operation_id"]))
+    before = repo.get_job(job.job_id)
+    with pytest.raises(Conflict):
+        JobService(repo).restart_unknown(job.job_id, request(operation, rebuild_script=True))
+    assert repo.get_job(job.job_id) == before
+
+
+def test_cli_materials_rebuild_requires_flag_and_does_not_start_paid_work(tmp_path, monkeypatch, capsys):
+    repo, job, operation, _ = paused_materials_job(tmp_path)
+    argv = ["videoagents", "--runtime-dir", str(repo.root), "restart-unknown", job.job_id,
+            "--operation-id", operation["operation_id"], "--acknowledge-possible-usage", "--note",
+            "用户新授权接受可能消耗额度并重做文案和素材"]
+    monkeypatch.setattr("sys.argv", argv)
+    assert main() == 2
+    assert "error" in json.loads(capsys.readouterr().out)
+    assert repo.get_job(job.job_id).revision == 1
+    monkeypatch.setattr("videoagents.main._worker", lambda *args: pytest.fail("authorization must not start production"))
+    monkeypatch.setattr("sys.argv", [*argv, "--rebuild-script"])
+    assert main() == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["status"] == "DRAFT" and result["revision"] == 2
+    assert repo.get_job(job.job_id).script is None
