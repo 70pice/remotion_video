@@ -2,9 +2,9 @@
 
 本目录保存监督会话提交给图引擎的需求，不是已生成的口播或成片。
 
-当前状态（2026-10-13）：按用户新的对照与返工指令，已通过正常 CLI 保存 revision 3 并启动正式编剧，当前 RUNNING / script。本轮增加素材采集之前的文案人工门，生成后先呈递给人，未确认不得启动素材。revision 2 的素材 UNKNOWN 与旧稿均保留；未配音、未渲染。实际进度以任务状态为准。
+当前状态（2026-10-13）：正式编剧已按用户区别旧片的要求生成并完成两轮正常返工，revision 3 / NEEDS_HUMAN / script，停在素材采集前文案门。最新可读原文在[本期文案审核稿](script-for-review.md)，从节点登记产物逐段原样导出，未代写。没有确认通过、没有启动 revision 3 素材。revision 2 的素材 UNKNOWN 与旧稿均保留；未配音、未渲染。实际进度以任务状态为准。
 
-- 需求文件：[brief.json](brief.json)。约4分钟，抖音竖屏1080×1920、30fps，个人视频。
+- 需求文件：[brief.json](brief.json)。revision 3 目标约3分钟，抖音竖屏1080×1920、30fps，个人视频；实际时长以后续真实配音为准。
 - 报告依据：[Anthropic 2026年9月报告](https://www.anthropic.com/threat-intelligence-report-september-2026)的GTG-15001节。2026-10-13已读对应正文；口播须由编剧节点再次亲自读取。
 - 中国对照：[央广网2026年1月13日报道](https://news.cnr.cn/native/gd/20260113/t20260113_527492219.shtml)。2026-10-13已读正文；其消息来源为澎湃新闻采访上海浦东警方，配图由警方提供。
 - 两个事件的主体、地区、AI作用、金额与调查阶段分别归属，不能互相移用。细化要求已写入brief。
@@ -134,3 +134,18 @@ uv run --python 3.12 videoagents status 08e74bed03e94c6e903c89f7f2fbea64
 - 契约、TypeScript、lint、Ruff、diff 检查与 wheel 构建通过；没有改 Remotion 画面实现，本轮未重复时间轴测试，不声称真实渲染验收。
 - 按用户“你协调重新生成”的本轮明确指令，经 `restart-unknown --rebuild-script --acknowledge-possible-usage` 保存同任务 revision 3。授权回执 source_revision=2、target_revision=3；旧材料操作仍 UNKNOWN，旧已登记文件均存在，没有改其供应商状态。
 - 正常 `run` 幂等键 `user-requested-distinct-script-r3-20261013` 已启动新编剧操作 `7411d1353925400ab1b5035c5f6fc173`；实际账本 SUBMITTING，`glm-5.3[1m]` / `xhigh` / 1000000 / research。此时尚未有 revision 3 成稿或任何材料、语音、视频产物；本轮只推进至文案人工门，不自动确认。
+
+### revision 3 首稿与正常返工
+
+- 2026-10-13 23:01:56，编剧正常完成并登记 `script.json`，artifact `523423215ea64679ab97172899c3ddcb`；23:02 正常入口回读 `NEEDS_HUMAN / script`，pending node 为 `script_human_gate`。这次已实际验证文案门在素材之前生效，没有 revision 3 素材执行。
+- 本次正式读取的官方网页快照 258835 字符，包含 GTG-15001 全段；央广中文快照 2497 字符且无替换乱码。编剧还读取了第三方文章。只读检查发现“五天预付账号/每日十万请求”“排名/销售团队”及“154页PDF”并非已读官方涉案段的事实，资金分配、成本与封号效能结论亦越过证据；三比一、规模数字、上海人数金额仍重复旧稿。
+- 用户要求协调重新生成，不是允许交付未经区分的第三方说法。监督会话依据该要求整理[具体返工意见](revision-3-rewrite-note.txt)，不代写口播、不代用户确认通过；通过正常 `resume --decision revise` 交正式编剧，幂等键 `user-feedback-r3-source-and-distinctness-rewrite-20261013`。当前编剧返工仍执行中，最终以节点登记产物和文案门回读为准。
+- 23:13:35，该返工已由正式节点完成并再次停文案门。最新登记路径为 `revisions/3/script-5ebfca98.json`，artifact `5c7643c2151e45ea836c4e91ad02d1fd`；旧 `script.json` 是保留的首稿，不把它当最新稿。编剧操作 `35bd822a24834d389cca2436086c277c` 正常完成；source_refs 仅保留两份原报道，开篇改为后台制造互动，删除旧数字段、上海人数金额及防骗清单。
+- 最后复核发现上海案“没有AI自动聊天”应限定无相关证据，收费动作和计件报酬的对象需收窄。以[最小事实边界意见](revision-3-final-boundaries-note.txt)通过正常 `resume --decision revise` 继续编剧；幂等键 `user-feedback-r3-final-factual-boundaries-20261013`。不改任何真实稿、不替用户确认，继续停素材前门。
+
+### revision 3 本轮实际交付
+
+- 2026-10-13约23:23，正常返工返回 `NEEDS_HUMAN / script`，当前 pending node 为 `script_human_gate`。最新真实产物路径为 `revisions/3/script-111cea6d.json`，artifact `247480bc328f429f9f40ff30d0e18c00`。旧 `script.json` 和 `script-5ebfca98.json` 保留，不能将它们当本轮最后稿。
+- 最新编剧操作 `00e688d94aa043fb965259e3b946ca16` 已 COMPLETED，依然使用 `glm-5.3[1m]` / `xhigh` / 1000000 / research；本轮三次编剧操作均正常完成，未进行材料、配音或渲染操作。
+- [script-for-review.md](script-for-review.md)包含正式节点的7段口播、来源与画面需求，原文817字符，逐段回读一致，中文无U+FFFD。这是呈递副本，不改引擎产物、不代替人审；目标约3分钟，未合成音频，实际时长尚未测量。
+- 最终回读：revision 3 只有两份 `revise` 审核回执，没有 `confirm`；revision 3 没有素材操作，revision 2 材料 UNKNOWN 保持原状。本轮只交新文案，待用户审核后再按正常入口采集素材。
