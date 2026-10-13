@@ -1,8 +1,10 @@
 """Noninteractive, isolated CLI transports. No shell strings or model SDKs."""
 
 import json
+import math
 import os
 import queue
+import re
 import shutil
 import subprocess
 import sys
@@ -12,6 +14,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from uuid import UUID
 
 from videoagents.default_config import DEFAULT_GLM_REASONING_EFFORT
 from videoagents.default_config import DEFAULT_SCRIPT_MODEL as GLM_MODEL
@@ -33,6 +36,7 @@ CLAUDE_RESEARCH_TOOLS = {
     "mcp__videoagents_research__source", "mcp__videoagents_research__visual",
     "mcp__videoagents_research__screenshot",
 }
+CLAUDE_RESEARCH_METADATA = {"tool_progress", "tool_use_summary", "auth_status"}
 # The CLI transport needs OpenAI's strict schema subset. Business contracts
 # contain defaults/free-form props, so carry their locally validated JSON as a
 # string instead of silently narrowing the actual production contract.
@@ -309,12 +313,13 @@ def _audit_summary(event: dict[str, Any]) -> dict[str, Any] | None:
     return None
 
 
-def _write_audit(handle, event: dict[str, Any]) -> None:
-    if handle is None:
-        return
-    summary = _audit_summary(event)
-    if summary is not None:
+def _write_audit_record(handle, summary: dict[str, Any] | None) -> None:
+    if handle is not None and summary is not None:
         handle.write(json.dumps(summary, ensure_ascii=False) + "\n")
+
+
+def _write_audit(handle, event: dict[str, Any]) -> None:
+    _write_audit_record(handle, _audit_summary(event))
 
 
 def _codex_event(line: str, *, research: bool = False, audit_handle=None) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
@@ -382,15 +387,88 @@ def _claude_result(output: str) -> CliResult:
     return CliResult(_business_object(value.get("structured_output")), value.get("usage"))
 
 
+def _cli_identifier(value: Any) -> bool:
+    return isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", value) is not None
+
+
+def _claude_metadata_summary(event: dict[str, Any]) -> dict[str, Any]:
+    """Validate known SDK metadata; never persist auth output or free text."""
+    kind = event["type"]
+    event_id = event.get("uuid")
+    try:
+        valid_uuid = isinstance(event_id, str) and str(UUID(event_id)) == event_id.lower()
+    except ValueError:
+        valid_uuid = False
+    if not valid_uuid or not _cli_identifier(event.get("session_id")):
+        raise CliFailure("invalid_cli_event")
+    summary = {"type": kind, "event_id": event_id}
+    if kind == "tool_progress":
+        name, elapsed = event.get("tool_name"), event.get("elapsed_time_seconds")
+        if not isinstance(name, str):
+            raise CliFailure("invalid_cli_event")
+        if name not in CLAUDE_RESEARCH_TOOLS | {"StructuredOutput"}:
+            raise CliFailure("unexpected_tool_event")
+        if (not _cli_identifier(event.get("tool_use_id"))
+                or "parent_tool_use_id" not in event
+                or (event["parent_tool_use_id"] is not None and not _cli_identifier(event["parent_tool_use_id"]))
+                or type(elapsed) not in {int, float} or elapsed < 0
+                or (isinstance(elapsed, float) and not math.isfinite(elapsed))
+                or ("task_id" in event and not _cli_identifier(event["task_id"]))
+                or ("heartbeat" in event and not isinstance(event["heartbeat"], bool))
+                or ("subagent_type" in event and not isinstance(event["subagent_type"], str))):
+            raise CliFailure("invalid_cli_event")
+        if "subagent_retry" in event:
+            retry = event["subagent_retry"]
+            if (not isinstance(retry, dict) or not _cli_identifier(retry.get("agent_id"))
+                    or any(type(retry.get(key)) is not int or retry[key] < 0
+                           for key in ("attempt", "max_retries", "retry_delay_ms"))
+                    or "error_status" not in retry
+                    or (retry["error_status"] is not None and type(retry["error_status"]) is not int)
+                    or not isinstance(retry.get("error_category"), str)):
+                raise CliFailure("invalid_cli_event")
+        return {**summary, "status": "in_progress", "tool_name": name, "tool_use_id": event["tool_use_id"]}
+    if kind == "tool_use_summary":
+        ids = event.get("preceding_tool_use_ids")
+        if (not isinstance(event.get("summary"), str) or not isinstance(ids, list)
+                or not all(_cli_identifier(value) for value in ids)
+                or ("timestamp" in event and not isinstance(event["timestamp"], str))):
+            raise CliFailure("invalid_cli_event")
+        return {**summary, "status": "reported"}
+    if (not isinstance(event.get("isAuthenticating"), bool) or not isinstance(event.get("output"), list)
+            or not all(isinstance(value, str) for value in event["output"])
+            or ("error" in event and not isinstance(event["error"], str))):
+        raise CliFailure("invalid_cli_event")
+    status = "failed" if event.get("error") else "authenticating" if event["isAuthenticating"] else "idle"
+    return {**summary, "status": status}
+
+
+def _claude_event_rejected(audit_handle, kind: Any) -> None:
+    # Preserve a bounded discriminator for future diagnosis, never the event
+    # body, auth text, summary, source content, or arbitrary error message.
+    event_type = kind if isinstance(kind, str) and re.fullmatch(r"[a-z][a-z0-9_]{0,63}", kind) else "invalid"
+    _write_audit_record(audit_handle, {"type": "cli.event.rejected", "event_type": event_type, "status": "rejected"})
+
+
 def _claude_research_event(line: str, audit_handle=None) -> CliResult | None:
     event = json.loads(line)
     if not isinstance(event, dict):
         raise CliFailure("invalid_cli_event")
     kind = event.get("type")
+    if not isinstance(kind, str):
+        _claude_event_rejected(audit_handle, kind)
+        raise CliFailure("invalid_cli_event")
     if kind == "result":
         result = _claude_result(line)
         _write_audit(audit_handle, {"type": "turn.completed", "status": "completed"})
         return result
+    if kind in CLAUDE_RESEARCH_METADATA:
+        try:
+            summary = _claude_metadata_summary(event)
+        except CliFailure:
+            _claude_event_rejected(audit_handle, kind)
+            raise
+        _write_audit_record(audit_handle, summary)
+        return None
     if kind == "assistant":
         message = event.get("message", {})
         if not isinstance(message, dict) or not isinstance(message.get("content"), list):
@@ -416,6 +494,7 @@ def _claude_research_event(line: str, audit_handle=None) -> CliResult | None:
                     "type": "mcp_tool_call", "status": "failed" if block.get("is_error") else "completed",
                 }})
     elif kind not in {"system", "rate_limit_event"}:
+        _claude_event_rejected(audit_handle, kind)
         raise CliFailure("unexpected_cli_event")
     return None
 
