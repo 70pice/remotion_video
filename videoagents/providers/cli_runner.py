@@ -1,6 +1,7 @@
 """Noninteractive, isolated CLI transports. No shell strings or model SDKs."""
 
 import json
+import logging
 import math
 import os
 import queue
@@ -11,6 +12,8 @@ import sys
 import tempfile
 import threading
 import time
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -29,6 +32,7 @@ MAX_EVENT_BYTES = 4 * 1024 * 1024
 MAX_RESEARCH_STREAM_BYTES = 64 * 1024 * 1024
 MAX_AUTH_BYTES = 1024 * 1024
 MAX_STDERR_TAIL_BYTES = 8 * 1024
+_LOGGER = logging.getLogger(__name__)
 GLM_CONTEXT_TOKENS = 1_000_000
 GLM_CAPABILITIES = "effort,xhigh_effort,max_effort,thinking,adaptive_thinking"
 CLAUDE_RESEARCH_TOOLS = {
@@ -504,6 +508,37 @@ def _claude_research_event(line: str, audit_handle=None) -> CliResult | None:
     return None
 
 
+def _cleanup_cli_resource(cleanup: Callable[[], Any], phase: str, *, attempts: int = 1) -> None:
+    """A cleanup lock must not overwrite the submitted call's result or failure."""
+    for attempt in range(attempts):
+        try:
+            cleanup()
+            return
+        except PermissionError:
+            if attempt + 1 < attempts:
+                time.sleep(0.05)
+                continue
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+        break
+    # Known phase labels only: no exception text, credential or temporary path.
+    _LOGGER.warning("CLI cleanup incomplete (%s)", phase)
+
+
+@contextmanager
+def _cli_control_directory(parent: Path | None) -> Iterator[str]:
+    directory = tempfile.TemporaryDirectory(prefix=".videoagents-cli-", dir=parent)
+    try:
+        yield directory.name
+    finally:
+        control = Path(directory.name)
+        # Remove credentials separately even if a Windows SQLite/descendant lock
+        # prevents deleting the rest of the isolated home.
+        for auth in (control / "codex-home" / "auth.json", control / "trae-home" / "cli" / "auth.json"):
+            _cleanup_cli_resource(lambda: auth.unlink(missing_ok=True), "staged_auth", attempts=3)
+        _cleanup_cli_resource(directory.cleanup, "control_directory", attempts=3)
+
+
 def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema: dict[str, Any],
             cancelled=lambda: False, *, research_directory: Path | None = None,
             audit_path: Path | None = None, ark_api_key: str | None = None,
@@ -528,10 +563,10 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
     # lives below the system temporary directory. Research mode needs those
     # helpers for command_execution, so keep the isolated control directory
     # next to the durable job revision instead of under /tmp. The randomized
-    # directory is still outside the model-writable research workspace and is
-    # removed in full after the call.
+    # directory is still outside the model-writable research workspace. Cleanup
+    # runs after the call without changing its accepted result or failure reason.
     control_parent = research_directory.parent if research_directory is not None else None
-    with tempfile.TemporaryDirectory(prefix=".videoagents-cli-", dir=control_parent) as temporary:
+    with _cli_control_directory(control_parent) as temporary:
         control = Path(temporary)
         directory = research_directory if research else control
         schema = control / "output-schema.json"
@@ -599,8 +634,8 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                     raise CliFailure("cli_launch_failed", submitted=False) from exc
         except BaseException:
             if audit_handle is not None:
-                audit_handle.close()
-            job.close()
+                _cleanup_cli_resource(audit_handle.close, "audit")
+            _cleanup_cli_resource(job.close, "job")
             raise
         # At most four raw events await projection, rather than retaining an
         # entire research transcript or up to 64 maximum-sized events.
@@ -705,13 +740,14 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
             raise CliFailure("invalid_cli_output" + stderr_note()) from exc
         finally:
             stopped.set()
-            terminate_tree(process)
-            job.close()
+            _cleanup_cli_resource(lambda: terminate_tree(process), "process_tree")
+            _cleanup_cli_resource(job.close, "job")
+            _cleanup_cli_resource(lambda: process.wait(timeout=1), "process_wait")
             if reader.ident:
-                reader.join(timeout=1)
+                _cleanup_cli_resource(lambda: reader.join(timeout=1), "stdout_reader")
             if stderr_reader.ident:
-                stderr_reader.join(timeout=1)
-            process.stdout.close()
-            process.stderr.close()
+                _cleanup_cli_resource(lambda: stderr_reader.join(timeout=1), "stderr_reader")
+            _cleanup_cli_resource(process.stdout.close, "stdout")
+            _cleanup_cli_resource(process.stderr.close, "stderr")
             if audit_handle is not None:
-                audit_handle.close()
+                _cleanup_cli_resource(audit_handle.close, "audit")
