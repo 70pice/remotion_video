@@ -1,0 +1,27 @@
+[
+  {
+    "name": "段落ID",
+    "type": "text"
+  },
+  {
+    "name": "口播",
+    "type": "text"
+  },
+  {
+    "name": "屏幕文字",
+    "type": "text"
+  },
+  {
+    "name": "来源",
+    "type": "text"
+  },
+  {
+    "name": "画面需求",
+    "type": "text"
+  },
+  {
+    "name": "修改意见",
+    "type": "text",
+    "description": "请按本行段落写修改建议；保留原稿，意见由编剧经返工入口处理。"
+  }
+]
