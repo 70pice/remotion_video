@@ -2,7 +2,7 @@
 
 本目录保存监督会话的制作要求、执行记录与正式节点口播的审核副本；副本不替代引擎登记产物，也不构成人审通过。
 
-当前状态（2026-10-13）：正式编剧已按用户最新要求完成“25000用户开篇、只讲报告一案、中国素材作画面替代”的重写，revision 3 / NEEDS_HUMAN / script，停在素材采集前文案门。[本期文案审核稿](script-for-review.md)已原样更新为最新节点产物。没有确认通过、没有启动 revision 3 素材。revision 2 的素材 UNKNOWN 与旧稿均保留；未配音、未渲染。实际进度以任务状态为准。
+当前状态（2026-10-14）：素材已配置为 Codex `gpt-6.1-sol / xhigh`，文案仍为 Claude Code / Doubao 2.1 Pro。本次已通过正常返工入口重新启动编剧，但 900 秒后超时，revision 3 / NEEDS_INPUT / script；新编剧操作 `515a815f0a5e4baf85e0230e52168023` 为 UNKNOWN / cli_timeout，没有新文案。[本期文案审核稿](script-for-review.md)仍是此前 GLM 节点产物，不能标为豆包新稿。没有确认通过、没有启动 revision 3 素材。revision 2 的素材 UNKNOWN 与旧稿均保留；未配音、未渲染。实际进度以任务状态为准。
 
 - 需求文件：[brief.json](brief.json)。revision 3 目标约3分钟，抖音竖屏1080×1920、30fps，个人视频；实际时长以后续真实配音为准。
 - 报告依据：[Anthropic 2026年9月报告](https://www.anthropic.com/threat-intelligence-report-september-2026)的GTG-15001节。2026-10-13已读对应正文；口播须由编剧节点再次亲自读取。
@@ -172,3 +172,15 @@ uv run --python 3.12 videoagents status 08e74bed03e94c6e903c89f7f2fbea64
 - 模型 ID 已查阅[火山方舟官方模型列表](https://docs.volcengine.com/docs/ark/model-list?lang=zh)。使用项目已有 Ark Anthropic 兼容路由 `https://ark.cn-beijing.volces.com/api/compatible`；密钥通过 SettingsService 保存为 Windows DPAPI 加密数据，不写入仓库或制作输入。
 - 新进程回读确认只改变 screenwriter 配置，其他设置一致；调用环境选择 Ark 凭据与兼容地址。现有 Ark 子进程凭据、缺密钥阻断、系统凭据与 GLM 路由回归共 25 项通过，未发起真实豆包生成请求，因此不宣称当前密钥权限或新稿生成已验收。
 - 当前任务仍为 revision 3 / NEEDS_HUMAN / script，最近文案 `script-799f4211.json` 仍是此前 GLM 节点产物；切换设置不改旧产物与审核结果。下一次正常编剧调用使用新配置，文案确认前不启动素材。
+
+### 素材模型切换与正式重跑
+
+- 用户明确要求素材节点用 Codex 6.1 Sol extra high，处理后重新跑流程。本机真实 Codex 模型目录包含 `gpt-6.1-sol`，并列出 `xhigh`；没有用旧目录或监督会话的模型代替素材配置。
+- 独立维护分支提交 `3e1c0ba` 已合入：每角色新增可选 `codex_reasoning_effort`，经 SettingsPatch、JsonModel、run_cli 传入 Codex 的 `-c model_reasoning_effort="xhigh"`；显式档位进入请求指纹与台账。默认空值保持旧序列化和已完成请求重用，非 Codex 不读取该字段，UNKNOWN/SUBMITTING 屏障不变。根目录重新验证相关 Python 回归 120 passed、契约导出、Ruff、TypeScript、lint 及 `uv build --wheel` 通过；Python `build` 模块未安装，使用现有 uv 完成构建，没有新增依赖。
+- SettingsService 已仅将素材角色改为 `codex_cli` / `gpt-6.1-sol` / `codex_reasoning_effort=xhigh`，启用状态与 900 秒超时保留。新进程回读只改变 materials，文案仍为 Claude Code / Doubao 2.1 Pro，其他角色、凭据与配音设置一致。静态实参检查确认研究模式传入准确模型及 xhigh。
+- [本次完整重跑要求](rerun-doubao-codex-note.txt)保存最新模型指令和仍有效的单案创作要求，2102 字符，通过正常 `resume --decision revise` 提交，幂等键 `user-doubao-codex-xhigh-rerun-20261014`。本次重新生成文案，不把旧 GLM 稿标为豆包产物；完成后仍先停素材采集前文案门。
+- 已实际启动编剧操作 `515a815f0a5e4baf85e0230e52168023`，revision 3，`claude_code_cli` / `doubao-seed-2-1-pro-260915` / research；启动时为 SUBMITTING，900 秒超时后真实终态为 UNKNOWN / cli_timeout。正常 CLI 返回 NEEDS_INPUT / script，进程退出码 0 不表示生成通过。没有新文案；原 GLM 文案与产物不改名、不替换。素材配置完成不等于素材实际运行，revision 3 素材操作数仍为 0；旧 revision 2 素材 UNKNOWN 保留，不重放。
+- 本次注册的脱敏编剧审计为 `writer-tool-audit-c42bae3817e8.jsonl`，90 条事件对应 45 次工具调用（source 25、search 18、skill 2），16 次完成、29 次失败；首次 source 已成功保存官方报告正文。审计没有参数、响应或具体失败原因，不能据此声称密钥、额度、平台或预算是超时根因，也不能声称豆包已成功生成新稿。
+- 只读诊断确认三处共性代码缺陷：编剧研究调用沿用“这是素材节点”的传输前缀；编剧返工遗漏公开检索设置；MCP 异常处理仅返回异常类名，丢失已知安全错误代码。独立维护提交 `4d41236` 已合入，明确区分编剧证据读取与素材采集、为返工传入过滤后的公开配置、只返回静态白名单错误代码与恢复指引。编剧 MCP 仍限 skill/search/source，未知异常不泄露正文或类名；没有提高预算或超时，也没有扩大工具权限。三处缺陷已修复，但现有审计不能证明它们就是本次超时根因。
+- 主分支独立回归先发现结构化 Codex 测试子进程依赖 Windows 默认编码；独立维护提交 `49ebd9a` 仅修该 fixture，明确 UTF-8 并主动移除外部编码变量，保留真实本地子进程、中文传输、模型/档位和 COMPLETED 台账断言。合入后本轮最终定向回归 293 passed / 2 skipped（Windows 账户无创建符号链接权限），Ruff、契约检查、TypeScript、lint 与 `uv build --wheel` 通过。没有真实 Codex 素材生成、配音或渲染，不把本地 fixture 验收当作供应商生成验收。
+- 本次 UNKNOWN 继续保留。若用户明确接受本次不确定提交可能已消耗额度并允许再提交，具体恢复入口为 `restart-unknown`，指定操作 `515a815f0a5e4baf85e0230e52168023`、`--acknowledge-possible-usage` 与 [当前完整 brief](brief.json)，保存同任务新版本 DRAFT，再正常 `run`。不手改台账或审核标记；新版文案完成后仍停素材前文案门，没有用户确认就不执行素材。
