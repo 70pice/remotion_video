@@ -10,7 +10,15 @@ from urllib.parse import urlparse
 
 from langgraph.checkpoint.sqlite import SqliteSaver
 
-from videoagents.contracts import Alignment, Artifact, Asset, DraftRequest, Job, RetryFailedRunRequest
+from videoagents.contracts import (
+    Alignment,
+    Artifact,
+    Asset,
+    DraftRequest,
+    Job,
+    RestartUnknownRequest,
+    RetryFailedRunRequest,
+)
 from videoagents.default_config import PROJECT_ROOT
 from videoagents.storage import Repository
 from videoagents.tools.media import audio_duration, decode_check, detect_media, probe, sha256, video_metadata
@@ -75,46 +83,63 @@ class JobService:
     def draft(self, job_id: str, request: DraftRequest) -> Job:
         if request.brief is None and request.script is None and request.timeline is None:
             raise ValueError("草稿更新内容不能为空")
-        def edit(job: Job) -> Job:
-            new_revision = job.revision + 1
-            if request.brief:
-                brief_changed = (request.brief.creative_direction != job.brief.creative_direction
-                                 or request.brief.script_text != job.brief.script_text
-                                 or request.brief.topic != job.brief.topic)
-                if not (request.brief.topic.strip() or request.brief.creative_direction.strip()
-                        or request.brief.script_text.strip()):
-                    raise ValueError("主题和创作方向不能同时为空")
-                if brief_changed:
-                    job.script = None
-                job.brief = request.brief
-            if request.script:
-                for segment in request.script.segments:
-                    if not set(segment.asset_ids) <= {asset.asset_id for asset in job.assets}:
-                        raise ValueError("文案包含不属于此任务的素材")
-                job.script = request.script.model_copy(update={"revision": new_revision})
-            if request.timeline:
-                metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
-                timeline = request.timeline
-                if any(shot.set_design for shot in timeline.shots):
-                    from videoagents.tools.component_sets import resolve_component_set_shots
+        return self.repo.edit_job(job_id, request.base_revision, lambda job: self._edit_draft(job, request))
 
-                    timeline = timeline.model_copy(update={
-                        "shots": resolve_component_set_shots(timeline.shots, job.assets, metadata),
-                    })
-                validate_timeline(timeline, job, metadata)
-                job.timeline = timeline.model_copy(update={"revision": new_revision})
-            else:
-                job.timeline = None
-            if job.script:
-                job.script.revision = new_revision
-            job.revision = new_revision
-            job.script_discussion = None
-            job.review, job.pending_input, job.progress = None, None, None
-            invalidated = INVALIDATED | ({"research", "source"} if request.brief and brief_changed else set())
-            job.artifacts = [item for item in job.artifacts if item.kind not in invalidated]
-            job.status, job.stage, job.message = "DRAFT", "idle", "新版草稿已保存，下游渲染与审核已失效"
-            return job
-        return self.repo.edit_job(job_id, request.base_revision, edit)
+    def restart_unknown(self, job_id: str, request: RestartUnknownRequest) -> Job:
+        request = RestartUnknownRequest.model_validate(request.model_dump())
+
+        def edit(job: Job) -> Job:
+            # A stopped writer's partial draft cannot become the new result.
+            job.script = None
+            updated = self._edit_draft(job, DraftRequest(
+                base_revision=request.base_revision, brief=request.brief or job.brief,
+            ))
+            updated.artifacts = [item for item in updated.artifacts if item.kind != "script"]
+            updated.message = "已按明确授权保存新版草稿；旧提交仍为 UNKNOWN，请通过 run 执行"
+            return updated
+
+        return self.repo.restart_unknown(job_id, request, edit)
+
+    def _edit_draft(self, job: Job, request: DraftRequest) -> Job:
+        """Apply the existing revision/invalidation rules inside the caller's transaction."""
+        new_revision = job.revision + 1
+        if request.brief:
+            brief_changed = (request.brief.creative_direction != job.brief.creative_direction
+                             or request.brief.script_text != job.brief.script_text
+                             or request.brief.topic != job.brief.topic)
+            if not (request.brief.topic.strip() or request.brief.creative_direction.strip()
+                    or request.brief.script_text.strip()):
+                raise ValueError("主题和创作方向不能同时为空")
+            if brief_changed:
+                job.script = None
+            job.brief = request.brief
+        if request.script:
+            for segment in request.script.segments:
+                if not set(segment.asset_ids) <= {asset.asset_id for asset in job.assets}:
+                    raise ValueError("文案包含不属于此任务的素材")
+            job.script = request.script.model_copy(update={"revision": new_revision})
+        if request.timeline:
+            metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
+            timeline = request.timeline
+            if any(shot.set_design for shot in timeline.shots):
+                from videoagents.tools.component_sets import resolve_component_set_shots
+
+                timeline = timeline.model_copy(update={
+                    "shots": resolve_component_set_shots(timeline.shots, job.assets, metadata),
+                })
+            validate_timeline(timeline, job, metadata)
+            job.timeline = timeline.model_copy(update={"revision": new_revision})
+        else:
+            job.timeline = None
+        if job.script:
+            job.script.revision = new_revision
+        job.revision = new_revision
+        job.script_discussion = None
+        job.review, job.pending_input, job.progress = None, None, None
+        invalidated = INVALIDATED | ({"research", "source"} if request.brief and brief_changed else set())
+        job.artifacts = [item for item in job.artifacts if item.kind not in invalidated]
+        job.status, job.stage, job.message = "DRAFT", "idle", "新版草稿已保存，下游渲染与审核已失效"
+        return job
 
     def register_artifact(self, job: Job, path: Path, kind: str, mime_type: str, name: str | None = None) -> Artifact:
         artifact_id = uuid.uuid4().hex
