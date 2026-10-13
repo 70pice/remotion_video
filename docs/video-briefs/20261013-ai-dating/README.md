@@ -107,3 +107,13 @@ uv run --python 3.12 videoagents status 08e74bed03e94c6e903c89f7f2fbea64
 - 共性源码维护 `a219aef` / `ad4282b` 已合入：尊重BOM、HTTP/HTML声明编码，保留256Ki字符有界正文，素材共享state使用同一预算；3MiB下载、公网与逐跳限制不变。维护回归119 passed / 2权限skip；合入后70 passed / 2权限skip、契约、TypeScript和diff检查通过。实网只读验收中文正常、官方涉案章节可读取，没有更新当前job产物或源文件。
 - 本目录brief已补充正式重新核实原报告、区分两案可调门槛、删去无关审核规避工程细节等制作要求。这里只准备新版需求，尚未对真实job提交新revision或重跑；用户当前的继续指令用于完成必要修护与诊断，不写成新的未知付费提交授权。
 - 配音、逐镜、成片均未产生；两个人工审核门均未批准，飞书认证未完成。
+
+
+### 必要修护完成与下一步正常入口
+
+- `449b5d9` 已合入：只有明确 `--rebuild-script` 才接受当前素材 UNKNOWN，新版从编剧与素材重新执行；仅保存DRAFT，保留旧稿快照、实体文件、审计和原UNKNOWN，其他角色与人工门不扩大恢复范围，旧默认请求的幂等指纹仍兼容。维护293项定向通过、最终入口51项通过；合入后98项入口/queue/人审通过。
+- `52eb15a` 已合入：按本机Claude Code 2.1.292内置schema及官方SDK类型明示兼容tool_progress/tool_use_summary/auth_status，校验形态与工具权限，审计仅保留安全类型/标识符/状态。三类合法假子进程修前复现unexpected_cli_event，修后137项通过；本次真实被拒类型仍未知，不能宣称已确认事故根因或修改原UNKNOWN。
+- 所有修护合入后的最新验收：完整Python1174 passed / 3 skipped（1项显式真实浏览器渲染、2项Windows符号链接权限）；契约、TypeScript、lint、Ruff、diff检查和wheel构建通过。未改动Remotion画面组件，本次未重复其已通过的108项timeline测试，不宣称真实视频渲染验收。
+- 密钥比对检查仅输出布尔结果，已配置两份密钥均未出现在本次Git差异中。没有写入日志/文档或输出原值。
+- 下一步的具体动作已经可审：使用当前素材UNKNOWN操作ID `2013f7e0f2be44a8b6613f2718750429`，经 `restart-unknown --acknowledge-possible-usage --rebuild-script --note <用户针对新未知提交的明确授权说明> --brief <本目录brief.json>` 保存同任务revision 3，再正常run至文案与素材人工门。此动作会再次调用编剧和素材模型，可能再次消耗套餐额度；没有用此前只授权一次编剧重跑的回复替代新操作授权。
+- 截至本段记录：真实job仍revision 2 / NEEDS_INPUT / materials，旧稿可读但未批准，没有生成音频、镜头PNG或视频；下一次付费模型调用尚未执行。
