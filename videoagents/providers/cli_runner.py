@@ -19,6 +19,11 @@ from worker.process_manager import terminate_tree
 from worker.windows_job import WindowsJob
 
 MAX_OUTPUT_BYTES = 4 * 1024 * 1024
+# Research emits fetched tool content and thinking before its business result.
+# Bound each NDJSON event separately and discard it after projection; the
+# larger cumulative budget does not enlarge the final structured response.
+MAX_EVENT_BYTES = 4 * 1024 * 1024
+MAX_RESEARCH_STREAM_BYTES = 64 * 1024 * 1024
 MAX_AUTH_BYTES = 1024 * 1024
 MAX_STDERR_TAIL_BYTES = 8 * 1024
 GLM_CONTEXT_TOKENS = 1_000_000
@@ -348,6 +353,8 @@ def _business_object(envelope: Any) -> dict[str, Any]:
     for _ in range(2):
         if not isinstance(envelope, dict) or set(envelope) != {"response_json"} or not isinstance(envelope["response_json"], str):
             raise CliFailure("missing_structured_output")
+        if len(envelope["response_json"].encode("utf-8")) > MAX_OUTPUT_BYTES:
+            raise CliFailure("cli_output_limit")
         result = json.loads(envelope["response_json"])
         if not isinstance(result, dict):
             raise CliFailure("non_object_output")
@@ -502,7 +509,9 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 audit_handle.close()
             job.close()
             raise
-        lines: queue.Queue = queue.Queue(maxsize=64)
+        # At most four raw events await projection, rather than retaining an
+        # entire research transcript or up to 64 maximum-sized events.
+        lines: queue.Queue = queue.Queue(maxsize=4)
         stopped = threading.Event()
         stderr_tail: list[bytes] = []
         def enqueue(line):
@@ -514,7 +523,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                     continue
         def read():
             try:
-                while not stopped.is_set() and (line := process.stdout.readline(MAX_OUTPUT_BYTES + 1)):
+                while not stopped.is_set() and (line := process.stdout.readline(MAX_EVENT_BYTES + 1)):
                     enqueue(line)
             finally:
                 enqueue(None)
@@ -534,6 +543,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
         reader = threading.Thread(target=read, daemon=True)
         stderr_reader = threading.Thread(target=read_stderr, daemon=True)
         data, usage, output, size, completed, last_agent_message = None, None, [], 0, False, None
+        stream_limit = MAX_RESEARCH_STREAM_BYTES if research else MAX_OUTPUT_BYTES
         try:
             job.assign(process)
             reader.start()
@@ -551,7 +561,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 if line is None:
                     break
                 size += len(line)
-                if size > MAX_OUTPUT_BYTES:
+                if len(line) > MAX_EVENT_BYTES or size > stream_limit:
                     raise CliFailure("cli_output_limit")
                 decoded = line.decode("utf-8", errors="strict").strip()
                 if not decoded:
