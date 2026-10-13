@@ -2786,6 +2786,27 @@
           "minimum": 30,
           "title": "Timeout Seconds",
           "type": "integer"
+        },
+        "codex_reasoning_effort": {
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "minimal",
+                "low",
+                "medium",
+                "high",
+                "xhigh",
+                "max"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Codex Reasoning Effort"
         }
       },
       "title": "RoleModelConfig",

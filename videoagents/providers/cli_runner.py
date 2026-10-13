@@ -145,7 +145,8 @@ def cli_availability() -> dict[str, dict[str, bool]]:
 
 def build_arguments(provider: str, prefix: list[str], model: str, directory: Path, schema: Path, *,
                     research: bool = False, mcp_config: Path | None = None,
-                    glm_reasoning_effort: str = DEFAULT_GLM_REASONING_EFFORT) -> list[str]:
+                    glm_reasoning_effort: str = DEFAULT_GLM_REASONING_EFFORT,
+                    codex_reasoning_effort: str | None = None) -> list[str]:
     if provider == "codex_cli":
         args = [*prefix, "-a", "never", "exec"]
         if research:
@@ -167,6 +168,10 @@ def build_arguments(provider: str, prefix: list[str], model: str, directory: Pat
             args.extend(["--disable", feature])
         if model:
             args.extend(["--model", model])
+        if codex_reasoning_effort is not None:
+            if codex_reasoning_effort not in {"none", "minimal", "low", "medium", "high", "xhigh", "max"}:
+                raise CliFailure("invalid_codex_reasoning_effort", submitted=False)
+            args.extend(["-c", "model_reasoning_effort=" + json.dumps(codex_reasoning_effort)])
         return [*args, "-"]
     if provider == "trae_cli":
         state = directory / ".trae-state"
@@ -503,7 +508,8 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
             cancelled=lambda: False, *, research_directory: Path | None = None,
             audit_path: Path | None = None, ark_api_key: str | None = None,
             zhipu_api_key: str | None = None, research_context: dict[str, Any] | None = None,
-            glm_reasoning_effort: str = DEFAULT_GLM_REASONING_EFFORT) -> CliResult:
+            glm_reasoning_effort: str = DEFAULT_GLM_REASONING_EFFORT,
+            codex_reasoning_effort: str | None = None) -> CliResult:
     if cancelled():
         raise CliFailure("cli_cancelled", submitted=False)
     research = research_directory is not None
@@ -563,7 +569,8 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                                  "工具会保存文件并返回真实路径及 SHA256；不使用 shell 或读取本机任意路径。")
             source.write_text(transport_prompt, encoding="utf-8")
         args = build_arguments(provider, prefix, model, directory, schema, research=research, mcp_config=mcp_config,
-                               glm_reasoning_effort=glm_reasoning_effort)
+                               glm_reasoning_effort=glm_reasoning_effort,
+                               codex_reasoning_effort=codex_reasoning_effort)
         environment, staged_auth = _cli_environment(provider, research, control, ark_api_key, zhipu_api_key, model,
                                                     glm_reasoning_effort)
         job = WindowsJob()

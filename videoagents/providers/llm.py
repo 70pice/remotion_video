@@ -105,6 +105,7 @@ class JsonModel:
             raise CapabilityMissing("工具研究模式仅支持素材或编剧角色使用 Codex 或 Claude Code CLI", ["role_models"])
         ark_model = config["provider"] == "claude_code_cli" and config["model"].lower().startswith("doubao-")
         glm_model = config["provider"] == "claude_code_cli" and config["model"].lower().startswith("glm-")
+        codex_effort = config.get("codex_reasoning_effort") if config["provider"] == "codex_cli" else None
         schema = output_schema or {"type": "object"}
         provider = "llm:" + role
         command_id = command_id or self.repo.active_command_id(job_id)
@@ -130,6 +131,9 @@ class JsonModel:
         if glm_model:
             fingerprint_payload.update(reasoning_effort=settings["glm_reasoning_effort"],
                                        context_tokens=GLM_CONTEXT_TOKENS)
+        if codex_effort is not None:
+            # Unset effort keeps the historical fingerprint and completed receipts.
+            fingerprint_payload["reasoning_effort"] = codex_effort
         input_hash = fingerprint(fingerprint_payload)
         previous = self.repo.operation(job_id, input_hash, provider)
         if previous:
@@ -152,6 +156,8 @@ class JsonModel:
                   "cli_provider": config["provider"], "model": config["model"]}
         if glm_model:
             ledger.update(reasoning_effort=settings["glm_reasoning_effort"], context_tokens=GLM_CONTEXT_TOKENS)
+        if codex_effort is not None:
+            ledger["reasoning_effort"] = codex_effort
         operation = self.repo.retry_rejected_operation(previous["operation_id"], command_id, ledger) if previous else self.repo.start_operation(job_id, input_hash, provider, ledger)
         ledger.update(attempt=operation.get("attempt", 1))
         if not operation.get("new"):
@@ -176,6 +182,8 @@ class JsonModel:
             if glm_model:
                 kwargs["zhipu_api_key"] = settings["zhipu_api_key"]
                 kwargs["glm_reasoning_effort"] = settings["glm_reasoning_effort"]
+            if codex_effort is not None:
+                kwargs["codex_reasoning_effort"] = codex_effort
             if research_mode and config["provider"] == "claude_code_cli":
                 research_context = {"runtime": str(self.repo.root), "job_id": job_id, "revision": revision}
                 if research_tools:

@@ -4,6 +4,15 @@
 
 GPT-6.1 Sol 由操作者会话负责监控任务事件、定位失败、修复共性代码并通过现有补充/续跑入口推进。模型角色的替换不代表新增全天守护进程，也不绕过文案人工确认和逐镜 PNG 审核。
 
+2026-10-14 起支持用户为单个生产角色明确覆盖 Codex 路由。例如素材角色可通过 SettingsPatch 设置
+`role_models.materials` 为 `{"provider":"codex_cli","model":"gpt-6.1-sol","codex_reasoning_effort":"xhigh"}`。
+该字段只对 Codex CLI 生效，在结构化与研究调用中均显式传入 `-c model_reasoning_effort="xhigh"`，不依赖
+全局 Codex 配置。可选档位为 `none`、`minimal`、`low`、`medium`、`high`、`xhigh`、`max`；具体模型是否接受
+某档位由 CLI 与模型决定，不自动降档。未设置时保持原行为与旧请求指纹；显式设置时档位进入请求指纹和
+操作台账，同角色同版本的 `UNKNOWN` / `SUBMITTING` 屏障仍优先阻断。其他角色及 GLM 档位不受此覆盖影响。
+参数依据见 [Codex 配置参考](https://learn.chatgpt.com/docs/config-file/config-reference)，模型支持见
+[GPT-6.1 Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol)。
+
 ## 本机配置
 
 1. 使用当前 Claude Code 安装方式升级。已有 WinGet 安装使用 `winget upgrade --id Anthropic.ClaudeCode --exact`；升级后用 `claude --version` 验证实际版本。智谱接入文档要求至少 2.1.140，具体以当前安装器和 CLI 行为为准。

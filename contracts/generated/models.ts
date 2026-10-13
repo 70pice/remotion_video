@@ -357,6 +357,7 @@ export interface RoleModelConfig {
   provider: "codex_cli" | "trae_cli" | "claude_code_cli";
   model: string;
   timeout_seconds: number;
+  codex_reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max" | null;
 }
 
 export interface RoleModels {
