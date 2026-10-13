@@ -89,12 +89,15 @@ class JobService:
         request = RestartUnknownRequest.model_validate(request.model_dump())
 
         def edit(job: Job) -> Job:
-            # A stopped writer's partial draft cannot become the new result.
+            # Rebuilding after materials must also discard the completed old script.
             job.script = None
             updated = self._edit_draft(job, DraftRequest(
                 base_revision=request.base_revision, brief=request.brief or job.brief,
             ))
-            updated.artifacts = [item for item in updated.artifacts if item.kind != "script"]
+            invalidated = {"script"}
+            if request.rebuild_script:
+                invalidated |= {"research", "source", "material_skill_manifest"}
+            updated.artifacts = [item for item in updated.artifacts if item.kind not in invalidated]
             updated.message = "已按明确授权保存新版草稿；旧提交仍为 UNKNOWN，请通过 run 执行"
             return updated
 

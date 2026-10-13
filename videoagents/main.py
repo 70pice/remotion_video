@@ -77,6 +77,7 @@ def cmd_restart_unknown(args: argparse.Namespace) -> int:
         request = RestartUnknownRequest.model_validate({
             "base_revision": repo.get_job(args.job_id).revision, "operation_id": args.operation_id,
             "acknowledge_possible_usage": args.acknowledge_possible_usage, "note": args.note, "brief": brief,
+            "rebuild_script": args.rebuild_script,
         })
         job = JobService(repo, PROJECT_ROOT).restart_unknown(args.job_id, request)
     except (ValueError, OSError) as exc:
@@ -274,11 +275,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     restart = sub.add_parser("restart-unknown", help="明确接受可能计费后重新编剧：保存新版草稿，不自动执行")
     restart.add_argument("job_id")
-    restart.add_argument("--operation-id", required=True, help="当前 UNKNOWN 编剧模型操作 ID")
+    restart.add_argument("--operation-id", required=True, help="当前 UNKNOWN 编剧或素材模型操作 ID")
     restart.add_argument("--acknowledge-possible-usage", action="store_true", required=True,
                          help="明确承认旧提交可能已消耗额度")
     restart.add_argument("--note", required=True, help="用户授权依据与重启说明")
     restart.add_argument("--brief", default="", help="可选：新版完整 Brief JSON 文件")
+    restart.add_argument("--rebuild-script", action="store_true",
+                         help="素材 UNKNOWN 时明确弃用已完成文案，新版本重走编剧与素材")
     restart.set_defaults(handler=cmd_restart_unknown)
 
     resume = sub.add_parser("resume", help="回复人工审核(飞书不可用时的兜底入口)")

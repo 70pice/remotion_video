@@ -581,6 +581,7 @@ class RestartUnknownRequest(Contract):
     acknowledge_possible_usage: Literal[True]
     note: str = Field(min_length=1, max_length=3000)
     brief: Brief | None = None
+    rebuild_script: bool = Field(default=False, strict=True)
 
     @field_validator("acknowledge_possible_usage", mode="before")
     @classmethod
