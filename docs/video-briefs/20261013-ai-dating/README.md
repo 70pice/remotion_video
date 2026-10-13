@@ -2,6 +2,8 @@
 
 本目录保存监督会话的制作要求、执行记录与正式节点口播的审核副本；副本不替代引擎登记产物，也不构成人审通过。
 
+用户随后明确否决上述普通社交素材，要求重新采集“付费聊天、付费视频、AI欺诈”相关中文画面。上一批14件全部退出本轮候选；飞书23行审计及18个历史附件保留，状态已回读为用户否决。已审文案保留，正在通过通用素材单独恢复入口准备新一轮采集，详情见[新采集要求](materials-restart-requirements.md)与[本次授权](materials-restart-authorization.json)。
+
 2026-10-14 用户要求先审计当前素材。已完成七段覆盖与逐件视觉审计，录入[飞书「素材审计」表](https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblFTK4SmOqXoJkf&view=vewytLjHOv)：23条审计记录、14件原候选及附加联系表/代表帧共18个附件均已回读确认。结论是中文场景已有基础，仍缺真实充值购买页、实际私聊输入框；2段录屏清晰度及原字幕有局限。完整结论见[素材审计报告](materials-audit.md)与[录入验证](materials-audit-feishu.json)。本轮未重新提交生产模型、未登记素材、未通过后续人工门。
 
 当前状态（2026-10-14）：用户回复“素材动起来吧”后，已通过正常 `resume --decision confirm` 记录本版文案通过，启动 revision 4 素材节点。实际提交为 Codex `gpt-6.1-sol / xhigh`；操作 `c34539df84044a7cb5eb6cbe86c3ff32` 在约 900 秒后以 `UNKNOWN / PermissionError` 停止，任务为 NEEDS_INPUT / materials。候选目录保留探探、Soul 中文商店图 12 张与 Soul 聊天列表、访客短片 2 段，已只读校验散列、媒体尺寸及解码；它们尚未被节点登记或冻结，不是已完成素材包。飞书素材表实际回读为 0 行，尚未进入文案与素材审核，未配音、未渲染、未重复付费提交。已通过 Settings CLI 将素材时限从 900 调至 1800 秒，模型和推理档位不变。 通用收尾修复 `39ad48d` 已合入，维护回归 178 项及重启边界 51 项通过，本分支 12 项回归、Ruff、TypeScript 与 Remotion bundle 通过；修复不重写这次 UNKNOWN，也不重复模型调用。详见 [素材执行记录](materials-run-result.json) 与 [候选文件清点](materials-candidate-inventory.json)。旧 UNKNOWN 与已审文案保留；新调用须走显式未决提交恢复授权入口。

@@ -1,5 +1,7 @@
 # 当前素材审计（2026-10-14）
 
+后续用户判断：这一批普通社交素材不匹配“付费AI社交欺诈”主题，14件候选已全部撤出本轮选择，飞书状态标为用户否决。下文保留原审计过程供历史查阅；新采集方向见[用户取材要求](materials-restart-requirements.md)。原“部分场景够用”判断不再作为本片选用依据。
+
 任务：`08e74bed03e94c6e903c89f7f2fbea64`，revision 4。
 
 [飞书逐项审计与预览](https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblFTK4SmOqXoJkf&view=vewytLjHOv)
