@@ -1,12 +1,12 @@
 """The Feishu review surface: idempotent sync, keyed review rows, decision polling."""
 
 import json
-import shutil
 
 import pytest
 
 from videoagents.contracts import Brief
 from videoagents.providers import feishu
+from videoagents.providers.cli_runner import executable_prefix
 from videoagents.providers.feishu import FeishuReviewBase, FeishuUnavailable, _plain
 from videoagents.storage import Repository
 
@@ -274,7 +274,7 @@ def test_poll_short_revise_note_keeps_waiting(lark, tmp_path, job):
     assert confirm["decision"] == "confirm" and len(confirm["note"]) >= 10
 
 
-@pytest.mark.skipif(shutil.which("lark-cli") is None, reason="needs local lark-cli help output")
+@pytest.mark.skipif(executable_prefix("lark_cli") is None, reason="needs local lark-cli help output")
 def test_feishu_commands_match_real_lark_cli_parsing(tmp_path, job, monkeypatch):
     """No bare --json on commands where the real CLI defines it as a VALUE input.
 
@@ -291,8 +291,10 @@ def test_feishu_commands_match_real_lark_cli_parsing(tmp_path, job, monkeypatch)
     commands = ["+base-create", "+table-create", "+base-get", "+record-list", "+record-delete",
                 "+record-batch-create", "+record-batch-update", "+record-get", "+record-upload-attachment"]
     value_json_commands, boolean_json_commands = set(), set()
+    prefix = executable_prefix("lark_cli")
     for command in commands:
-        help_text = sp.run(["lark-cli", "base", command, "--help"], capture_output=True, text=True, check=False).stdout
+        help_text = sp.run([*prefix, "base", command, "--help"], capture_output=True, text=True,
+                           encoding="utf-8", check=False, shell=False).stdout
         if re_module.search(r"--json\s+string", help_text):
             value_json_commands.add(command)
         elif "--json" in help_text:
@@ -366,8 +368,8 @@ def test_feishu_commands_match_real_lark_cli_parsing(tmp_path, job, monkeypatch)
     base.poll_decision(job, "tokp")
 
     for argv in captured:
-        assert argv[0] == "lark-cli"
-        command = argv[2]
+        assert argv[:len(prefix)] == prefix
+        command = argv[len(prefix) + 1]
         # The output format is always selected explicitly.
         index = argv.index("--format")
         assert index is not None and argv[index + 1] == "json", argv

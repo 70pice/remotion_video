@@ -95,14 +95,15 @@ class CliResult:
 
 
 def executable_prefix(provider: str) -> list[str] | None:
-    """Resolve npm Windows shims to Node, never execute .cmd through a shell."""
+    """Resolve npm Windows shims to a native binary or Node without a shell."""
     names = {"codex_cli": ("codex", "@openai/codex/bin/codex.js"),
              "claude_code_cli": ("claude", "@anthropic-ai/claude-code/cli.js"),
-             "trae_cli": ("traecli", "")}
+             "trae_cli": ("traecli", ""),
+             "lark_cli": ("lark-cli", "@larksuite/cli/bin/lark-cli.exe")}
     if provider not in names:
         return None
     name, entry = names[provider]
-    configured = os.getenv("VIDEOAGENTS_" + name.upper() + "_EXECUTABLE")
+    configured = os.getenv("VIDEOAGENTS_" + name.upper().replace("-", "_") + "_EXECUTABLE")
     found = configured or shutil.which(name)
     if not found and os.name == "nt" and name in {"claude", "traecli"}:
         candidate = Path.home() / ".local" / "bin" / (name + ".exe")
@@ -118,10 +119,13 @@ def executable_prefix(provider: str) -> list[str] | None:
         return None
     if os.name != "nt" or path.suffix.lower() == ".exe":
         return [str(path)]
-    node = shutil.which("node")
     script = path if path.suffix.lower() in {".js", ".mjs"} else path.parent / "node_modules" / entry
-    if entry and node and script.is_file():
-        return [node, str(script)]
+    if entry and script.is_file():
+        if script.suffix.lower() == ".exe":
+            return [str(script)]
+        node = shutil.which("node")
+        if node:
+            return [node, str(script)]
     return None
 
 
