@@ -42,7 +42,7 @@ uv run --python 3.12 videoagents status 08e74bed03e94c6e903c89f7f2fbea64
 
 ## 2026-10-13 配置补充
 
-用户随后提供智谱 Coding Plan 与字节语音凭据，并明确将本次推理档位覆盖为 extra high (`xhigh`)。初始 brief 的 `max` 记载保留为提交时快照；本次执行以更新后的公开 Settings 为准。
+用户随后提供智谱 Coding Plan 与字节语音凭据，并明确将本次推理档位覆盖为 extra high (`xhigh`)。初始 revision 1 的 brief 保存于运行记录；本目录 brief 已按用户明确选择改为 `xhigh`，新 revision 将使用这份输入。
 
 - 两份密钥均经 SettingsService 标准配置入口进入 Windows DPAPI 凭据库，已在本机核对加解密往返一致；本目录及 Git 不保存密钥。
 - 智谱使用 Claude Code CLI、`glm-5.3[1m]`；`xhigh` 通用参数支持在隔离维护分支验证后，以 `09cb615` 合入本视频分支。正常 CLI 已设 `glm_reasoning_effort=xhigh` 并回读。
@@ -79,3 +79,11 @@ uv run --python 3.12 videoagents status 08e74bed03e94c6e903c89f7f2fbea64
 - 两份密钥仅保存于当前运行目录关联的系统凭据库；声音尚未实测，缺音色/资源ID。飞书认证尚未完成，未建审核Base。
 
 最终正常入口回读：GLM模型与xhigh均已设置，两份密钥配置标志为true；voice_configured仍为false。任务仍是revision 1的NEEDS_INPUT/script、UNKNOWN/cli_output_limit，唯一登记产物为脱敏writer_tool_audit；没有再次调用模型、配音或渲染，没有审核通过记录。
+
+
+### 2026-10-13 用户授权与音色配置补充
+
+- 用户引用上一条关于重跑可能再次消耗智谱额度的说明，明确回复“允许”，同时提供音色 ID。此授权只用于本次新的编剧尝试；旧 UNKNOWN 记录保留，不改为失败或已结算，也不替代后续两个人工审核门。
+- 音色 `S_FEftI5R52` 已通过正常 `videoagents settings set` 保存。按[字节官方状态查询接口](https://docs.volcengine.com/docs/DoubaoVoice/SoundReplicaAPI-V3?lang=zh)做只读查询，实际 HTTP 200、训练状态 2、支持模型类型 1 和 5；没有执行训练、试听或合成。
+- 根据[所用 WebSocket V3 官方文档](https://docs.volcengine.com/docs/DoubaoVoice/WebSocketBidirectionalStreaming-V3?lang=zh)，类型 5 对应声音复刻 2.0，正常 CLI 已补充 `voice_resource_id=seed-icl-2.0`，仍使用 `seed-tts-2.0-expressive`、`speech_rate=10`。公开 Settings 回读 `voice_configured=true`，仅说明配置完整，真实配音要等人工文案与素材门之后由图引擎执行。
+- 正在补齐显式授权后升新版草稿的正常 CLI 入口，修护验证完成后才提交新的编剧执行。
