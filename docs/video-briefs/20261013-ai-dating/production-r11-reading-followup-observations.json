@@ -1,0 +1,54 @@
+{
+  "checked_at": "2026-10-14T13:52:10.548118+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 11,
+  "operation_id": "1ca471a9391b419390d8a20bece4e5c0",
+  "operation_status": "COMPLETED",
+  "body_sha256": "55532c6861f5b84831c0f258ee10894bbacf1a54b55671d4d5df56cb1b21d11f",
+  "saved_shot_count": 16,
+  "same_index_identical_shots": [
+    "shot-01",
+    "shot-03",
+    "shot-04",
+    "shot-07",
+    "shot-08",
+    "shot-09",
+    "shot-10",
+    "shot-11",
+    "shot-12",
+    "shot-13",
+    "shot-14",
+    "shot-15",
+    "shot-16"
+  ],
+  "same_index_changed_shots": [
+    "shot-02",
+    "shot-05",
+    "shot-06"
+  ],
+  "reading_time_observations": [
+    {
+      "shot_id": "shot-06",
+      "set_id": "A07",
+      "part_id": "support_4",
+      "shot_start": 1420,
+      "shot_end": 1637,
+      "shot_duration": 217,
+      "local_start": 115,
+      "local_end": 217,
+      "actual_frames": 102,
+      "minimum_frames": 105
+    }
+  ],
+  "first_layout_issue_per_shot": [
+    {
+      "shot_id": "shot-06",
+      "issue": "A07.support_4 显示区间不足阅读或超出镜头"
+    }
+  ],
+  "first_content_issue_per_shot": [],
+  "notes": [
+    "Read-only observations; no candidate, state or operation edits.",
+    "Per-part duration observations use the current production validator formula; they are not a render or complete production validation."
+  ]
+}

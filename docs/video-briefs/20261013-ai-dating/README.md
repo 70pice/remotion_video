@@ -1,5 +1,9 @@
 # 本次视频制作输入
 
+2026-10-14 21:52 当前为 revision 11 / NEEDS_INPUT / director：摄影操作 `1ca471a9391b419390d8a20bece4e5c0` 已COMPLETED，完整保存16镜，没有超时。相比上一轮仅shot-02、05、06变化，另13镜逐字段保持；独立逐镜组件内容检查全部通过。当前布局仅发现shot-06 / A07.support_4局部115..217=102帧，实际文字最低需要105帧，相差3帧。完整生产校验停在该项，尚无有效timeline与PNG；组件内容检查通过不能替代完整生产校验。
+
+原Brief、七段文案、11件视觉素材、配音及12件文件、前28笔操作保持，三笔本版COMPLETED响应完整保存。已准备该局部问题的正常摄影返工意见，并进行只读下游预检以集中反馈；未手改候选、未恢复UNKNOWN、未确认逐镜或发布。见[本轮停止与原输入复验](production-r11-rich-repair-stop-verification.json)、[实际3帧差与13镜保留证明](production-r11-reading-followup-observations.json)。以下为历史时点。
+
 2026-10-14 21:44 当前为 revision 11 / RUNNING / director：上一笔正常返工操作 `8a4390213ef842739bdfc6e66ed53ad9` 已COMPLETED，仍16镜，没有超时。与本版前一次响应比较，仅shot-02、05、06、13变化，另外12镜逐字段保持。当前独立阅读时长检查没有报错，原空正文与标题长度问题已修复；完整生产校验继而停在B12内容字段，另查明B03条数与A07支持条数问题。已把三个镜头的实际组件字段契约与事实边界集中交回正常摄影输入返工，操作 `1ca471a9391b419390d8a20bece4e5c0` SUBMITTING，不手改模型方案，不重做上游。
 
 原12件文件与前28笔操作复验保持，两笔本版COMPLETED响应完整保存。当前仍无有效timeline、PNG或成片，逐镜与发布门未确认；不能把组件局部检查通过称为完整生产通过。见[上一轮停止复验](production-r11-layout-repair-stop-verification.json)、[实际剩余问题与12镜保留证明](production-r11-rich-observations.json)、[下一轮集中修复意见](photography-r11-rich-repair-note.txt)及[本轮正常返工启动复验](production-r11-rich-repair-start-verification.json)。以下为历史时点。
