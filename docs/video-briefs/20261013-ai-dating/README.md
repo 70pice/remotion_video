@@ -1,10 +1,12 @@
 # 本次视频制作输入
 
-2026-10-14 当前为 revision 9 / RUNNING / director：用户引用上一轮摄影再次超时与需要新授权的消息回复“继续吧”，已通过正式 `restart-unknown --director-only` 后 `run` 仅重启摄影。旧两笔 UNKNOWN 保留；原已审 Brief、七段文案、11件视觉素材及123.781417秒真实配音沿用，原25条操作未重写。
+2026-10-14 当前为 revision 9 / NEEDS_INPUT / director：用户引用上一轮摄影再次超时与需要新授权的消息回复“继续吧”，已通过正式 `restart-unknown --director-only` 后 `run` 仅重启摄影。旧两笔 UNKNOWN 保留；原已审 Brief、七段文案、11件视觉素材及123.781417秒真实配音沿用，原25条操作未重写。
 
 摄影模型和推理仍为 `glm-5.3[1m] / xhigh`。两个既有请求900/1800秒均超时，只读诊断未证实供应商或配置故障，也未发现完整可复用结果。此次小范围放宽通用可配置等待上限至7200秒，默认900秒不变，正常 Settings 只将摄影设为3600秒；其他角色及模型/推理不变。维护9项、合入后50项回归与Ruff、契约、TypeScript、lint、Remotion bundle通过；bundle只验证代码，不是本次视频。
 
-新摄影操作 `f1dcf1682a9c495289753483ce926b03` 正在执行，尚未返回分镜或逐镜PNG；使用本期内容与现有Remotion组件套的要求已交接，实际使用须待产物核对。先渲染每镜1080×1920 PNG，整包人审通过后才剪辑完整视频，不将本次“继续”记录为逐镜门通过。见[新授权与基线](photography-r9-retry-authorization.json)、[摄影要求](photography-r9-recovery-requirements.txt)、[输入只读预检](production-r9-input-preflight.json)、[等待设置变更](production-r9-photography-timeout-setting.json)、[正式启动记录](production-r9-photography-start.json)。
+新摄影操作 `f1dcf1682a9c495289753483ce926b03` 已 COMPLETED，本次没有超时；模型返回16个镜头，选用A02/A07/B03/B11/B12五种组件套。方案在正式保存前被“另案示例必须来自当前任务文案已关联的真实图片或视频”校验拦下，当前Job.timeline与逐镜PNG仍为0。素材节点保存出处但无逐段素材绑定，原七段文案asset_ids均为空、source_refs仅为报告，因此当前规则没有可用context_example集合。正在独立维护分支处理联合已审示意素材与摄影校验的通用衔接，保持模型响应、原输入和审核台账原样；正式入口续跑前先核对COMPLETED指纹能否精确命中。先渲染每镜1080×1920 PNG，整包人审通过后才剪辑完整视频，不将本次“继续”记录为逐镜门通过。见[新授权与基线](photography-r9-retry-authorization.json)、[摄影要求](photography-r9-recovery-requirements.txt)、[输入只读预检](production-r9-input-preflight.json)、[等待设置变更](production-r9-photography-timeout-setting.json)、[正式启动记录](production-r9-photography-start.json)、[已完成响应与校验停止](production-r9-photography-validation-stop.json)、[原输入与台账复验](production-r9-photography-verification.json)。
+
+2026-10-14 13:36（北京时间）通过智谱官方插件源码所用的只读 GET 查询本机现有账户额度，HTTP 200 / success true；返回两项 CREDIT_LIMIT，使用比例13%与42%，均有剩余额度。仅查询统计，没有模型生成调用；接口不提供本笔摄影的执行进度或当前活跃并发，不能据此确认旧 UNKNOWN 已停止、已计费或额度刷新周期。当前摄影继续等待，见[只读额度快照](production-r9-readonly-quota.json)。
 
 以下保留 revision 8 及更早记录，所有状态均为当次记录时的状态。
 

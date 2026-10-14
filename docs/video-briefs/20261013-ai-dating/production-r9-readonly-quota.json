@@ -1,0 +1,25 @@
+{
+  "checked_at": "2026-10-14T05:36:30.419772+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 9,
+  "method": "GET",
+  "endpoint": "https://open.bigmodel.cn/api/monitor/usage/quota/limit",
+  "official_source": "https://github.com/zai-org/zai-coding-plugins/blob/main/plugins/glm-plan-usage/skills/usage-query-skill/scripts/query-usage.mjs",
+  "http_status": 200,
+  "success": true,
+  "code": 200,
+  "model_generation_requested": false,
+  "credential_source": "local existing protected settings or environment; no credential persisted in this record",
+  "limits": [
+    {"type": "CREDIT_LIMIT", "usage": 28000, "currentValue": 3774, "remaining": 24225, "percentage": 13, "nextResetTime": 1791967004498},
+    {"type": "CREDIT_LIMIT", "usage": 140000, "currentValue": 58913, "remaining": 81086, "percentage": 42, "nextResetTime": 1792461171982}
+  ],
+  "interpretation": "Both returned limits have remaining quota. This snapshot does not show quota exhaustion.",
+  "limitations": [
+    "The response does not identify progress or active concurrency of the individual photography request.",
+    "This does not determine completion, billing, or cancellation of old UNKNOWN operations.",
+    "Quota period and units are not inferred from undocumented response fields.",
+    "No claim is made about query billing or live-statistics latency."
+  ],
+  "production_action": "The currently authorized photography operation continues unchanged; no replay, provider switch, or approval change."
+}

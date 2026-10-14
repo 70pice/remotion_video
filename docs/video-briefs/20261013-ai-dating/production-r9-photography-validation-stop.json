@@ -1,0 +1,22 @@
+{
+  "recorded_at": "2026-10-14T05:47:46.192725+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 9,
+  "operation_id": "f1dcf1682a9c495289753483ce926b03",
+  "operation_status": "COMPLETED",
+  "run_status": "NEEDS_INPUT",
+  "stage": "director",
+  "issue": "另案示例必须来自当前任务文案已关联的真实图片或视频",
+  "pending_token": "5f9bb438927643118ff37c4ad8d0487b",
+  "model_proposal_shot_count": 16,
+  "model_proposal_component_sets": ["A02", "A07", "B03", "B11", "B12"],
+  "model_proposal_persisted_as_validated_timeline": false,
+  "validated_job_timeline_shot_count": 0,
+  "actual_shot_png_count": 0,
+  "script_segment_asset_ids": "All seven approved segments have empty asset_ids; all source_refs identify the Anthropic report.",
+  "diagnosis": "MaterialsNode stores source-to-asset research records but no typed per-segment binding. The proposed context examples use approved task media with source domains and non-case illustration labels, but the current timeline validator only admits media already linked in script asset_ids/source_refs.",
+  "approved_inputs_and_original_25_operations_unchanged": true,
+  "shot_gate_confirmed": false,
+  "full_video_rendered": false,
+  "production_recovery": "Investigate a generic approval-grounded context-media validation repair; verify exact completed-input fingerprint before using the normal CLI continuation. No model response or production artifact is manually edited."
+}
