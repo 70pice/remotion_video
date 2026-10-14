@@ -2,7 +2,12 @@
 
 from videoagents.contracts import Job, Timeline
 from videoagents.storage import Repository
-from videoagents.tools.timeline import _context_example_sources, asset_renderable
+from videoagents.tools.timeline import (
+    _context_example_sources,
+    asset_renderable,
+    media_coverage_report,
+    validate_timeline,
+)
 
 
 def approved_context_sources(repository: Repository, job: Job, timeline: Timeline) -> set[str]:
@@ -41,3 +46,19 @@ def approved_context_sources(repository: Repository, job: Job, timeline: Timelin
                 and isinstance(item.get("asset_ids"), list) and asset.asset_id in item["asset_ids"]
                 for item in sources)
     }
+
+
+def validate_production_timeline(
+    repository: Repository, job: Job, timeline: Timeline,
+    asset_metadata: dict[str, dict[str, object]] | None = None,
+) -> set[str]:
+    """Use one approval and semantic check for generation, reuse and rendering."""
+    proof = approved_context_sources(repository, job, timeline)
+    validate_timeline(timeline, job, asset_metadata, approved_context_sources=proof)
+    if timeline.presentation != "component_sample":
+        # Enforce the existing evidence/segment relationship, without changing
+        # the capacity or >70% requirement used by model-generated timelines.
+        report = media_coverage_report(timeline, job, asset_metadata, approved_context_sources=proof)
+        if job.script and any(shot.asset_src for shot in timeline.shots) and not report["segments"]:
+            raise ValueError("媒体镜头与旁白段落的语义关联无法核验：字幕缺失或与文案不符")
+    return proof

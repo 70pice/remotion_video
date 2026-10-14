@@ -23,7 +23,6 @@ from videoagents.contracts import (
 from videoagents.default_config import PROJECT_ROOT
 from videoagents.storage import Conflict, Repository
 from videoagents.tools.media import audio_duration, decode_check, detect_media, probe, sha256, video_metadata
-from videoagents.tools.timeline import validate_timeline
 
 INVALIDATED = {"preview", "final", "cover", "timeline", "review", "package", "captions",
                "storyboard", "director_plan", "script_discussion", "component_study",
@@ -187,6 +186,7 @@ class JobService:
     def _edit_draft(self, job: Job, request: DraftRequest) -> Job:
         """Apply the existing revision/invalidation rules inside the caller's transaction."""
         new_revision = job.revision + 1
+        requires_media_reapproval = False
         if request.brief:
             brief_changed = (request.brief.creative_direction != job.brief.creative_direction
                              or request.brief.script_text != job.brief.script_text
@@ -203,7 +203,7 @@ class JobService:
                     raise ValueError("文案包含不属于此任务的素材")
             job.script = request.script.model_copy(update={"revision": new_revision})
         if request.timeline:
-            from videoagents.services.context_media import approved_context_sources
+            from videoagents.services.context_media import validate_production_timeline
 
             metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
             timeline = request.timeline
@@ -213,8 +213,7 @@ class JobService:
                 timeline = timeline.model_copy(update={
                     "shots": resolve_component_set_shots(timeline.shots, job.assets, metadata),
                 })
-            validate_timeline(timeline, job, metadata,
-                              approved_context_sources=approved_context_sources(self.repo, job, timeline))
+            requires_media_reapproval = bool(validate_production_timeline(self.repo, job, timeline, metadata))
             job.timeline = timeline.model_copy(update={"revision": new_revision})
         else:
             job.timeline = None
@@ -226,6 +225,8 @@ class JobService:
         invalidated = INVALIDATED | ({"research", "source"} if request.brief and brief_changed else set())
         job.artifacts = [item for item in job.artifacts if item.kind not in invalidated]
         job.status, job.stage, job.message = "DRAFT", "idle", "新版草稿已保存，下游渲染与审核已失效"
+        if requires_media_reapproval:
+            job.message += "；同类示意素材不继承旧批准，请重新完成文案及文案与素材联合人工审核"
         return job
 
     def register_artifact(self, job: Job, path: Path, kind: str, mime_type: str, name: str | None = None) -> Artifact:

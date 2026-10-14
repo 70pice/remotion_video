@@ -159,6 +159,11 @@ def _validate_context_example(
     host = (urlparse(asset.source_url).hostname or "").removeprefix("www.") if asset else ""
     if not host or "另案示例" not in shot.source_label or host not in shot.source_label.lower():
         raise ValueError("另案示例必须在画面 source_label 标明“另案示例”及真实来源域名")
+    if shot.asset_src not in context_sources and not re.search(
+        r"(?<![a-z0-9_.\\/-])(?:https?://)?(?:www\.)?" + re.escape(host) + r"(?![a-z0-9_.-])",
+        shot.source_label.lower(),
+    ):
+        raise ValueError("已批准但文案未关联的另案示例必须标明独立且精确的真实来源域名")
     if (shot.asset_src not in context_sources
             and ("同类" not in shot.source_label
                  or not any(marker in shot.source_label for marker in ("示意", "示例"))

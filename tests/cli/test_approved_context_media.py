@@ -5,18 +5,20 @@ import json
 import pytest
 from test_director_only_restart import (
     REAL_DIRECTOR_PLAN,
+    cli,
     operations,
     request,
 )
 from test_director_only_restart import photography_unknown as photography_unknown
 
 from videoagents.contracts import Alignment, Brief, DraftRequest, Timeline
-from videoagents.nodes.director import DirectorNode
+from videoagents.nodes.director import DirectorNode, _performance_payload
 from videoagents.nodes.director_demo import DirectorDemoNode
 from videoagents.nodes.editing import EditingNode
 from videoagents.nodes.human_review import HumanReviewNode
+from videoagents.nodes.script_review import script_before_materials_is_approved
 from videoagents.providers.llm import JsonModel, semantic
-from videoagents.services.context_media import approved_context_sources
+from videoagents.services.context_media import approved_context_sources, validate_production_timeline
 from videoagents.services.director_recovery import verify_director_recovery_inputs
 from videoagents.services.settings import SettingsService
 from videoagents.storage import Conflict
@@ -133,6 +135,10 @@ def test_unverified_inputs_never_grant_context_permission(photography_unknown, c
     "另案示例｜context.example", "另案示例｜context.example｜同类示意",
     "另案示例｜context.example｜非涉案", "同类示意｜非涉案｜context.example",
     "另案示例｜同类示意｜非涉案", "另案示例｜同类示意｜非涉案｜wrong.example",
+    "另案示例｜同类示意｜非涉案｜fake-context.example",
+    "另案示例｜同类示意｜非涉案｜context.example.evil.org",
+    "另案示例｜同类示意｜非涉案｜https://context.example.evil.org/page",
+    "另案示例｜同类示意｜非涉案｜https://wrong.example/context.example",
 ])
 def test_unlinked_context_requires_visible_explanation_and_real_domain(photography_unknown, label):
     repo, _, job, _ = photography_unknown
@@ -184,7 +190,7 @@ def test_linked_other_case_and_component_sample_keep_existing_rules(photography_
 
 
 @context_job
-def test_imported_timeline_uses_same_proof_and_does_not_inherit_changed_script(photography_unknown):
+def test_imported_timeline_requires_new_review_before_downstream_use(photography_unknown, monkeypatch, capsys):
     repo, service, job, _ = photography_unknown
     candidate = timeline(job)
     changed = job.script.model_copy(deep=True)
@@ -195,6 +201,67 @@ def test_imported_timeline_uses_same_proof_and_does_not_inherit_changed_script(p
     saved = service.draft(job.job_id, DraftRequest(base_revision=job.revision, timeline=candidate))
     assert saved.timeline.shots == candidate.shots and saved.revision == job.revision + 1
     assert saved.script.segments == job.script.segments
+    assert "不继承旧批准" in saved.message and "联合人工审核" in saved.message
+    assert repo.director_restart_receipt(saved.job_id, saved.revision) is None
+    assert not script_before_materials_is_approved(repo, saved)
+    metadata = {asset.asset_id: repo.asset_metadata(asset.asset_id) for asset in saved.assets}
+    with pytest.raises(Conflict):
+        validate_production_timeline(repo, saved, saved.timeline, metadata)
+    with pytest.raises(Conflict):
+        EditingNode(repo, service).render_video(saved, "final")
+    alignment = Alignment.model_validate(metadata[saved.assets[-1].asset_id]["alignment"])
+    monkeypatch.setattr(JsonModel, "invoke", lambda *a, **k: pytest.fail("Old approval must fail before model"))
+    with pytest.raises(Conflict):
+        REAL_DIRECTOR_PLAN(DirectorNode(repo, service), saved, saved.assets[-1], alignment, 6.0)
+    # The normal graph starts the human approval chain again after draft/import.
+    assert cli(monkeypatch, capsys, repo, "run", saved.job_id)[0] == 0
+    assert repo.get_job(saved.job_id).pending_input["node_name"] == "script_human_gate"
+
+
+@context_job
+@pytest.mark.parametrize("domain", ["context.example", "CONTEXT.EXAMPLE", "www.context.example",
+                                  "https://context.example/product"])
+def test_approved_domain_is_an_exact_visible_token(photography_unknown, domain):
+    repo, _, job, _ = photography_unknown
+    candidate = timeline(job)
+    candidate.shots[0].source_label = f"另案示例｜{domain}｜同类示意｜非涉案"
+    validate_production_timeline(repo, job, candidate)
+
+
+@context_job
+@pytest.mark.parametrize("entry", ["photography", "photography_feedback", "representative", "editing", "draft"])
+@pytest.mark.parametrize("violation", ["unlinked_evidence", "missing_captions", "mismatched_captions"])
+def test_every_production_entry_rejects_unverifiable_relationships(
+    photography_unknown, monkeypatch, entry, violation,
+):
+    repo, service, job, _ = photography_unknown
+    candidate = timeline(job)
+    if violation == "unlinked_evidence":
+        candidate.shots[0].media_usage = "source_evidence"
+    elif violation == "missing_captions":
+        candidate.captions = []
+    else:
+        candidate.captions[0].text = "UNIT unrelated narration"
+    alignment = Alignment.model_validate(repo.asset_metadata(job.assets[-1].asset_id)["alignment"])
+    job = repo.update_job(job.job_id, timeline=candidate)
+    plan = _performance_payload("existing_timeline", job, candidate, alignment, review_mode="per_shot_stills")
+    service.write_json(job, "director_plan.json", plan, "director_plan")
+    job = repo.get_job(job.job_id)
+    before = job.model_dump()
+    monkeypatch.setattr(JsonModel, "invoke", lambda *a, **k: pytest.fail("Relationship must fail before model"))
+    monkeypatch.setattr(service, "freeze_asset", lambda *a: pytest.fail("Relationship must fail before rendering"))
+    if entry == "photography_feedback":
+        monkeypatch.setattr("videoagents.nodes.director.stage_feedback", lambda *a: {"timeline": {"shots": []}})
+    with pytest.raises(ValueError, match="语义关联"):
+        if entry.startswith("photography"):
+            REAL_DIRECTOR_PLAN(DirectorNode(repo, service), job, job.assets[-1], alignment, 6.0)
+        elif entry == "representative":
+            DirectorDemoNode(repo, service).render_shots(job)
+        elif entry == "editing":
+            EditingNode(repo, service).render_video(job, "final")
+        else:
+            service.draft(job.job_id, DraftRequest(base_revision=job.revision, timeline=candidate))
+    assert repo.get_job(job.job_id).model_dump() == before
 
 
 @context_job

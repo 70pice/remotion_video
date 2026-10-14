@@ -23,7 +23,7 @@ from videoagents.nodes.common import (
 from videoagents.nodes.gates import timeline_readability_issues
 from videoagents.prompts import render as render_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
-from videoagents.services.context_media import approved_context_sources
+from videoagents.services.context_media import approved_context_sources, validate_production_timeline
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState
 from videoagents.storage import Repository
@@ -46,7 +46,6 @@ from videoagents.tools.timeline import (
     asset_renderable,
     media_coverage_report,
     validate_media_coverage,
-    validate_timeline,
 )
 
 COMPONENT_PROPS_EXAMPLES = {
@@ -590,6 +589,7 @@ class DirectorNode:
             raise CapabilityMissing("旧摄影方案需要启用摄影模型，为每个镜头重新设计组件理由和审核代表帧",
                                     ["role_models", "director_plan"])
         if not rebuilding and feedback and job.timeline and type(feedback.get("timeline")) is dict and job.timeline.model_dump() != feedback["timeline"]:
+            validate_production_timeline(self.repo, job, job.timeline, asset_metadata)
             self._last_director_plan = load_current_director_plan(self.repo, job) or _performance_payload(
                 "existing_timeline", job, job.timeline, alignment, review_mode="per_shot_stills")
             return job.timeline
@@ -598,8 +598,7 @@ class DirectorNode:
         if feedback and not model_available:
             raise CapabilityMissing("人工返工需要摄影模型读取审核意见并重新规划镜头；请启用摄影模型或提供新的人工分镜", ["role_models", "timeline"])
         if job.timeline and not feedback and not rebuilding:
-            validate_timeline(job.timeline, job, asset_metadata,
-                              approved_context_sources=approved_context_sources(self.repo, job, job.timeline))
+            validate_production_timeline(self.repo, job, job.timeline, asset_metadata)
             expected = [(item.text, item.start_ms, item.end_ms) for item in alignment.segments]
             actual = [(item.text, item.start_ms, item.end_ms) for item in job.timeline.captions]
             if expected != actual or job.timeline.audio_src != audio.timeline_src:
@@ -752,8 +751,7 @@ class DirectorNode:
             # 字幕、画幅和总帧数保持程序实测值，连续覆盖由 Timeline 校验。
             resolved_shots = resolve_component_set_shots(plan.shots, job.assets, asset_metadata)
             timeline = Timeline.model_validate({**timeline.model_dump(), "shots": [shot.model_dump() for shot in resolved_shots]})
-        context_sources = approved_context_sources(self.repo, job, timeline)
-        validate_timeline(timeline, job, asset_metadata, approved_context_sources=context_sources)
+        context_sources = validate_production_timeline(self.repo, job, timeline, asset_metadata)
         issues = timeline_readability_issues(timeline) if production_portrait(job) else []
         if issues:
             raise ValueError("；".join(issues))

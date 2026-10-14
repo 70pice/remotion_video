@@ -16,7 +16,7 @@ from videoagents.nodes.gates import timeline_readability_issues
 from videoagents.nodes.reviewers import dependency_fingerprint
 from videoagents.prompts import load_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
-from videoagents.services.context_media import approved_context_sources
+from videoagents.services.context_media import validate_production_timeline
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.state import VideoState
@@ -24,7 +24,7 @@ from videoagents.storage import Repository
 from videoagents.storage.repository import fingerprint
 from videoagents.tools.component_sets import allowed_component_set_templates
 from videoagents.tools.components import native_component_capabilities
-from videoagents.tools.timeline import asset_renderable, validate_timeline
+from videoagents.tools.timeline import asset_renderable
 from worker.process_manager import render
 
 PROMPT = load_prompt("editing")
@@ -138,8 +138,7 @@ class EditingNode:
         if not job.timeline:
             raise ValueError("没有可执行分镜")
         metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
-        validate_timeline(job.timeline, job, metadata,
-                          approved_context_sources=approved_context_sources(self.repo, job, job.timeline))
+        validate_production_timeline(self.repo, job, job.timeline, metadata)
         issues = timeline_readability_issues(job.timeline) if (job.brief.width, job.brief.height, job.brief.fps) == (1080, 1920, 30) else []
         if issues:
             raise DirectorInputError("；".join(issues))
