@@ -1,0 +1,39 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 7,
+  "verified_at": "2026-10-14T02:54:06.172498+00:00",
+  "status": "NEEDS_INPUT",
+  "stage": "director",
+  "pending_input": {
+    "kind": "input",
+    "stage": "director",
+    "issues": [
+      "CLI 提交后的结果不确定，已暂停并阻止重复调用；请核对 CLI 登录、额度和提交记录"
+    ],
+    "fields": [
+      "timeline"
+    ],
+    "thread_id": "job:08e74bed03e94c6e903c89f7f2fbea64:run:763fce9c6aea4ccfaca80db9efdf90b7",
+    "revision": 7,
+    "pending_token": "31cd4d6b83244a5ba6027d46d59efd8e",
+    "operation_status": "UNKNOWN",
+    "operation_id": "c2ee429eee8940b6ab47e7a2bc5e8967",
+    "interrupt_id": "231a78ade66709426cbfa51e40d06f5f"
+  },
+  "photography_operation": {
+    "operation_id": "c2ee429eee8940b6ab47e7a2bc5e8967",
+    "status": "UNKNOWN",
+    "provider": "llm:director",
+    "model": "glm-5.3[1m]",
+    "reasoning_effort": "xhigh",
+    "reason": "cli_timeout",
+    "attempt": 1
+  },
+  "audio_asset_id": "a661542c449c4f39bf17bc6c9047ef7b",
+  "timeline_absent": true,
+  "shot_review_frames": 0,
+  "session_persistence_disabled_by_runner": true,
+  "automatic_resubmission": false,
+  "voice_file_verified": "production-r7-voice-verification.json",
+  "new_paid_photography_retry_authorized": false
+}

@@ -1,0 +1,15 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 7,
+  "review_record_id": "reczz28N7Y2TIR8i",
+  "pending_token": "b9540d9798b02c3e01fc5ce268a6238f",
+  "human_quote": "先按这个走吧 没有的素材你用组件套改一下 推下一步",
+  "human_decision": "confirm",
+  "engine_receipt_verified": true,
+  "feishu_update_submitted": true,
+  "expected_opinion": "2026-10-14 沈佳冰在飞书对话口头确认：先按这个走吧 没有的素材你用组件套改一下 推下一步。已通过 videoagents resume --decision confirm 正式记录；保留当前文案与素材，缺少实录的部分用明确标示意的组件画面，进入配音与摄影；逐镜审核和发布尚未确认。",
+  "updated_at": "2026-10-14T02:39:26.209409+00:00",
+  "exact_id_readback": true,
+  "feishu_conclusion": "通过",
+  "verified_at": "2026-10-14T02:41:22.457038+00:00"
+}

@@ -1,0 +1,99 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 7,
+  "verified_at": "2026-10-14T02:40:08.563190+00:00",
+  "original_15_operations_unchanged": true,
+  "original_script_and_brief_unchanged": true,
+  "original_11_visual_assets_unchanged": true,
+  "audio": {
+    "asset_id": "a661542c449c4f39bf17bc6c9047ef7b",
+    "artifact_id": "4493244167424cf1b0a1e388b85faf99",
+    "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\operations\\segmented-voice-a469bbe1607b44608a25781cae6fd0df.mp3",
+    "sha256": "8ff6c916735add49764125b0a1923d4f47c661bb07912971ca8ac8280888d327",
+    "size_bytes": 1981869,
+    "duration_seconds": 123.781417,
+    "full_decode_passed": true,
+    "origin": "byte_ws"
+  },
+  "artifacts": [
+    {
+      "kind": "voice_guidance",
+      "artifact_id": "a8a8e9e20d6f40b7918553a8f54ea0c6",
+      "sha256": "35dfe6e35f3c15e1a1a7f8fda7628e3ca8ad0e95cdd6f02918f8f58b586271ee",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\7\\voice_guidance.json"
+    },
+    {
+      "kind": "alignment",
+      "artifact_id": "489ac27aeda640cca79d42e35719b707",
+      "sha256": "dde6000b85d0c21e8d5eb638d8c02887bc21927b04b762d929146d33e8674526",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\7\\alignment.json"
+    },
+    {
+      "kind": "audio_report",
+      "artifact_id": "edb7a9acf0ba47cd91fcb981cb77e126",
+      "sha256": "ed083e911b26816270334cfb0121cd8b3964d2359b44b669580df05853cdb4ed",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\7\\audio_report.json"
+    }
+  ],
+  "performance_segments": 7,
+  "tts_operations": [
+    {
+      "operation_id": "2ae98979056144c78a6eee181a799f63",
+      "status": "COMPLETED"
+    },
+    {
+      "operation_id": "aaa970232e7941e6994065ef9ff3df90",
+      "status": "COMPLETED"
+    },
+    {
+      "operation_id": "4201ca37c33f4269a8ac8cc526c8fc40",
+      "status": "COMPLETED"
+    },
+    {
+      "operation_id": "aaa397c839e14035ba4a71ed9289e93c",
+      "status": "COMPLETED"
+    },
+    {
+      "operation_id": "f2d962b7e08f410ab0872e163a170fa0",
+      "status": "COMPLETED"
+    },
+    {
+      "operation_id": "a7512f324ece420c9f9609df9c1174cf",
+      "status": "COMPLETED"
+    },
+    {
+      "operation_id": "47191acbd9a44ffa9ca8818983ffc7e2",
+      "status": "COMPLETED"
+    }
+  ],
+  "audio_report": {
+    "audio_sha256": "8ff6c916735add49764125b0a1923d4f47c661bb07912971ca8ac8280888d327",
+    "duration_seconds": 123.781417,
+    "origin": "byte_ws",
+    "alignment_origin": "provider",
+    "verified": true,
+    "verification_note": "字节返回原文时间戳；已校验正文/段落覆盖、排序与不重叠，AudioGate 继续校验音频 hash 与实测时长。不是独立识别或人工听审。 147 个词的时间戳置信度低于 0.8，最低 0.131；同步需人工听审。 逐段供应商时间戳已按实测裁剪区间和插入静音作确定性偏移；未对音频变速。"
+  },
+  "timestamp_quality": {
+    "human_listening_confirmed": false,
+    "independent_audio_recognition": false,
+    "low_confidence_count": 147,
+    "minimum_confidence": 0.13142651,
+    "origin": "provider"
+  },
+  "metadata_keys": [
+    "alignment",
+    "duration_seconds",
+    "origin",
+    "script_fingerprint",
+    "segment_operations",
+    "segment_stitch",
+    "segmented",
+    "timestamp_quality",
+    "voice_fingerprint",
+    "voice_model",
+    "voice_speech_rate"
+  ],
+  "human_listening_completed": false,
+  "no_final_video_rendered": true
+}

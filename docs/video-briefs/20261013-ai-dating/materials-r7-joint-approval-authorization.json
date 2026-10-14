@@ -1,0 +1,118 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 7,
+  "recorded_at": "2026-10-14T02:33:30.413149+00:00",
+  "user_quote": "先按这个走吧 没有的素材你用组件套改一下 推下一步",
+  "quoted_message_id": "om_x100b63da23e500b8c091f8dffb701ab",
+  "pending_token": "b9540d9798b02c3e01fc5ce268a6238f",
+  "authorization": "用户口头确认当前文案与素材联合门，接受如实披露的画面缺口，继续配音和摄影；缺少真实界面按已审visual_need使用组件套或明确标示意的解释画面。未确认逐镜门或发布。",
+  "script_artifact_id": "d6afeca1685b41dbb949eb2231c53d71",
+  "script_sha256": "5d7aeb49fd9e63a479220f212d773fc011d11251a45c63830369d0955981968d",
+  "brief_sha256": "02718272876a5b07360d73c57d7574fc8117f5c51f86f412458381141e72a190",
+  "active_visual_asset_ids": [
+    "0b61255194854094b26a4a2565504352",
+    "b611b6b73f0f42f6b8ecf01248fcb65d",
+    "41aa62b5f4e845c5883257fdb76b7dc1",
+    "a12818e554a74684bea6e34785c8b85b",
+    "00e534aed0e74d6b9f5cfbfb589d28c3",
+    "59cb502d984a4c1fafdfaeadf8fd144a",
+    "951152e88def4169af4d1149e3447536",
+    "46256f4f7a2940feafdca5bc5b9547db",
+    "caf3d0aead8a48c089e527c33db3237f",
+    "30495f9cf1854fda97e5e3156891e118",
+    "2ea535747f5e4a50b49570e78e7eceaf"
+  ],
+  "operations_before": [
+    {
+      "operation_id": "560106d6ee24433e8be3be0f6bf10e6a",
+      "status": "UNKNOWN",
+      "provider": "llm:screenwriter",
+      "body_sha256": "17e938eb1307f54ee2f6ff63a1f4a44a8def80a729cc41e38a8cec053779f54a"
+    },
+    {
+      "operation_id": "b088dceefa7b4e30816429b72ab3c3e4",
+      "status": "COMPLETED",
+      "provider": "llm:screenwriter",
+      "body_sha256": "31a6bde0dd1990c6295abb857b00a3d223b0f5236a39f3e6ab6a4eeca9927654"
+    },
+    {
+      "operation_id": "35bd822a24834d389cca2436086c277c",
+      "status": "COMPLETED",
+      "provider": "llm:screenwriter",
+      "body_sha256": "8a244a6a55515d381fe1e87d35fd9f2dc286eee2d9d44660d448179ea8bf4ac8"
+    },
+    {
+      "operation_id": "00e688d94aa043fb965259e3b946ca16",
+      "status": "COMPLETED",
+      "provider": "llm:screenwriter",
+      "body_sha256": "ae354894edc76fde7f90ee2a7accf1b3dd3e064099c17b845dcdfa79041fc6ee"
+    },
+    {
+      "operation_id": "51292e8e94dd4e4d8afce200c279600c",
+      "status": "COMPLETED",
+      "provider": "llm:materials",
+      "body_sha256": "bdd96b6f0e0ee524adb0933d9bb9a5a87c7971679b2c90339bc1fa4be75e2a25"
+    },
+    {
+      "operation_id": "01423dff24d54faaabf8dfb0f9f49592",
+      "status": "COMPLETED",
+      "provider": "llm:screenwriter",
+      "body_sha256": "8ac82379ed5bc235734fb1c5a22412f01ecf2cf7ff0672bc0fe9088ea01be17e"
+    },
+    {
+      "operation_id": "7411d1353925400ab1b5035c5f6fc173",
+      "status": "COMPLETED",
+      "provider": "llm:screenwriter",
+      "body_sha256": "0d1aefd4c2a77c9cd063917e7e49b3a67a039829d45ce0ed7c51537889a133ab"
+    },
+    {
+      "operation_id": "23ceac81a5e04fcd8b45cb21e0857908",
+      "status": "COMPLETED",
+      "provider": "llm:screenwriter",
+      "body_sha256": "cd376c4e4a52c71018ab0f3b90f51d22a670b603f25c5c8444545eb5a1617882"
+    },
+    {
+      "operation_id": "9feb383537714278a770ec24c2f2928d",
+      "status": "COMPLETED",
+      "provider": "llm:screenwriter",
+      "body_sha256": "f6ad47d246dfdafff39395a205b533172e561c8fd977a6266906141bc5cb4164"
+    },
+    {
+      "operation_id": "1cf819d4b53643f48b7cbc25b1d1ff91",
+      "status": "COMPLETED",
+      "provider": "llm:materials",
+      "body_sha256": "f081fee03f182f415ee6aceb9e974da556dca37a5c0a6b61b4afa5554d1e2a64"
+    },
+    {
+      "operation_id": "515a815f0a5e4baf85e0230e52168023",
+      "status": "UNKNOWN",
+      "provider": "llm:screenwriter",
+      "body_sha256": "f89c4434b910f1dd199d9a00b60d51a27529141432ab0380f091435b6899f635"
+    },
+    {
+      "operation_id": "6c3d212fdbf8441781f50d3a2ae9acfe",
+      "status": "COMPLETED",
+      "provider": "llm:materials",
+      "body_sha256": "148bd7b13b3e3afeb99dc5c16334dcb4f8744e09c4ddb9711bcad8fed94f2847"
+    },
+    {
+      "operation_id": "2013f7e0f2be44a8b6613f2718750429",
+      "status": "UNKNOWN",
+      "provider": "llm:materials",
+      "body_sha256": "a7bbfd9a1a2bbcdfaec0fe913ac946edcad9132bf1e372d8d88759fb7265b14b"
+    },
+    {
+      "operation_id": "c34539df84044a7cb5eb6cbe86c3ff32",
+      "status": "UNKNOWN",
+      "provider": "llm:materials",
+      "body_sha256": "e22b82d0a1bf9f24f424f196ce07872adf24df29d9076c249d7ce8505ae3d640"
+    },
+    {
+      "operation_id": "d936ba4a16014648a6b8c6648070c06e",
+      "status": "COMPLETED",
+      "provider": "llm:screenwriter",
+      "body_sha256": "7558c21616a32519366eec2a7157131594fe4a1f3aa720661f1dea7156ecf1cc"
+    }
+  ],
+  "no_existing_timeline": true
+}
