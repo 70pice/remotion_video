@@ -235,7 +235,7 @@ export const DataAdapter = ({shot}: AdapterProps) => {
           <FittedText text={item.label} width={cardWidth - 68 * unit} height={(cardHeight - 92 * unit) * 0.27}
             fontSize={30 * unit} minFontSize={18 * unit} style={{color: muted}} />
           <FittedText text={item.value} width={cardWidth - 68 * unit} height={(cardHeight - 92 * unit) * (item.detail ? 0.43 : 0.7)}
-            fontSize={96 * unit} minFontSize={24 * unit} lineHeight={1.12} style={{margin: `${12 * unit}px 0`, color: white}} />
+            fontSize={96 * unit} minFontSize={24 * unit} lineHeight={1.12} preferSingleLine style={{margin: `${12 * unit}px 0`, color: white}} />
           {item.detail ? <FittedText text={item.detail} width={cardWidth - 68 * unit} height={(cardHeight - 92 * unit) * 0.3}
             fontSize={28 * unit} minFontSize={18 * unit} style={{fontWeight: 500, color: muted}} /> : null}
         </Card>
