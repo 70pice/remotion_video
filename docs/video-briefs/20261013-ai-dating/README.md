@@ -1,5 +1,11 @@
 # 本次视频制作输入
 
+2026-10-15 00:18 当前为 r11 / NEEDS_INPUT / director。第二轮摄影操作 `a290785969554baab4bb2cebbbcd9c42` 返回 `cli_nonzero_exit`：退出码1、stdout为Claude错误结果、没有response_json，已停为UNKNOWN；约32分钟退出，未触及3600秒上限。当前只读额度查询HTTP200，两项使用比例3%与45%，均有剩余；这不能解释个别调用失败或证明是否计费。本轮新增有效方案和PNG为0，现有17图仍是上一轮被退回的包，没有成片或逐镜确认。
+
+排版共性修复已在独立维护工作区 `D:\remotion_video_text_capacity_20261015` / `maintenance/video-text-capacity-20261015` 整合至 `da5f3c7`：步骤与翻词按真实槽尺寸量测、容量不足明确报错，大数值尽量整行，关键词去重，竖屏PIP按实际卡宽量测。真实浏览器排版回归及全部时间线129项、相关Python119项、类型检查、lint、组件与路径检查、生产入口bundle通过。未把维护代码混进视频分支，也未用其生成本视频的新图；原七段文案、Brief、12件素材/音频文件、前33笔操作及16+17张历史PNG复验保持。
+
+已用修复后的工作区对原权威runtime做严格只读接续预检，批准链和真实音频成立，可复用已证明的r9原16镜候选作为摄影修复底稿。该桥接不是最新17图的逐字段冻结，不保证新方案一字不变，须保留其有效改进并重新逐镜审阅。续跑入口、修复边界与验证见[维护验收及接续准备](photography-text-capacity-maintenance-20261015.md)、[只读接续证明](photography-fixed-capacity-preflight-20261015.json)、[停止后复验](photography-visual-reflow-second-stop-verification-20261015.json)、[当前只读额度](photography-readonly-quota-20261015.json)及[待授权摄影要求](photography-fixed-capacity-recovery-draft-20261015.txt)。针对这笔新UNKNOWN的可能用量确认仍待明确，未启动新revision或新调用。以下为历史时点。
+
 2026-10-14 23:41 当前同r11 / RUNNING / director。上一笔 `7d4cb114779b488190906e66c605cc0f` 已COMPLETED，正常流程生成17张新PNG；监督会话实际打开全部17张，发现仍有标题裁切、重复关键词、同图五幅堆叠、数字单位孤行和充值画面切点问题。本轮全部组件套被移除，也未完成用户对组件套的要求；整包没有通过。依据用户原先的返工要求，经正常摄影 `resume --decision revise` 继续，新操作 `a290785969554baab4bb2cebbbcd9c42` 已SUBMITTING。记录的是监督复核，不是用户已经确认新整包；未成片或发布。
 
 文案、12件视觉素材/音频文件保持，首两镜和收益截图放大、25万元单位、中文结尾的改善要求保留。见[本轮17图实际复核](photography-visual-reflow-second-review-20261014.md)、[集中返工意见](photography-visual-reflow-second-feedback-20261014.txt)与[启动复验](photography-visual-reflow-second-start-verification-20261014.json)。独立维护分支已用真实Remotion DOM复现ProgressSteps/WordFlip溢出，尚未完成共性代码修复或接入。以下为历史时点。

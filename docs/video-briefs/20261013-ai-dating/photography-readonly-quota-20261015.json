@@ -1,0 +1,33 @@
+{
+  "checked_at": "2026-10-14T16:17:35.829041+00:00",
+  "method": "GET",
+  "endpoint": "https://open.bigmodel.cn/api/monitor/usage/quota/limit",
+  "model_generation_requested": false,
+  "http_status": 200,
+  "success": true,
+  "code": 200,
+  "data_field_names": [
+    "level",
+    "limits"
+  ],
+  "quota_metrics": {
+    "limits": [
+      {
+        "type": "CREDIT_LIMIT",
+        "usage": 28000,
+        "currentValue": 891,
+        "remaining": 27108,
+        "percentage": 3,
+        "nextResetTime": 1792004706190
+      },
+      {
+        "type": "CREDIT_LIMIT",
+        "usage": 140000,
+        "currentValue": 64332,
+        "remaining": 75667,
+        "percentage": 45,
+        "nextResetTime": 1792461171982
+      }
+    ]
+  }
+}

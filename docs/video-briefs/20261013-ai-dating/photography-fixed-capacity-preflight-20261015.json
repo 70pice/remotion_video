@@ -1,0 +1,77 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 11,
+  "status": "NEEDS_INPUT",
+  "preflight_success": true,
+  "match": true,
+  "candidate_proof_function": "verify_director_candidate_continuation",
+  "candidate_proof": {
+    "available": true,
+    "operation_id": "f1dcf1682a9c495289753483ce926b03",
+    "source_revision": 9,
+    "operation_fingerprint": "e8cf2ee4dc7e1ee46714a0b25320b56d492e36c85d4c5ba6a56da8bd6100af78",
+    "input_hash": "6adf42221415d14dae856990fe39758068def464e11810891f0829531a307e1b",
+    "model_identity": {
+      "cli_provider": "claude_code_cli",
+      "context_tokens": 1000000,
+      "model": "glm-5.3[1m]",
+      "reasoning_effort": "xhigh"
+    },
+    "business_fingerprint": "e69615846ff28d0ec181c569dd1958d7bfac10870b0b84e0c271bee3370de253",
+    "repair_issues": [
+      "B12.support_3 显示区间不足阅读或超出镜头"
+    ],
+    "shot_count": 16,
+    "unknown_operation_fingerprint": "ec64f351ae4c69b75edf061b2899bcf547caab95615a08c33b73c0f6335e1517"
+  },
+  "candidate_result_manually_edited": false,
+  "new_production_submission": false,
+  "production_revision_changed": false,
+  "execution_command": [
+    "D:\\remotion_video\\.venv\\Scripts\\python.exe",
+    "-B",
+    "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents_director_candidate_continuation_preflight_20261014.py",
+    "--project",
+    "D:\\remotion_video_text_capacity_20261015",
+    "--runtime",
+    "D:\\remotion_video\\.runtime\\videoagents",
+    "--job",
+    "08e74bed03e94c6e903c89f7f2fbea64",
+    "--operation",
+    "f1dcf1682a9c495289753483ce926b03",
+    "--report",
+    "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-director-fixed-capacity-preflight-20261015.json",
+    "--ffprobe",
+    "C:\\Users\\70pic\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BtbN.FFmpeg.LGPL.8.1_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-n8.1.2-21-gce3c09c101-win64-lgpl-8.1\\bin\\ffprobe.exe"
+  ],
+  "source_report": {
+    "path": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-director-fixed-capacity-preflight-20261015.json",
+    "sha256": "73058e8c474af2837808500bbb86e03166b412300d5f6f6651491b799ecfe7a5",
+    "format": "projection_of_original_readonly_report"
+  },
+  "readonly_proof": {
+    "sqlite_mode": "ro",
+    "sqlite_immutable": true,
+    "query_only": true,
+    "logical_unchanged": true,
+    "database_files_unchanged": true,
+    "read_file_count": 750,
+    "read_files_unchanged": true,
+    "guards": {
+      "blocked_write_attempts": 0,
+      "blocked_sql_attempts": 0,
+      "blocked_process_attempts": 0,
+      "blocked_network_attempts": 1,
+      "blocked_model_attempts": 0,
+      "original_settings_internal_calls": 0,
+      "original_repository_constructor_calls": 0,
+      "ffprobe_calls": 3,
+      "captured_model_inputs": 0
+    },
+    "nonsecret_settings_substitute": true,
+    "secret_settings_rows_selected": false,
+    "original_settings_internal_invoked": false,
+    "node_call_invoked": false,
+    "model_or_production_provider_invoked": false
+  }
+}
