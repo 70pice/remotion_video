@@ -1,5 +1,9 @@
 # 本次视频制作输入
 
+2026-10-14 首两镜画面被用户指出硬塞与裁切后，已按实际意见经正常 `resume --decision revise` 退回摄影；当前同r11 / RUNNING / director，新操作 `7d4cb114779b488190906e66c605cc0f` 已提交，仍是Claude Code CLI + `glm-5.3[1m] / xhigh`。要求重做画面编排、容量与信息层级，放大有用素材、减少重复，同时清理其他已见裁切、单位和模板词问题；不把调整理解为全局缩字号。当前还没有新模型回执或新版代表帧，不声称修好。
+
+已亲自查看用户两张红框图。源码证据表明，模型输出镜头配置后由现有Remotion实现渲染；步骤组件没有按实际槽尺寸做文字高度适配，WordFlip字号不考虑长句实际宽度，现有检查缺少出图后的文本溢出检测。该结论不等于共性代码已经修改。实际门回执记录了用户返工、没有整包确认；原Brief、七段文案、12件素材/音频文件、32笔旧操作及16张旧PNG保持。见[真实反馈依据](photography-visual-reflow-request-20261014.json)、[摄影返工要求](photography-visual-reflow-feedback-20261014.txt)、[排版问题代码定位](photography-visual-reflow-diagnosis-20261014.md)、[返工前基线](photography-visual-reflow-baseline-20261014.json)和[正式启动复验](photography-visual-reflow-start-verification-20261014.json)。以下为历史时点，旧包仍是被退回的初稿。
+
 2026-10-14 本轮交付为 revision 11 / NEEDS_HUMAN / director：摄影正常输入返工操作 `41f5616c3ea84ec1b63972b42880a02f` 已COMPLETED，生成有效16镜timeline和16张实际Remotion PNG，均1080×1920；原七段文案、11件视觉素材与真实配音保留，原12件文件SHA和前28笔操作复验未变。实际采用A02、A07、B03、B11、B12五套组件，其余镜头采用现有单组件，不能称全部16镜都用了组件套。见[生产出图复验](production-r11-validated-rendering-verification.json)和[真实逐镜包](production-r11-shot-pack.json)。
 
 正常 `sync-review` 后已逐行读回[飞书逐镜审核表](https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tbld1dGlTS2AELat)：16条记录代表帧均非空、文件名与字节大小匹配实际PNG。第一镜有一份监督诊断追加的同名副本，其余各一份，合计17份附件对应16张唯一图片；没有把副本计成新镜头。当前[审核记录](https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblNZJtNYx6gV6VG) `reczz28NK1T3WWAT`、token `557958d114ed32e1117e04f7b1d06d34` 仍是逐镜/待审/意见空。未poll、未改人审结论、未启动成片或发布。
