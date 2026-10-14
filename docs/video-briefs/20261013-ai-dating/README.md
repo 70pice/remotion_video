@@ -2,6 +2,8 @@
 
 本目录保存监督会话的制作要求、执行记录与正式节点口播的审核副本；副本不替代引擎登记产物，也不构成人审通过。
 
+2026-10-14 后续素材审核：用户明确低画质不采用、两张图片可保留。已通过正式 `select-materials` CLI 在 revision 5 记录部分取舍，5段480×270视频退出当前制作素材池；可用资产仅剩1000×2222、1000×991两张PNG。原件保留为历史，飞书7条素材的「采纳状态」「采纳意见」均已读回：2条保留、5条不采用。原文案文件及内容不变，已有文案批准仍有效，13条外部操作台账完全不变；没有新模型、配音、摄影或剪辑提交。联合门继续待审，新待办为 `06c9dc6bd8f5f78f549ac3b4ee2a699f`。后续仅采用原生高清、关键文字与收费信息在手机画面清楚的中国素材。详见[用户取舍依据](materials-selection-request.json)、[正式执行复验](materials-selection-verification.json)、[飞书读回](materials-selection-feishu.json)及[本轮审核说明](materials-selection-review-requirements.txt)。维护回归124项通过，合入后选择27项与飞书23项再次通过；原件附件曾被旧同步重复上传，防重复修复后正常再次同步数量保持14份（对应7个唯一文件），没有删除历史附件。
+
 用户否决普通社交素材后，本轮已通过正式素材单独恢复入口完成 revision 5：Codex `gpt-6.1-sol / xhigh` 操作 `6c3d212fdbf8441781f50d3a2ae9acfe` 已 COMPLETED，登记5段视频（合计80秒）、2张图片及3份来源正文，聚焦聊天不足/充值、钻石购买、视频计价与付款、真人身份包装、系统招呼。7个附件已在[飞书素材清单](https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblVOUHrIy3Tq3uh)回读，名称与字节大小匹配登记文件。原七段文案散列未改，新版没有调用编剧；旧 UNKNOWN 和用户否决的14件历史候选保留。任务停在 NEEDS_HUMAN / 文案与素材审核，未配音、摄影或剪辑。五段视频均480×270，部分收费小字清晰度不足；涉案AI自主聊天、三候选回复及预录顶替等真实中文画面仍有缺口，详见[审计说明](materials-restart-review-requirements.txt)、[文件复验](materials-restart-verification.json)、[飞书回读](materials-restart-feishu.json)。[新采集要求](materials-restart-requirements.md)与[本次授权](materials-restart-authorization.json)保留执行依据。下面保留上一轮及早期记录。
 
 2026-10-14 用户要求先审计当前素材。已完成七段覆盖与逐件视觉审计，录入[飞书「素材审计」表](https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblFTK4SmOqXoJkf&view=vewytLjHOv)：23条审计记录、14件原候选及附加联系表/代表帧共18个附件均已回读确认。结论是中文场景已有基础，仍缺真实充值购买页、实际私聊输入框；2段录屏清晰度及原字幕有局限。完整结论见[素材审计报告](materials-audit.md)与[录入验证](materials-audit-feishu.json)。本轮未重新提交生产模型、未登记素材、未通过后续人工门。

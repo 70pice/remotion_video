@@ -1,0 +1,75 @@
+{
+  "base_token": "FiiebSriRaMxe3s56nSciW27nle",
+  "asset_table": "tblVOUHrIy3Tq3uh",
+  "asset_rows": [
+    {
+      "asset_id": "0b61255194854094b26a4a2565504352",
+      "record_id": "reczz28N4y4njard",
+      "adoption_status": "保留",
+      "attachments": 2,
+      "unique_file_names": 1,
+      "all_name_bytes_match": true
+    },
+    {
+      "asset_id": "b611b6b73f0f42f6b8ecf01248fcb65d",
+      "record_id": "reczz28N4y4nlMYW",
+      "adoption_status": "保留",
+      "attachments": 2,
+      "unique_file_names": 1,
+      "all_name_bytes_match": true
+    },
+    {
+      "asset_id": "90ecf00fd84b45cc88c119240f5166ae",
+      "record_id": "reczz28N4y4nlIj0",
+      "adoption_status": "不采用",
+      "attachments": 2,
+      "unique_file_names": 1,
+      "all_name_bytes_match": true
+    },
+    {
+      "asset_id": "5276921d764a4813b343c68f54c7f225",
+      "record_id": "reczz28N4y4nl86n",
+      "adoption_status": "不采用",
+      "attachments": 2,
+      "unique_file_names": 1,
+      "all_name_bytes_match": true
+    },
+    {
+      "asset_id": "7fb4388b7ceb467f84c79b60f5c0edc9",
+      "record_id": "reczz28N4y4nmDAb",
+      "adoption_status": "不采用",
+      "attachments": 2,
+      "unique_file_names": 1,
+      "all_name_bytes_match": true
+    },
+    {
+      "asset_id": "7e5e731b10534335a46cd40d197cf2f9",
+      "record_id": "reczz28N4y4nly3N",
+      "adoption_status": "不采用",
+      "attachments": 2,
+      "unique_file_names": 1,
+      "all_name_bytes_match": true
+    },
+    {
+      "asset_id": "a663551d7662451ca858552113f637a3",
+      "record_id": "reczz28N4y4nilGZ",
+      "adoption_status": "不采用",
+      "attachments": 2,
+      "unique_file_names": 1,
+      "all_name_bytes_match": true
+    }
+  ],
+  "attachment_count": 14,
+  "unique_material_files": 7,
+  "attachment_note": "旧门首次恢复曾将7个原附件各重传一次，现14附件对应7个同名同大小文件；原附件未删除。已修复所有素材同步仅补缺失附件，正常sync-review再次同步后附件数量未增加。",
+  "review_table": "tblNZJtNYx6gV6VG",
+  "current_review_record": "reczz28N5Sbybhd7",
+  "pending_token": "06c9dc6bd8f5f78f549ac3b4ee2a699f",
+  "decision": "待审",
+  "old_feedback_preserved": true,
+  "old_review_partial_description_present": true,
+  "quality_requirements_written": true,
+  "repeated_normal_sync_attachment_count_unchanged": true,
+  "attachment_sync_fix_commit": "b8667e3",
+  "quality_requirements_exact_readback_matches": true
+}

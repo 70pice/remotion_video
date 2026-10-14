@@ -1,0 +1,79 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 5,
+  "status": "NEEDS_HUMAN",
+  "pending_token": "06c9dc6bd8f5f78f549ac3b4ee2a699f",
+  "selection_command_id": "f98cfdf6760d4300918ece8083b67147",
+  "selection_command_status": "DONE",
+  "accepted_asset_ids": [
+    "0b61255194854094b26a4a2565504352",
+    "b611b6b73f0f42f6b8ecf01248fcb65d"
+  ],
+  "rejected_asset_ids": [
+    "90ecf00fd84b45cc88c119240f5166ae",
+    "5276921d764a4813b343c68f54c7f225",
+    "7fb4388b7ceb467f84c79b60f5c0edc9",
+    "7e5e731b10534335a46cd40d197cf2f9",
+    "a663551d7662451ca858552113f637a3"
+  ],
+  "active_asset_count": 2,
+  "script_unchanged": true,
+  "script_sha256": "5d7aeb49fd9e63a479220f212d773fc011d11251a45c63830369d0955981968d",
+  "script_before_materials_is_approved": true,
+  "operation_ledger_unchanged": true,
+  "operation_count": 13,
+  "no_new_provider_submission": true,
+  "timeline": null,
+  "files": [
+    {
+      "asset_id": "90ecf00fd84b45cc88c119240f5166ae",
+      "retained": true,
+      "sha256_matches": true,
+      "selected": false
+    },
+    {
+      "asset_id": "5276921d764a4813b343c68f54c7f225",
+      "retained": true,
+      "sha256_matches": true,
+      "selected": false
+    },
+    {
+      "asset_id": "0b61255194854094b26a4a2565504352",
+      "retained": true,
+      "sha256_matches": true,
+      "selected": true
+    },
+    {
+      "asset_id": "7fb4388b7ceb467f84c79b60f5c0edc9",
+      "retained": true,
+      "sha256_matches": true,
+      "selected": false
+    },
+    {
+      "asset_id": "7e5e731b10534335a46cd40d197cf2f9",
+      "retained": true,
+      "sha256_matches": true,
+      "selected": false
+    },
+    {
+      "asset_id": "b611b6b73f0f42f6b8ecf01248fcb65d",
+      "retained": true,
+      "sha256_matches": true,
+      "selected": true
+    },
+    {
+      "asset_id": "a663551d7662451ca858552113f637a3",
+      "retained": true,
+      "sha256_matches": true,
+      "selected": false
+    }
+  ],
+  "maintenance_commit": "a521977",
+  "fresh_selection_tests": "27 passed",
+  "maintenance_targeted_tests": "124 passed",
+  "maintenance_commits": [
+    "a521977",
+    "b8667e3"
+  ],
+  "fresh_feishu_tests": "23 passed"
+}
