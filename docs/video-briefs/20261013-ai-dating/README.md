@@ -1,5 +1,9 @@
 # 本次视频制作输入
 
+2026-10-14 20:50 摄影接续修复已合入 `d766247`：此前摄影独立恢复保留了文案、素材和配音，却没有把旧16镜候选跨版本带入新的摄影请求。现在通过原请求输入指纹、同任务批准链、上游文件与模型配置证明来源，再把旧方案作为修复底稿交给正常摄影节点。根会话已复核代码；维护相关回归291项、最终新增24项通过，合入后新增24项再次通过（59.21秒），Ruff、编译、契约、TypeScript、lint与Remotion bundle通过。bundle只验证代码，未渲染实际镜头或视频。
+
+对实际任务的严格只读预检已确认 revision 9 原COMPLETED操作的16镜可接续，原 input_hash 精确匹配，已发现第2镜 B12.support_3 阅读时长问题；这不是有效 timeline，也不表示其余镜头已全部校验通过。旧Claude CLI没有持久化会话可续传；本修复延续引擎保存的阶段方案，未解决上次供应商非零退出的未知根因。当前仍为 revision 10 / NEEDS_INPUT / director，操作 `3e16804dab4444beaee599634f0bea95` UNKNOWN，原输入、12件文件与前27笔操作保持，实际PNG和完整视频为0。用户“你能继续吗而不是重头做”用于本地接续修护，未据此再次提交模型。下一次只续修摄影，并先逐镜出图；针对本笔UNKNOWN的新用量授权仍待明确。见[本次接续要求](photography-continuation-request.json)、[实际只读证明](production-r10-candidate-continuation-preflight.json)、[修复与验证](production-r10-candidate-continuation-maintenance.json)、[合入后产线复验](production-r10-after-candidate-continuation-verification.json)及[待授权摄影要求](photography-r11-recovery-requirements.txt)。以下为历史时点。
+
 2026-10-14 19:52 最新为 revision 10 / NEEDS_INPUT / director：本次仅摄影提交 `3e16804dab4444beaee599634f0bea95` 在约29分钟后以 `cli_nonzero_exit` 停为 UNKNOWN，未超过3600秒等待上限。stderr仅有模型提示；未保存具体退出码或stdout错误结果，没有登记可恢复方案，对应无会话持久化目录为0文件。因此不能判断具体供应商失败原因、模型拒绝或计费。19:42官方只读额度查询返回HTTP200，两项有剩余（4%/45%已用），只能说明查询时未耗尽，不能解释个别请求失败。原Brief、七段文案、11件视觉素材和真实配音及前27笔操作保持；实际timeline、逐镜PNG、当前版本完整视频仍为0。
 
 通用CLI安全失败诊断已由独立维护工作区以 `755a6db` 合入，根会话独立复核后新鲜验证174项回归通过（17.87秒），Ruff、Python编译、契约导出、TypeScript、lint与diff检查通过。此次修复仅保留后续失败的退出码和白名单输出形态，不保存错误原文或凭据，不回写旧UNKNOWN、不重放提交；本次供应商失败根因仍未知。合入后只读复验确认原输入、12件文件及前27笔操作保持，r10 UNKNOWN完整指纹未变。已准备针对新操作的待授权摄影要求；按项目恢复规则，下一次新提交须针对本次新UNKNOWN明确授权。见[停止实录](production-r10-photography-stop.json)、[停止后复验](production-r10-photography-stop-verification.json)、[只读额度](production-r10-readonly-quota.json)、[修护与验证](production-r10-cli-diagnostics-maintenance.json)、[合入后只读复验](production-r10-after-diagnostics-verification.json)、[待授权恢复要求](photography-r11-recovery-requirements.txt)。以下为历史时点。

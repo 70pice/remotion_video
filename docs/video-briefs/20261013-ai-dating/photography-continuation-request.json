@@ -1,0 +1,43 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "current_revision": 10,
+  "current_operation_id": "3e16804dab4444beaee599634f0bea95",
+  "current_operation_status": "UNKNOWN",
+  "user": "沈佳冰",
+  "quoted_message_id": "om_x100b63c2bdd19ca4df8c9d94f84e55a",
+  "user_request": "你能继续吗而不是重头做",
+  "authorized_local_scope": "Verify preservation and repair the generic continuation bridge in an isolated maintenance worktree. No model calls or production-state edits.",
+  "new_provider_attempt_authorized_by_this_question": false,
+  "original_completed_candidate": {
+    "operation_id": "f1dcf1682a9c495289753483ce926b03",
+    "revision": 9,
+    "status_verified": "COMPLETED",
+    "saved_shot_count_verified": 16,
+    "body_sha256_verified": "83fd3647681c47c16c0c5e022e239a210e7d9ba83cb1c6cf9d7e5f139b1c5438",
+    "input_hash": "6adf42221415d14dae856990fe39758068def464e11810891f0829531a307e1b",
+    "is_validated_timeline": false,
+    "known_remaining_issue": "Shot 2: B12.support_3 has insufficient reading time or crosses the shot boundary.",
+    "candidate_bridge_eligibility_verified": true
+  },
+  "preservation_baseline": "production-r10-before-candidate-continuation-verification.json",
+  "approved_script_segments": 7,
+  "retained_visual_assets": 11,
+  "retained_real_audio_assets": 1,
+  "completed_candidate_will_not_be_manually_edited": true,
+  "continuation_requirements": [
+    "Continue the same video from photography; keep approved script, selected assets, real audio, alignment and approval provenance.",
+    "Use a provably matching completed candidate as the repair baseline rather than an empty plan.",
+    "Describe the affected shot and preserve unaffected shots; normal production validation still applies.",
+    "Reject cross-job, stale, altered or unproven candidate inputs.",
+    "Keep old UNKNOWN operations and the current duplicate-submission barrier unchanged.",
+    "Render every real shot PNG for whole-pack human review before producing the full video."
+  ],
+  "failed_cli_session_resumable": false,
+  "failed_cli_session_observation": "No persisted JSONL session files or complete result were found for the r10 CLI process. A completed candidate in the application ledger is distinct from a resumable CLI session.",
+  "shot_review_frames": 0,
+  "complete_video_rendered_this_revision": false,
+  "shot_gate_confirmed": false,
+  "production_resubmitted": false,
+  "candidate_continuation_proof": "production-r10-candidate-continuation-preflight.json",
+  "integrated_maintenance_commit": "d766247"
+}
