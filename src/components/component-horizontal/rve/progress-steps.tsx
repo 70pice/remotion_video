@@ -13,7 +13,8 @@
 
 "use client";
 
-import { useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
+import {useEffect, useState} from "react";
+import { useCurrentFrame, interpolate, spring, useVideoConfig, cancelRender, continueRender, delayRender } from "remotion";
 
 export interface ProgressStepsProps {
   steps?: string[];
@@ -25,16 +26,85 @@ export interface ProgressStepsProps {
   fontFamily?: string;
   compactBox?: boolean;
   compactSpacing?: boolean;
+  slotWidth?: number;
+  slotHeight?: number;
 }
 
-export default function ProgressSteps({
+export default function ProgressSteps(props: ProgressStepsProps = {}) {
+  const key = props.productionCompact ? JSON.stringify([props.steps, props.title, props.fontFamily,
+    props.slotWidth, props.slotHeight, props.layout, props.compactBox]) : undefined;
+  return <ProgressStepsContent key={key} {...props} />;
+}
+
+function ProgressStepsContent({
   steps = ["Research", "Design", "Build", "Launch"],
-  title = "Project Timeline", secondsPerStep = 0.8, layout = "default", productionCompact = false, largeCopy = false, fontFamily, compactBox = false, compactSpacing = false,
+  title = "Project Timeline", secondsPerStep = 0.8, layout = "default", productionCompact = false, largeCopy = false, fontFamily, compactBox = false, compactSpacing = false, slotWidth, slotHeight,
 }: ProgressStepsProps = {}) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const portrait = layout === "portrait";
   const compactPortrait = portrait && productionCompact;
+  const slotCompact = compactPortrait && compactBox && slotWidth !== undefined && slotHeight !== undefined;
+  const [handle] = useState(() => slotCompact ? delayRender("progress-steps: measuring production slot") : null);
+  const [fit, setFit] = useState<{fontSize: number; heights: number[]; titleHeight: number} | null>(null);
+  const [fitError, setFitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!slotCompact || handle === null || fit) return;
+    let cancelled = false;
+    const measure = async () => {
+      await document.fonts.ready;
+      if (cancelled) return;
+      if (!Number.isFinite(slotWidth + slotHeight) || slotWidth <= 0 || slotHeight <= 0 || steps.length < 1 || steps.length > 4) {
+        throw new Error("ProgressSteps production layout requires positive finite slot dimensions and one to four steps.");
+      }
+      if (slotWidth <= 2 + 36 + 44 + 16) {
+        throw new Error(`ProgressSteps production slot ${Math.round(slotWidth)}x${Math.round(slotHeight)} cannot fit the step marker and readable labels. Increase this slot.`);
+      }
+      const probe = document.createElement("div");
+      Object.assign(probe.style, {position: "fixed", left: "-10000px", top: "0", visibility: "hidden",
+        fontFamily: fontFamily || "Inter, sans-serif", fontWeight: "600", lineHeight: "1.35",
+        whiteSpace: "normal", textWrap: "balance"});
+      document.body.append(probe);
+      try {
+        // 34px at a 1080px canvas is the minimum for these supporting labels.
+        // Two lines per step keeps the list scannable on a phone.
+        for (const size of [40, 38, 36, 34]) {
+          probe.style.fontSize = `${size}px`;
+          const read = (text: string, width: number, weight = "600") => {
+            probe.style.width = `${width}px`;
+            probe.style.fontWeight = weight;
+            probe.textContent = text;
+            const range = document.createRange();
+            range.selectNodeContents(probe);
+            const rects = Array.from(range.getClientRects());
+            const box = probe.getBoundingClientRect();
+            return {height: Math.max(box.height, range.getBoundingClientRect().height),
+              fits: rects.length <= 2 && rects.every((rect) => rect.left >= box.left - 0.5 && rect.right <= box.right + 0.5)};
+          };
+          const labels = steps.map((text) => read(text, slotWidth - 2 - 36 - 44 - 16));
+          const heading = title ? read(title, slotWidth - 2 - 36, "700") : {height: 0, fits: true};
+          const heights = labels.map((label) => Math.max(44 * 1.05, label.height));
+          const total = heights.reduce((sum, height) => sum + height, 0) + Math.max(0, steps.length - 1) * 8
+            + (title ? heading.height + 8 : 0) + 16;
+          if (heading.fits && labels.every((label) => label.fits) && total <= slotHeight - 2) {
+            setFit({fontSize: size, heights, titleHeight: heading.height});
+            return;
+          }
+        }
+        throw new Error(`ProgressSteps production slot ${Math.round(slotWidth)}x${Math.round(slotHeight)} cannot fit ${steps.length} steps at 34px with at most two lines per step. Increase this slot or split the steps.`);
+      } finally {
+        probe.remove();
+      }
+    };
+    measure().catch((error: Error) => {
+      if (!cancelled) {setFitError(error.message); cancelRender(error);}
+    });
+    return () => {cancelled = true; continueRender(handle);};
+  }, [slotCompact, handle, slotWidth, slotHeight, steps, title, fontFamily, fit]);
+
+  useEffect(() => {if (fit && handle !== null) continueRender(handle);}, [fit, handle]);
+  if (fitError) throw new Error(fitError);
 
   const framesPerStep = Math.max(1, Math.floor(fps * secondsPerStep));
 
@@ -48,23 +118,31 @@ export default function ProgressSteps({
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        overflow: "hidden",
+        overflow: slotCompact ? "visible" : "hidden",
+        boxSizing: slotCompact ? "border-box" : undefined,
+        padding: slotCompact ? "8px 0" : undefined,
+        visibility: slotCompact && !fit ? "hidden" : undefined,
         fontFamily: fontFamily || "Inter, sans-serif",
       }}
     >
-      <h2
+      {(!slotCompact || title) && <h2
         style={{
           color: "white",
-          fontSize: compactBox ? "2.4rem" : compactPortrait ? "3.2rem" : portrait ? "5.2rem" : "2rem",
+          fontSize: slotCompact ? fit?.fontSize : compactBox ? "2.4rem" : compactPortrait ? "3.2rem" : portrait ? "5.2rem" : "2rem",
+          height: slotCompact ? fit?.titleHeight : undefined,
+          width: slotCompact ? "calc(100% - 36px)" : undefined,
+          textWrap: slotCompact ? "balance" : undefined,
+          flexShrink: slotCompact ? 0 : undefined,
+          lineHeight: slotCompact ? 1.35 : undefined,
           fontWeight: "bold",
           marginBottom: compactBox ? "18px" : compactPortrait ? "36px" : portrait ? "80px" : "60px",
           margin: 0,
           marginTop: 0,
-          paddingBottom: compactBox ? "14px" : compactPortrait ? "28px" : "60px",
+          paddingBottom: slotCompact ? "8px" : compactBox ? "14px" : compactPortrait ? "28px" : "60px",
         }}
       >
         {title}
-      </h2>
+      </h2>}
 
       <div
         style={{
@@ -75,6 +153,7 @@ export default function ProgressSteps({
           gap: "0px",
           position: "relative",
           width: compactBox ? "100%" : undefined,
+          flexShrink: slotCompact ? 0 : undefined,
         }}
       >
         {steps.map((label, i) => {
@@ -99,7 +178,8 @@ export default function ProgressSteps({
               })
             : 1;
 
-          const circleScale = isActive ? 0.9 + pulse * 0.2 : isComplete ? 1.1 : 1;
+          const circleScale = slotCompact ? Math.min(1.05, isActive ? 0.9 + pulse * 0.2 : 1)
+            : isActive ? 0.9 + pulse * 0.2 : isComplete ? 1.1 : 1;
 
           const lineProgress =
             i < steps.length - 1
@@ -122,14 +202,17 @@ export default function ProgressSteps({
                   flexDirection: portrait ? "row" : "column",
                   alignItems: "center",
                   width: compactBox ? "100%" : compactPortrait ? "720px" : portrait ? "280px" : "80px",
-                  padding: compactBox ? "0 26px" : undefined,
+                  padding: slotCompact ? "0 18px" : compactBox ? "0 26px" : undefined,
                   boxSizing: compactBox ? "border-box" : undefined,
+                  height: slotCompact ? fit?.heights[i] : undefined,
                 }}
               >
                 <div
+                  data-progress-step-circle={i}
                   style={{
-                    width: compactBox ? compactSpacing ? "60px" : "68px" : compactPortrait ? "86px" : portrait ? "130px" : "48px",
-                    height: compactBox ? compactSpacing ? "60px" : "68px" : compactPortrait ? "86px" : portrait ? "130px" : "48px",
+                    width: slotCompact ? "44px" : compactBox ? compactSpacing ? "60px" : "68px" : compactPortrait ? "86px" : portrait ? "130px" : "48px",
+                    height: slotCompact ? "44px" : compactBox ? compactSpacing ? "60px" : "68px" : compactPortrait ? "86px" : portrait ? "130px" : "48px",
+                    boxSizing: slotCompact ? "border-box" : undefined,
                     flexShrink: compactBox ? 0 : undefined,
                     borderRadius: "50%",
                     border: `3px solid ${highlighted ? "#3b82f6" : "#4b5563"}`,
@@ -154,12 +237,14 @@ export default function ProgressSteps({
                   </span>
                 </div>
                 <span
+                  data-progress-step-label={i}
                   style={{
                     color: largeCopy ? "white" : fillProgress > 0 ? "#93c5fd" : "#6b7280",
-                    fontSize: compactBox ? "2.45rem" : largeCopy ? "3rem" : compactPortrait ? "2.1rem" : portrait ? "3rem" : "0.8rem",
-                    fontWeight: "500",
+                    fontSize: slotCompact ? fit?.fontSize : compactBox ? "2.45rem" : largeCopy ? "3rem" : compactPortrait ? "2.1rem" : portrait ? "3rem" : "0.8rem",
+                    lineHeight: slotCompact ? 1.35 : undefined,
+                    fontWeight: slotCompact ? "600" : "500",
                     marginTop: compactPortrait ? 0 : "10px",
-                    marginLeft: compactBox ? "22px" : compactPortrait ? "28px" : undefined,
+                    marginLeft: slotCompact ? "16px" : compactBox ? "22px" : compactPortrait ? "28px" : undefined,
                     maxWidth: compactBox ? undefined : compactPortrait ? "590px" : undefined,
                     flex: compactBox ? 1 : undefined,
                     minWidth: compactBox ? 0 : undefined,
@@ -176,7 +261,7 @@ export default function ProgressSteps({
                 <div
                   style={{
                     width: portrait ? "4px" : "80px",
-                    height: compactBox ? compactSpacing ? "22px" : "52px" : compactPortrait ? "62px" : portrait ? "150px" : "3px",
+                    height: slotCompact ? "8px" : compactBox ? compactSpacing ? "22px" : "52px" : compactPortrait ? "62px" : portrait ? "150px" : "3px",
                     background: "#374151",
                     borderRadius: "2px",
                     position: "relative",
