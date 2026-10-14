@@ -89,8 +89,9 @@ class FakeLark:
             table = arguments[arguments.index("--table-id") + 1].removeprefix("tbl_")
             rid = arguments[arguments.index("--record-id") + 1]
             path = arguments[arguments.index("--file") + 1]
+            field = arguments[arguments.index("--field-id") + 1]
             row = next(r for r in self.tables[table] if r["record_id"] == rid)
-            row["fields"].setdefault("附件", []).append(path)
+            row["fields"].setdefault(field, []).append(path)
             return {"data": {}}
         raise AssertionError(f"unexpected lark-cli call: {joined}")
 
@@ -219,6 +220,11 @@ def test_partial_material_selection_keeps_records_attachments_and_human_opinions
     # An older Base has no selection schema; migrate only these text fields.
     lark.fields["素材清单"] = [field for field in lark.fields["素材清单"]
                               if field["name"] not in {"采纳状态", "采纳意见"}]
+    lark.calls.clear()
+    # Resuming the joint gate syncs the old question before the partial
+    # decision exists. This sync must also preserve all existing files.
+    base.sync_script_and_assets(job)
+    assert not any("+record-upload-attachment" in call for call in lark.calls)
     request = MaterialSelectionRequest(base_revision=job.revision, pending_token=pending["pending_token"],
         idempotency_key="UNIT-selection", note="清晰图片保留，低画质不采用；整包仍待审。",
         accepted_asset_ids=[assets[0].asset_id], rejected_asset_ids=[assets[1].asset_id])
@@ -248,6 +254,49 @@ def test_partial_material_selection_keeps_records_attachments_and_human_opinions
     assert base.poll_decision(current, next_pending["pending_token"]) is None
     assert rows[0]["fields"]["用户自建字段"] == "保留"
     assert not any("+record-delete" in call for call in lark.calls)
+
+
+@pytest.mark.parametrize("missing", ["absent", "empty"])
+def test_normal_material_sync_preserves_files_and_only_fills_missing_attachments(lark, tmp_path, job, missing):
+    from videoagents.contracts import Asset
+    from videoagents.services.jobs import JobService
+
+    repo = Repository(tmp_path / "runtime")
+    assets = []
+    for index in range(2):
+        path = repo.root / "jobs" / job.job_id / f"unit-image-{index}.png"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(f"UNIT-{index}".encode())
+        artifact = JobService(repo).register_artifact(job, path, "asset", "image/png")
+        assets.append(Asset(asset_id=f"{index:08x}-unit-asset", name=path.name, role="evidence",
+            mime_type="image/png", size_bytes=artifact.size_bytes, sha256=artifact.sha256,
+            artifact_id=artifact.artifact_id, url=artifact.url, timeline_src=f"videoagents/{job.job_id}/assets/{path.name}"))
+    job = repo.update_job(job.job_id, assets=assets)
+    base = FeishuReviewBase(repo, "fld123")
+    base.sync_script_and_assets(job)
+    rows = lark.tables["素材清单"]
+    record_ids = [row["record_id"] for row in rows]
+    original_files = [list(row["fields"]["文件"]) for row in rows]
+    assert all(len(files) == 1 for files in original_files)
+    lark.calls.clear()
+    base.sync_script_and_assets(job)
+    base.sync_script_and_assets(job)
+    assert not any("+record-upload-attachment" in call for call in lark.calls)
+    assert [row["fields"]["文件"] for row in rows] == original_files
+    if missing == "absent":
+        rows[1]["fields"].pop("文件")
+    else:
+        rows[1]["fields"]["文件"] = []
+    lark.calls.clear()
+    base.sync_script_and_assets(job)
+    uploads = [call for call in lark.calls if "+record-upload-attachment" in call]
+    assert len(uploads) == 1
+    assert uploads[0][uploads[0].index("--record-id") + 1] == record_ids[1]
+    assert [row["fields"]["文件"] for row in rows] == original_files
+    assert [row["record_id"] for row in rows] == record_ids
+    lark.calls.clear()
+    base.sync_script_and_assets(job)
+    assert not any("+record-upload-attachment" in call or "+record-delete" in call for call in lark.calls)
 
 
 def test_script_sync_keeps_removed_and_manual_rows_and_adds_feedback_field_once(lark, tmp_path, job):

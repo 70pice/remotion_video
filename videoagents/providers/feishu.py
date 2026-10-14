@@ -348,7 +348,7 @@ class FeishuReviewBase:
             if path:
                 attachments[key] = str(path)
         self._rewrite_table(token, ASSETS_TABLE, "素材ID", asset_rows, attachments, "文件",
-                            preserve_attachments=bool(selections))
+                            preserve_attachments=True)
         if selections:
             table_id = self._table_id(token, REVIEW_TABLE)
             review_rows = {_plain(row.get("fields", {}).get("待办令牌")): row
