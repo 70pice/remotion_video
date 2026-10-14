@@ -203,6 +203,8 @@ class JobService:
                     raise ValueError("文案包含不属于此任务的素材")
             job.script = request.script.model_copy(update={"revision": new_revision})
         if request.timeline:
+            from videoagents.services.context_media import approved_context_sources
+
             metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
             timeline = request.timeline
             if any(shot.set_design for shot in timeline.shots):
@@ -211,7 +213,8 @@ class JobService:
                 timeline = timeline.model_copy(update={
                     "shots": resolve_component_set_shots(timeline.shots, job.assets, metadata),
                 })
-            validate_timeline(timeline, job, metadata)
+            validate_timeline(timeline, job, metadata,
+                              approved_context_sources=approved_context_sources(self.repo, job, timeline))
             job.timeline = timeline.model_copy(update={"revision": new_revision})
         else:
             job.timeline = None

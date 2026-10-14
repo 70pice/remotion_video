@@ -18,6 +18,7 @@ from videoagents.nodes.director_review import (
 from videoagents.nodes.editing import EditingNode
 from videoagents.nodes.reviewers import dependency_fingerprint
 from videoagents.providers.llm import CapabilityMissing
+from videoagents.services.context_media import approved_context_sources
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.state import VideoState
@@ -74,7 +75,8 @@ class DirectorDemoNode:
         plan_artifact, plan = current_plan_artifact(self.repo, job)
         validate_context_assets(self.repo, job)
         metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
-        validate_timeline(job.timeline, job, metadata)
+        validate_timeline(job.timeline, job, metadata,
+                          approved_context_sources=approved_context_sources(self.repo, job, job.timeline))
         for asset in job.assets:
             self.service.freeze_asset(asset)
         folder = self.repo.root / "jobs" / job.job_id / "revisions" / str(job.revision) / "shot-reviews" / uuid.uuid4().hex

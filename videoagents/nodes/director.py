@@ -23,6 +23,7 @@ from videoagents.nodes.common import (
 from videoagents.nodes.gates import timeline_readability_issues
 from videoagents.prompts import render as render_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
+from videoagents.services.context_media import approved_context_sources
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState
 from videoagents.storage import Repository
@@ -597,7 +598,8 @@ class DirectorNode:
         if feedback and not model_available:
             raise CapabilityMissing("人工返工需要摄影模型读取审核意见并重新规划镜头；请启用摄影模型或提供新的人工分镜", ["role_models", "timeline"])
         if job.timeline and not feedback and not rebuilding:
-            validate_timeline(job.timeline, job, asset_metadata)
+            validate_timeline(job.timeline, job, asset_metadata,
+                              approved_context_sources=approved_context_sources(self.repo, job, job.timeline))
             expected = [(item.text, item.start_ms, item.end_ms) for item in alignment.segments]
             actual = [(item.text, item.start_ms, item.end_ms) for item in job.timeline.captions]
             if expected != actual or job.timeline.audio_src != audio.timeline_src:
@@ -700,6 +702,7 @@ class DirectorNode:
                 job,
                 asset_metadata,
                 validate_relationships=False,
+                approved_context_sources=approved_context_sources(self.repo, job, planning_timeline),
             )
             model_state = {**context, "timeline": planning_timeline.model_dump(),
                            # 音频对齐已在 timeline.captions 提供，避免在素材元信息中重复发送。
@@ -749,12 +752,13 @@ class DirectorNode:
             # 字幕、画幅和总帧数保持程序实测值，连续覆盖由 Timeline 校验。
             resolved_shots = resolve_component_set_shots(plan.shots, job.assets, asset_metadata)
             timeline = Timeline.model_validate({**timeline.model_dump(), "shots": [shot.model_dump() for shot in resolved_shots]})
-        validate_timeline(timeline, job, asset_metadata)
+        context_sources = approved_context_sources(self.repo, job, timeline)
+        validate_timeline(timeline, job, asset_metadata, approved_context_sources=context_sources)
         issues = timeline_readability_issues(timeline) if production_portrait(job) else []
         if issues:
             raise ValueError("；".join(issues))
         if model_available:
-            validate_media_coverage(timeline, job, asset_metadata)
+            validate_media_coverage(timeline, job, asset_metadata, approved_context_sources=context_sources)
         validate_component_requirements(timeline, job.brief.usage, required_components)
         self._last_director_plan = _performance_payload(
             "model" if model_available and model_segment_performances is not None and model_shot_reviews is not None

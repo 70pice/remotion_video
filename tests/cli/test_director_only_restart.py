@@ -38,6 +38,7 @@ from videoagents.storage import Conflict, Repository
 from videoagents.storage.repository import fingerprint
 
 SOURCE = "https://example.org/unit-photography-source"
+CONTEXT_SOURCE = "https://context.example/unit-similar-product"
 NOTE = "用户接受上次摄影提交可能已有用量，授权新尝试；保留文案与音频，组件套补真实画面缺口并标示示意。"
 REAL_DIRECTOR_PLAN = DirectorNode.plan
 REAL_VOICE_PREPARE = VoiceNode.prepare_audio
@@ -130,20 +131,37 @@ def photography_unknown(tmp_path, monkeypatch, capsys, request):
             path = folder / f"visual-{index}.png"
             path.write_bytes(png())
             artifact = service.register_artifact(current, path, "asset", "image/png")
+            visual_source = CONTEXT_SOURCE if variant.startswith("context") and index != 1 else SOURCE
             asset = Asset(asset_id=f"UNIT-visual-{index}", name=path.name, role="evidence", mime_type="image/png",
-                          size_bytes=artifact.size_bytes, sha256=artifact.sha256, source_url=SOURCE,
+                          size_bytes=artifact.size_bytes, sha256=artifact.sha256, source_url=visual_source,
                           artifact_id=artifact.artifact_id, url=artifact.url,
                           timeline_src=f"videoagents/{current.job_id}/assets/{index}.png")
             repo.update_asset_metadata(asset.asset_id, {"origin": "capture", "width": 64, "height": 64})
             repo.update_job(current.job_id, assets=current.assets + [asset], artifacts=current.artifacts + [artifact])
-            visuals.append({"asset_id": asset.asset_id, "kind": "screenshot", "source_url": SOURCE,
+            visuals.append({"asset_id": asset.asset_id, "kind": "screenshot", "source_url": visual_source,
                             "artifact_id": artifact.artifact_id, "description": "UNIT actual captured image"})
         current = repo.get_job(current.job_id)
+        sources = [{"url": SOURCE, "text": source.read_text(), "sha256": source_artifact.sha256,
+                    "artifact_id": source_artifact.artifact_id,
+                    "asset_ids": [item["asset_id"] for item in visuals if item["source_url"] == SOURCE]}]
+        if variant.startswith("context"):
+            context_source = folder / "context-source.txt"
+            context_source.write_text("UNIT unrelated product used only as illustration", encoding="utf-8")
+            context_artifact = service.register_artifact(current, context_source, "source", "text/plain")
+            repo.update_job(current.job_id, artifacts=current.artifacts + [context_artifact])
+            current = repo.get_job(current.job_id)
+            sources.append({"url": CONTEXT_SOURCE, "text": context_source.read_text(),
+                            "sha256": context_artifact.sha256, "artifact_id": context_artifact.artifact_id,
+                            "asset_ids": [item["asset_id"] for item in visuals if item["source_url"] == CONTEXT_SOURCE]})
         service.write_json(current, "material-audit.json", {"tools": ["UNIT tool process must not reach model"]},
                            "material_tool_audit")
-        service.write_json(current, "research.json", {"sources": [{"url": SOURCE, "text": source.read_text(),
-            "sha256": source_artifact.sha256, "artifact_id": source_artifact.artifact_id,
-            "asset_ids": [item["asset_id"] for item in visuals]}], "visuals": visuals,
+        if variant == "context_missing_visual":
+            visuals = [item for item in visuals if item["asset_id"] != "UNIT-visual-0"]
+        if variant == "context_missing_source_link":
+            sources[-1]["asset_ids"].remove("UNIT-visual-0")
+        if variant == "context_string_asset_ids":
+            sources[-1]["asset_ids"] = ",".join(sources[-1]["asset_ids"])
+        service.write_json(current, "research.json", {"sources": sources, "visuals": visuals,
             "limitations": ["UNIT one real-world view is unavailable"]}, "research")
         return state_context(repo, state, route="human_review_script")
 
