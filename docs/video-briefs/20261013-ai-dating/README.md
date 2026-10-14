@@ -1,5 +1,7 @@
 # 本次视频制作输入
 
+2026-10-14 19:08 最新为 revision 10 / RUNNING / director：用户引用上一条针对 UNKNOWN `0b7c7172b84c49a7b3b49a88b785fb50` 的用量风险与新尝试询问，明确回复“可以继续”。已通过正式 `restart-unknown --director-only --acknowledge-possible-usage` 保存新版，再经正常 `run` 提交一次摄影，操作 `3e16804dab4444beaee599634f0bea95` 为 SUBMITTING。此次只重做摄影，原 Brief、已审七段文案、11件视觉素材与真实配音保留；12件素材文件散列和前27笔操作状态及完整记录指纹均已复验。摄影要求包括修正 B12.support_3 文字阅读时长与镜头边界、每镜真实1080×1920 PNG及整包人审；本次继续不构成逐镜门或发布通过。见[本次新授权与基线](photography-r10-retry-authorization.json)、[已授权摄影要求](photography-r10-authorized-note.txt)、[启动后输入与台账复验](production-r10-photography-start-verification.json)。以下状态保留为历史时点。
+
 2026-10-14 18:54 最新为 revision 9 / NEEDS_INPUT / director：针对第2镜阅读时长的正式摄影修复操作 `0b7c7172b84c49a7b3b49a88b785fb50` 已停为UNKNOWN，原因是 `invalid_cli_output`，stderr附带 `glm-5.3[1m]` 的unrecognized_model提示；没有登记修复结果。通过引擎实际解析路径只读核实Claude Code 2.1.292可运行，不能仅凭提示断定登录、额度、模型拒绝或计费情况。对应无会话持久化项目目录为空，无可恢复文件。原已完成16镜候选、已审输入与25条旧操作保持，候选仍有B12.support_3阅读时长问题，实际timeline、逐镜PNG和完整视频仍为0。当前待办 `ab0ac9c8ef3e499a9416829257ec168d`；没有重复提交。按[未决摄影恢复规则](../../videoagents-unknown-restart.md)，针对这笔新UNKNOWN的摄影重试须再明确授权。见[真实停止与诊断](production-r9-layout-repair-stop.json)、[停止后输入和台账复验](production-r9-layout-repair-stop-verification.json)。下面RUNNING等状态保留为对应历史时点。
 
 2026-10-14 最新为 revision 9 / RUNNING / director：已审同类示意素材与摄影校验衔接修复已合入，维护与视频分支各115项定向回归通过，Ruff、契约、TypeScript、lint及Remotion bundle通过。普通摄影复用、代表帧、剪辑与草稿入口共用精确批准交集和语义关联校验；示意不计涉案证据，伪域名、字幕缺失或不符、普通草稿升版沿用旧批准均阻断。合入后的严格只读输入指纹与原COMPLETED摄影操作精确一致，原输入与25条旧操作保持。
