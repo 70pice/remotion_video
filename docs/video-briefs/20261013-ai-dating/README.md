@@ -1,5 +1,9 @@
 # 本次视频制作输入
 
+2026-10-14 21:44 当前为 revision 11 / RUNNING / director：上一笔正常返工操作 `8a4390213ef842739bdfc6e66ed53ad9` 已COMPLETED，仍16镜，没有超时。与本版前一次响应比较，仅shot-02、05、06、13变化，另外12镜逐字段保持。当前独立阅读时长检查没有报错，原空正文与标题长度问题已修复；完整生产校验继而停在B12内容字段，另查明B03条数与A07支持条数问题。已把三个镜头的实际组件字段契约与事实边界集中交回正常摄影输入返工，操作 `1ca471a9391b419390d8a20bece4e5c0` SUBMITTING，不手改模型方案，不重做上游。
+
+原12件文件与前28笔操作复验保持，两笔本版COMPLETED响应完整保存。当前仍无有效timeline、PNG或成片，逐镜与发布门未确认；不能把组件局部检查通过称为完整生产通过。见[上一轮停止复验](production-r11-layout-repair-stop-verification.json)、[实际剩余问题与12镜保留证明](production-r11-rich-observations.json)、[下一轮集中修复意见](photography-r11-rich-repair-note.txt)及[本轮正常返工启动复验](production-r11-rich-repair-start-verification.json)。以下为历史时点。
+
 2026-10-14 21:36 当前为 revision 11 / RUNNING / director：同一版本的正常摄影输入返工已提交操作 `8a4390213ef842739bdfc6e66ed53ad9`，以本版已完成的16镜候选为底稿，集中修复阅读时长、空正文和文字长度问题。此前补充意见未进入模型业务输入的问题已通过通用修护 `c632b6c` 修复；合入后相关23项测试、Ruff、编译、契约、TypeScript、lint及Remotion bundle通过，实际候选只读预检通过。当前业务意见绑定本次摄影输入token，仅进入模型输入副本，不构成逐镜审核通过。
 
 启动后复验确认原Brief、七段文案、11件视觉素材和配音保留，12件文件及前28笔操作未变，上一笔16镜COMPLETED响应完整指纹未变。本次沿普通 `resume` 返工，不是UNKNOWN恢复，尚无有效timeline、逐镜PNG或成片；后续须完整校验、逐镜出图，再交整包人工审核。见[意见传递修护与验证](production-r11-repair-note-maintenance.json)、[集中返工要求](photography-r11-layout-repair-note.txt)及[正常返工启动复验](production-r11-layout-repair-start-verification.json)。以下为历史时点。

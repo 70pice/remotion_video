@@ -1,0 +1,13 @@
+本次是同一revision的摄影输入返工确认，不是逐镜人审通过。保持已审文案、11件视觉素材、已有真实配音和字幕，仍先给全部镜头的真实PNG，经整包人工审核后才成片。
+
+以最新已完成摄影操作8a4390213ef842739bdfc6e66ed53ad9的完整16镜为底稿。上一轮确实只修改shot-02、05、06、13，另12镜逐字段保持；阅读时长独立扫描现无报错，第13镜内容也已通过。保留这些修复，不从空白规划。当前完整生产校验停在B12 rich_content字段；独立逐镜检查同时发现以下剩余契约问题，集中处理而非只修首项。
+
+1. shot-02 / B12：当前content只有takeaway、items、supporting_items，缺metric；items为4条而非3条。该套非默认字段集合必须恰为takeaway、items、metric、supporting_items（source_refs单独保留）。items与supporting_items均恰好3条，每条非空且不超过24字，每组总字数不超过64。metric须含非空label（24字内）与value，可有非空detail（32字内）；value格式为0..99999的ASCII整数加1～2个汉字单位，且其数字须等于items条数。这里的metric是该组件的数据关系，不能把25000名独立用户硬填成3名用户，也不能虚构案件事实或人数。如果这一套的数据关系无法忠实表达本镜内容，由摄影选择目录内合适组件套并说明调整理由，保留案件来源、25000独立用户而非受害人数的真实口径，不以凑字段改变叙事。
+
+2. shot-05 / B03：items当前3条，要求恰好2条；numeric_items已为2条且独立解析通过。该套字段集合恰为takeaway、items、numeric_items。items每条非空且24字内，总字数64字内；numeric_items格式为“标签:ASCII整数+1～2个汉字单位”，恰好2条、单位一致。口径说明仍需可读，可由摄影按组件支持的body与其他既有文字表达，不能混入items后超出固定数量。
+
+3. shot-06 / A07：supporting_items当前2条，要求恰好3条。content字段集合恰为takeaway、items、supporting_items；items与supporting_items均恰好3条，各条非空24字内、各组总字数64字内。只能从本镜已审旁白、来源与示意边界提炼屏幕内容，不编第三个事实。若现有内容不适合该套，由摄影选目录中合适的组件并说明理由，仍清楚标示意。
+
+仍需title/body/takeaway分别18/60/18字以内且非空；变更文字后重新计算所有部件的阅读时长、局部帧边界和遮挡，不能破坏已修好的时间。以上来自只读当前验证器及实际返回结果，不代表其他完整生产校验已通过。自检全部16镜的组件字段、布局、来源、数字与当前旁白对应关系。只修明确受影响的镜头，必要调整须在visual_action说明。
+
+返回完整shots、segment_performances、shot_reviews，保留用户既有Remotion组件套要求；完整校验后逐镜渲染1080×1920 PNG，停在整包逐镜人工门。

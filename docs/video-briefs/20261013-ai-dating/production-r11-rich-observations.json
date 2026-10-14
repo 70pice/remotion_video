@@ -1,0 +1,74 @@
+{
+  "checked_at": "2026-10-14T13:42:46.089463+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 11,
+  "operation_id": "8a4390213ef842739bdfc6e66ed53ad9",
+  "operation_status": "COMPLETED",
+  "body_sha256": "13f4f82b2c9b62bd7fd727faa1df07e34d9fb3337ef1b7eafe8618685b480cd5",
+  "saved_shot_count": 16,
+  "same_index_identical_shots": [
+    "shot-01",
+    "shot-03",
+    "shot-04",
+    "shot-07",
+    "shot-08",
+    "shot-09",
+    "shot-10",
+    "shot-11",
+    "shot-12",
+    "shot-14",
+    "shot-15",
+    "shot-16"
+  ],
+  "same_index_changed_shots": [
+    "shot-02",
+    "shot-05",
+    "shot-06",
+    "shot-13"
+  ],
+  "reading_time_observations": [],
+  "first_layout_issue_per_shot": [
+    {
+      "shot_id": "shot-02",
+      "issue": "B12 rich_content 字段不符合组件套契约"
+    },
+    {
+      "shot_id": "shot-05",
+      "issue": "B03 rich items 必须是 exactly 2 条短文本"
+    },
+    {
+      "shot_id": "shot-06",
+      "issue": "A07 rich supporting_items 必须是 exactly 3 条短文本"
+    }
+  ],
+  "first_content_issue_per_shot": [
+    {
+      "shot_id": "shot-02",
+      "set_id": "B12",
+      "issue": "B12 rich_content 字段不符合组件套契约",
+      "title_characters": 15,
+      "body_characters": 36,
+      "takeaway_characters": 16
+    },
+    {
+      "shot_id": "shot-05",
+      "set_id": "B03",
+      "issue": "B03 rich items 必须是 exactly 2 条短文本",
+      "title_characters": 10,
+      "body_characters": 26,
+      "takeaway_characters": 13
+    },
+    {
+      "shot_id": "shot-06",
+      "set_id": "A07",
+      "issue": "A07 rich supporting_items 必须是 exactly 3 条短文本",
+      "title_characters": 14,
+      "body_characters": 29,
+      "takeaway_characters": 18
+    }
+  ],
+  "notes": [
+    "Read-only observations; no candidate, state or operation edits.",
+    "Per-part duration observations use the current production validator formula; they are not a render or complete production validation."
+  ]
+}
