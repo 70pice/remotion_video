@@ -301,6 +301,17 @@ class Repository:
         return None
 
     def enqueue(self, job_id: str, payload: dict[str, Any]) -> Job:
+        if payload.get("decision") == "select_materials":
+            from videoagents.contracts import MaterialSelectionRequest
+
+            try:
+                selection = MaterialSelectionRequest.model_validate(
+                    {key: value for key, value in payload.items() if key != "action"})
+            except ValueError as exc:
+                raise Conflict("素材部分取舍请求无效：" + str(exc)) from exc
+            if payload.get("action") != "resume":
+                raise Conflict("素材部分取舍只能通过当前人工门恢复")
+            payload = {"action": "resume", **selection.model_dump()}
         key = payload["idempotency_key"]
         digest = fingerprint(payload)
         with self.connection(immediate=True) as db:
@@ -376,6 +387,19 @@ class Repository:
                     raise Conflict("当前任务没有可恢复的中断")
                 if not job.pending_input.get("thread_id") or payload.get("pending_token") != job.pending_input.get("pending_token"):
                     raise Conflict("恢复回复绑定的中断已变化，请刷新当前待办")
+                selection_fields = {"accepted_asset_ids", "rejected_asset_ids"}
+                if payload.get("decision") == "select_materials":
+                    from videoagents.services.material_selection import validate_material_selection
+
+                    validate_material_selection(job, job.pending_input, selection)
+                    unsettled = db.execute(
+                        "SELECT body FROM operations WHERE job_id=? AND status IN ('SUBMITTING','UNKNOWN')",
+                        (job_id,),
+                    ).fetchall()
+                    if any(self._operation_revision(row["body"], job.revision) == job.revision for row in unsettled):
+                        raise Conflict("存在状态未知的外部提交，不能改变当前素材")
+                elif selection_fields & payload.keys():
+                    raise Conflict("素材取舍字段仅可随独立的部分决定提交")
                 if payload.get("reviewed_shot_ids") is not None:
                     pending = job.pending_input
                     if (pending.get("kind") != "stage_review" or pending.get("stage") != "director"

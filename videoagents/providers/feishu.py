@@ -12,8 +12,9 @@ import re
 import subprocess
 from typing import Any
 
-from videoagents.contracts import Job
+from videoagents.contracts import Asset, Job
 from videoagents.providers.cli_runner import executable_prefix
+from videoagents.services.material_selection import selection_receipts
 
 SCRIPT_TABLE = "文案"
 ASSETS_TABLE = "素材清单"
@@ -41,6 +42,8 @@ _ASSET_FIELDS = [
     {"name": "用途", "type": "text"},
     {"name": "来源URL", "type": "text"},
     {"name": "许可说明", "type": "text"},
+    {"name": "采纳状态", "type": "text"},
+    {"name": "采纳意见", "type": "text"},
     {"name": "文件", "type": "attachment"},
 ]
 _SHOT_FIELDS = [
@@ -234,8 +237,24 @@ class FeishuReviewBase:
             offset = next_offset
         raise FeishuUnavailable("飞书记录分页超过同步上限，停止同步")
 
+    def _ensure_material_selection_fields(self, token: str, table_id: str) -> None:
+        payload = _run(["base", "+field-list", "--base-token", token, "--table-id", table_id])
+        data = payload.get("data", payload)
+        fields = data.get("fields", data.get("items"))
+        if not isinstance(fields, list):
+            raise FeishuUnavailable("无法读取素材字段，停止修改表结构")
+        for name in ("采纳状态", "采纳意见"):
+            matches = [field for field in fields if field.get("name") == name]
+            if matches:
+                if len(matches) != 1 or matches[0].get("type") != "text":
+                    raise FeishuUnavailable(f"素材“{name}”字段须为唯一文本字段，保留现有数据")
+            else:
+                _run(["base", "+field-create", "--base-token", token, "--table-id", table_id,
+                      "--json", json.dumps({"name": name, "type": "text"}, ensure_ascii=False)])
+
     def _rewrite_table(self, token: str, table: str, key_field: str, records: list[dict[str, Any]],
-                       attachments: dict[str, str] | None = None, attachment_field: str = "") -> None:
+                       attachments: dict[str, str] | None = None, attachment_field: str = "",
+                       *, preserve_attachments: bool = False) -> None:
         """Update managed fields by key; keep human fields, comments and old rows."""
         table_id = self._table_id(token, table)
         if table == SCRIPT_TABLE:
@@ -260,9 +279,14 @@ class FeishuReviewBase:
             _run(["base", "+record-batch-create", "--base-token", token, "--table-id", table_id,
                   "--json", json.dumps({"create_records": creates}, ensure_ascii=False)])
         if attachments:
-            by_key = {_plain(item.get("fields", {}).get(key_field)): item.get("record_id")
-                      for item in self._list_records(token, table_id, [key_field])}
+            fields = [key_field, attachment_field] if preserve_attachments else [key_field]
+            rows = self._list_records(token, table_id, fields)
+            by_key = {_plain(item.get("fields", {}).get(key_field)): item.get("record_id") for item in rows}
+            attached = {_plain(item.get("fields", {}).get(key_field)) for item in rows
+                        if preserve_attachments and item.get("fields", {}).get(attachment_field)}
             for key, path in attachments.items():
+                if key in attached:
+                    continue
                 record_id = by_key.get(key)
                 if not record_id:
                     continue
@@ -292,7 +316,20 @@ class FeishuReviewBase:
     def sync_script_and_assets(self, job: Job) -> str:
         token = self.sync_script(job)
         asset_rows, attachments = [], {}
-        for asset in job.assets:
+        selections = selection_receipts(self.repo, job)
+        decisions, historic_assets = {}, {}
+        for receipt in selections:
+            for asset in receipt["subject"]["assets"]:
+                historic_assets[asset["asset_id"]] = Asset.model_validate(asset)
+            for key in receipt["accepted_asset_ids"]:
+                decisions[key] = ("保留", receipt["note"])
+            for key in receipt["rejected_asset_ids"]:
+                decisions[key] = ("不采用", receipt["note"])
+        assets = {key: historic_assets[key] for key in decisions}
+        assets.update({asset.asset_id: asset for asset in job.assets})
+        if selections:
+            self._ensure_material_selection_fields(token, self._table_id(token, ASSETS_TABLE))
+        for asset in assets.values():
             try:
                 path, _, _ = self.repo.artifact_path(asset.artifact_id)
             except (ValueError, OSError):
@@ -305,10 +342,31 @@ class FeishuReviewBase:
                 "用途": asset.role,
                 "来源URL": asset.source_url,
                 "许可说明": asset.license_note,
+                **({"采纳状态": decisions.get(asset.asset_id, ("待审", ""))[0],
+                    "采纳意见": decisions.get(asset.asset_id, ("待审", ""))[1]} if selections else {}),
             })
             if path:
                 attachments[key] = str(path)
-        self._rewrite_table(token, ASSETS_TABLE, "素材ID", asset_rows, attachments, "文件")
+        self._rewrite_table(token, ASSETS_TABLE, "素材ID", asset_rows, attachments, "文件",
+                            preserve_attachments=bool(selections))
+        if selections:
+            table_id = self._table_id(token, REVIEW_TABLE)
+            review_rows = {_plain(row.get("fields", {}).get("待办令牌")): row
+                           for row in self._list_records(token, table_id, ["待办令牌", "审核要求"])}
+            for receipt in selections:
+                row = review_rows.get(receipt["pending_token"])
+                if row and row.get("record_id"):
+                    # This settles only a partial selection, never the full
+                    # gate. Human opinions/comments and select values survive.
+                    explanation = "本待办已记录素材部分取舍；请审核新的待办，整包未确认。\n" + receipt["note"]
+                    requirements = (_plain(row.get("fields", {}).get("审核要求"))
+                                    or "\n".join(receipt["confirmation_requirements"]))
+                    if explanation not in requirements:
+                        requirements += "\n" + explanation
+                    fields = {"标题": f"{job.brief.topic[:60]} · 文案与素材 · 部分取舍已记录（整包未通过）",
+                              "审核要求": requirements}
+                    _run(["base", "+record-batch-update", "--base-token", token, "--table-id", table_id,
+                          "--json", json.dumps({"update_records": {row["record_id"]: fields}}, ensure_ascii=False)])
         return token
 
     def sync_shots(self, job: Job, manifest: dict[str, Any]) -> str:

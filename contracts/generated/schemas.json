@@ -2501,6 +2501,69 @@
       "title": "MaterialResearch",
       "type": "object"
     },
+    "MaterialSelectionRequest": {
+      "additionalProperties": false,
+      "description": "A partial materials decision; it cannot confirm a production gate.",
+      "properties": {
+        "base_revision": {
+          "minimum": 1,
+          "title": "Base Revision",
+          "type": "integer"
+        },
+        "pending_token": {
+          "maxLength": 100,
+          "minLength": 16,
+          "title": "Pending Token",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "maxLength": 200,
+          "minLength": 8,
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "decision": {
+          "const": "select_materials",
+          "default": "select_materials",
+          "title": "Decision",
+          "type": "string"
+        },
+        "note": {
+          "maxLength": 3000,
+          "minLength": 1,
+          "title": "Note",
+          "type": "string"
+        },
+        "accepted_asset_ids": {
+          "items": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 400,
+          "title": "Accepted Asset Ids",
+          "type": "array"
+        },
+        "rejected_asset_ids": {
+          "items": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 400,
+          "title": "Rejected Asset Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "base_revision",
+        "pending_token",
+        "idempotency_key",
+        "note"
+      ],
+      "title": "MaterialSelectionRequest",
+      "type": "object"
+    },
     "ModelChoice": {
       "additionalProperties": false,
       "properties": {

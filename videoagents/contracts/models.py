@@ -1028,6 +1028,39 @@ class ComponentDemoRequest(Contract):
 
 
 
+class MaterialSelectionRequest(Contract):
+    """A partial materials decision; it cannot confirm a production gate."""
+
+    base_revision: int = Field(ge=1)
+    pending_token: str = Field(min_length=16, max_length=100)
+    idempotency_key: str = Field(min_length=8, max_length=200)
+    decision: Literal["select_materials"] = "select_materials"
+    note: str = Field(min_length=1, max_length=3000)
+    accepted_asset_ids: list[Annotated[str, Field(min_length=1, max_length=100)]] = Field(
+        default_factory=list, max_length=400,
+    )
+    rejected_asset_ids: list[Annotated[str, Field(min_length=1, max_length=100)]] = Field(
+        default_factory=list, max_length=400,
+    )
+
+    @field_validator("accepted_asset_ids", "rejected_asset_ids")
+    @classmethod
+    def unique_material_ids(cls, value: list[str]) -> list[str]:
+        if len(value) != len(set(value)) or any(not item.strip() for item in value):
+            raise ValueError("素材ID不能为空或重复")
+        return sorted(value)
+
+    @model_validator(mode="after")
+    def partial_selection(self):
+        if not self.note.strip():
+            raise ValueError("素材取舍需填写说明")
+        if not self.accepted_asset_ids and not self.rejected_asset_ids:
+            raise ValueError("至少指定一个保留或不采用的素材")
+        if set(self.accepted_asset_ids) & set(self.rejected_asset_ids):
+            raise ValueError("同一个素材不能同时保留与不采用")
+        return self
+
+
 class ResumeRequest(Contract):
     base_revision: int = Field(ge=1)
     decision: Literal["confirm", "revise", "cancel"]

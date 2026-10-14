@@ -12,12 +12,19 @@ import time
 from pathlib import Path
 from typing import Any
 
-from videoagents.contracts import Brief, RestartUnknownRequest, RetryFailedRunRequest, SettingsPatch
+from videoagents.contracts import (
+    Brief,
+    MaterialSelectionRequest,
+    RestartUnknownRequest,
+    RetryFailedRunRequest,
+    SettingsPatch,
+)
 from videoagents.default_config import PROJECT_ROOT, RUNTIME_ROOT
 from videoagents.nodes.director_review import current_shot_review_artifact
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.storage import Conflict, NotFound, Repository
+from videoagents.storage.repository import fingerprint
 from worker.runner import Worker
 
 
@@ -131,6 +138,37 @@ def cmd_resume(args: argparse.Namespace) -> int:
     repo.enqueue(job.job_id, payload)
     _drain(_worker(repo))
     return _finish(repo, args.job_id)
+
+
+def cmd_select_materials(args: argparse.Namespace) -> int:
+    repo = _repository(args)
+    job = repo.get_job(args.job_id)
+    try:
+        request = MaterialSelectionRequest(
+            base_revision=job.revision,
+            pending_token=(job.pending_input or {}).get("pending_token", "0" * 32),
+            idempotency_key="cli-material-selection",
+            note=Path(args.note_file).read_text(encoding="utf-8") if args.note_file else args.note,
+            accepted_asset_ids=args.accept_asset or [], rejected_asset_ids=args.reject_asset or [],
+        )
+    except (ValueError, OSError) as exc:
+        raise Conflict(str(exc)) from exc
+    identity = request.model_dump(exclude={"pending_token", "idempotency_key"})
+    key = args.idempotency_key or "cli-select-materials-" + fingerprint(identity)[:32]
+    # A repeated selection must reuse its original token after the new gate
+    # opens. Repository.enqueue still compares the full original request hash.
+    with repo.connection() as db:
+        existing = db.execute("SELECT payload FROM commands WHERE job_id=? AND idempotency_key=?",
+                              (job.job_id, key)).fetchone()
+    if existing:
+        previous = json.loads(existing[0])
+        if previous.get("action") != "resume" or any(previous.get(field) != value for field, value in identity.items()):
+            raise Conflict("同一个幂等键不能用于不同素材取舍")
+        request = request.model_copy(update={"pending_token": previous["pending_token"]})
+    request = request.model_copy(update={"idempotency_key": key})
+    repo.enqueue(job.job_id, {"action": "resume", **request.model_dump()})
+    _drain(_worker(repo))
+    return _finish(repo, job.job_id)
 
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -342,6 +380,16 @@ def build_parser() -> argparse.ArgumentParser:
     resume.add_argument("--shot-ids", default="", help="逐镜审核整包确认时的镜头ID列表(逗号分隔)")
     resume.add_argument("--idempotency-key", default="")
     resume.set_defaults(handler=cmd_resume)
+
+    selection = sub.add_parser("select-materials", help="部分保留/拒绝素材；整包审核仍待审，不调用生产模型")
+    selection.add_argument("job_id")
+    selection.add_argument("--accept-asset", action="append", help="保留的完整素材ID，可重复指定")
+    selection.add_argument("--reject-asset", action="append", help="不采用的完整素材ID，可重复指定")
+    selection_note = selection.add_mutually_exclusive_group(required=True)
+    selection_note.add_argument("--note", help="素材取舍说明，最多3000字符")
+    selection_note.add_argument("--note-file", help="UTF-8 素材取舍说明文件")
+    selection.add_argument("--idempotency-key", default="")
+    selection.set_defaults(handler=cmd_select_materials)
 
     poll = sub.add_parser("poll", help="读取飞书审核记录中的人工决定并续跑")
     poll.add_argument("job_id")

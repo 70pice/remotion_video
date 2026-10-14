@@ -7,7 +7,7 @@ from typing import Any
 from langgraph.types import interrupt
 from pydantic import ValidationError
 
-from videoagents.contracts import Artifact, DirectorRequirements, Job
+from videoagents.contracts import Artifact, Asset, DirectorRequirements, Job, MaterialSelectionRequest
 from videoagents.nodes.common import REVISE_SETTLED_MESSAGE, current_job, state_context
 from videoagents.nodes.director_review import (
     SHOT_REVIEW_MODE,
@@ -16,6 +16,11 @@ from videoagents.nodes.director_review import (
     director_review_fingerprint,
 )
 from videoagents.nodes.script_review import SCRIPT_REVIEW_NODE, script_review_fingerprint
+from videoagents.services.material_selection import (
+    MATERIAL_SELECTION_NODE,
+    selection_receipts,
+    validate_material_selection,
+)
 from videoagents.services.settings import SettingsService
 from videoagents.state import VideoState
 from videoagents.storage import Conflict, NotFound, Repository
@@ -169,7 +174,8 @@ class HumanReviewNode:
                                           if item.kind in {"preview", "final", "cover", "captions"}]}
         return {}
 
-    def _record(self, job: Job, receipt: dict[str, Any], status: str, message: str) -> None:
+    def _record(self, job: Job, receipt: dict[str, Any], status: str, message: str,
+                *, assets: list[Asset] | None = None) -> None:
         # Deterministic file + artifact ID make SQL-before-checkpoint replay
         # idempotent, including a crash between artifact registration and save.
         token = receipt["pending_token"]
@@ -195,8 +201,53 @@ class HumanReviewNode:
         except NotFound:
             self.repo.put_artifact(job.job_id, artifact, path)
         artifacts = [item for item in job.artifacts if item.artifact_id != artifact_id] + [artifact]
+        changes = {"assets": assets, "expected_event_id": job.latest_event_id} if assets is not None else {}
         self.repo.update_job(job.job_id, job.revision, status=status, stage=self.stage, message=message,
-                             pending_input=None, artifacts=artifacts)
+                             pending_input=None, artifacts=artifacts, **changes)
+
+    def _selection_result(self, state: VideoState, receipt: dict[str, Any]) -> dict[str, Any]:
+        rounds = dict(state.get("human_review_rounds", {}))
+        rounds[self.node_name] = receipt["next_review_round"]
+        return state_context(self.repo, state, route="retry", human_decision=receipt,
+                             stage_review_pending=None, human_review_rounds=rounds)
+
+    def _recover_selection(self, state: VideoState, job: Job) -> dict[str, Any] | None:
+        if self.node_name != MATERIAL_SELECTION_NODE:
+            return None
+        # SQL may have committed the removal before LangGraph saved this node.
+        # Consume the original answer, then retry the same gate exactly once.
+        receipt = next((item for item in reversed(selection_receipts(self.repo, job))
+                        if item.get("command_id") == state.get("resume_command_id")
+                        and state.get("human_review_rounds", {}).get(self.node_name, 0)
+                        < item["next_review_round"]), None)
+        if not receipt:
+            return None
+        request = MaterialSelectionRequest.model_validate(receipt["selection_request"])
+        pending = receipt["original_pending"]
+        if self._inputs(job) != receipt["result_dependency_fingerprint"]:
+            raise Conflict("已提交素材取舍的结果已改变，不能恢复旧决定")
+        answer = interrupt(pending)
+        if not isinstance(answer, dict) or MaterialSelectionRequest.model_validate(answer) != request:
+            raise Conflict("素材取舍恢复回复与不可变记录不一致")
+        return self._selection_result(state, receipt)
+
+    def _select_materials(self, state: VideoState, job: Job, pending: dict[str, Any],
+                         answer: dict[str, Any]) -> dict[str, Any]:
+        try:
+            request = MaterialSelectionRequest.model_validate(answer)
+        except ValidationError as exc:
+            raise Conflict("素材部分取舍请求无效") from exc
+        validate_material_selection(job, pending, request)
+        rejected = set(request.rejected_asset_ids)
+        assets = [item for item in job.assets if item.asset_id not in rejected]
+        subject = dict(self._subject_snapshot(job), assets=[item.model_dump() for item in job.assets])
+        receipt = dict(pending, **request.model_dump(), subject=subject,
+                       selection_request=request.model_dump(), original_pending=pending,
+                       command_id=state.get("resume_command_id"),
+                       next_review_round=state.get("human_review_rounds", {}).get(self.node_name, 0) + 1,
+                       result_dependency_fingerprint=self._inputs(job.model_copy(update={"assets": assets})))
+        self._record(job, receipt, "RUNNING", "素材部分取舍已记录，文案与素材整包仍待人工审核", assets=assets)
+        return self._selection_result(state, receipt)
 
     def _sync_feishu(self, job: Job, pending: dict[str, Any]) -> None:
         """Mirror this gate into the job's Feishu Bitable; never block the gate."""
@@ -237,6 +288,9 @@ class HumanReviewNode:
 
     def __call__(self, state: VideoState) -> dict[str, Any]:
         job = self._job(state)
+        recovered = self._recover_selection(state, job)
+        if recovered is not None:
+            return recovered
         pending = self._pending(state, job)
         if job.pending_input != pending or job.status != "NEEDS_HUMAN":
             self.repo.update_job(job.job_id, job.revision, status="NEEDS_HUMAN", stage=self.stage,
@@ -248,6 +302,10 @@ class HumanReviewNode:
             raise Conflict("人工审核的内容已改变，请重新发起制作")
         if not isinstance(answer, dict) or answer.get("pending_token") != pending["pending_token"]:
             raise Conflict("人工审核回复绑定的待办已失效")
+        if answer.get("decision") == "select_materials":
+            return self._select_materials(state, job, pending, answer)
+        if {"accepted_asset_ids", "rejected_asset_ids"} & answer.keys():
+            raise Conflict("素材取舍字段不能随普通审核决定提交")
         decision, note = answer.get("decision"), answer.get("note", "")
         if decision not in {"confirm", "revise", "cancel"} or not isinstance(note, str) or len(note) > 3000:
             raise Conflict("人工审核决定或说明无效")

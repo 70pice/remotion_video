@@ -173,8 +173,80 @@ def test_sync_script_and_assets_is_idempotent(lark, tmp_path, job):
     assert [row["record_id"] for row in lark.tables["文案"]] == record_ids
     assert rows[0]["fields"]["口播"] == "更新后的第一段。"
     assert rows[0]["fields"]["修改意见"] == "第一段数字要解释口径"
-    assert rows[0]["fields"]["用户自建字段"] == "保留"
     assert rows[0]["native_comments"] == ["逐段评论跟随记录"]
+
+
+def test_partial_material_selection_keeps_records_attachments_and_human_opinions(lark, tmp_path, job):
+    from videoagents.contracts import Asset, MaterialSelectionRequest, Script, ScriptSegment
+    from videoagents.nodes.common import state_context
+    from videoagents.nodes.human_review import HumanReviewNode
+    from videoagents.services.jobs import JobService
+
+    repo = Repository(tmp_path / "runtime")
+    script = Script(title="UNIT", origin="user", revision=job.revision,
+                    segments=[ScriptSegment(segment_id="s1", narration="观点：UNIT素材选择。")])
+    assets, artifacts = [], []
+    for index in range(3):
+        path = repo.root / "jobs" / job.job_id / f"unit-image-{index}.png"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(f"UNIT-{index}".encode())
+        artifact = JobService(repo).register_artifact(job, path, "asset", "image/png")
+        assets.append(Asset(asset_id=f"{index:08x}-unit-asset", name=path.name, role="evidence",
+            mime_type="image/png", size_bytes=artifact.size_bytes, sha256=artifact.sha256,
+            artifact_id=artifact.artifact_id, url=artifact.url, timeline_src=f"videoagents/{job.job_id}/assets/{path.name}"))
+        artifacts.append(artifact)
+    job = repo.update_job(job.job_id, job.revision, script=script, assets=assets, artifacts=artifacts,
+                          status="NEEDS_HUMAN", stage="script")
+    state = state_context(repo, {"job_id": job.job_id, "revision": job.revision,
+                                "thread_id": "UNIT-partial", "resume_command_id": "UNIT-partial-command"})
+    node = HumanReviewNode(repo, node_name="human_review_script", stage="script")
+    pending = node._pending(state, job)
+    job = repo.update_job(job.job_id, job.revision, pending_input=pending)
+    base = FeishuReviewBase(repo, "fld123")
+    base.sync_script_and_assets(job)
+    base.submit_review(job, feishu.REVIEW_STAGE_SCRIPT, pending["pending_token"], "原审核要求")
+    rows = lark.tables["素材清单"]
+    record_ids = [row["record_id"] for row in rows]
+    for row in rows:
+        # Existing real attachments must never be appended/replaced by a
+        # selection-only sync, including its rejected historical row.
+        row["fields"]["文件"] = [{"file_token": "UNIT-existing-" + row["record_id"]}]
+        row["fields"]["用户自建字段"] = "保留"
+        row["native_comments"] = ["原人工评论"]
+    old_review = lark.tables["审核记录"][0]
+    old_review["fields"]["意见"] = "用户填写的取舍意见保留"
+    old_review["native_comments"] = ["原审核行评论"]
+    # An older Base has no selection schema; migrate only these text fields.
+    lark.fields["素材清单"] = [field for field in lark.fields["素材清单"]
+                              if field["name"] not in {"采纳状态", "采纳意见"}]
+    request = MaterialSelectionRequest(base_revision=job.revision, pending_token=pending["pending_token"],
+        idempotency_key="UNIT-selection", note="清晰图片保留，低画质不采用；整包仍待审。",
+        accepted_asset_ids=[assets[0].asset_id], rejected_asset_ids=[assets[1].asset_id])
+    result = node._select_materials(state, job, pending, request.model_dump())
+    current = repo.get_job(job.job_id)
+    next_pending = node._pending(result, current)
+    lark.calls.clear()
+    base.sync_script_and_assets(current)
+    base.submit_review(current, feishu.REVIEW_STAGE_SCRIPT, next_pending["pending_token"], "新待办仍需整包审核")
+    base.sync_script_and_assets(current)
+    assert [row["record_id"] for row in rows] == record_ids
+    assert [row["fields"]["采纳状态"] for row in rows] == ["保留", "不采用", "待审"]
+    assert [row["fields"]["采纳意见"] for row in rows] == [request.note, request.note, ""]
+    assert all(row["fields"]["用户自建字段"] == "保留" and row["native_comments"] == ["原人工评论"] for row in rows)
+    assert all(row["fields"]["文件"] == [{"file_token": "UNIT-existing-" + row["record_id"]}] for row in rows)
+    assert not any("+record-upload-attachment" in call or "+record-delete" in call for call in lark.calls)
+    creates = [call for call in lark.calls if "+field-create" in call]
+    assert len(creates) == 2
+    assert old_review["fields"]["意见"] == "用户填写的取舍意见保留"
+    assert old_review["fields"]["结论"] == [feishu.DECISION_PENDING]
+    assert "整包未确认" in old_review["fields"]["审核要求"]
+    assert old_review["fields"]["审核要求"].startswith("原审核要求\n")
+    assert old_review["fields"]["审核要求"].count(request.note) == 1
+    assert old_review["native_comments"] == ["原审核行评论"]
+    new_review = lark.tables["审核记录"][1]
+    assert new_review["fields"]["结论"] == [feishu.DECISION_PENDING]
+    assert base.poll_decision(current, next_pending["pending_token"]) is None
+    assert rows[0]["fields"]["用户自建字段"] == "保留"
     assert not any("+record-delete" in call for call in lark.calls)
 
 

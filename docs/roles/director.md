@@ -27,6 +27,7 @@
    - 人在飞书把「审核记录」结论改为 通过/需修改(需修改必须填意见),或直接口头告诉你。
    - 口头意见 → 你整理成明确修改要求后 `videoagents resume <job_id> --decision revise --note "<意见>"`;
      通过 → `videoagents poll <job_id>` 从飞书读回并续跑(poll 也可作为两种方式的统一入口)。
+   - 只取舍部分素材 → `videoagents select-materials <job_id> --reject-asset <完整ID> --accept-asset <完整ID> --note-file <UTF-8文件>`；两种ID参数均可重复或只用一种。仍停在本门待审，不能据此启动配音；见 [素材部分取舍](../videoagents-material-selection.md)。
 3. **逐镜门**(摄影之后):`videoagents shots` 的 PNG 路径给人(人可在飞书「镜头编排」表里看附件);
    整包确认才继续:飞书结论通过 → `poll`(自动带全部镜头 ID),或 `resume --decision confirm
    --note ... --shot-ids <全部>`。

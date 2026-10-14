@@ -171,6 +171,43 @@ def test_materials_only_cli_survives_new_process_and_runs_only_collector(approve
 REAL_COLLECT = MaterialsNode.collect
 
 
+def test_partial_selection_keeps_inherited_approval_and_previous_revision_unknown(approved_unknown,
+                                                                               monkeypatch, capsys):
+    from videoagents.contracts import Asset
+
+    repo, original, operation_id = approved_unknown
+    restarted = JobService(repo).restart_unknown(original.job_id, restart_request(operation_id))
+    previous_operation = repo.operation(original.job_id, "UNIT-old-material-input", "llm:materials")
+    script_bytes = {item.artifact_id: repo.artifact_path(item.artifact_id)[0].read_bytes()
+                    for item in original.artifacts}
+
+    def collected(node, state):
+        current = repo.get_job(state["job_id"])
+        path = repo.root / "jobs" / current.job_id / "assets" / "unit-image.png"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"UNIT synthetic media")
+        artifact = JobService(repo).register_artifact(current, path, "asset", "image/png")
+        asset = Asset(asset_id="UNIT-inherited-image", name=path.name, role="evidence", mime_type="image/png",
+            size_bytes=artifact.size_bytes, sha256=artifact.sha256, artifact_id=artifact.artifact_id,
+            url=artifact.url, timeline_src=f"videoagents/{current.job_id}/assets/unit-image.png")
+        repo.update_job(current.job_id, current.revision, assets=[asset], artifacts=current.artifacts + [artifact])
+        return state_context(repo, state, route="human_review_script")
+
+    monkeypatch.setattr(MaterialsNode, "__call__", collected)
+    assert cli(monkeypatch, capsys, repo, "run", restarted.job_id)[0] == 0
+    before = repo.get_job(restarted.job_id)
+    assert script_before_materials_is_approved(repo, before)
+    assert cli(monkeypatch, capsys, repo, "select-materials", before.job_id,
+               "--reject-asset", before.assets[0].asset_id, "--note", NOTE)[0] == 0
+    after = repo.get_job(before.job_id)
+    assert after.status == "NEEDS_HUMAN" and after.pending_input["node_name"] == "human_review_script"
+    assert not after.assets and after.script == before.script and after.brief == before.brief
+    assert script_before_materials_is_approved(repo, after)
+    assert repo.operation(original.job_id, "UNIT-old-material-input", "llm:materials") == previous_operation
+    for key, content in script_bytes.items():
+        assert repo.artifact_path(key)[0].read_bytes() == content
+
+
 @pytest.mark.parametrize("changes", [
     {"materials_only": False}, {"materials_only": "true"}, {"materials_only": 1},
     {"materials_note": " "}, {"rebuild_script": True}, {"brief": Brief(topic="UNIT changed")},

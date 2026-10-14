@@ -276,6 +276,16 @@ export interface MaterialResearch {
   limitations: Array<string>;
 }
 
+export interface MaterialSelectionRequest {
+  base_revision: number;
+  pending_token: string;
+  idempotency_key: string;
+  decision?: "select_materials";
+  note: string;
+  accepted_asset_ids?: Array<string>;
+  rejected_asset_ids?: Array<string>;
+}
+
 export interface MaterialSourceFile {
   url: string;
   title: string;

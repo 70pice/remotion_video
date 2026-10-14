@@ -242,6 +242,9 @@ class VideoProductionGraph(AbstractContextManager):
                 decision["director_requirements"] = payload["director_requirements"]
             if payload.get("reviewed_shot_ids") is not None:
                 decision["reviewed_shot_ids"] = payload["reviewed_shot_ids"]
+            if payload["decision"] == "select_materials":
+                for field in ("base_revision", "idempotency_key", "accepted_asset_ids", "rejected_asset_ids"):
+                    decision[field] = payload[field]
             # Interrupt IDs also key the actual LangGraph resume map, so a
             # response can only be delivered to the selected recorded pause.
             update = {"resume_command_id": command["command_id"]}
