@@ -1,0 +1,15 @@
+{
+  "checked_at": "2026-10-14T19:45:18.2224698+08:00",
+  "scope": "Windows Application 1000/1001/1026 and System 2004, current attempt time window; no model calls",
+  "matched_or_query_results": [
+    {
+      "query_result": "no_matching_events",
+      "log": "Application"
+    },
+    {
+      "query_result": "no_matching_events",
+      "log": "System"
+    }
+  ],
+  "limitation": "Absence of matching OS events does not establish provider exit cause"
+}

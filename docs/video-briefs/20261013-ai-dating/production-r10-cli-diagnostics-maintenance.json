@@ -1,0 +1,78 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 10,
+  "production_operation_id": "3e16804dab4444beaee599634f0bea95",
+  "production_status": "NEEDS_INPUT",
+  "production_operation_status": "UNKNOWN",
+  "maintenance_worktree": "D:\\remotion_video_cli_failure_diag_20261014",
+  "maintenance_branch": "maintenance/cli-failure-diagnostics-20261014",
+  "maintenance_source_commit": "7646146a56bab9086fe73246c51bfd70cbf918d9",
+  "integrated_commit": "755a6db",
+  "independent_root_review_completed": true,
+  "scope": "Safe CLI failure diagnostics; offline real-subprocess fixtures only. No provider submissions, production-state edits, model changes, or dependencies.",
+  "files": [
+    "videoagents/providers/cli_runner.py",
+    "tests/videoagents/test_cli_models.py",
+    "tests/videoagents/test_cli_cleanup.py",
+    "tests/videoagents/test_cli_stream_limits.py",
+    "tests/videoagents/test_claude_research_metadata.py",
+    "docs/cli-failure-diagnostics.md"
+  ],
+  "diagnostic_fields": ["exit_code", "stdout_bytes", "stderr_tail_bytes", "stdout_shape", "response_json_shape", "subtype"],
+  "diagnostic_limitations": [
+    "The original provider failure is not reproduced and its root cause is not established.",
+    "The patch cannot recover discarded output or retrospectively fill old operation records.",
+    "A nonzero process exit remains UNKNOWN even when stdout has a success envelope.",
+    "Output shapes and the subtype whitelist do not establish provider billing or production success.",
+    "Free-text errors, model output, response_json contents, usage contents, credentials, and URLs are not stored."
+  ],
+  "red_test_evidence": [
+    {
+      "worktree": "maintenance",
+      "selector": "nonzero_claude_result_diagnostic or nonzero_claude_invalid_outer_json",
+      "failed_before_fix": 3
+    },
+    {
+      "worktree": "maintenance",
+      "selector": "nonzero_deep_json or nonzero_ambiguous_error_flag or zero_exit_invalid_output_has_safe_shape or invalid_event_before_wait_has_unknown_exit_code",
+      "failed_before_fix": 6
+    }
+  ],
+  "green_validation": {
+    "maintenance_targeted_selection_passed": 7,
+    "maintenance_six_file_suite_passed": 174,
+    "maintenance_suite_seconds": 17.61,
+    "root_fresh_six_file_suite_passed": 174,
+    "root_suite_seconds": 17.87,
+    "root_pytest_files": [
+      "tests/videoagents/test_claude_research_metadata.py",
+      "tests/videoagents/test_cli_cleanup.py",
+      "tests/videoagents/test_cli_models.py",
+      "tests/videoagents/test_cli_stream_limits.py",
+      "tests/videoagents/test_glm_cli.py",
+      "tests/videoagents/test_providers.py"
+    ],
+    "ruff_passed": true,
+    "python_compileall_passed": true,
+    "export_contracts_check_passed": true,
+    "typescript_typecheck_passed": true,
+    "npm_lint_passed": true,
+    "git_diff_check_passed": true
+  },
+  "production_readonly_verification": "production-r10-after-diagnostics-verification.json",
+  "approved_brief_unchanged": true,
+  "approved_script_unchanged": true,
+  "retained_visual_assets": 11,
+  "retained_audio_assets": 1,
+  "asset_files_verified_unchanged": 12,
+  "original_operations_verified_unchanged": 27,
+  "current_unknown_body_sha256": "433a0e8367d5df2aed900644f6a95ed5b3ab9b7b67f9ed010a19c1e34d749eb2",
+  "old_unknown_rewritten": false,
+  "new_provider_submission_after_stop": false,
+  "shot_count": 0,
+  "shot_review_frame_count": 0,
+  "complete_video_rendered_this_revision": false,
+  "shot_gate_confirmed": false,
+  "next_attempt_authorized": false,
+  "next_attempt_requirements": "photography-r11-recovery-requirements.txt"
+}

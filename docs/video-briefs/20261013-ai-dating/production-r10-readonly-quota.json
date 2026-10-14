@@ -1,0 +1,37 @@
+{
+  "checked_at": "2026-10-14T11:42:33.368312+00:00",
+  "method": "GET",
+  "endpoint": "https://open.bigmodel.cn/api/monitor/usage/quota/limit",
+  "model_generation_requested": false,
+  "http_status": 200,
+  "success": true,
+  "code": 200,
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 10,
+  "official_source": "https://github.com/zai-org/zai-coding-plugins/blob/main/plugins/glm-plan-usage/skills/usage-query-skill/scripts/query-usage.mjs",
+  "limits": [
+    {
+      "type": "CREDIT_LIMIT",
+      "usage": 28000,
+      "currentValue": 1253,
+      "remaining": 26746,
+      "percentage": 4,
+      "nextResetTime": 1791986445301
+    },
+    {
+      "type": "CREDIT_LIMIT",
+      "usage": 140000,
+      "currentValue": 63149,
+      "remaining": 76850,
+      "percentage": 45,
+      "nextResetTime": 1792461171982
+    }
+  ],
+  "interpretation": "Returned limits have remaining quota at this query time; this is not evidence of quota exhaustion.",
+  "limitations": [
+    "Does not identify progress, active concurrency, completion or billing of individual operations.",
+    "Cannot establish whether an earlier request encountered a transient limit or another failure.",
+    "Units and periods not inferred from response."
+  ],
+  "production_action": "No new provider generation, replay, model change or human approval."
+}
