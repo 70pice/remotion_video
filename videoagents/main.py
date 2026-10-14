@@ -89,6 +89,7 @@ def cmd_restart_unknown(args: argparse.Namespace) -> int:
             "acknowledge_possible_usage": args.acknowledge_possible_usage, "note": args.note, "brief": brief,
             "rebuild_script": args.rebuild_script,
             "materials_only": args.materials_only, "materials_note": materials_note,
+            "director_only": args.director_only,
         })
         job = JobService(repo, PROJECT_ROOT).restart_unknown(args.job_id, request)
     except (ValueError, OSError) as exc:
@@ -381,7 +382,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     restart = sub.add_parser("restart-unknown", help="明确接受可能计费后保存新版草稿，不自动执行")
     restart.add_argument("job_id")
-    restart.add_argument("--operation-id", required=True, help="当前 UNKNOWN 编剧或素材模型操作 ID")
+    restart.add_argument("--operation-id", required=True, help="当前 UNKNOWN 编剧、素材或摄影模型操作 ID")
     restart.add_argument("--acknowledge-possible-usage", action="store_true", required=True,
                          help="明确承认旧提交可能已消耗额度")
     restart.add_argument("--note", required=True, help="用户授权依据与重启说明")
@@ -390,6 +391,8 @@ def build_parser() -> argparse.ArgumentParser:
     scope.add_argument("--rebuild-script", action="store_true",
                          help="素材 UNKNOWN 时明确弃用已完成文案，新版本重走编剧与素材")
     scope.add_argument("--materials-only", action="store_true", help="素材 UNKNOWN 时保留已审文案，仅重采素材")
+    scope.add_argument("--director-only", action="store_true",
+                       help="摄影 UNKNOWN 时保留联合批准与真实音频；note 同时提供最新摄影要求")
     material_notes = restart.add_mutually_exclusive_group()
     material_notes.add_argument("--materials-note", default="", help="仅交给素材角色的采集要求")
     material_notes.add_argument("--materials-note-file", default="", help="UTF-8 素材采集要求文件")

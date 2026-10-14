@@ -345,6 +345,7 @@ export interface RestartUnknownRequest {
   rebuild_script?: boolean;
   materials_only?: boolean;
   materials_note?: string;
+  director_only?: boolean;
 }
 
 export interface ResumeRequest {

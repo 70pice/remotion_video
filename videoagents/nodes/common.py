@@ -266,6 +266,22 @@ def state_context(repository: Repository, state: VideoState, **overrides: Any) -
     if decision and not any(item.get("pending_token") == decision.get("pending_token") for item in history):
         history.append(decision)
     context["human_reviews"] = history
+    authorization = repository.director_restart_receipt(job.job_id, job.revision)
+    if authorization:
+        # Only business evidence and the new photography note cross into the
+        # model context; the approval/recovery ledger stays in SQLite.
+        artifact = next((item for item in reversed(job.artifacts) if item.kind == "research"), None)
+        if artifact:
+            path, recorded, owner = repository.artifact_path(artifact.artifact_id)
+            if owner != job.job_id or recorded != artifact or sha256(path) != artifact.sha256:
+                raise Conflict("摄影恢复的研究证据已改变")
+            research = json.loads(path.read_text(encoding="utf-8"))
+            retained_ids = {item.asset_id for item in job.assets}
+            context["research"] = {**research,
+                "visuals": [item for item in research.get("visuals", []) if item.get("asset_id") in retained_ids],
+                "sources": [{**item, "asset_ids": [key for key in item.get("asset_ids", []) if key in retained_ids]}
+                            for item in research.get("sources", [])]}
+        context["extras"] = merge_extras(context["extras"], {"director_note": authorization["note"]})
     context.update(overrides)
     return clean_handoff(context)
 

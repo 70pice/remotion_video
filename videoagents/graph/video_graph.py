@@ -23,6 +23,9 @@ from videoagents.nodes.human_review import HumanReviewNode
 from videoagents.nodes.materials import MaterialsNode
 from videoagents.nodes.screenwriter import ScreenwriterNode
 from videoagents.nodes.script_review import (
+    JOINT_REVIEW_NODE,
+    JOINT_REVIEW_REQUIREMENTS,
+    JOINT_REVIEW_TITLE,
     SCRIPT_REVIEW_NODE,
     SCRIPT_REVIEW_REQUIREMENTS,
     SCRIPT_REVIEW_TITLE,
@@ -71,11 +74,8 @@ class VideoProductionGraph(AbstractContextManager):
         self.add_human_review(graph, SCRIPT_REVIEW_NODE, stage="script", title=SCRIPT_REVIEW_TITLE,
                               confirmation_requirements=SCRIPT_REVIEW_REQUIREMENTS,
                               next_node="materials", revise_node="screenwriter")
-        self.add_human_review(graph, "human_review_script", stage="script", title="文案与素材人工审核",
-                              confirmation_requirements=("首句具体，尽早建立观看理由；主线清楚，结尾自然回应问题",
-                                                         "每段口播的来源真实存在，素材清单能支撑对应说法",
-                                                         "素材可用区间、出处与许可说明符合本期用途",
-                                                         "资料缺口已列明；人工确认文案与素材后才可进入配音"),
+        self.add_human_review(graph, JOINT_REVIEW_NODE, stage="script", title=JOINT_REVIEW_TITLE,
+                              confirmation_requirements=JOINT_REVIEW_REQUIREMENTS,
                               next_node="after_script_review", revise_node="screenwriter")
         self.add_human_review(graph, "director_human_gate", stage="director", title="摄影逐镜设计与代表帧审核",
                               confirmation_requirements=("逐段核对摄影表演设计是否贴合当前口播",
@@ -87,6 +87,7 @@ class VideoProductionGraph(AbstractContextManager):
         graph.add_node("after_director_demo_review", self.after_director_demo_review)
         graph.add_conditional_edges(START, self.start_route, {
             "component_demo": "component_demo", "screenwriter": "screenwriter", "materials": "materials",
+            "audio_gate": "audio_gate",
         })
         self.add_cleanup_edge(graph, "component_demo", {"director_demo": "director_demo", "await_input": "await_input"})
         self.add_cleanup_edge(graph, "screenwriter", {
@@ -164,6 +165,11 @@ class VideoProductionGraph(AbstractContextManager):
         if state.get("action") == "component_demo":
             return "component_demo"
         job = current_job(self.repo, state)
+        if self.repo.director_restart_receipt(job.job_id, job.revision):
+            from videoagents.services.director_recovery import validate_director_restart
+
+            validate_director_restart(self.repo, job)
+            return "audio_gate"
         if self.repo.materials_restart_receipt(job.job_id, job.revision):
             if not script_before_materials_is_approved(self.repo, job):
                 raise Conflict("仅素材重启的原文案批准依据无效")

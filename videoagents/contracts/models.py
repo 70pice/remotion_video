@@ -609,9 +609,12 @@ class RestartUnknownRequest(Contract):
     rebuild_script: bool = Field(default=False, strict=True)
     materials_only: bool = Field(default=False, strict=True)
     materials_note: str = Field(default="", max_length=30000)
+    director_only: bool = Field(default=False, strict=True)
 
     @model_validator(mode="after")
     def restart_scope(self):
+        if self.director_only and (self.rebuild_script or self.materials_only or self.brief is not None):
+            raise ValueError("只重做摄影不能同时重写文案、重采素材或修改 Brief")
         if self.materials_only and (self.rebuild_script or self.brief is not None):
             raise ValueError("只重采素材不能同时重写文案或修改 Brief")
         if self.materials_only and not self.materials_note.strip():

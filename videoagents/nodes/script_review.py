@@ -22,6 +22,20 @@ SCRIPT_REVIEW_POLICY = {
     "finish_on_confirm": False, "revise_route": "screenwriter",
 }
 
+JOINT_REVIEW_NODE = "human_review_script"
+JOINT_REVIEW_TITLE = "文案与素材人工审核"
+JOINT_REVIEW_REQUIREMENTS = (
+    "首句具体，尽早建立观看理由；主线清楚，结尾自然回应问题",
+    "每段口播的来源真实存在，素材清单能支撑对应说法",
+    "素材可用区间、出处与许可说明符合本期用途",
+    "资料缺口已列明；人工确认文案与素材后才可进入配音",
+)
+JOINT_REVIEW_POLICY = {
+    "node_name": JOINT_REVIEW_NODE, "stage": "script", "title": JOINT_REVIEW_TITLE,
+    "requirements": JOINT_REVIEW_REQUIREMENTS, "min_note_length": 10,
+    "finish_on_confirm": False, "revise_route": "screenwriter",
+}
+
 
 def script_review_fingerprint(repository: Repository, job: Job) -> str:
     if not job.script or job.script.revision != job.revision:

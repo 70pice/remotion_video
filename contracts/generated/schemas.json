@@ -2756,6 +2756,11 @@
           "maxLength": 30000,
           "title": "Materials Note",
           "type": "string"
+        },
+        "director_only": {
+          "default": false,
+          "title": "Director Only",
+          "type": "boolean"
         }
       },
       "required": [

@@ -95,7 +95,7 @@ def test_restart_preserves_unknown_and_snapshots_and_does_not_enqueue(tmp_path):
     assert receipt["brief"] == new_brief.model_dump()
     # Existing authorizations were fingerprinted before rebuild_script existed.
     legacy_payload = request(operation, brief=new_brief).model_dump(
-        exclude={"base_revision", "rebuild_script", "materials_only", "materials_note"})
+        exclude={"base_revision", "rebuild_script", "materials_only", "materials_note", "director_only"})
     assert receipt["request_hash"] == fingerprint(legacy_payload)
 
 

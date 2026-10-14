@@ -184,6 +184,8 @@ class Repository:
         if not request.materials_only:
             payload.pop("materials_only")
             payload.pop("materials_note")
+        if not request.director_only:
+            payload.pop("director_only")
         digest = fingerprint(payload)
         with self.connection(immediate=True) as db:
             job = self._get(db, job_id)
@@ -202,11 +204,13 @@ class Repository:
                 providers["materials"] = {"llm:materials"}
             if request.materials_only:
                 providers.pop("script")
+            if request.director_only:
+                providers = {"director": {"llm:director"}}
             if (job.status != "NEEDS_INPUT" or job.stage not in providers or pending.get("kind") != "input"
                     or pending.get("operation_status") != "UNKNOWN"
                     or pending.get("operation_id") != request.operation_id
                     or pending.get("revision") != job.revision or pending.get("stage") != job.stage):
-                raise Conflict("素材 UNKNOWN 须明确 rebuild_script 或 materials_only；其他阶段不能通过此入口重启")
+                raise Conflict("重启只支持当前编剧 UNKNOWN、明确范围的素材 UNKNOWN 或 director_only 摄影 UNKNOWN")
             operation = db.execute("SELECT job_id,provider,status,body FROM operations WHERE operation_id=?",
                                    (request.operation_id,)).fetchone()
             if (not operation or operation["job_id"] != job_id or operation["status"] != "UNKNOWN"
@@ -234,6 +238,11 @@ class Repository:
                 receipt.update(materials_only=True, materials_note=request.materials_note,
                                previous_job=job.model_dump(),
                                preserved_script=preserve_approved_script(self, job))
+            if request.director_only:
+                from videoagents.services.director_recovery import preserve_director_inputs
+
+                receipt.update(director_only=True, previous_job=job.model_dump(),
+                               preserved_director=preserve_director_inputs(self, job, request.note))
             updated = Job.model_validate(transform(job).model_dump())
             if updated.revision != receipt["target_revision"] or updated.status != "DRAFT":
                 raise Conflict("重启授权只能保存一个新版草稿")
@@ -248,7 +257,18 @@ class Repository:
             if request.materials_only:
                 event.update(materials_only=True, materials_note=request.materials_note,
                              preserved_script=receipt["preserved_script"])
+            if request.director_only:
+                event.update(director_only=True,
+                             approval_artifact_id=receipt["preserved_director"]["approval_artifact_id"],
+                             audio_asset_id=receipt["preserved_director"]["audio_asset_id"])
             return self._save(db, updated, "unknown_restart_authorized", event)
+
+    def director_restart_receipt(self, job_id: str, revision: int) -> dict[str, Any] | None:
+        with self.connection() as db:
+            rows = db.execute("SELECT value FROM job_inputs WHERE job_id=? "
+                              "AND key LIKE 'authorized_model_restart:%'", (job_id,)).fetchall()
+        return next((receipt for row in rows if (receipt := json.loads(row[0])).get("director_only") is True
+                     and receipt.get("target_revision") == revision), None)
 
     def materials_restart_receipt(self, job_id: str, revision: int) -> dict[str, Any] | None:
         """Read the explicit authorization; it is never a new human approval."""

@@ -25,7 +25,7 @@ videoagents restart-unknown <job_id> --operation-id <当前素材UNKNOWN操作ID
 
 只接受素材 `NEEDS_INPUT / materials / kind=input` 且 provider 为 `llm:materials` 的 UNKNOWN；此选项
 始终清空旧稿和当前研究结果引用，保存新版 DRAFT，后续 `run` 从编剧开始再进入素材。它不提供
-自动复用旧稿的捷径，也不启动付费调用。配音、摄影、剪辑阶段、活动命令、SUBMITTING、
+自动复用旧稿的捷径，也不启动付费调用。配音、剪辑阶段、活动命令、SUBMITTING、
 其他未决操作、普通缺配置待办和人工审核门仍被拒绝。配音供应商的 UNKNOWN 应检查已有真实音频
 或供应商回执。
 
@@ -68,3 +68,43 @@ videoagents run <job_id>
 新的画面来源只记入素材研究清单，不扩写已审 Brief。原稿、批准回执或快照发生变化会在调用前停止。
 采集后仍停在新的“文案与素材人工审核”，不继承旧联合门或逐镜门的批准，不进入配音。
 同操作 ID、同说明及同采集要求重发幂等；改变范围或要求会报冲突，不自动发起第二次素材尝试。
+
+## 保留联合批准与真实音频，仅重做摄影
+
+摄影 `NEEDS_INPUT / director / kind=input` 待办绑定的 `llm:director / UNKNOWN` 可用
+`--director-only`。必须针对该次未知提交取得可能用量确认；修复代码或延长超时不代替确认。
+
+```powershell
+videoagents restart-unknown <job_id> --operation-id <当前摄影UNKNOWN操作ID> --acknowledge-possible-usage --director-only --note "用户明确接受旧摄影提交可能已有用量，授权新尝试；保留文案与真实音频，使用合适真实素材，组件套补画面表达缺口并明确标示示意"
+videoagents status <job_id>
+videoagents run <job_id>
+```
+
+`--note` 同时是正式授权说明和最新摄影要求，最多3000字符，并进入摄影调用指纹。
+不得同时提供 `--brief`、`--rebuild-script`、`--materials-only` 或素材采集要求；要求修改文案、
+配音或语速时此入口拒绝。它只保存一次新版 DRAFT；旧 UNKNOWN、旧文件与注册记录不改变，
+同一操作与相同请求重复执行不升版本、不排队、不再次提交。
+
+新版保留原 Brief 与文案正文、当前全部素材、选用真实音频和 alignment、voice_guidance、audio_report，
+以及真实文案门/联合门回执与原飞书 Base。仅 Script 的 revision 前进，旧 timeline、摄影方案、
+逐镜图片和剪辑衍生引用清空，不创建任何新版 confirm。授权保存原 Job、素材 metadata 与文件依据；
+正常 `run` 再验证这些依据，经 audio_gate 直接进入摄影，跳过编剧、素材与配音，仍停逐镜整包人工审核。
+
+历史联合门 confirm 通常不含完整 subject。系统保留原 revision、Brief、Script、视觉素材、源正文、
+研究产物、素材审计、素材取舍后的顺序及原 metadata，尝试排除已证明匹配的有效音频和已知配音输出，
+然后与真实联合回执的 dependency/policy 指纹精确比较。人审前已导入的音频保留在候选投影中。
+存在 confirm 本身不构成批准继承；不能还原指纹、最新联合决定不是 confirm、原稿/音频不匹配、
+缺文件、hash 改变、活动命令、错 provider/操作/revision 或其他当前未决提交都会阻断。
+
+摄影上下文仅恢复当前有效画面与最终证据结论及新 note；拒绝素材不回流，恢复台账和审核流水不交给模型。
+素材前批准通过既有补采/取舍链验证；再次出现摄影 UNKNOWN 时须再针对新操作明确授权。
+
+操作者可使用纯只读预检函数，成功只返回依据，不授权、不改 revision、不调用模型或配音：
+
+```python
+from videoagents.services.director_recovery import verify_director_recovery_inputs
+
+proof = verify_director_recovery_inputs(repo, repo.get_job(job_id))
+```
+
+预检会读取登记文件、使用本机 ffprobe 检测音频时长，并验证真实批准指纹；无法证明历史输入时如实报冲突。
