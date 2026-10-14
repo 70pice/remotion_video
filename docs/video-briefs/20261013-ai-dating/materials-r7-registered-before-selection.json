@@ -1,0 +1,375 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 7,
+  "pending_token": "a8719f6948b096c60019a5daedea3be5",
+  "script_unchanged": true,
+  "approval_valid": true,
+  "old_14_operations_unchanged": true,
+  "operations": [
+    {
+      "operation_id": "00e688d94aa043fb965259e3b946ca16",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "ae354894edc76fde7f90ee2a7accf1b3dd3e064099c17b845dcdfa79041fc6ee"
+    },
+    {
+      "operation_id": "01423dff24d54faaabf8dfb0f9f49592",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "8ac82379ed5bc235734fb1c5a22412f01ecf2cf7ff0672bc0fe9088ea01be17e"
+    },
+    {
+      "operation_id": "1cf819d4b53643f48b7cbc25b1d1ff91",
+      "provider": "llm:materials",
+      "status": "COMPLETED",
+      "body_sha256": "f081fee03f182f415ee6aceb9e974da556dca37a5c0a6b61b4afa5554d1e2a64"
+    },
+    {
+      "operation_id": "2013f7e0f2be44a8b6613f2718750429",
+      "provider": "llm:materials",
+      "status": "UNKNOWN",
+      "body_sha256": "a7bbfd9a1a2bbcdfaec0fe913ac946edcad9132bf1e372d8d88759fb7265b14b"
+    },
+    {
+      "operation_id": "23ceac81a5e04fcd8b45cb21e0857908",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "cd376c4e4a52c71018ab0f3b90f51d22a670b603f25c5c8444545eb5a1617882"
+    },
+    {
+      "operation_id": "35bd822a24834d389cca2436086c277c",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "8a244a6a55515d381fe1e87d35fd9f2dc286eee2d9d44660d448179ea8bf4ac8"
+    },
+    {
+      "operation_id": "51292e8e94dd4e4d8afce200c279600c",
+      "provider": "llm:materials",
+      "status": "COMPLETED",
+      "body_sha256": "bdd96b6f0e0ee524adb0933d9bb9a5a87c7971679b2c90339bc1fa4be75e2a25"
+    },
+    {
+      "operation_id": "515a815f0a5e4baf85e0230e52168023",
+      "provider": "llm:screenwriter",
+      "status": "UNKNOWN",
+      "body_sha256": "f89c4434b910f1dd199d9a00b60d51a27529141432ab0380f091435b6899f635"
+    },
+    {
+      "operation_id": "560106d6ee24433e8be3be0f6bf10e6a",
+      "provider": "llm:screenwriter",
+      "status": "UNKNOWN",
+      "body_sha256": "17e938eb1307f54ee2f6ff63a1f4a44a8def80a729cc41e38a8cec053779f54a"
+    },
+    {
+      "operation_id": "6c3d212fdbf8441781f50d3a2ae9acfe",
+      "provider": "llm:materials",
+      "status": "COMPLETED",
+      "body_sha256": "148bd7b13b3e3afeb99dc5c16334dcb4f8744e09c4ddb9711bcad8fed94f2847"
+    },
+    {
+      "operation_id": "7411d1353925400ab1b5035c5f6fc173",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "0d1aefd4c2a77c9cd063917e7e49b3a67a039829d45ce0ed7c51537889a133ab"
+    },
+    {
+      "operation_id": "9feb383537714278a770ec24c2f2928d",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "f6ad47d246dfdafff39395a205b533172e561c8fd977a6266906141bc5cb4164"
+    },
+    {
+      "operation_id": "b088dceefa7b4e30816429b72ab3c3e4",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "31a6bde0dd1990c6295abb857b00a3d223b0f5236a39f3e6ab6a4eeca9927654"
+    },
+    {
+      "operation_id": "c34539df84044a7cb5eb6cbe86c3ff32",
+      "provider": "llm:materials",
+      "status": "UNKNOWN",
+      "body_sha256": "e22b82d0a1bf9f24f424f196ce07872adf24df29d9076c249d7ce8505ae3d640"
+    },
+    {
+      "operation_id": "d936ba4a16014648a6b8c6648070c06e",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "7558c21616a32519366eec2a7157131594fe4a1f3aa720661f1dea7156ecf1cc"
+    }
+  ],
+  "assets": [
+    {
+      "asset_id": "0b61255194854094b26a4a2565504352",
+      "artifact_id": "6c50cd02c1ff426e9d9c31cc7e7b787d",
+      "sha256": "831b33e978685bb991dc6e69019a6b98e4672f123315b7eca5242212a279316c",
+      "size_bytes": 1169496,
+      "source_url": "https://news.cnr.cn/native/gd/20260113/t20260113_527492219.shtml",
+      "mime_type": "image/png",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\5\\sources\\skill-831b33e978685bb991dc6e69019a6b98e4672f123315b7eca5242212a279316c.png",
+      "description": "对应s4真人身份包装；叙事用途：让人相信的线索。警方提供、央广网原页刊载的真实PNG，1000×2222，已解码。明亮中文界面，充值入口、多个“真人”标签及个人简介可读，可放大标签，保留原图人脸打码。国内同类欺诈场景证据画面、本案辅助理解画面。没有收费动作，不算补齐收费链；来源称部分头像使用AI生成或美颜，无法判定图中哪张由AI生成，更不证明自主模型对话。上屏须持续标“国内同类付费/欺诈场景，非报告涉案App”；只取包装界面，不将国内案件、人物、金额或警方处置写入本案口播。",
+      "metadata_keys": [
+        "collection_key",
+        "description",
+        "height",
+        "image_url",
+        "origin",
+        "source_url",
+        "width"
+      ]
+    },
+    {
+      "asset_id": "b611b6b73f0f42f6b8ecf01248fcb65d",
+      "artifact_id": "d617506959794ad4b6859dcedcab39e0",
+      "sha256": "d24289110bcfbb7bcf760d54cafb7964f367acde7dfc7360620fe16b7ad93ffa",
+      "size_bytes": 770597,
+      "source_url": "https://news.cnr.cn/native/gd/20260113/t20260113_527492219.shtml",
+      "mime_type": "image/png",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\5\\sources\\skill-d24289110bcfbb7bcf760d54cafb7964f367acde7dfc7360620fe16b7ad93ffa.png",
+      "description": "对应s3视频入口、s5付费视频机制备选；叙事用途：收费提示。警方提供、央广网原页刊载原PNG，1000×991，已解码。两个手机界面：左上100金币/分钟，下方视频约会；右侧通话邀请与视频电话按钮，人物已由来源打码。适合放大计价行或邀请按钮，是原新闻图片，不能动画后冒称视频。国内收费入口证据画面、本案辅助理解画面；只有计价和邀请，不证明扣款、通话接通、预录或AI换脸，不反推人民币汇率。上屏须持续标“国内同类付费/欺诈场景，非报告涉案App”，保留央广网/警方来源；国内人物、金额和处置不进入本案口播。",
+      "metadata_keys": [
+        "collection_key",
+        "description",
+        "height",
+        "image_url",
+        "origin",
+        "source_url",
+        "width"
+      ]
+    },
+    {
+      "asset_id": "41aa62b5f4e845c5883257fdb76b7dc1",
+      "artifact_id": "d58940c5bce244408a56f49641c2549d",
+      "sha256": "be18ce24220a9947cc355ed5b65ddd71795164f1cac88a827750e130d07989d6",
+      "size_bytes": 122172,
+      "source_url": "https://tv.cctv.com/2025/04/20/VIDE5gJG9pJqDPTapHM9pQor250420.shtml",
+      "mime_type": "image/jpeg",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\6\\sources\\skill-be18ce24220a9947cc355ed5b65ddd71795164f1cac88a827750e130d07989d6.jpg",
+      "description": "对应s1/s3中文私聊、s4聊天包装、s5按条收费；叙事用途：让人相信的线索／收费。腾讯图床实际下载的央视财经同调查原JPEG，1280×720，已完整解码并看图；四个中文私聊截面中红圈“消息收费7钻石/条”“8钻石/条”“5钻石/条”可读，保留央视财经/财经调查出处和源处理。是国内收费提示证据、本案辅助理解，可标注每条消息扣费，不能当三条AI候选回复界面。腾讯转载正文读取失败，图片以已核验央视原节目为source_url，文字背景由同调查四川在线正文核对，不计为独立事实来源。持续标“国内同类付费/欺诈场景，非报告涉案App”；不证明Claude参与、消息真实回复、扣款结果或本案单价。静态原图不能冒充视频，不与视频中同类信息裁切凑素材数量。",
+      "metadata_keys": [
+        "collection_key",
+        "description",
+        "height",
+        "image_url",
+        "origin",
+        "source_url",
+        "width"
+      ]
+    },
+    {
+      "asset_id": "a12818e554a74684bea6e34785c8b85b",
+      "artifact_id": "e4459ca5d0a746f2b4d4cf3405fd7005",
+      "sha256": "30d9b958cd4da3081aa5c2367ba6eaac3bb78747deed45fbf9693c7be245b378",
+      "size_bytes": 123893,
+      "source_url": "https://www.lanjinger.com/d/141048",
+      "mime_type": "image/png",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\7\\sources\\skill-30d9b958cd4da3081aa5c2367ba6eaac3bb78747deed45fbf9693c7be245b378.png",
+      "description": "对应s3/s5；叙事用途：真人任务／计价。2020-07-24锌刻度/蓝鲸财经附原PNG，683×819，已看原图。实际可读“消息价格5金币/条”“语音价格设置30金币/分钟”“视频价格设置80金币/分钟”及开关。国内历史收费设置的证据画面、本案辅助理解画面；可聚焦计价行，灰字对比略低，保留原尺寸。正文最高档300/800不能替换图中30/80。持续标“国内同类付费界面示意，非报告涉案App”。不证明Claude、AI回复、工作室身份或扣款；不反推人民币汇率，不当当前价格，不将付费本身称欺诈。",
+      "metadata_keys": [
+        "collection_key",
+        "description",
+        "height",
+        "image_url",
+        "origin",
+        "source_url",
+        "width"
+      ]
+    },
+    {
+      "asset_id": "00e534aed0e74d6b9f5cfbfb589d28c3",
+      "artifact_id": "05ca5c4b2b7748e2bf07eb71463a2eb1",
+      "sha256": "06b4f3a32cd997217f5952467e19002eaa844e31df5f45fdfe14ea50fe87ca5f",
+      "size_bytes": 272995,
+      "source_url": "https://www.time-weekly.com/post/294485",
+      "mime_type": "image/jpeg",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\7\\sources\\skill-06b4f3a32cd997217f5952467e19002eaa844e31df5f45fdfe14ea50fe87ca5f.jpg",
+      "description": "对应s5；叙事用途：额度不足→充值补充。时代财经2022-08-13记者心遇体验所附原JPEG，1170×1038，已看原图；白底大字“金币不足”“做任务或购买金币”、首充35金币仅需1元与“立刻充值1元”清楚。国内历史充值提示的证据画面、本案辅助理解，可聚焦弹窗与购买入口，保留原界面与来源。持续标“国内同类付费界面示意，非报告涉案App”。图中也有任务获得金币与互关免费提示，不概括为所有服务均收费；1元是历史首充优惠，非本案单价或当前报价，不证明支付完成、AI欺诈或工作室身份。",
+      "metadata_keys": [
+        "collection_key",
+        "description",
+        "height",
+        "image_url",
+        "origin",
+        "source_url",
+        "width"
+      ]
+    },
+    {
+      "asset_id": "59cb502d984a4c1fafdfaeadf8fd144a",
+      "artifact_id": "7a81112603c7491d906d968a0b564e6a",
+      "sha256": "4ce04ccf8168b14d83fe3847f532cd2b7e834c693e192e7f7ffc34ee1acf6acf",
+      "size_bytes": 116337,
+      "source_url": "https://www.time-weekly.com/post/294485",
+      "mime_type": "image/jpeg",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\7\\sources\\skill-4ce04ccf8168b14d83fe3847f532cd2b7e834c693e192e7f7ffc34ee1acf6acf.jpg",
+      "description": "对应s3/s5；叙事用途：回复方奖励激励。时代财经2022-08-13心遇体验原JPEG，908×888，已看原图；“回复消息能赚钱”“立刻回消息”清楚，背景为中文消息列表，保留源头像/昵称打码。是该历史界面奖励提示的证据画面、本案辅助理解，适合聚焦弹窗。持续标“国内同类付费界面示意，非报告涉案App”。只证明记者取得的界面出现激励提示，不证明到账、零工身份、AI或欺诈；不能说AI自动聊天会触发真人工资，不能将国内回复者泛称骗子。",
+      "metadata_keys": [
+        "collection_key",
+        "description",
+        "height",
+        "image_url",
+        "origin",
+        "source_url",
+        "width"
+      ]
+    },
+    {
+      "asset_id": "951152e88def4169af4d1149e3447536",
+      "artifact_id": "359443bf4d1346e9a4433cef0710e98a",
+      "sha256": "c35603a522fb1dee01acfb8c6180ff2da8ef16328e960509d6316bfe650dac04",
+      "size_bytes": 504038,
+      "source_url": "https://finance.ifeng.com/c/8WN7OiiHCDA",
+      "mime_type": "image/png",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\7\\sources\\skill-c35603a522fb1dee01acfb8c6180ff2da8ef16328e960509d6316bfe650dac04.png",
+      "description": "对应s3/s5；叙事用途：按消息记收益。消费者报道、凤凰网2024-01-15转载所附原PNG，1290×2796，已看原图；“我的奖励”、多条“付费消息”及+0.05/+0.02清楚，记录日期2023-12-26，源昵称遮挡保留。页面显示可提现/累计3.61元与提现按钮，可聚焦记录，区别收益提示与实际到账。历史同类收益记录的证据画面、本案辅助理解。持续标“国内同类付费界面示意，非报告涉案App”。不证明已提现、真实零工身份、AI参与或匿名工作室实际收入；金额和比例不可移植到本案，不当当前价格。",
+      "metadata_keys": [
+        "collection_key",
+        "description",
+        "height",
+        "image_url",
+        "origin",
+        "source_url",
+        "width"
+      ]
+    },
+    {
+      "asset_id": "46256f4f7a2940feafdca5bc5b9547db",
+      "artifact_id": "bbb66f1a615740409604c74124160272",
+      "sha256": "d92205358c43888215efab082c3c6032adf955d5f9e9ecb62a2ef3af5fa9c8c7",
+      "size_bytes": 406801,
+      "source_url": "https://finance.ifeng.com/c/8WN7OiiHCDA",
+      "mime_type": "image/png",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\7\\sources\\skill-d92205358c43888215efab082c3c6032adf955d5f9e9ecb62a2ef3af5fa9c8c7.png",
+      "description": "对应s1/s3/s5/s7；叙事用途：中文聊天环境／视频任务收益入口。消费者报道、凤凰网2024-01-15所附原PNG，1290×739，已看原图；“心动4级”、解锁语音/视频提示和蓝色“收益1.49元/分钟起”可读，灰色说明较浅；保留头像与聊天内容源打码。实际静态聊天截面，适合聚焦蓝字或作中文界面背景；国内历史界面证据、本案辅助理解。持续标“国内同类付费界面示意，非报告涉案App”。1.49元是接收方收益，不能写成付费者价格，也不能证明接通、预录、AI或工作室身份；不能动画后冒称真实通话视频。",
+      "metadata_keys": [
+        "collection_key",
+        "description",
+        "height",
+        "image_url",
+        "origin",
+        "source_url",
+        "width"
+      ]
+    },
+    {
+      "asset_id": "caf3d0aead8a48c089e527c33db3237f",
+      "artifact_id": "258b30d7463d4114bccbd92cc83063a6",
+      "sha256": "022c9a48aa763c8d08ff3c1941e1ad39ff062610aa6d93e9aabf36c0ae192cb3",
+      "size_bytes": 81375,
+      "source_url": "https://cloud.tencent.com/document/product/269/118704",
+      "mime_type": "image/png",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\7\\sources\\skill-022c9a48aa763c8d08ff3c1941e1ad39ff062610aa6d93e9aabf36c0ae192cb3.png",
+      "description": "对应s4；叙事用途：AI拟建议→真人采用。腾讯云官方AI辅助文档更新2026-07-01，图内时间2025-05-14；真实下载原PNG，1590×442，已看原图。“智能回复”“重新生成”“使用”“Enter键发送”及推荐正文清楚，适合聚焦建议与按钮。正规客服功能的证据画面、本案辅助理解；持续标“同类功能示例，非涉案工具”。图中只有一条建议，不能冒称三选一原样实录；使用按钮不证明已经发出，不证明Claude或涉案工具，不指控正规客服产品欺诈。",
+      "metadata_keys": [
+        "collection_key",
+        "description",
+        "height",
+        "image_url",
+        "origin",
+        "source_url",
+        "width"
+      ]
+    },
+    {
+      "asset_id": "30495f9cf1854fda97e5e3156891e118",
+      "artifact_id": "710daf6d2ec14f55bb02597c4424888b",
+      "sha256": "b665e672c0bef3355aa1da0be72ebd3a92f20b7b4dfa118941d640b45c734147",
+      "size_bytes": 1208613,
+      "source_url": "https://training.tencentads.com/uploads/202409/ABjmxInf_A1pYpq.pdf",
+      "mime_type": "image/png",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\7\\sources\\skill-b665e672c0bef3355aa1da0be72ebd3a92f20b7b4dfa118941d640b45c734147.png",
+      "description": "对应s4；叙事用途：头像生成机制。同来源真实PDF《汽车行业广告AIGC能力应用》第15页“人物肖像生成”，封面2024年8月，PDF创建2024-09-18。原PDF页960×540pt，以2倍渲染为1920×1080静态PNG并解码看图；大字“文生图”“图生图”、亚洲人物生成结果可辨，编辑器细字较小。相关功能区域可聚焦，保留页码/腾讯广告出处；这是源页截图，本案辅助理解，非自己生成头像或录屏。持续标“同类功能示例，非涉案工具”，说明为正规生成工具演示。不宣称原生4K，不证明工作室用此工具或图中人为涉案人，不采纳页面肖像权营销主张。",
+      "metadata_keys": [
+        "collection_key",
+        "description",
+        "height",
+        "image_url",
+        "origin",
+        "source_url",
+        "width"
+      ]
+    },
+    {
+      "asset_id": "2ea535747f5e4a50b49570e78e7eceaf",
+      "artifact_id": "54ee294f65644ed4a8e5af5cc2959b12",
+      "sha256": "15df8007e7b2b00905dbb491835bd94c4bf9d009316b10b082b3a35588aa8237",
+      "size_bytes": 52911229,
+      "source_url": "https://www.codebuddy.cn/ide/",
+      "mime_type": "video/mp4",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\7\\sources\\skill-15df8007e7b2b00905dbb491835bd94c4bf9d009316b10b082b3a35588aa8237.mp4",
+      "description": "对应s2；叙事用途：中文AI编程过程。腾讯CodeBuddy官方公开剪辑演示，页未标发布日期，2026-10-14采集。真实MP4，52911229字节、37.533秒、HEVC 7680×4628/30fps＋AAC，完整解码并查看逐秒及原尺寸代表帧。5.5–15.5秒：多文件写入、中文创建组件说明与“接受”；26.5–28.5秒：构建输出及中文成功说明；32.0–37.0秒：网页图鉴预览与部署结果。0–4.5秒输入/菜单、16–25秒较多运行说明、29–31.5秒等待预览较次要；无讲解人。原画有缩放软化，不能据编码尺寸宣称原生8K，中文关键状态可读，可聚焦右侧。官方同类功能辅助理解，持续标“同类功能示例，CodeBuddy，非涉案工具”。不是Claude或涉案开发录像，实际任务是宝可梦图鉴网页；37秒剪辑不证明真实开发耗时、成本或效能，不循环凑覆盖。",
+      "metadata_keys": [
+        "collection_key",
+        "description",
+        "duration_seconds",
+        "frame_rate",
+        "height",
+        "media_url",
+        "origin",
+        "source_url",
+        "width"
+      ]
+    },
+    {
+      "asset_id": "5768f1b8030a461e9cd9f653e6200c08",
+      "artifact_id": "9e992786b64646ea8b768364de74ec78",
+      "sha256": "22f5ab26f4b40d1bf8a3eb53eb62576a9e5daa57a0929663f6f941ca516db01b",
+      "size_bytes": 72708,
+      "source_url": "https://www.36kr.com/p/2490740934056072",
+      "mime_type": "image/jpeg",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\7\\sources\\skill-22f5ab26f4b40d1bf8a3eb53eb62576a9e5daa57a0929663f6f941ca516db01b.jpg",
+      "description": "对应s1/s3/s6/s7；叙事用途：明亮中文消息列表／喜欢提示。少数派体验文、36氪2023-10-26转载附犬岛原JPEG，1080×1170，已看原图。左半“对话”“消息通知”“喜欢了你的回答”和互赞开启对话提示可读，部分灰字较浅；右半为消息通知中真实回答卡，黑色正文清楚。源头像/昵称模糊保留。实际应用截图、本案辅助理解，适合选取列表或通知可读区域作为首屏25000底图；数字与口径由已审视觉需求另做。持续标“同类中文界面示意，非报告涉案App”。是应用内通知，不冒称外部推送；不证明AI、假点赞、收费或该平台涉案，不添收费角标。",
+      "metadata_keys": [
+        "collection_key",
+        "description",
+        "height",
+        "image_url",
+        "origin",
+        "source_url",
+        "width"
+      ]
+    },
+    {
+      "asset_id": "e54d081f5efd4680a7820384ae051686",
+      "artifact_id": "9a51359a4e584574bc0ca852795e78ac",
+      "sha256": "5c957118f3d75133b24a30118950452ab60d087c4d5bdb1343d12451f8d384fb",
+      "size_bytes": 75011,
+      "source_url": "https://www.36kr.com/p/2490740934056072",
+      "mime_type": "image/jpeg",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\7\\sources\\skill-5c957118f3d75133b24a30118950452ab60d087c4d5bdb1343d12451f8d384fb.jpg",
+      "description": "对应s3/s4/s6；叙事用途：中文聊天输入框／真实喜欢提示。少数派体验文、36氪2023-10-26原JPEG，1080×779，已看原图；“喜欢这条回答”“我们互相点赞了对方的回答，自动开启对话”、输入消息栏及表情键盘可读，源昵称打码保留。为同一功能的三面板原拼图，不拆成三件凑数；可聚焦左/中聊天区，避免与消息列表连续重复。实际静态界面、本案辅助理解，持续标“同类中文界面示意，非报告涉案App”。不是AI建议、三候选、假点赞或真实涉案聊天；右侧“屏蔽消息/解除好友/举报”是用户菜单，不当起疑用户后台处置。不加收费角标。",
+      "metadata_keys": [
+        "collection_key",
+        "description",
+        "height",
+        "image_url",
+        "origin",
+        "source_url",
+        "width"
+      ]
+    },
+    {
+      "asset_id": "1ada62c7fc34498bbd9b2cd9ea7d560d",
+      "artifact_id": "88f9e64d32844930ad4dc53e2c6f7d87",
+      "sha256": "4012b463579d93507236d19b1e434649ff6cedec81ad829a616fe87f437b18f2",
+      "size_bytes": 37590,
+      "source_url": "https://www.36kr.com/p/2490740934056072",
+      "mime_type": "image/jpeg",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\7\\sources\\skill-4012b463579d93507236d19b1e434649ff6cedec81ad829a616fe87f437b18f2.jpg",
+      "description": "对应s3/s6；叙事用途：中文个人资料／主页访问呈现。少数派体验文、36氪2023-10-26所附犬岛原JPEG，1080×1170，已看原图；左侧“个人主页访问711”，右侧“编辑个人资料”、头像、昵称、性别、生日、城市、职业字段可辨。灰字较浅，适合聚焦访问计数与字段标题；不改原图数字，保留公开猫头像及来源。实际静态界面，本案辅助理解，持续标“同类中文界面示意，非报告涉案App”。711是该历史截图的主页访问汇总，非访客逐条记录、本案人数或伪造数值；不能证明后台造假、AI或此平台涉案，不加收费角标。",
+      "metadata_keys": [
+        "collection_key",
+        "description",
+        "height",
+        "image_url",
+        "origin",
+        "source_url",
+        "width"
+      ]
+    }
+  ],
+  "topic_mismatch_asset_ids": [
+    "5768f1b8030a461e9cd9f653e6200c08",
+    "e54d081f5efd4680a7820384ae051686",
+    "1ada62c7fc34498bbd9b2cd9ea7d560d"
+  ]
+}

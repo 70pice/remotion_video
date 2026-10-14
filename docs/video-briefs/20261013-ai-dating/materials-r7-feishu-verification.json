@@ -1,0 +1,163 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 7,
+  "verified_at": "2026-10-14T02:18:25.059745+00:00",
+  "review_record_id": "reczz28N7Y2TIR8i",
+  "pending_token": "b9540d9798b02c3e01fc5ce268a6238f",
+  "assets_table_url": "https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblVOUHrIy3Tq3uh",
+  "total_historical_rows": 22,
+  "total_historical_attachments": 29,
+  "historical_18_attachments_unchanged": true,
+  "exact_id_readback": true,
+  "active": [
+    {
+      "record_id": "reczz28N4y4njard",
+      "asset_id": "0b61255194854094b26a4a2565504352",
+      "adoption": "保留",
+      "attachments": [
+        {
+          "name": "skill-831b33e978685bb991dc6e69019a6b98e4672f123315b7eca5242212a279316c.png",
+          "size": 1169496
+        },
+        {
+          "name": "skill-831b33e978685bb991dc6e69019a6b98e4672f123315b7eca5242212a279316c.png",
+          "size": 1169496
+        }
+      ]
+    },
+    {
+      "record_id": "reczz28N4y4nlMYW",
+      "asset_id": "b611b6b73f0f42f6b8ecf01248fcb65d",
+      "adoption": "保留",
+      "attachments": [
+        {
+          "name": "skill-d24289110bcfbb7bcf760d54cafb7964f367acde7dfc7360620fe16b7ad93ffa.png",
+          "size": 770597
+        },
+        {
+          "name": "skill-d24289110bcfbb7bcf760d54cafb7964f367acde7dfc7360620fe16b7ad93ffa.png",
+          "size": 770597
+        }
+      ]
+    },
+    {
+      "record_id": "reczz28N66X7kXWq",
+      "asset_id": "41aa62b5f4e845c5883257fdb76b7dc1",
+      "adoption": "待审",
+      "attachments": [
+        {
+          "name": "skill-be18ce24220a9947cc355ed5b65ddd71795164f1cac88a827750e130d07989d6.jpg",
+          "size": 122172
+        }
+      ]
+    },
+    {
+      "record_id": "reczz28N7VUJPFww",
+      "asset_id": "a12818e554a74684bea6e34785c8b85b",
+      "adoption": "待审",
+      "attachments": [
+        {
+          "name": "skill-30d9b958cd4da3081aa5c2367ba6eaac3bb78747deed45fbf9693c7be245b378.png",
+          "size": 123893
+        }
+      ]
+    },
+    {
+      "record_id": "reczz28N7VUJP2uu",
+      "asset_id": "00e534aed0e74d6b9f5cfbfb589d28c3",
+      "adoption": "待审",
+      "attachments": [
+        {
+          "name": "skill-06b4f3a32cd997217f5952467e19002eaa844e31df5f45fdfe14ea50fe87ca5f.jpg",
+          "size": 272995
+        }
+      ]
+    },
+    {
+      "record_id": "reczz28N7VUJOtoa",
+      "asset_id": "59cb502d984a4c1fafdfaeadf8fd144a",
+      "adoption": "待审",
+      "attachments": [
+        {
+          "name": "skill-4ce04ccf8168b14d83fe3847f532cd2b7e834c693e192e7f7ffc34ee1acf6acf.jpg",
+          "size": 116337
+        }
+      ]
+    },
+    {
+      "record_id": "reczz28N7VUJNbWl",
+      "asset_id": "951152e88def4169af4d1149e3447536",
+      "adoption": "待审",
+      "attachments": [
+        {
+          "name": "skill-c35603a522fb1dee01acfb8c6180ff2da8ef16328e960509d6316bfe650dac04.png",
+          "size": 504038
+        }
+      ]
+    },
+    {
+      "record_id": "reczz28N7VUJR5sr",
+      "asset_id": "46256f4f7a2940feafdca5bc5b9547db",
+      "adoption": "待审",
+      "attachments": [
+        {
+          "name": "skill-d92205358c43888215efab082c3c6032adf955d5f9e9ecb62a2ef3af5fa9c8c7.png",
+          "size": 406801
+        }
+      ]
+    },
+    {
+      "record_id": "reczz28N7VUJPylB",
+      "asset_id": "caf3d0aead8a48c089e527c33db3237f",
+      "adoption": "待审",
+      "attachments": [
+        {
+          "name": "skill-022c9a48aa763c8d08ff3c1941e1ad39ff062610aa6d93e9aabf36c0ae192cb3.png",
+          "size": 81375
+        }
+      ]
+    },
+    {
+      "record_id": "reczz28N7VUJQyjr",
+      "asset_id": "30495f9cf1854fda97e5e3156891e118",
+      "adoption": "待审",
+      "attachments": [
+        {
+          "name": "skill-b665e672c0bef3355aa1da0be72ebd3a92f20b7b4dfa118941d640b45c734147.png",
+          "size": 1208613
+        }
+      ]
+    },
+    {
+      "record_id": "reczz28N7VUJOlTY",
+      "asset_id": "2ea535747f5e4a50b49570e78e7eceaf",
+      "adoption": "待审",
+      "attachments": [
+        {
+          "name": "skill-15df8007e7b2b00905dbb491835bd94c4bf9d009316b10b082b3a35588aa8237.mp4",
+          "size": 52911229
+        }
+      ]
+    }
+  ],
+  "excluded_generic": [
+    {
+      "asset_id": "5768f1b8030a461e9cd9f653e6200c08",
+      "record_id": "reczz28N7VUJN5qh",
+      "adoption": "不采用"
+    },
+    {
+      "asset_id": "e54d081f5efd4680a7820384ae051686",
+      "record_id": "reczz28N7VUJPDPA",
+      "adoption": "不采用"
+    },
+    {
+      "asset_id": "1ada62c7fc34498bbd9b2cd9ea7d560d",
+      "record_id": "reczz28N7VUJNG1Y",
+      "adoption": "不采用"
+    }
+  ],
+  "human_conclusion": "待审",
+  "human_opinion_unchanged": true,
+  "review_requirements_readback": true
+}

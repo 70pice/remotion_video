@@ -1,0 +1,12 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 7,
+  "pending_token": "b9540d9798b02c3e01fc5ce268a6238f",
+  "review_record_id": "reczz28N7Y2TIR8i",
+  "human_conclusion_before": "待审",
+  "human_opinion_before": "",
+  "updated_only": [
+    "标题",
+    "审核要求"
+  ]
+}

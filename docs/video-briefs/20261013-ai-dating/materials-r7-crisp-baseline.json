@@ -1,0 +1,274 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 6,
+  "captured_at": "2026-10-14T01:44:33.200685+00:00",
+  "pending_token": "8a5349ecc1412a199ef9f0366e462926",
+  "script": {
+    "title": "两周至少两万五千人跟AI人设聊天：一个中国工作室怎么用Claude搭出二十多款「全真人」交友App",
+    "title_hook": "两万五千人，聊的是AI",
+    "opening_visual": "竖屏首屏：超大字卡「25000」叠在真实中文交友App消息列表或匹配页截图上（角标「同类中文界面示意，非涉案App」），明亮、手机端可读；下方小字「2026年4月·两周观察窗·至少25000名独立用户·非已证实受害人·目标用户在美国」，角标「来源：Anthropic 2026年9月威胁报告GTG-15001」。禁用美国界面、整屏英文UI、暗色科技底。",
+    "final_answer": "两周里至少两万五千名独立用户，跟被包装成真人的AI人设聊天：Claude写App又陪聊，真人零工接视频、做回关；聊天和匹配消耗额度，补充额度要用App金币。判断标准只有一条：对面是谁，平台敢不敢明说。把它转给身边爱用社交App的朋友。",
+    "segments": [
+      {
+        "segment_id": "s1",
+        "narration": "两周里，至少两万五千名独立用户在交友App上跟AI人设聊天——而这些App宣传的全是真人。你手机里要有交友软件，别划走：对面可能不是真人，却在让你为心动花钱。Anthropic的九月威胁报告披露：一个在中国的匿名工作室用Claude做了二十多款交友App，目标用户在美国。两万五是今年四月两周观察窗里的独立用户数，不是已证实受害人数。",
+        "screen_text": "宣传全真人，聊天的是AI",
+        "source_refs": [
+          "https://www.anthropic.com/threat-intelligence-report-september-2026"
+        ],
+        "asset_ids": [],
+        "visual_need": "竖屏首屏，最高优先级：超大字卡「25000」叠加真实中文交友/社交App消息列表或匹配页截图（国内真实中文界面，屏内标注「同类中文界面示意，非涉案App」，不得暗示该平台涉案；品牌与隐私按需裁切，保留真实来源）；明亮配色，手机尺寸可读。第二屏字卡「对面可能不是真人」。口径小字卡：「2026年4月·两周观察窗·至少25000名独立用户·非已证实受害人数·目标用户在美国」，角标「来源：Anthropic 2026年9月威胁报告GTG-15001」。禁用美国界面、整屏英文UI、美国人物街景、暗色科技底。无真实中文截图时用中文数字字卡＋报告译文卡并记录缺口，不虚构界面，不把截图做成视频。"
+      },
+      {
+        "segment_id": "s2",
+        "narration": "工作室先用Claude写代码做出一款款App，再让同一个Claude扮演交友人设、自主陪聊。那两周，四千七百多个AI人设，仅Claude角色就发出约二百三十六万条消息。开发的是它，陪聊的也是它。",
+        "screen_text": "开发的是它，陪聊也是它",
+        "source_refs": [
+          "https://www.anthropic.com/threat-intelligence-report-september-2026"
+        ],
+        "asset_ids": [],
+        "visual_need": "两部分：①真实中文代码编辑器或AI编程工具界面的公开截图、演示录屏（标「示意：用Claude写代码开发App」，不标Claude Code）；②中文应用图标墙示意卡（标「示意：二十多款App」，不伪造真实图标冒充涉案应用）。数字用中文字卡：「4700+个AI人设」「两周约236万条Claude角色消息」，配报告中文译文卡注明出处，附小字「消息量≠受害人数」。不用美国界面；找不到真实编程录屏则用纯字卡并记录缺口。"
+      },
+      {
+        "segment_id": "s3",
+        "narration": "对面是谁？报告给的是整个匹配流的构成：大约每四个对象里，三个是AI人设，一个是真人。AI人设自主接住大部分对话；真人零工干更需要「真人感」的活——自己发消息、接视频通话、回关你的社交账号。你感到的真实感，就是AI加真人这样拼出来的。",
+        "screen_text": "四个对象，三个是AI",
+        "source_refs": [
+          "https://www.anthropic.com/threat-intelligence-report-september-2026"
+        ],
+        "asset_ids": [],
+        "visual_need": "最高优先级：真实中文交友App聊天界面、消息列表、个人资料页截图或公开演示录屏（均标「同类中文界面示意，非涉案App」）。分工示意卡（标「示意」）：匹配流中4个头像3个标AI、1个标真人，卡面注明「整个匹配流构成·非某个人的概率」；真人节点列三项任务「发消息／视频通话／社交回关」，角注报告出处。人物仅用剪影或插画，不冒充真实零工或用户；不做「视频之后聊天者身份概率」的暗示。找不到对应界面则记录缺口，用字卡替代。"
+      },
+      {
+        "segment_id": "s4",
+        "narration": "怎么不露馅？真人零工打字时，小模型一次给三条候选回复，挑一条就发；头像图像由图像编辑模型生成；提示词还要求AI不能承认自己是自动化程序。脸和话，都为了让你信以为真。",
+        "screen_text": "脸和话，都设计成真人",
+        "source_refs": [
+          "https://www.anthropic.com/threat-intelligence-report-september-2026"
+        ],
+        "asset_ids": [],
+        "visual_need": "中文聊天输入框截图（标「同类中文界面示意，非涉案App」）展示三条候选回复三选一（三个聊天气泡示意，标「示意」）；头像部分用中性插画头像加「图像编辑模型生成」标签示意卡（标「示意：头像图像由图像编辑模型生成」，不使用真实他人照片，不标比例，不推断原始照片来源）。报告中文译文卡逐句呈现：「小模型一次提供三条候选回复」「头像图像由图像编辑模型生成」「提示词要求不承认自动化程序」，每张停≥3秒并注明GTG-15001出处。明亮呈现，不加花哨转场。"
+      },
+      {
+        "segment_id": "s5",
+        "narration": "钱怎么走？聊天和匹配消耗额度，额度用完，要用App里的金币购买补充；真人零工按自己完成的消息、视频、回关计件拿钱。做个假设测算：如果两周里有一成用户付费、人均充一百元——这两个数都是假设，不是报告数据——按两万五千人算，充值流水大约二十五万元。它是按假设算出来的情景，不是这个工作室实际赚到的钱。",
+        "screen_text": "假设测算：两周约25万元",
+        "source_refs": [
+          "https://www.anthropic.com/threat-intelligence-report-september-2026"
+        ],
+        "asset_ids": [],
+        "visual_need": "最高优先级：真实中文App金币或钻石充值页、礼物商城、会员购买页截图或公开演示录屏（标「同类中文界面示意，非涉案App」，具体App与可靠来源由素材节点选）。计费链示意卡（标「示意」）：聊天、匹配消耗额度→额度用完用App金币购买补充；不暗示初始额度必然付费；点赞、访客通知不加收费角标。零工按本人完成的消息／视频／回关计件，不画成AI对话自动产生真人工资。「假设测算卡」与报告事实卡视觉明显区分，大字标注「假设测算·非实际收入」：25000人×10%付费×人均100元≈25万元（两周充值流水情景；人民币仅为方便理解的计量单位）。无充值截图时用字卡并记录缺口。"
+      },
+      {
+        "segment_id": "s6",
+        "narration": "连「有人喜欢你」的感觉也能批量造：点赞、访客记录，后台可以直接生成；该真人接视频却没人时，就放预录内容；系统还会记下开始怀疑「对面是机器人」的用户。从心动到起疑，每一步都在这套设计里。",
+        "screen_text": "点赞和访客，也能后台造",
+        "source_refs": [
+          "https://www.anthropic.com/threat-intelligence-report-september-2026"
+        ],
+        "asset_ids": [],
+        "visual_need": "真实中文App点赞通知、访客记录、消息通知列表截图（标「同类中文界面示意，非涉案App」）；预录内容用带播放条的视频通话界面卡（标「示意：预录内容」，仅表现报告写明的「无真人可接时顶替」这一事实，不做全员离线表述）。报告中文译文卡：「后台可生成点赞、访客」「系统记录开始怀疑对面是机器人的用户」。截图不做视频化冒充真实通话；不做标记后处置结果的字卡。"
+      },
+      {
+        "segment_id": "s7",
+        "narration": "Anthropic已封禁相关账号和组织，线索同步给相关平台。我的判断很简单：明说是AI、明码标价的陪伴不是骗；宣传真人、隐瞒自动化、用假心动催你充值才是。把这条转给你身边爱用社交App的朋友：下次心动前，先看清屏幕后面是谁。",
+        "screen_text": "转给爱用社交App的朋友",
+        "source_refs": [
+          "https://www.anthropic.com/threat-intelligence-report-september-2026"
+        ],
+        "asset_ids": [],
+        "visual_need": "报告译文卡（简洁单卡）：「Anthropic已封禁相关账号和组织，线索同步相关平台」；判断卡：「明示AI、明码标价≠骗；宣传真人＋隐瞒自动化＋假心动催充值＝问题」。尾屏：中文聊天界面素材为背景（标「同类中文界面示意，非涉案App」），中央转发箭头图标加大字卡「转给爱用社交App的朋友｜先看清屏幕后面是谁」。不出现其他案件画面、下架／判决／退款边界长卡、防骗清单版式或求关注元素。"
+      }
+    ],
+    "origin": "model",
+    "revision": 6
+  },
+  "brief": {
+    "topic": "两周至少2.5万人与AI聊天：Claude交友App网络如何运作",
+    "creative_direction": "用户最新明确返工：『不够，前面第一个要有爆点，这个两万五用户就是爆点，然后你这次只要把这件事情讲透就可以了。我让你采集素材比如app截图啥的，用中国的素材代替，别用美国的素材。不是说你报告举一个国内case的例子。』\n\n这是拒绝当前稿并要求重新创作，不是审核通过。以下最新要求覆盖旧brief、旧返工意见和当前稿中相冲突的方向，尤其“后台点赞先开头”“中国独立案件作对照”“数字只能作次要背景”等旧要求已作废。仍通过正式编剧节点创作，监督会话不代写；完成后停素材采集前文案门，不自动批准或采集。\n\n本期只讲Anthropic九月报告GTG-15001这一件事：位于中国的应用工作室，用Claude开发二十多款交友App，并让AI人设在宣传全真人的服务里与用户聊天。目标问题是把这件事如何发生、怎样运转、如何收费、对用户意味着什么讲透。不插上海、宁阳、成都或任何其他国内案件，不做跨案对照，不把“国内素材”理解为“国内新闻案例”。本期标题、口播、final_answer和visual_need都删除另案内容。\n\n开头第一句就给“至少两万五千名用户与AI人设聊天”这个具体爆点，第一屏突出25000。别先点赞访客、日期、报告名或节目预告。数字准确口径：2026年4月两周观察窗口、至少25000名独立用户，不是25000名已证实受害人，不是全部付费人数，更不是中国受害者；不用虚构损失、利润或情节强化爆点。限定可在紧接的说明中交代，不把第一句塞成冗长声明。具体句子由你创作。\n\n亲自读完整官方GTG-15001正文，只用 https://www.anthropic.com/threat-intelligence-report-september-2026 作为本期source_refs。二十多款App、4700多个AI人设、两周约236万条Claude消息、约三AI一真人、自主对话与真人视频/回关/发消息、小模型三条候选回复、图片模型头像、额度消耗与金币补充、真人计件报酬、隐瞒自动化、后台伪造点赞访客预录视频、记录起疑用户及封禁处置，按讲透单案所需选择并串成因果。允许保留必要分工和计费背景，不为了避免旧片重复而讲不清；不要只把现稿第一句换成25000，其余原样。不能机械念数字清单，也不凑每段反转。每段增加理解，约3分钟，1080x1920、30fps。\n\n事实边界继续有效：官方写Claude，不能补成已证实使用Claude Code；匿名工作室没有法定公司名或收入/利润/开发耗时数据，不能编资金分配或实测成本变化；原报告目标用户在美国，中国画面替代不改变事件发生对象。真人也发消息，不泛指所有AI都不能视频；聊天和匹配消耗额度，不能把点赞访客也画成收费；真人计件只按其完成的任务，不说AI对话自动触发真人工资。无真人可用，不精确扩写成全部人员离线。记录起疑用户不等于已知后续处置规则。封禁账号/组织与线索共享不等于所有App下架、刑事判决或用户获赔。删去五天预付账号/每日十万请求/排名/154页等第三方独有说法，不搜索第三方来补背书。\n\n素材方向（写入每段visual_need，下一阶段按审核后的这份需求采集）：交友App相关画面采用国内真实中文界面，如匹配、聊天、消息列表、个人资料、金币/礼物/会员充值的合适截图或公开演示录屏；中国手机使用与生活场景可补充。具体App和可靠截图来源由素材节点选择，不强求某个品牌或虚构不存在的界面。禁止美国App截图、美国受害者/新闻画面、美国街景或整屏英文UI；根基报告用于查证，证据画面用中文数字/译文卡注明原报告出处，不以美国界面作画面主体。首屏将25000与相关中文交友界面结合，明亮、关键内容在手机上可读。\n\n必须标清国内截图是『同类中文界面示意，非涉案App』；不得暗示国内展示的正规平台属于该工作室或已涉案，不拿中文界面当报告原始截图，不把国内人物当真实当事人。裁切品牌或隐私仅按实际需要，保留真实来源。截图、录屏、示意各自如实说明，不能把截图动画冒充视频。真实素材找不到则在visual_need写具体画面缺口，不承诺已下载，不额外设许可审核。\n\n文案阶段不执行素材工具、配音或渲染。原用户坚持先审文案再采集，当前也未批准任何稿。结尾自然回答本案问题，可有一次相关讨论，不再其他案件、防骗清单或重复数字总结。",
+    "script_text": "",
+    "audience": "关心AI如何影响自己的钱、关系与日常生活的普通人，无需技术背景",
+    "platform": "抖音竖屏",
+    "usage": "personal",
+    "target_seconds": 180.0,
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "source_urls": [
+      "https://www.anthropic.com/threat-intelligence-report-september-2026"
+    ]
+  },
+  "script_approval_valid": true,
+  "assets": [
+    {
+      "asset": {
+        "asset_id": "0b61255194854094b26a4a2565504352",
+        "name": "对应s4真人身份包装；叙事用途：让人相信的线索。警方提供、央广网原页刊载的真实PNG，1000×2222，已解码。明亮中文界面，充值入口、多个“真人”标签及个人简介可读，可放大标签，保留原图人脸打码。国内同类欺诈场景证据画面、本案辅助理解画面。没有收费动作，不算补齐收费链；来源称部分头像使用AI生成或美颜，无法判定图中哪张由AI生成，更不证明自主模型对话。上屏须持续标“国内同类付费/欺诈场景，非报",
+        "role": "evidence",
+        "mime_type": "image/png",
+        "size_bytes": 1169496,
+        "sha256": "831b33e978685bb991dc6e69019a6b98e4672f123315b7eca5242212a279316c",
+        "source_url": "https://news.cnr.cn/native/gd/20260113/t20260113_527492219.shtml",
+        "license_note": "真实网页截图/来源图片；个人视频制作，素材可直接入片；保留原始来源",
+        "artifact_id": "6c50cd02c1ff426e9d9c31cc7e7b787d",
+        "url": "/api/artifacts/6c50cd02c1ff426e9d9c31cc7e7b787d",
+        "timeline_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/0b61255194854094b26a4a2565504352.png"
+      },
+      "metadata": {
+        "collection_key": "0e1dac7c25b67a39a427b6eb564df998f65173571abec287d7420929f3496d36",
+        "description": "对应s4真人身份包装；叙事用途：让人相信的线索。警方提供、央广网原页刊载的真实PNG，1000×2222，已解码。明亮中文界面，充值入口、多个“真人”标签及个人简介可读，可放大标签，保留原图人脸打码。国内同类欺诈场景证据画面、本案辅助理解画面。没有收费动作，不算补齐收费链；来源称部分头像使用AI生成或美颜，无法判定图中哪张由AI生成，更不证明自主模型对话。上屏须持续标“国内同类付费/欺诈场景，非报告涉案App”；只取包装界面，不将国内案件、人物、金额或警方处置写入本案口播。",
+        "height": 2222,
+        "image_url": "https://mediabluk.cnr.cn/record/img/cnr/CNRCDP/2026/0113/3870f44d82da4caeb7281606e020c07f10.png",
+        "origin": "source_image",
+        "source_url": "https://news.cnr.cn/native/gd/20260113/t20260113_527492219.shtml",
+        "width": 1000
+      },
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\5\\sources\\skill-831b33e978685bb991dc6e69019a6b98e4672f123315b7eca5242212a279316c.png",
+      "file_sha256": "831b33e978685bb991dc6e69019a6b98e4672f123315b7eca5242212a279316c"
+    },
+    {
+      "asset": {
+        "asset_id": "b611b6b73f0f42f6b8ecf01248fcb65d",
+        "name": "对应s3视频入口、s5付费视频机制备选；叙事用途：收费提示。警方提供、央广网原页刊载原PNG，1000×991，已解码。两个手机界面：左上100金币/分钟，下方视频约会；右侧通话邀请与视频电话按钮，人物已由来源打码。适合放大计价行或邀请按钮，是原新闻图片，不能动画后冒称视频。国内收费入口证据画面、本案辅助理解画面；只有计价和邀请，不证明扣款、通话接通、预录或AI换脸，不反推人民币汇率。上屏须持续标",
+        "role": "evidence",
+        "mime_type": "image/png",
+        "size_bytes": 770597,
+        "sha256": "d24289110bcfbb7bcf760d54cafb7964f367acde7dfc7360620fe16b7ad93ffa",
+        "source_url": "https://news.cnr.cn/native/gd/20260113/t20260113_527492219.shtml",
+        "license_note": "真实网页截图/来源图片；个人视频制作，素材可直接入片；保留原始来源",
+        "artifact_id": "d617506959794ad4b6859dcedcab39e0",
+        "url": "/api/artifacts/d617506959794ad4b6859dcedcab39e0",
+        "timeline_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/b611b6b73f0f42f6b8ecf01248fcb65d.png"
+      },
+      "metadata": {
+        "collection_key": "2cfcd11051378b9671f1497ffd6862f23c33d36a77ba96b10a7de37b389812ea",
+        "description": "对应s3视频入口、s5付费视频机制备选；叙事用途：收费提示。警方提供、央广网原页刊载原PNG，1000×991，已解码。两个手机界面：左上100金币/分钟，下方视频约会；右侧通话邀请与视频电话按钮，人物已由来源打码。适合放大计价行或邀请按钮，是原新闻图片，不能动画后冒称视频。国内收费入口证据画面、本案辅助理解画面；只有计价和邀请，不证明扣款、通话接通、预录或AI换脸，不反推人民币汇率。上屏须持续标“国内同类付费/欺诈场景，非报告涉案App”，保留央广网/警方来源；国内人物、金额和处置不进入本案口播。",
+        "height": 991,
+        "image_url": "https://mediabluk.cnr.cn/record/img/cnr/CNRCDP/2026/0113/23e64c43b03141d0a57cd97145a6692910.png",
+        "origin": "source_image",
+        "source_url": "https://news.cnr.cn/native/gd/20260113/t20260113_527492219.shtml",
+        "width": 1000
+      },
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\5\\sources\\skill-d24289110bcfbb7bcf760d54cafb7964f367acde7dfc7360620fe16b7ad93ffa.png",
+      "file_sha256": "d24289110bcfbb7bcf760d54cafb7964f367acde7dfc7360620fe16b7ad93ffa"
+    },
+    {
+      "asset": {
+        "asset_id": "41aa62b5f4e845c5883257fdb76b7dc1",
+        "name": "对应s1/s3中文私聊、s4聊天包装、s5按条收费；叙事用途：让人相信的线索／收费。腾讯图床实际下载的央视财经同调查原JPEG，1280×720，已完整解码并看图；四个中文私聊截面中红圈“消息收费7钻石/条”“8钻石/条”“5钻石/条”可读，保留央视财经/财经调查出处和源处理。是国内收费提示证据、本案辅助理解，可标注每条消息扣费，不能当三条AI候选回复界面。腾讯转载正文读取失败，图片以已核验央视原",
+        "role": "evidence",
+        "mime_type": "image/jpeg",
+        "size_bytes": 122172,
+        "sha256": "be18ce24220a9947cc355ed5b65ddd71795164f1cac88a827750e130d07989d6",
+        "source_url": "https://tv.cctv.com/2025/04/20/VIDE5gJG9pJqDPTapHM9pQor250420.shtml",
+        "license_note": "真实网页截图/来源图片；个人视频制作，素材可直接入片；保留原始来源",
+        "artifact_id": "d58940c5bce244408a56f49641c2549d",
+        "url": "/api/artifacts/d58940c5bce244408a56f49641c2549d",
+        "timeline_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/41aa62b5f4e845c5883257fdb76b7dc1.jpg"
+      },
+      "metadata": {
+        "collection_key": "f87c28e0ae8dd652ff4113de35fee85f4c1ee1e6cea061fb6375494be484a260",
+        "description": "对应s1/s3中文私聊、s4聊天包装、s5按条收费；叙事用途：让人相信的线索／收费。腾讯图床实际下载的央视财经同调查原JPEG，1280×720，已完整解码并看图；四个中文私聊截面中红圈“消息收费7钻石/条”“8钻石/条”“5钻石/条”可读，保留央视财经/财经调查出处和源处理。是国内收费提示证据、本案辅助理解，可标注每条消息扣费，不能当三条AI候选回复界面。腾讯转载正文读取失败，图片以已核验央视原节目为source_url，文字背景由同调查四川在线正文核对，不计为独立事实来源。持续标“国内同类付费/欺诈场景，非报告涉案App”；不证明Claude参与、消息真实回复、扣款结果或本案单价。静态原图不能冒充视频，不与视频中同类信息裁切凑素材数量。",
+        "height": 720,
+        "image_url": "https://inews.gtimg.com/om_bt/O1fnO8KP91bfpFDyiGCcebMIyDUF75TmyusfnSm0kFBu4AA/0",
+        "origin": "source_image",
+        "source_url": "https://tv.cctv.com/2025/04/20/VIDE5gJG9pJqDPTapHM9pQor250420.shtml",
+        "width": 1280
+      },
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\6\\sources\\skill-be18ce24220a9947cc355ed5b65ddd71795164f1cac88a827750e130d07989d6.jpg",
+      "file_sha256": "be18ce24220a9947cc355ed5b65ddd71795164f1cac88a827750e130d07989d6"
+    }
+  ],
+  "operations": [
+    {
+      "operation_id": "00e688d94aa043fb965259e3b946ca16",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "ae354894edc76fde7f90ee2a7accf1b3dd3e064099c17b845dcdfa79041fc6ee"
+    },
+    {
+      "operation_id": "01423dff24d54faaabf8dfb0f9f49592",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "8ac82379ed5bc235734fb1c5a22412f01ecf2cf7ff0672bc0fe9088ea01be17e"
+    },
+    {
+      "operation_id": "1cf819d4b53643f48b7cbc25b1d1ff91",
+      "provider": "llm:materials",
+      "status": "COMPLETED",
+      "body_sha256": "f081fee03f182f415ee6aceb9e974da556dca37a5c0a6b61b4afa5554d1e2a64"
+    },
+    {
+      "operation_id": "2013f7e0f2be44a8b6613f2718750429",
+      "provider": "llm:materials",
+      "status": "UNKNOWN",
+      "body_sha256": "a7bbfd9a1a2bbcdfaec0fe913ac946edcad9132bf1e372d8d88759fb7265b14b"
+    },
+    {
+      "operation_id": "23ceac81a5e04fcd8b45cb21e0857908",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "cd376c4e4a52c71018ab0f3b90f51d22a670b603f25c5c8444545eb5a1617882"
+    },
+    {
+      "operation_id": "35bd822a24834d389cca2436086c277c",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "8a244a6a55515d381fe1e87d35fd9f2dc286eee2d9d44660d448179ea8bf4ac8"
+    },
+    {
+      "operation_id": "515a815f0a5e4baf85e0230e52168023",
+      "provider": "llm:screenwriter",
+      "status": "UNKNOWN",
+      "body_sha256": "f89c4434b910f1dd199d9a00b60d51a27529141432ab0380f091435b6899f635"
+    },
+    {
+      "operation_id": "560106d6ee24433e8be3be0f6bf10e6a",
+      "provider": "llm:screenwriter",
+      "status": "UNKNOWN",
+      "body_sha256": "17e938eb1307f54ee2f6ff63a1f4a44a8def80a729cc41e38a8cec053779f54a"
+    },
+    {
+      "operation_id": "6c3d212fdbf8441781f50d3a2ae9acfe",
+      "provider": "llm:materials",
+      "status": "COMPLETED",
+      "body_sha256": "148bd7b13b3e3afeb99dc5c16334dcb4f8744e09c4ddb9711bcad8fed94f2847"
+    },
+    {
+      "operation_id": "7411d1353925400ab1b5035c5f6fc173",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "0d1aefd4c2a77c9cd063917e7e49b3a67a039829d45ce0ed7c51537889a133ab"
+    },
+    {
+      "operation_id": "9feb383537714278a770ec24c2f2928d",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "f6ad47d246dfdafff39395a205b533172e561c8fd977a6266906141bc5cb4164"
+    },
+    {
+      "operation_id": "b088dceefa7b4e30816429b72ab3c3e4",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "31a6bde0dd1990c6295abb857b00a3d223b0f5236a39f3e6ab6a4eeca9927654"
+    },
+    {
+      "operation_id": "c34539df84044a7cb5eb6cbe86c3ff32",
+      "provider": "llm:materials",
+      "status": "UNKNOWN",
+      "body_sha256": "e22b82d0a1bf9f24f424f196ce07872adf24df29d9076c249d7ce8505ae3d640"
+    },
+    {
+      "operation_id": "d936ba4a16014648a6b8c6648070c06e",
+      "provider": "llm:screenwriter",
+      "status": "COMPLETED",
+      "body_sha256": "7558c21616a32519366eec2a7157131594fe4a1f3aa720661f1dea7156ecf1cc"
+    }
+  ],
+  "script_artifacts": [
+    {
+      "artifact_id": "d6afeca1685b41dbb949eb2231c53d71",
+      "sha256": "5d7aeb49fd9e63a479220f212d773fc011d11251a45c63830369d0955981968d"
+    }
+  ]
+}

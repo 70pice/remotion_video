@@ -1,0 +1,138 @@
+{
+  "captured_at": "2026-10-14T01:56:39.864323+00:00",
+  "scope": "正式节点独立研究目录已取得文件，只读核验，不代替最终资产登记或人审",
+  "files": [
+    {
+      "file_name": "codebuddy_development.mp4",
+      "sha256": "15df8007e7b2b00905dbb491835bd94c4bf9d009316b10b082b3a35588aa8237",
+      "size_bytes": 52911229,
+      "measured": {
+        "duration_seconds": 37.533333,
+        "width": 7680,
+        "height": 4628,
+        "frame_rate": 30.0
+      },
+      "fully_decoded": true
+    },
+    {
+      "file_name": "codebuddy_development.png",
+      "sha256": "1f9d78a1231070a6658f78f76797af08e13dc251c810d32f3ebbb8379e8b0837",
+      "size_bytes": 167013,
+      "measured": {
+        "width": 3328,
+        "height": 2158
+      },
+      "fully_decoded": true
+    },
+    {
+      "file_name": "codebuddy_entry.png",
+      "sha256": "d0835d0240d7c7fc9cc087dd69899d9ba01870e502e39b9bc7f76bcb2568cd90",
+      "size_bytes": 284983,
+      "measured": {
+        "width": 2400,
+        "height": 1600
+      },
+      "fully_decoded": true
+    },
+    {
+      "file_name": "codebuddy_new_task.png",
+      "sha256": "8eba8f12e1cc4c055900697e68fd8b33a272a1dfab76a8e22cb1d8e2aa30b135",
+      "size_bytes": 305828,
+      "measured": {
+        "width": 2400,
+        "height": 1600
+      },
+      "fully_decoded": true
+    },
+    {
+      "file_name": "mosheng_pricing.png",
+      "sha256": "30d9b958cd4da3081aa5c2367ba6eaac3bb78747deed45fbf9693c7be245b378",
+      "size_bytes": 123893,
+      "measured": {
+        "width": 683,
+        "height": 819
+      },
+      "fully_decoded": true
+    },
+    {
+      "file_name": "taqu_chat_video.png",
+      "sha256": "d92205358c43888215efab082c3c6032adf955d5f9e9ecb62a2ef3af5fa9c8c7",
+      "size_bytes": 406801,
+      "measured": {
+        "width": 1290,
+        "height": 739
+      },
+      "fully_decoded": true
+    },
+    {
+      "file_name": "taqu_conversations.png",
+      "sha256": "e4d52dcdd2a0afb3211d397ec1637b248f5f90bce544a4ae28cd0abd54316dc7",
+      "size_bytes": 844867,
+      "measured": {
+        "width": 1744,
+        "height": 1614
+      },
+      "fully_decoded": true
+    },
+    {
+      "file_name": "taqu_reward_rules.png",
+      "sha256": "30a3523d3a1e025229c1e1fd27da9b86f7d258bdc2b268120dee7dc0be0c1349",
+      "size_bytes": 306009,
+      "measured": {
+        "width": 1290,
+        "height": 2796
+      },
+      "fully_decoded": true
+    },
+    {
+      "file_name": "taqu_rewards.png",
+      "sha256": "c35603a522fb1dee01acfb8c6180ff2da8ef16328e960509d6316bfe650dac04",
+      "size_bytes": 504038,
+      "measured": {
+        "width": 1290,
+        "height": 2796
+      },
+      "fully_decoded": true
+    },
+    {
+      "file_name": "tencent_portraits_page15.png",
+      "sha256": "b665e672c0bef3355aa1da0be72ebd3a92f20b7b4dfa118941d640b45c734147",
+      "size_bytes": 1208613,
+      "measured": {
+        "width": 1920,
+        "height": 1080
+      },
+      "fully_decoded": true
+    },
+    {
+      "file_name": "tencent_smart_reply.png",
+      "sha256": "022c9a48aa763c8d08ff3c1941e1ad39ff062610aa6d93e9aabf36c0ae192cb3",
+      "size_bytes": 81375,
+      "measured": {
+        "width": 1590,
+        "height": 442
+      },
+      "fully_decoded": true
+    },
+    {
+      "file_name": "xinyu_recharge.jpg",
+      "sha256": "06b4f3a32cd997217f5952467e19002eaa844e31df5f45fdfe14ea50fe87ca5f",
+      "size_bytes": 272995,
+      "measured": {
+        "width": 1170,
+        "height": 1038
+      },
+      "fully_decoded": true
+    },
+    {
+      "file_name": "xinyu_reply_reward.jpeg",
+      "sha256": "4ce04ccf8168b14d83fe3847f532cd2b7e834c693e192e7f7ffc34ee1acf6acf",
+      "size_bytes": 116337,
+      "measured": {
+        "width": 908,
+        "height": 888
+      },
+      "fully_decoded": true
+    }
+  ]
+}

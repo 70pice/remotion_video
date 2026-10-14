@@ -1,0 +1,96 @@
+{
+  "captured_at": "2026-10-14T01:50:44.611359+00:00",
+  "scope": "只读来源预检，正式节点仍须亲读/下载/检查/登记",
+  "candidates": [
+    {
+      "file_name": "mosheng-price.png",
+      "source_url": "https://www.lanjinger.com/d/141048",
+      "media_url": "https://img.lanjinger.com/news/20200724/154905_vgmnckjopkykm.png",
+      "width": 683,
+      "height": 819,
+      "sha256": "30d9b958cd4da3081aa5c2367ba6eaac3bb78747deed45fbf9693c7be245b378",
+      "size_bytes": 123893,
+      "source_lead_only": true,
+      "not_registered_by_preflight": true,
+      "boundary": "消息5金币/条、语音30金币/分钟、视频80金币/分钟；国内2020历史同类收费，非报告涉案App"
+    },
+    {
+      "file_name": "xinyu-coins-original.jpg",
+      "source_url": "https://www.time-weekly.com/post/294485",
+      "media_url": "https://static.tfcaijing.com/Matching/2022/0f7d033e7965432381381920eda9bc16.jpg",
+      "width": 1170,
+      "height": 1038,
+      "sha256": "06b4f3a32cd997217f5952467e19002eaa844e31df5f45fdfe14ea50fe87ca5f",
+      "size_bytes": 272995,
+      "source_lead_only": true,
+      "not_registered_by_preflight": true,
+      "boundary": "金币不足、购买金币、立刻充值1元；国内2022历史同类充值入口，非扣款实录"
+    },
+    {
+      "file_name": "xinyu-reply-original.jpeg",
+      "source_url": "https://www.time-weekly.com/post/294485",
+      "media_url": "https://static.tfcaijing.com/Matching/2022/275d716fead548aea5c36a3524e5f6a9.jpeg",
+      "width": 908,
+      "height": 888,
+      "sha256": "4ce04ccf8168b14d83fe3847f532cd2b7e834c693e192e7f7ffc34ee1acf6acf",
+      "size_bytes": 116337,
+      "source_lead_only": true,
+      "not_registered_by_preflight": true,
+      "boundary": "回复消息能赚钱；激励提示，不证明到账或诈骗身份"
+    },
+    {
+      "file_name": "taqu-vertical.png",
+      "source_url": "https://finance.ifeng.com/c/8WN7OiiHCDA",
+      "media_url": "https://x0.ifengimg.com/res/2024/EC9C6598E907F9815E5C69E8AFA55A690AE0E994_size624_w1290_h2796.png",
+      "width": 1290,
+      "height": 2796,
+      "sha256": "c35603a522fb1dee01acfb8c6180ff2da8ef16328e960509d6316bfe650dac04",
+      "size_bytes": 504038,
+      "source_lead_only": true,
+      "not_registered_by_preflight": true,
+      "boundary": "我的奖励、付费消息+0.05/+0.02；接收方收益记录，非匿名工作室零工收入"
+    },
+    {
+      "file_name": "taqu-739.png",
+      "source_url": "https://finance.ifeng.com/c/8WN7OiiHCDA",
+      "media_url": "https://x0.ifengimg.com/res/2024/7E021DDC44BC58C9E7ED1C500E283BFAE997D7E2_size492_w1290_h739.png",
+      "width": 1290,
+      "height": 739,
+      "sha256": "d92205358c43888215efab082c3c6032adf955d5f9e9ecb62a2ef3af5fa9c8c7",
+      "size_bytes": 406801,
+      "source_lead_only": true,
+      "not_registered_by_preflight": true,
+      "boundary": "聊天界面、语音视频入口、收益1.49元/分钟起；接收方收益，非发送方价格"
+    },
+    {
+      "file_name": "assist-2.png",
+      "source_url": "https://cloud.tencent.com/document/product/269/118704",
+      "media_url": "https://qcloudimg.tencent-cloud.cn/image/document/f0ac2063083c24e47db35d7e19fe69ed.png",
+      "width": 1590,
+      "height": 442,
+      "sha256": "022c9a48aa763c8d08ff3c1941e1ad39ff062610aa6d93e9aabf36c0ae192cb3",
+      "size_bytes": 81375,
+      "source_lead_only": true,
+      "not_registered_by_preflight": true,
+      "boundary": "智能回复、重新生成、使用；一条建议→真人采纳功能，非涉案工具、非三候选实录"
+    },
+    {
+      "file_name": "portrait-hi-15.png",
+      "source_url": "https://training.tencentads.com/uploads/202409/ABjmxInf_A1pYpq.pdf",
+      "media_url": "https://training.tencentads.com/uploads/202409/ABjmxInf_A1pYpq.pdf#page=15",
+      "width": 2880,
+      "height": 1620,
+      "sha256": "b10b1cf91c0e1f26a71bd771d59de6a738068a44f794125d12aab4e78c1fc14b",
+      "size_bytes": 2334531,
+      "source_lead_only": true,
+      "not_registered_by_preflight": true,
+      "boundary": "PDF第15页真实渲染、人物肖像生成；渲染像素不代表嵌图原始分辨率，正规工具非涉案"
+    }
+  ],
+  "rejected_leads": [
+    "旧CCTV模糊视频与所有同画面翻版",
+    "快语无字候选插画",
+    "劳动观察来源模糊人脸",
+    "Claude成品图冒充开发过程"
+  ]
+}
