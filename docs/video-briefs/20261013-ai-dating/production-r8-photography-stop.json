@@ -1,0 +1,35 @@
+{
+  "recorded_at": "2026-10-14T04:17:02.801638+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 8,
+  "authorization_file": "photography-r8-retry-authorization.json",
+  "normal_commands": [
+    {
+      "command": "videoagents restart-unknown <job_id> --operation-id c2ee429eee8940b6ab47e7a2bc5e8967 --acknowledge-possible-usage --director-only --note <用户逐镜审核与组件套要求>",
+      "result": "revision 8 / DRAFT / idle"
+    },
+    {
+      "command": "videoagents run <job_id> --idempotency-key ai-dating-r8-photography-user-approved-20261014",
+      "result": "revision 8 / NEEDS_INPUT / director / UNKNOWN"
+    }
+  ],
+  "operation_id": "2cb7f646bd224feb88565a9b7c2af96f",
+  "operation_status": "UNKNOWN",
+  "attempt": 1,
+  "reason": "cli_timeout",
+  "timeout_seconds": 1800,
+  "pending_token": "16ec1a85c3c2424296aa465d985dc324",
+  "shots_cli_result": "缺少当前摄影镜头设计，请返回摄影节点",
+  "shot_count": 0,
+  "shot_review_png_count": 0,
+  "complete_video_rendered": false,
+  "previous_unknown_preserved": true,
+  "original_24_operation_bodies_unchanged": true,
+  "approved_inputs_and_real_audio_unchanged": true,
+  "new_voice_or_editing_calls": false,
+  "fresh_retry_not_submitted": true,
+  "usage_or_billing_confirmed": false,
+  "login_or_quota_failure_proven": false,
+  "shot_gate_confirmed": false,
+  "publication_authorized": false
+}
