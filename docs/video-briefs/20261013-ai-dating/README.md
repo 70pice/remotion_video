@@ -1,5 +1,7 @@
 # 本次视频制作输入
 
+2026-10-14 18:54 最新为 revision 9 / NEEDS_INPUT / director：针对第2镜阅读时长的正式摄影修复操作 `0b7c7172b84c49a7b3b49a88b785fb50` 已停为UNKNOWN，原因是 `invalid_cli_output`，stderr附带 `glm-5.3[1m]` 的unrecognized_model提示；没有登记修复结果。通过引擎实际解析路径只读核实Claude Code 2.1.292可运行，不能仅凭提示断定登录、额度、模型拒绝或计费情况。对应无会话持久化项目目录为空，无可恢复文件。原已完成16镜候选、已审输入与25条旧操作保持，候选仍有B12.support_3阅读时长问题，实际timeline、逐镜PNG和完整视频仍为0。当前待办 `ab0ac9c8ef3e499a9416829257ec168d`；没有重复提交。按[未决摄影恢复规则](../../videoagents-unknown-restart.md)，针对这笔新UNKNOWN的摄影重试须再明确授权。见[真实停止与诊断](production-r9-layout-repair-stop.json)、[停止后输入和台账复验](production-r9-layout-repair-stop-verification.json)。下面RUNNING等状态保留为对应历史时点。
+
 2026-10-14 最新为 revision 9 / RUNNING / director：已审同类示意素材与摄影校验衔接修复已合入，维护与视频分支各115项定向回归通过，Ruff、契约、TypeScript、lint及Remotion bundle通过。普通摄影复用、代表帧、剪辑与草稿入口共用精确批准交集和语义关联校验；示意不计涉案证据，伪域名、字幕缺失或不符、普通草稿升版沿用旧批准均阻断。合入后的严格只读输入指纹与原COMPLETED摄影操作精确一致，原输入与25条旧操作保持。
 
 正常缓存续跑确实复用了原16镜响应，没有新外部提交；随后被第2镜“B12.support_3 显示区间不足阅读或超出镜头”阻断。未修改模型响应或降低阅读要求，已按用户再次“继续”经正常 `resume --decision confirm` 将具体问题交摄影修复，操作 `0b7c7172b84c49a7b3b49a88b785fb50` 为SUBMITTING。此confirm仅回复摄影输入问题，不是逐镜门通过；当前实际timeline、逐镜PNG和完整视频仍为0。见[通用修复与正式衔接记录](production-r9-context-recovery-maintenance.json)、[合入后精确缓存预检](production-r9-completed-cache-recovery-preflight.json)、[续跑前原输入与台账复验](production-r9-before-context-recovery-verification.json)。以下状态为对应历史时点。
