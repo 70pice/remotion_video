@@ -1,0 +1,103 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "checked_at": "2026-10-14T05:03:45.0389608+00:00",
+  "command": "videoagents settings set role_models <director timeout_seconds=3600 only>",
+  "roles_before": {
+    "materials": {
+      "enabled": true,
+      "provider": "codex_cli",
+      "model": "gpt-6.1-sol",
+      "timeout_seconds": 1800,
+      "codex_reasoning_effort": "xhigh"
+    },
+    "screenwriter": {
+      "enabled": true,
+      "provider": "claude_code_cli",
+      "model": "doubao-seed-2-1-pro-260915",
+      "timeout_seconds": 900
+    },
+    "script_reviewer": {
+      "enabled": true,
+      "provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "timeout_seconds": 900
+    },
+    "voice": {
+      "enabled": true,
+      "provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "timeout_seconds": 900
+    },
+    "director": {
+      "enabled": true,
+      "provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "timeout_seconds": 1800
+    },
+    "editing": {
+      "enabled": true,
+      "provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "timeout_seconds": 900
+    },
+    "review": {
+      "enabled": true,
+      "provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "timeout_seconds": 900
+    }
+  },
+  "roles_after": {
+    "materials": {
+      "enabled": true,
+      "provider": "codex_cli",
+      "model": "gpt-6.1-sol",
+      "timeout_seconds": 1800,
+      "codex_reasoning_effort": "xhigh"
+    },
+    "screenwriter": {
+      "enabled": true,
+      "provider": "claude_code_cli",
+      "model": "doubao-seed-2-1-pro-260915",
+      "timeout_seconds": 900
+    },
+    "script_reviewer": {
+      "enabled": true,
+      "provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "timeout_seconds": 900
+    },
+    "voice": {
+      "enabled": true,
+      "provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "timeout_seconds": 900
+    },
+    "director": {
+      "enabled": true,
+      "provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "timeout_seconds": 3600
+    },
+    "editing": {
+      "enabled": true,
+      "provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "timeout_seconds": 900
+    },
+    "review": {
+      "enabled": true,
+      "provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "timeout_seconds": 900
+    }
+  },
+  "glm_reasoning_effort": "xhigh",
+  "only_director_timeout_changed": true,
+  "configured_api_and_voice_preserved": true,
+  "maintenance_commit": "3b176d5",
+  "root_tests": "50 passed in 77.21s",
+  "contracts_ruff_typecheck_lint_bundle": "passed",
+  "not_a_video_render": true,
+  "timeout_change_does_not_clear_unknown": true
+}
