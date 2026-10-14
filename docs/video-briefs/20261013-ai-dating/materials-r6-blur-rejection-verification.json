@@ -1,0 +1,37 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 6,
+  "status": "NEEDS_HUMAN",
+  "pending_token": "8a5349ecc1412a199ef9f0366e462926",
+  "script_unchanged": true,
+  "all_14_operations_unchanged": true,
+  "active_assets": [
+    "0b61255194854094b26a4a2565504352",
+    "b611b6b73f0f42f6b8ecf01248fcb65d",
+    "41aa62b5f4e845c5883257fdb76b7dc1"
+  ],
+  "rejected_videos": [
+    {
+      "record_id": "reczz28N66X7l3LX",
+      "asset_id_prefix": "bb97522e3502",
+      "adoption_status": "不采用",
+      "readback_exact_id": true
+    },
+    {
+      "record_id": "reczz28N66X7jjCC",
+      "asset_id_prefix": "867edabe456a",
+      "adoption_status": "不采用",
+      "readback_exact_id": true
+    },
+    {
+      "record_id": "reczz28N66X7mP0v",
+      "asset_id_prefix": "6c0e8f6e8112",
+      "adoption_status": "不采用",
+      "readback_exact_id": true
+    }
+  ],
+  "quality_basis": "原帧可见拍屏失焦、聊天/充值小字柔软；720p尺寸不等于源内容清楚；不归因于飞书压缩",
+  "review_record": "reczz28N6pLKvbYk",
+  "whole_review_approved": false,
+  "review_readback_match": true
+}
