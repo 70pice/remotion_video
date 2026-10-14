@@ -1,5 +1,9 @@
 # 本次视频制作输入
 
+2026-10-14 21:05 当前为 revision 11 / RUNNING / director：用户引用上一条“仅续修摄影、接受新模型用量”的询问明确回复“可以”，授权针对r10 UNKNOWN `3e16804dab4444beaee599634f0bea95` 的一次新尝试。已经正式 `restart-unknown --director-only --acknowledge-possible-usage` 保存新版，再经正常 `run` 提交摄影操作 `5019d2d42ee14afe9ef313cc43402151`，当前SUBMITTING，模型仍为 `glm-5.3[1m] / xhigh`。新版恢复凭据已只读证明原16镜候选可接续，正常请求以旧方案为修复底稿，要求保留未受问题影响的镜头，完整校验后逐镜出图。
+
+原Brief、七段文案、11件视觉素材、现有真实音频与时间戳保留，12件文件散列及前28笔操作完整记录已复验。仅有本次新增摄影操作，没有编剧、素材、配音或剪辑新调用；实际timeline、逐镜PNG与完整视频目前为0。本次授权不构成逐镜门或发布通过。见[本次明确授权与台账基线](photography-r11-retry-authorization.json)、[已授权摄影要求](photography-r11-authorized-note.txt)、[新版候选接续只读证明](production-r11-candidate-continuation-preflight.json)及[启动后实际复验](production-r11-photography-start-verification.json)。以下为历史时点。
+
 2026-10-14 20:50 摄影接续修复已合入 `d766247`：此前摄影独立恢复保留了文案、素材和配音，却没有把旧16镜候选跨版本带入新的摄影请求。现在通过原请求输入指纹、同任务批准链、上游文件与模型配置证明来源，再把旧方案作为修复底稿交给正常摄影节点。根会话已复核代码；维护相关回归291项、最终新增24项通过，合入后新增24项再次通过（59.21秒），Ruff、编译、契约、TypeScript、lint与Remotion bundle通过。bundle只验证代码，未渲染实际镜头或视频。
 
 对实际任务的严格只读预检已确认 revision 9 原COMPLETED操作的16镜可接续，原 input_hash 精确匹配，已发现第2镜 B12.support_3 阅读时长问题；这不是有效 timeline，也不表示其余镜头已全部校验通过。旧Claude CLI没有持久化会话可续传；本修复延续引擎保存的阶段方案，未解决上次供应商非零退出的未知根因。当前仍为 revision 10 / NEEDS_INPUT / director，操作 `3e16804dab4444beaee599634f0bea95` UNKNOWN，原输入、12件文件与前27笔操作保持，实际PNG和完整视频为0。用户“你能继续吗而不是重头做”用于本地接续修护，未据此再次提交模型。下一次只续修摄影，并先逐镜出图；针对本笔UNKNOWN的新用量授权仍待明确。见[本次接续要求](photography-continuation-request.json)、[实际只读证明](production-r10-candidate-continuation-preflight.json)、[修复与验证](production-r10-candidate-continuation-maintenance.json)、[合入后产线复验](production-r10-after-candidate-continuation-verification.json)及[待授权摄影要求](photography-r11-recovery-requirements.txt)。以下为历史时点。
