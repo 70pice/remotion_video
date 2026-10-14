@@ -735,6 +735,18 @@ class DirectorNode:
                            } for asset in job.assets},
                            "extras": {**context.get("extras", {}),
                                       "media_coverage": coverage, "timeline_repair_issues": repair_issues}}
+            # A confirm note supplements this input repair; it is not a
+            # human-review approval or permission to reuse an older response.
+            model_state["extras"].pop("timeline_repair_note", None)
+            decision = context.get("human_decision") or {}
+            note = decision.get("note")
+            repair_note = (note if external_repair_issues and pending.get("kind") == "input"
+                and pending.get("stage") == "director" and pending.get("pending_token")
+                and decision.get("decision") == "confirm"
+                and decision.get("pending_token") == pending["pending_token"]
+                and isinstance(note, str) and note.strip() else None)
+            if repair_note is not None:
+                model_state["extras"]["timeline_repair_note"] = repair_note
             if repair_issues:
                 candidate = self.repo.latest_completed_operation(job.job_id, "llm:director", job.revision)
                 if candidate and isinstance(candidate["result"].get("shots"), list):
@@ -752,6 +764,10 @@ class DirectorNode:
                     "素材和组件组合；确需改变相邻边界或发现其他校验问题时，在 visual_action 中说明"
                     "受影响镜头及理由。候选尚未通过校验或人审；返回完整 shots、segment_performances、"
                     "shot_reviews，仍需完整校验与逐镜代表帧人工审核。")
+            if repair_note is not None:
+                instruction += ("\n\n阅读 extras.timeline_repair_note 中本次待办确认的补充修复要求；"
+                    "业务修复要求以该新意见为准，优先于 extras.director_note 中较早的意见。"
+                    "保留文案、实测音频及字幕，仍须完整输出校验和逐镜人工审核；确认意见不代表审核通过。")
             if coverage["required"]:
                 instruction += ("\n\n本次提交的硬约束：图片/视频镜头至少覆盖 "
                                 f"{coverage['target_frames']} 帧（全片 {total} 帧），"

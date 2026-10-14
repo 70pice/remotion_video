@@ -69,6 +69,8 @@ def completed_then_unknown(photography_unknown, monkeypatch, capsys):
     paused = repo.get_job(job.job_id)
     assert paused.pending_input["operation_status"] == "UNKNOWN" and len(calls) == 2
     assert calls[1]["extras"]["timeline_repair_candidate"]["operation_id"] == completed["operation_id"]
+    assert calls[1]["extras"]["timeline_repair_note"] == "UNIT continue repairing saved candidate, preserve audio"
+    assert "human_decision" not in calls[1]
     return repo, service, paused, completed, calls
 
 
