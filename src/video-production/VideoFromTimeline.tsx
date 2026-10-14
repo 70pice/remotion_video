@@ -64,7 +64,8 @@ const CommunityNativeMaterial = ({shot, durationInFrames}: {shot: TimelineShot; 
   const mediaHeight = (vertical ? 660 : 300) * unit;
   const panelTop = (vertical ? 214 : 82) * unit;
   const panelPadding = (vertical ? 28 : 20) * unit;
-  const panelWidth = contentWidth;
+  const panelInset = surface === 'pip' && vertical && !shot.layers?.length ? 84 * unit : 0;
+  const panelWidth = contentWidth - panelInset * 2;
   const titleHeight = (vertical ? 128 : 66) * unit;
   const bodyHeight = shot.body ? (vertical ? 114 : 56) * unit : 0;
   const media = (style: CSSProperties = {}) => mode === 'media' && src ? <div style={{position: 'relative',
@@ -109,7 +110,7 @@ const CommunityNativeMaterial = ({shot, durationInFrames}: {shot: TimelineShot; 
       borderRadius: 12 * unit, background: `${shot.accent_color}${index === 1 ? '33' : '1F'}`,
       border: `1px solid ${shot.accent_color}${index === 1 ? '99' : '44'}`}} />)}
   </div> : null;
-  const shellStyle: CSSProperties = {position: 'absolute', left: margin, right: margin, top: panelTop,
+  const shellStyle: CSSProperties = {position: 'absolute', left: margin + panelInset, right: margin + panelInset, top: panelTop,
     opacity: entrance, transform: `translateY(${(1 - entrance) * 24 * unit}px)`,
     borderRadius: surface === 'pip' ? 34 * unit : 24 * unit, overflow: 'hidden',
     border: `1px solid ${shot.accent_color}66`, background: '#07101FE8',
@@ -122,10 +123,6 @@ const CommunityNativeMaterial = ({shot, durationInFrames}: {shot: TimelineShot; 
       {metricBlock}
       {listBlock}
     </div>;
-  }
-  if (surface === 'pip' && vertical) {
-    shellStyle.left = margin + 84 * unit;
-    shellStyle.right = margin + 84 * unit;
   }
   if (surface === 'reveal') {
     shellStyle.clipPath = vertical ? 'polygon(0 8%, 92% 0, 100% 90%, 8% 100%)' : 'polygon(0 0, 94% 8%, 100% 100%, 6% 92%)';
