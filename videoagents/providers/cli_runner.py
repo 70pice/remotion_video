@@ -396,6 +396,40 @@ def _claude_result(output: str) -> CliResult:
     return CliResult(_business_object(value.get("structured_output")), value.get("usage"))
 
 
+def _failure_diagnostic(reason_code: str, provider: str, output: list[str], stdout_bytes: int,
+                        exit_code: int | None, stderr_tail_bytes: int) -> str:
+    """Project a failed process into fixed diagnostics, never its response text."""
+    shape, subtype, response_shape = "empty", "unknown", "absent"
+    if provider == "claude_code_cli" and output:
+        try:
+            value = json.loads("\n".join(output))
+        except (TypeError, ValueError, RecursionError):
+            shape = "invalid_json"
+        else:
+            if isinstance(value, dict) and value.get("type") == "result":
+                shape = ("claude_success_result" if value.get("subtype") == "success"
+                         and value.get("is_error") is False else "claude_error_result")
+                if value.get("subtype") == "unrecognized_model":
+                    subtype = "unrecognized_model"
+                structured = value.get("structured_output")
+                if isinstance(structured, dict):
+                    inner = structured.get("response_json")
+                    if isinstance(inner, str):
+                        try:
+                            response_shape = "json_object" if isinstance(json.loads(inner), dict) else "json_other"
+                        except (ValueError, RecursionError):
+                            response_shape = "invalid_json"
+            else:
+                shape = "other_json"
+    elif stdout_bytes:
+        shape = "event_stream"
+    return reason_code + "; " + json.dumps({
+        "exit_code": exit_code, "stdout_bytes": stdout_bytes,
+        "stdout_shape": shape, "subtype": subtype,
+        "response_json_shape": response_shape, "stderr_tail_bytes": stderr_tail_bytes,
+    }, sort_keys=True)
+
+
 def _cli_identifier(value: Any) -> bool:
     return isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", value) is not None
 
@@ -666,11 +700,11 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
             except (OSError, ValueError):
                 pass
         def stderr_note() -> str:
-            text = b"".join(stderr_tail[-16:]).decode("utf-8", errors="replace").strip()
-            return ("; stderr: " + text[-1200:]) if text else ""
+            tail_bytes = sum(len(chunk) for chunk in stderr_tail)
+            return f"; stderr_tail_bytes={tail_bytes}" if tail_bytes else ""
         reader = threading.Thread(target=read, daemon=True)
         stderr_reader = threading.Thread(target=read_stderr, daemon=True)
-        data, usage, output, size, completed, last_agent_message = None, None, [], 0, False, None
+        data, usage, output, size, completed, last_agent_message, exit_code = None, None, [], 0, False, None, None
         stream_limit = MAX_RESEARCH_STREAM_BYTES if research else MAX_OUTPUT_BYTES
         try:
             job.assign(process)
@@ -720,7 +754,10 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 # EOF right at the deadline is still a timeout, not bad output.
                 raise CliFailure("cli_timeout") from exc
             if exit_code != 0:
-                raise CliFailure("cli_nonzero_exit" + stderr_note())
+                stderr_reader.join(timeout=1)
+                raise CliFailure(_failure_diagnostic(
+                    "cli_nonzero_exit", provider, output, size, exit_code,
+                    sum(len(chunk) for chunk in stderr_tail)))
             if provider == "claude_code_cli" and not research:
                 return _claude_result("\n".join(output))
             if last_agent_message is not None:
@@ -736,8 +773,12 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 if note and "stderr" not in str(exc):
                     exc.args = (str(exc) + note,)
             raise
-        except Exception as exc:
-            raise CliFailure("invalid_cli_output" + stderr_note()) from exc
+        except Exception:
+            if exit_code is not None:
+                stderr_reader.join(timeout=1)
+            raise CliFailure(_failure_diagnostic(
+                "invalid_cli_output", provider, output, size, exit_code,
+                sum(len(chunk) for chunk in stderr_tail))) from None
         finally:
             stopped.set()
             _cleanup_cli_resource(lambda: terminate_tree(process), "process_tree")

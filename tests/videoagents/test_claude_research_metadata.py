@@ -145,4 +145,4 @@ def test_metadata_cannot_replace_or_override_successful_terminal_result(tmp_path
     fixture_cli(tmp_path, monkeypatch, [*METADATA, *last], ending)
     with pytest.raises(CliFailure) as failure:
         research_call(tmp_path, timeout=0.2 if reason == "cli_timeout" else 5)
-    assert failure.value.reason == reason and failure.value.submitted
+    assert failure.value.reason.split("; ", 1)[0] == reason and failure.value.submitted

@@ -171,7 +171,7 @@ def test_cleanup_does_not_hide_permission_error_during_output_processing(tmp_pat
     monkeypatch.setattr(cli_runner, "_codex_event", fail_output)
     with pytest.raises(CliFailure) as failure:
         run_cli("codex_cli", "fixture", 5, "fixture", {}, research_directory=tmp_path / "research")
-    assert failure.value.reason == "invalid_cli_output" and failure.value.submitted
+    assert failure.value.reason.startswith("invalid_cli_output; ") and failure.value.submitted
     assert "fixture-secret" not in str(failure.value)
 
 

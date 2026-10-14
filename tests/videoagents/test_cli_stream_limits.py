@@ -161,4 +161,4 @@ def test_research_budget_does_not_hide_failure_or_cancellation(tmp_path, monkeyp
             cancelled=cancel_after_launch, research_directory=tmp_path / "research",
             research_context={"runtime": str(tmp_path), "job_id": "fixture", "revision": 1},
         )
-    assert failure.value.reason == reason and failure.value.submitted
+    assert failure.value.reason.split("; ", 1)[0] == reason and failure.value.submitted
