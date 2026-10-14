@@ -1143,7 +1143,7 @@ class RoleModelConfig(Contract):
     enabled: bool = False
     provider: ModelProvider = "codex_cli"
     model: str = Field(default="", max_length=200)
-    timeout_seconds: int = Field(default=900, ge=30, le=1800)
+    timeout_seconds: int = Field(default=900, ge=30, le=7200)
     codex_reasoning_effort: Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"] | None = Field(
         default=None, exclude_if=lambda value: value is None,
     )

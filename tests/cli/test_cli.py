@@ -8,6 +8,9 @@ import struct
 import wave
 import zlib
 
+import pytest
+from pydantic import ValidationError
+
 from videoagents.contracts import Brief, SettingsPatch
 from videoagents.main import build_parser
 from videoagents.nodes.editing import EditingNode
@@ -74,6 +77,30 @@ def test_create_status_settings_and_shots_listing(tmp_path, capsys):
     run_cli(["--runtime-dir", str(runtime), "settings", "set", "research_max_searches", "5"])
     patched = json.loads(capsys.readouterr().out)
     assert patched["research_max_searches"] == 5
+
+
+@pytest.mark.parametrize("timeout_seconds", [3600, 7200, 7201])
+def test_settings_cli_role_timeout_limits_preserve_other_settings(tmp_path, capsys, timeout_seconds):
+    runtime = tmp_path / "runtime"
+    settings = SettingsService(Repository(runtime))
+    assert all(role["timeout_seconds"] == 900 for role in settings.internal()["role_models"].values())
+    settings.patch(SettingsPatch(role_models={"director": {
+        "provider": "codex_cli", "model": "gpt-6.1-sol", "codex_reasoning_effort": "xhigh",
+    }}))
+    original = settings.internal()
+    argv = ["--runtime-dir", str(runtime), "settings", "set", "role_models",
+            json.dumps({"director": {"timeout_seconds": timeout_seconds}})]
+    if timeout_seconds > 7200:
+        with pytest.raises(ValidationError):
+            run_cli(argv)
+        assert settings.internal() == original
+        return
+    assert run_cli(argv) == 0
+    public = json.loads(capsys.readouterr().out)
+    expected = original["role_models"]
+    expected["director"]["timeout_seconds"] = timeout_seconds
+    assert public["role_models"] == expected
+    assert SettingsService(Repository(runtime)).internal() == original
 
 
 def test_run_pauses_at_script_gate_resume_confirms_and_shots_list(tmp_path, monkeypatch, capsys):
