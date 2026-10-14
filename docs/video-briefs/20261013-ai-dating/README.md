@@ -1,5 +1,9 @@
 # 本次视频制作输入
 
+2026-10-14 23:41 当前同r11 / RUNNING / director。上一笔 `7d4cb114779b488190906e66c605cc0f` 已COMPLETED，正常流程生成17张新PNG；监督会话实际打开全部17张，发现仍有标题裁切、重复关键词、同图五幅堆叠、数字单位孤行和充值画面切点问题。本轮全部组件套被移除，也未完成用户对组件套的要求；整包没有通过。依据用户原先的返工要求，经正常摄影 `resume --decision revise` 继续，新操作 `a290785969554baab4bb2cebbbcd9c42` 已SUBMITTING。记录的是监督复核，不是用户已经确认新整包；未成片或发布。
+
+文案、12件视觉素材/音频文件保持，首两镜和收益截图放大、25万元单位、中文结尾的改善要求保留。见[本轮17图实际复核](photography-visual-reflow-second-review-20261014.md)、[集中返工意见](photography-visual-reflow-second-feedback-20261014.txt)与[启动复验](photography-visual-reflow-second-start-verification-20261014.json)。独立维护分支已用真实Remotion DOM复现ProgressSteps/WordFlip溢出，尚未完成共性代码修复或接入。以下为历史时点。
+
 2026-10-14 首两镜画面被用户指出硬塞与裁切后，已按实际意见经正常 `resume --decision revise` 退回摄影；当前同r11 / RUNNING / director，新操作 `7d4cb114779b488190906e66c605cc0f` 已提交，仍是Claude Code CLI + `glm-5.3[1m] / xhigh`。要求重做画面编排、容量与信息层级，放大有用素材、减少重复，同时清理其他已见裁切、单位和模板词问题；不把调整理解为全局缩字号。当前还没有新模型回执或新版代表帧，不声称修好。
 
 已亲自查看用户两张红框图。源码证据表明，模型输出镜头配置后由现有Remotion实现渲染；步骤组件没有按实际槽尺寸做文字高度适配，WordFlip字号不考虑长句实际宽度，现有检查缺少出图后的文本溢出检测。该结论不等于共性代码已经修改。实际门回执记录了用户返工、没有整包确认；原Brief、七段文案、12件素材/音频文件、32笔旧操作及16张旧PNG保持。见[真实反馈依据](photography-visual-reflow-request-20261014.json)、[摄影返工要求](photography-visual-reflow-feedback-20261014.txt)、[排版问题代码定位](photography-visual-reflow-diagnosis-20261014.md)、[返工前基线](photography-visual-reflow-baseline-20261014.json)和[正式启动复验](photography-visual-reflow-start-verification-20261014.json)。以下为历史时点，旧包仍是被退回的初稿。

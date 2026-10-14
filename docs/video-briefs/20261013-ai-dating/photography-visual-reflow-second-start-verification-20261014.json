@@ -1,0 +1,174 @@
+{
+  "checked_at": "2026-10-14T15:42:57.863404+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 11,
+  "status": "RUNNING",
+  "stage": "director",
+  "message": "摄影根据实测旁白安排镜头与关键画面",
+  "pending_input": null,
+  "approved_brief_unchanged": true,
+  "approved_script_unchanged": true,
+  "original_asset_files_unchanged": 12,
+  "previous_operations_unchanged": 33,
+  "previous_png_files_unchanged": 16,
+  "user_feedback_receipt": {
+    "decision": "revise",
+    "pending_token": "557958d114ed32e1117e04f7b1d06d34",
+    "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\stage-review-director_human_gate-557958d114ed32e1117e04f7b1d06d34.json",
+    "sha256": "dc211bc3f33ac18c818f39d7cca0d6764b66811a6fc99582db750bc457404cb5",
+    "note_matches": true,
+    "reviewed_shot_ids": null
+  },
+  "new_operations": [
+    {
+      "operation_id": "a290785969554baab4bb2cebbbcd9c42",
+      "provider": "llm:director",
+      "status": "SUBMITTING",
+      "revision": 11,
+      "input_hash": "47265ce656eb7493df2a3dfff16296b100fd3ef1d36a509dd529ccba09937fe0",
+      "body_sha256": "6e74d11096a9c9c08f8f7e64cbbc2eb7a73290f83afc5e5b70f18358a0cf07e6",
+      "cli_provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "reasoning_effort": "xhigh",
+      "result_shot_count": 0,
+      "reason": null
+    }
+  ],
+  "current_timeline_fingerprint": "8793ad4b2ae43a3d7f9b676dbbcbcdb24e81b19fc4ff863f85173144190373cc",
+  "current_shot_count": 17,
+  "current_registered_frames": [
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-001.png",
+      "sha256": "6ee620637b2e3d0606c62285c5990e90409988b3c515d6021847ca58083b07c3",
+      "bytes": 1077883,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-002.png",
+      "sha256": "d33dc6c05f70c6950ce02577d0357466f33ca804a3cce6c184c1e998553dcf8f",
+      "bytes": 612820,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-003.png",
+      "sha256": "a0b3f5df4948b805d4adb4928b50e995aeeb4b5d2d73ed36e1a19e0275312f37",
+      "bytes": 487574,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-004.png",
+      "sha256": "0902e566aafe36c0a49a04090ce18c63210460480f090070378242433a6ce438",
+      "bytes": 194157,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-005.png",
+      "sha256": "87f04cde9398eb0683fed37df11a215804d65916a1df8a6a56473f159655018b",
+      "bytes": 486417,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-006.png",
+      "sha256": "90db904fc645e8f57e4bbfd227c92b6cc0e89d8c4700df6f126aea10e5590482",
+      "bytes": 463643,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-007.png",
+      "sha256": "202e2828db671dcb459ae449c465ed3bb70e5a5e5f9ff4287703ddf67ad600f8",
+      "bytes": 653274,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-008.png",
+      "sha256": "36ca087acdb3fbca9cf3a1f590af8517faa1d45240d8f73ec23515959452a284",
+      "bytes": 189743,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-009.png",
+      "sha256": "ebf1854addddfc17371ab9df9fd8ea907138b1409ebbb5d0a8b7bdc7f91dcc58",
+      "bytes": 1856361,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-010.png",
+      "sha256": "6e5b1abd586ad6e4244a93d33662a7353b7064b9b001ad233e67ee53f96c4f50",
+      "bytes": 780623,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-011.png",
+      "sha256": "7397bb17f9b440ef486529fb031ef80508c60f6eebd613d39aafe8353de89719",
+      "bytes": 739929,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-012.png",
+      "sha256": "ec3d6993dd222f42c6de7959c248b1cb85d5ff26a3c887010ee1a713dd342d9d",
+      "bytes": 607163,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-013.png",
+      "sha256": "4752646b1992a6b9427440dbb637a9efada7d64f9696410caca6ddd7306279bd",
+      "bytes": 553770,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-014.png",
+      "sha256": "5797c521936eabf809da8bb5e249fd5b901fa92ab283bd70c4e43086fc9b58c4",
+      "bytes": 1644561,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-015.png",
+      "sha256": "d5fac9239956b002433c9b040b96d0d84665f38e061e47ac2467e71a47200c53",
+      "bytes": 591091,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-016.png",
+      "sha256": "42b7e63ecf61c7908cb9a85048c45be0c33dd4e301487a56f1a6822340de0dcf",
+      "bytes": 449994,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\638d417f59c249d99cea23f2d227d585\\shot-017.png",
+      "sha256": "4919544c94459b3e85e05bb813d72174db0cad02f191c10a2caed69d104a6981",
+      "bytes": 323526,
+      "width": 1080,
+      "height": 1920
+    }
+  ],
+  "new_frame_count": 17,
+  "component_sets": [],
+  "complete_video_rendered_this_revision": false,
+  "supervisor_feedback_receipt": {
+    "decision": "revise",
+    "pending_token": "38cd17cc1d3c402290da04c601256e86",
+    "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\stage-review-director_human_gate-38cd17cc1d3c402290da04c601256e86.json",
+    "sha256": "85706b31d96ddc792949d21dc6030f3b91a012d89e08a85583f1ca5ed415e07d",
+    "note_matches": true,
+    "reviewed_shot_ids": null,
+    "is_user_new_pack_approval": false
+  },
+  "first_reflow_png_files_unchanged": 17,
+  "new_frame_count_since_second_reflow": 0
+}
