@@ -1,0 +1,172 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 6,
+  "verified_at": "2026-10-14T00:51:59.649339+00:00",
+  "status": "NEEDS_HUMAN",
+  "stage": "script",
+  "pending_token": "b8be9dde07370efd3e5d0a0baedc8b74",
+  "model_operation": {
+    "operation_id": "1cf819d4b53643f48b7cbc25b1d1ff91",
+    "status": "COMPLETED",
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "xhigh",
+    "cli_provider": "codex_cli"
+  },
+  "preserved_script": {
+    "artifact_id": "d6afeca1685b41dbb949eb2231c53d71",
+    "sha256": "5d7aeb49fd9e63a479220f212d773fc011d11251a45c63830369d0955981968d",
+    "logical_revision_only_changed": true,
+    "approval_valid": true,
+    "segments": 7
+  },
+  "original_13_operations_unchanged": true,
+  "new_operations": 1,
+  "excluded_sd_assets_restored": false,
+  "asset_count": 6,
+  "new_asset_count": 4,
+  "retained_asset_count": 2,
+  "raw_video_seconds": 70.0,
+  "usable_video_seconds_approx": 27,
+  "assets": [
+    {
+      "asset_id": "0b61255194854094b26a4a2565504352",
+      "artifact_id": "6c50cd02c1ff426e9d9c31cc7e7b787d",
+      "file_name": "skill-831b33e978685bb991dc6e69019a6b98e4672f123315b7eca5242212a279316c.png",
+      "size_bytes": 1169496,
+      "sha256": "831b33e978685bb991dc6e69019a6b98e4672f123315b7eca5242212a279316c",
+      "measured": {
+        "width": 1000,
+        "height": 2222
+      },
+      "decoded": true,
+      "description": "对应s4真人身份包装；叙事用途：让人相信的线索。警方提供、央广网原页刊载的真实PNG，1000×2222，已解码。明亮中文界面，充值入口、多个“真人”标签及个人简介可读，可放大标签，保留原图人脸打码。国内同类欺诈场景证据画面、本案辅助理解画面。没有收费动作，不算补齐收费链；来源称部分头像使用AI生成或美颜，无法判定图中哪张由AI生成，更不证明自主模型对话。上屏须持续标“国内同类付费/欺诈场景，非报告涉案App”；只取包装界面，不将国内案件、人物、金额或警方处置写入本案口播。",
+      "retained": true
+    },
+    {
+      "asset_id": "b611b6b73f0f42f6b8ecf01248fcb65d",
+      "artifact_id": "d617506959794ad4b6859dcedcab39e0",
+      "file_name": "skill-d24289110bcfbb7bcf760d54cafb7964f367acde7dfc7360620fe16b7ad93ffa.png",
+      "size_bytes": 770597,
+      "sha256": "d24289110bcfbb7bcf760d54cafb7964f367acde7dfc7360620fe16b7ad93ffa",
+      "measured": {
+        "width": 1000,
+        "height": 991
+      },
+      "decoded": true,
+      "description": "对应s3视频入口、s5付费视频机制备选；叙事用途：收费提示。警方提供、央广网原页刊载原PNG，1000×991，已解码。两个手机界面：左上100金币/分钟，下方视频约会；右侧通话邀请与视频电话按钮，人物已由来源打码。适合放大计价行或邀请按钮，是原新闻图片，不能动画后冒称视频。国内收费入口证据画面、本案辅助理解画面；只有计价和邀请，不证明扣款、通话接通、预录或AI换脸，不反推人民币汇率。上屏须持续标“国内同类付费/欺诈场景，非报告涉案App”，保留央广网/警方来源；国内人物、金额和处置不进入本案口播。",
+      "retained": true
+    },
+    {
+      "asset_id": "bb97522e35024d349bb23f93dcd1bca8",
+      "artifact_id": "f4a47fa14f9d4514848f7c916feb18d8",
+      "file_name": "skill-fa850621df469bc42682f6da6a6399393e03ac98669fed10bfb2882839e498c7.mp4",
+      "size_bytes": 7700503,
+      "sha256": "fa850621df469bc42682f6da6a6399393e03ac98669fed10bfb2882839e498c7",
+      "measured": {
+        "duration_seconds": 30.0,
+        "width": 1280,
+        "height": 720,
+        "frame_rate": 25.0
+      },
+      "decoded": true,
+      "description": "对应s1/s3真实私聊、s4输入框、s5额度不足与充值；叙事用途：人与处境／过程／收费。原生H.264 1280×720、25fps，30.027秒，完整解码无错误；15→16→17.ts顺序流复制封装，无放大或超分。文件本地4.5–12.5秒：聊天输入框与“钻石不足”“消息收费2钻石/条”“前往充值”可读；17.5–22.5秒：记者持机操作；23.2–24.8秒：右侧原节目充值页140+58钻石19元、微信/支付宝选项清楚。其余含窄界面或转场，不用来读价格。代表帧frames/chat_recharge/006.jpg、024.jpg。是国内该平台收费过程证据、本案辅助理解画面，持续标“国内同类付费/欺诈场景，非报告涉案App”，保留源打码和央视出处。国内费用不移植到匿名工作室，不证明Claude聊天或实际充值结果；不得循环凑时长。",
+      "retained": false
+    },
+    {
+      "asset_id": "867edabe456a4ed393c9dd7e1a2df43c",
+      "artifact_id": "7ac071e8ba6f4a5d9cecc90df8895f54",
+      "file_name": "skill-155ae590fb189e45b43610c5de3c47941fb2648d3d0d807205bbaa3556aea53f.mp4",
+      "size_bytes": 5848368,
+      "sha256": "155ae590fb189e45b43610c5de3c47941fb2648d3d0d807205bbaa3556aea53f",
+      "measured": {
+        "duration_seconds": 20.0,
+        "width": 1280,
+        "height": 720,
+        "frame_rate": 25.0
+      },
+      "decoded": true,
+      "description": "对应s1中文消息列表、s3聊天处境、s6平台批量招呼；叙事用途：让人相信的线索／边界。原生H.264 1280×720、25fps，20.032秒，22→23.ts顺序流复制封装，完整解码无错误。文件本地2.5–3.8秒：真实手机近景“打招呼消息”，招呼文本和未读标记可读；6.5–7.5秒：列表继续滚动；8.5–10.5秒：另一个消息列表。11秒以后原节目“无人应答”动画及多窗拼贴不优先，不冒充原生界面操作。代表帧frames/system_greetings/003.jpg。结合原报道仅说明该国内平台系统招呼；不能证明大模型聊天、Claude参与、伪造点赞/访客、预录顶替或起疑标记。为本案辅助理解画面，持续标“国内同类付费/欺诈场景，非报告涉案App”；保留原打码，不把记者或页面用户当本案当事人，不与其他段反复用同一区间。",
+      "retained": false
+    },
+    {
+      "asset_id": "6c0e8f6e811249e696ed40436637636b",
+      "artifact_id": "b75845dafe2946188c4b2292cca3c6c0",
+      "file_name": "skill-eee81193f91419984d09b978ace9e175f796d08f1f4ffa1e008f1d27120e28fd.mp4",
+      "size_bytes": 4106315,
+      "sha256": "eee81193f91419984d09b978ace9e175f796d08f1f4ffa1e008f1d27120e28fd",
+      "measured": {
+        "duration_seconds": 20.0,
+        "width": 1280,
+        "height": 720,
+        "frame_rate": 25.0
+      },
+      "decoded": true,
+      "description": "对应s5视频/语音计价、金币购买与付款；叙事用途：数字／过程／结果证据。原生H.264 1280×720、25fps，20.032秒，30→31.ts顺序流复制封装，完整解码无错误。文件本地1.5–7.5秒：原节目展示“视频通话42.5金币/分钟”“语音通话21.25金币/分钟”，划线原价50/25保留；9.5–10.5秒：已支付30元；11.0–11.8秒：270金币30元购买页，并显示赠送80金币及余额380，不能误说仅270余额。12秒以后人物剪影及通话内容不用于本期。代表帧frames/video_payment/005.jpg、012.jpg。国内计费/支付证据、本案辅助理解；持续标“国内同类付费/欺诈场景，非报告涉案App”，国内价格、赠币和余额不移植本案，也不证明GTG-15001真实收入、AI人设接视频、预录顶替或真人零工报酬。",
+      "retained": false
+    },
+    {
+      "asset_id": "41aa62b5f4e845c5883257fdb76b7dc1",
+      "artifact_id": "d58940c5bce244408a56f49641c2549d",
+      "file_name": "skill-be18ce24220a9947cc355ed5b65ddd71795164f1cac88a827750e130d07989d6.jpg",
+      "size_bytes": 122172,
+      "sha256": "be18ce24220a9947cc355ed5b65ddd71795164f1cac88a827750e130d07989d6",
+      "measured": {
+        "width": 1280,
+        "height": 720
+      },
+      "decoded": true,
+      "description": "对应s1/s3中文私聊、s4聊天包装、s5按条收费；叙事用途：让人相信的线索／收费。腾讯图床实际下载的央视财经同调查原JPEG，1280×720，已完整解码并看图；四个中文私聊截面中红圈“消息收费7钻石/条”“8钻石/条”“5钻石/条”可读，保留央视财经/财经调查出处和源处理。是国内收费提示证据、本案辅助理解，可标注每条消息扣费，不能当三条AI候选回复界面。腾讯转载正文读取失败，图片以已核验央视原节目为source_url，文字背景由同调查四川在线正文核对，不计为独立事实来源。持续标“国内同类付费/欺诈场景，非报告涉案App”；不证明Claude参与、消息真实回复、扣款结果或本案单价。静态原图不能冒充视频，不与视频中同类信息裁切凑素材数量。",
+      "retained": false
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://news.cnr.cn/native/gd/20260113/t20260113_527492219.shtml",
+      "title": "上海警方破获交友APP诈骗案：不断充值才能聊天，软件内竟设反诈提示",
+      "artifact_id": "fa714ab63e9e42419739451045caf79e",
+      "sha256": "26fc3af39499ccdd496c3c345ea45e16d8700d2f4f584d38a7c465d2e332c494",
+      "asset_ids": [
+        "0b61255194854094b26a4a2565504352",
+        "b611b6b73f0f42f6b8ecf01248fcb65d"
+      ]
+    },
+    {
+      "url": "https://www.anthropic.com/threat-intelligence-report-september-2026",
+      "title": "Detecting and countering misuse of AI: September 2026",
+      "artifact_id": "d8bf4126838645e88a3f30d0baf9bd5c",
+      "sha256": "bbde3d660f4dc097bf7debfb884837d3f38305f97fe740d6f538bdc0dad3f685",
+      "asset_ids": []
+    },
+    {
+      "url": "https://tv.cctv.com/2025/04/20/VIDE5gJG9pJqDPTapHM9pQor250420.shtml",
+      "title": "《财经调查》 20250420 警惕交友软件中的桃色陷阱",
+      "artifact_id": "fe1673b2b58c4ba7a3d759fb6516b978",
+      "sha256": "433a81d01cd12470b9fa268cd981e8139f7200b281b70d29940c739b9ff56def",
+      "asset_ids": [
+        "bb97522e35024d349bb23f93dcd1bca8",
+        "867edabe456a4ed393c9dd7e1a2df43c",
+        "6c0e8f6e811249e696ed40436637636b",
+        "41aa62b5f4e845c5883257fdb76b7dc1"
+      ]
+    },
+    {
+      "url": "https://focus.scol.com.cn/zgsz/202504/82949111.html",
+      "title": "视频丨“月入3万”的聊天员是干什么的？央视记者卧底调查",
+      "artifact_id": "069462650aa4416cb75245457ed14389",
+      "sha256": "8d4eb5f8bb4411b8913fa13f9ecdc197a418e08dab454bd62fc1e17c665d44e8",
+      "asset_ids": []
+    }
+  ],
+  "limitations": [
+    "[画面缺口] s2未取得符合本案及最新主题的中文真实Claude开发App操作画面，也无可核对涉案二十多款应用图标文件；已完整核验报告开发与消息量事实，可由摄影按已审visual_need制作明确标“示意”的中文机制/数字卡，不用普通AI产品宣传或美国界面补位。",
+    "[画面缺口] s3/s4未取得本案真人零工任务/报酬界面、三条AI候选回复选择界面及对应头像生成操作；新私聊原图不是候选回复证据，保留真人标签图不能判断每张头像由AI生成。可用报告译文及明确标示意的分工/候选回复/中性头像解释卡。",
+    "[画面缺口] s6未取得本案伪造点赞访客、无真人可接时预录顶替、用户起疑记录的真实中文后台界面；新视频只核验国内平台系统招呼，不证明大模型对话或这些后台机制。可按报告制作明确标“示意”的解释卡；s7处置用报告中文译文，不能暗示全部App下架、判决或获赔。",
+    "[画面缺口] 本轮未取得与付费社交欺诈直接对应且清楚可读的AI头像/声音合成新闻演示；已有警方图仍不能逐张确认AI生成。可补有明确新闻证据的高清演示，不用普通AI宣传、他人照片或可复刻欺诈步骤。",
+    "[证据缺口] 腾讯转载 https://news.qq.com/rain/a/20250420A06IIC00 本文在网页备用读取及本机读取均失败；已下载并解码其公开图床1280×720央视同调查原图，但未将该转载列入sources。图片明确绑定已读央视原节目，国内费用文字背景由同调查四川在线确认；若需核对转载原文须补可读取正文，不能算多份独立证据。",
+    "[未完成平台] Jina Reader本轮连接失败，已改用网页备用读取和公开网页直连核验；央视HTTP播放清单本轮404，未宣称清单可用。七个公开HTTPS分片均200并通过PTS连续性与完整解码，区间只采用本地成品时间；可补重新可访问的原播放清单以校准节目绝对时间。",
+    "[未完成平台] X与Reddit没有已连接的浏览器会话，未读取Cookie或开展登录操作；B站已用bili-cli核验央视网快看同调查视频详情，但无字幕，未另下载重复节目。YouTube、知乎及Google未扩展搜索，本轮优先按已给中文原站与实际可取高清线索补画面，搜索次数0，sources 4；如仍缺对应高清机制界面，可在剩余预算内作专项检索。",
+    "[假设] s5的10%付费、人均100元、约25万元为已审假设情景，未被报告或国内素材验证；国内价格仅作同类界面说明，不能据此推断本案实际收入、利润、付费人数或用户损失。"
+  ],
+  "no_voice_camera_editing": true,
+  "whole_joint_gate_approved": false
+}

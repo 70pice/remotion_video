@@ -1,0 +1,112 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 6,
+  "verified_at": "2026-10-14T00:53:06.443598+00:00",
+  "base_token": "FiiebSriRaMxe3s56nSciW27nle",
+  "asset_table": "tblVOUHrIy3Tq3uh",
+  "asset_rows": [
+    {
+      "asset_id": "0b61255194854094b26a4a2565504352",
+      "record_id": "reczz28N4y4njard",
+      "adoption_status": "保留",
+      "attachments": [
+        {
+          "name": "skill-831b33e978685bb991dc6e69019a6b98e4672f123315b7eca5242212a279316c.png",
+          "size": 1169496
+        },
+        {
+          "name": "skill-831b33e978685bb991dc6e69019a6b98e4672f123315b7eca5242212a279316c.png",
+          "size": 1169496
+        }
+      ],
+      "name_bytes_match": true,
+      "readback_exact_id": true
+    },
+    {
+      "asset_id": "b611b6b73f0f42f6b8ecf01248fcb65d",
+      "record_id": "reczz28N4y4nlMYW",
+      "adoption_status": "保留",
+      "attachments": [
+        {
+          "name": "skill-d24289110bcfbb7bcf760d54cafb7964f367acde7dfc7360620fe16b7ad93ffa.png",
+          "size": 770597
+        },
+        {
+          "name": "skill-d24289110bcfbb7bcf760d54cafb7964f367acde7dfc7360620fe16b7ad93ffa.png",
+          "size": 770597
+        }
+      ],
+      "name_bytes_match": true,
+      "readback_exact_id": true
+    },
+    {
+      "asset_id": "bb97522e35024d349bb23f93dcd1bca8",
+      "record_id": "reczz28N66X7l3LX",
+      "adoption_status": "待审",
+      "attachments": [
+        {
+          "name": "skill-fa850621df469bc42682f6da6a6399393e03ac98669fed10bfb2882839e498c7.mp4",
+          "size": 7700503
+        }
+      ],
+      "name_bytes_match": true,
+      "readback_exact_id": true
+    },
+    {
+      "asset_id": "867edabe456a4ed393c9dd7e1a2df43c",
+      "record_id": "reczz28N66X7jjCC",
+      "adoption_status": "待审",
+      "attachments": [
+        {
+          "name": "skill-155ae590fb189e45b43610c5de3c47941fb2648d3d0d807205bbaa3556aea53f.mp4",
+          "size": 5848368
+        }
+      ],
+      "name_bytes_match": true,
+      "readback_exact_id": true
+    },
+    {
+      "asset_id": "6c0e8f6e811249e696ed40436637636b",
+      "record_id": "reczz28N66X7mP0v",
+      "adoption_status": "待审",
+      "attachments": [
+        {
+          "name": "skill-eee81193f91419984d09b978ace9e175f796d08f1f4ffa1e008f1d27120e28fd.mp4",
+          "size": 4106315
+        }
+      ],
+      "name_bytes_match": true,
+      "readback_exact_id": true
+    },
+    {
+      "asset_id": "41aa62b5f4e845c5883257fdb76b7dc1",
+      "record_id": "reczz28N66X7kXWq",
+      "adoption_status": "待审",
+      "attachments": [
+        {
+          "name": "skill-be18ce24220a9947cc355ed5b65ddd71795164f1cac88a827750e130d07989d6.jpg",
+          "size": 122172
+        }
+      ],
+      "name_bytes_match": true,
+      "readback_exact_id": true
+    }
+  ],
+  "historical_rejected_rows": 5,
+  "total_attachment_count": 18,
+  "current_review": {
+    "record_id": "reczz28N66b2nTZr",
+    "pending_token": "b8be9dde07370efd3e5d0a0baedc8b74",
+    "conclusion": "待审",
+    "human_opinion": "",
+    "requirements_readback_match": true
+  },
+  "script_rows": 7,
+  "script_narration_readback_match": true,
+  "shot_rows": 0,
+  "active_assets": 6,
+  "new_attachments_verified": 4,
+  "previous_attachments_unchanged": true,
+  "job_status": "NEEDS_HUMAN",
+  "stage": "script"
+}
