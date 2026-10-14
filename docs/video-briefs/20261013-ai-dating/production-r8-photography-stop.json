@@ -31,5 +31,26 @@
   "usage_or_billing_confirmed": false,
   "login_or_quota_failure_proven": false,
   "shot_gate_confirmed": false,
-  "publication_authorized": false
+  "publication_authorized": false,
+  "read_only_diagnostics": {
+    "checked_at": "2026-10-14T04:18:46.328824+00:00",
+    "review_agent": "photography_unknown_recovery_review",
+    "r7_timeout_seconds": 900,
+    "r8_timeout_seconds": 1800,
+    "same_model_and_effort": {
+      "model": "glm-5.3[1m]",
+      "effort": "xhigh",
+      "context_window": 1000000
+    },
+    "r8_input_file_bytes_observed_while_running": 444728,
+    "r8_transport_schema_file_bytes": 133,
+    "partial_output_file_found": false,
+    "completed_operation_result_found": false,
+    "saved_timeline_or_shot_image_found": false,
+    "r7_prompt_size_available": false,
+    "provider_or_network_error_detail_saved": false,
+    "diagnostic_limit": "普通结构化调用只在内存收取完整输出；台账仅存cli_timeout原因，未保存供应商错误细节。runner追加到异常args的stderr可能未进入exc.reason台账。输入字节数不证明超时根因。",
+    "normal_recovery_reusable_result": false,
+    "third_call_submitted": false
+  }
 }

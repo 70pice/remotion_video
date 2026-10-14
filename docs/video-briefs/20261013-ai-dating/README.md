@@ -4,7 +4,7 @@
 
 摄影操作 `2cb7f646bd224feb88565a9b7c2af96f` 在1800秒后再次为 `UNKNOWN / cli_timeout`，当前待办 `16ec1a85c3c2424296aa465d985dc324`。实际镜头设计、逐镜PNG、当前版本完整视频均为0；`videoagents shots` 回读“缺少当前摄影镜头设计”。无法宣称组件套已经用于画面。只读核对确认原 Brief、七段文案、11件视觉素材及真实配音文件散列一致，原24条操作完整正文与状态未变，本轮只新增一笔摄影操作，没有新配音或剪辑调用。旧 UNKNOWN 保留，没有第三次提交或修改审核标记。超时只证明未在时限内取回结果，不能据此断言登录失效、额度不足或确认实际计费。
 
-见[本次用户授权与原台账基线](photography-r8-retry-authorization.json)、[真实停止结果](production-r8-photography-stop.json)、[输入与台账只读复验](production-r8-photography-verification.json)。下一步先核查调用与可恢复结果；如果仍需新提交，按当前 UNKNOWN 恢复约定取得针对新操作的明确用量授权，沿正常摄影入口继续，整包逐镜人工审核后才剪辑完整视频。
+见[本次用户授权与原台账基线](photography-r8-retry-authorization.json)、[真实停止结果](production-r8-photography-stop.json)、[输入与台账只读复验](production-r8-photography-verification.json)。只读调用核查已完成：本机未找到完整回执或可恢复分镜，普通结构化调用未落盘保存部分输出；两次均未保留供应商错误细节，不能将超时原因归结为提示词大小、额度或登录问题。如果仍需新提交，按当前 UNKNOWN 恢复约定取得针对新操作的明确用量授权，沿正常摄影入口继续，整包逐镜人工审核后才剪辑完整视频。
 
 以下为 revision 7 及更早阶段的历史记录，其中“当前”“待审”等表述均为当次记录时的状态。
 
