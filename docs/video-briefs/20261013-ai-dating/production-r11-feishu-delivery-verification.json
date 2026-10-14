@@ -1,0 +1,215 @@
+{
+  "checked_at": "2026-10-14T14:44:41.88839Z",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 11,
+  "status": "NEEDS_HUMAN",
+  "stage": "director",
+  "shots_table_url": "https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tbld1dGlTS2AELat",
+  "shots_table_revision": 19,
+  "review_table_revision": 35,
+  "actual_png_count": 16,
+  "unique_attached_frames": 16,
+  "attachment_copy_count": 17,
+  "duplicate_note": "shot-01 has one extra identical copy from supervisor diagnostic upload; retained, not counted as a new image",
+  "every_shot_attachment_nonempty": true,
+  "exact_filename_and_size_match": true,
+  "rows": [
+    {
+      "record_id": "reczz28NK1Ojaaeb",
+      "shot_id": "shot-01",
+      "filename": "shot-001.png",
+      "bytes": 656594,
+      "sha256": "bfe8c9b1bf43ce9e643be9b0edbc940051b3de75369ab14b90ca68c8a717840f",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 2,
+      "name_and_size_match": true
+    },
+    {
+      "record_id": "reczz28NK1Ojawex",
+      "shot_id": "shot-02",
+      "filename": "shot-002.png",
+      "bytes": 649749,
+      "sha256": "dfd30ab9111d150fd44628a3cce0134f8857f1665cb59598bc3cc9f6b9c6052f",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 1,
+      "name_and_size_match": true
+    },
+    {
+      "record_id": "reczz28NK1OjaxmA",
+      "shot_id": "shot-03",
+      "filename": "shot-003.png",
+      "bytes": 194760,
+      "sha256": "d6acf58504193a38edb8e6bd65ba19aad298b0116451bc384e2495043eee8875",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 1,
+      "name_and_size_match": true
+    },
+    {
+      "record_id": "reczz28NK1OjafoH",
+      "shot_id": "shot-04",
+      "filename": "shot-004.png",
+      "bytes": 482083,
+      "sha256": "628995dd1e946b686509d758d7ae6dd99278ba7446fb0f2d3af9033b6fe920bf",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 1,
+      "name_and_size_match": true
+    },
+    {
+      "record_id": "reczz28NK1OjaG3I",
+      "shot_id": "shot-05",
+      "filename": "shot-005.png",
+      "bytes": 876225,
+      "sha256": "68b6b218ac5b3180a39ddfa0f13b999b2255b55f9c14fd330a4cd989a95bd4bb",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 1,
+      "name_and_size_match": true
+    },
+    {
+      "record_id": "reczz28NK1OjesDh",
+      "shot_id": "shot-06",
+      "filename": "shot-006.png",
+      "bytes": 981145,
+      "sha256": "d2525b4f67911daca8519fe52af657e9f59745d3fea6e9595e0cf9cc576ed004",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 1,
+      "name_and_size_match": true
+    },
+    {
+      "record_id": "reczz28NK1OjfSUy",
+      "shot_id": "shot-07",
+      "filename": "shot-007.png",
+      "bytes": 575814,
+      "sha256": "fa81c50dc103095c68f9d9439b48e90162aa937c59cead75ccc6c8191cbbd520",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 1,
+      "name_and_size_match": true
+    },
+    {
+      "record_id": "reczz28NK1OjeGY7",
+      "shot_id": "shot-08",
+      "filename": "shot-008.png",
+      "bytes": 1014245,
+      "sha256": "b354f739d9125ceca5d54b056fdd6d38b7b2d3d4020618ae1d2cb3de20853b73",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 1,
+      "name_and_size_match": true
+    },
+    {
+      "record_id": "reczz28NK1Ojf7h8",
+      "shot_id": "shot-09",
+      "filename": "shot-009.png",
+      "bytes": 139692,
+      "sha256": "f5c5a4b94d8f5bb8c4669713b88abbcceebdaddfc24a3b59f6ffaac46066c9e0",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 1,
+      "name_and_size_match": true
+    },
+    {
+      "record_id": "reczz28NK1OjdLHt",
+      "shot_id": "shot-10",
+      "filename": "shot-010.png",
+      "bytes": 739929,
+      "sha256": "7397bb17f9b440ef486529fb031ef80508c60f6eebd613d39aafe8353de89719",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 1,
+      "name_and_size_match": true
+    },
+    {
+      "record_id": "reczz28NK1OjealR",
+      "shot_id": "shot-11",
+      "filename": "shot-011.png",
+      "bytes": 1592511,
+      "sha256": "a9ffc8c3856d06ca60b48b34f019db701e562b6ac3968976077448fd1bda7da2",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 1,
+      "name_and_size_match": true
+    },
+    {
+      "record_id": "reczz28NK1OjemPN",
+      "shot_id": "shot-12",
+      "filename": "shot-012.png",
+      "bytes": 502855,
+      "sha256": "b08f8d75cdd9916d046b2fab2d05dcaaa1934a25d005e09b089d3c4167002ac3",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 1,
+      "name_and_size_match": true
+    },
+    {
+      "record_id": "reczz28NK1Ojgx3Y",
+      "shot_id": "shot-13",
+      "filename": "shot-013.png",
+      "bytes": 712387,
+      "sha256": "4999107376b9b4fa903dead3a468342e0be3540e699a34c1ffad4497a028fd6c",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 1,
+      "name_and_size_match": true
+    },
+    {
+      "record_id": "reczz28NK1OjegJv",
+      "shot_id": "shot-14",
+      "filename": "shot-014.png",
+      "bytes": 608449,
+      "sha256": "b8c3b4d041b0f419748ff57fcdae0095f8be1924d49cc02cada3374b97f3e738",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 1,
+      "name_and_size_match": true
+    },
+    {
+      "record_id": "reczz28NK1Ojh0tb",
+      "shot_id": "shot-15",
+      "filename": "shot-015.png",
+      "bytes": 449994,
+      "sha256": "42b7e63ecf61c7908cb9a85048c45be0c33dd4e301487a56f1a6822340de0dcf",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 1,
+      "name_and_size_match": true
+    },
+    {
+      "record_id": "reczz28NK1Ojf3nN",
+      "shot_id": "shot-16",
+      "filename": "shot-016.png",
+      "bytes": 1652972,
+      "sha256": "bbcb2bac1b5bfde9dbca9e3d0de49af0310d4bcc6985128b94195bbca8c5cafa",
+      "width": 1080,
+      "height": 1920,
+      "attachment_copies": 1,
+      "name_and_size_match": true
+    }
+  ],
+  "current_review": {
+    "record_id": "reczz28NK1T3WWAT",
+    "pending_token": "557958d114ed32e1117e04f7b1d06d34",
+    "stage": [
+      "逐镜"
+    ],
+    "conclusion": [
+      "待审"
+    ],
+    "note": null
+  },
+  "limitations": [
+    "Attachment verification checks filename and byte count; remote bytes were not downloaded for SHA verification.",
+    "PNG dimensions and SHA verified against actual local production files.",
+    "Machine validation is not visual approval; visible draft defects recorded separately."
+  ],
+  "poll_called": false,
+  "shot_gate_confirmed": false,
+  "complete_video_rendered_this_revision": false,
+  "publication_authorized": false,
+  "raw_file_tokens_omitted": true
+}

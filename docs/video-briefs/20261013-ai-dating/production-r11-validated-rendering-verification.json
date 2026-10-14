@@ -1,0 +1,336 @@
+{
+  "checked_at": "2026-10-14T14:29:48.408690+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 11,
+  "status": "NEEDS_HUMAN",
+  "stage": "director",
+  "message": "摄影逐镜组件与画面审核：等待人工核对",
+  "pending_input": {
+    "kind": "stage_review",
+    "stage": "director",
+    "node_name": "director_human_gate",
+    "title": "摄影逐镜组件与画面审核",
+    "thread_id": "job:08e74bed03e94c6e903c89f7f2fbea64:run:0a8b80a57b3a4f47920218baefc8163d",
+    "revision": 11,
+    "pending_token": "557958d114ed32e1117e04f7b1d06d34",
+    "dependency_fingerprint": "7bb610e89545e5882dc8fd615cf0b8b2dab5859efb3e56d572c52c585e6abe6c",
+    "policy_fingerprint": "a6ff70cd9eb0737fd2bcf337262e1b44711ea567c9d55e9b1bd397ecdb03baf8",
+    "confirmation_requirements": [
+      "逐镜核对组件或组件套、实际内部组件和选择理由",
+      "逐镜查看真实Remotion代表帧，核对素材可读性、版式和画面表演",
+      "旁白、案例、数字和来源对应，代表帧只证明该帧画面，不能证明整镜字幕同步",
+      "所有镜头审阅完成后才能确认并进入完整成片渲染"
+    ],
+    "min_note_length": 10,
+    "review_mode": "per_shot_stills",
+    "required_shot_ids": [
+      "shot-01",
+      "shot-02",
+      "shot-03",
+      "shot-04",
+      "shot-05",
+      "shot-06",
+      "shot-07",
+      "shot-08",
+      "shot-09",
+      "shot-10",
+      "shot-11",
+      "shot-12",
+      "shot-13",
+      "shot-14",
+      "shot-15",
+      "shot-16"
+    ],
+    "director_shot_review_artifact_id": "889c98e655f54218b9cfb00575d14a0f",
+    "interrupt_id": "ced66c4692b3ee2f6876916054139043"
+  },
+  "approved_brief_unchanged": true,
+  "approved_script_unchanged": true,
+  "retained_asset_files_verified": [
+    {
+      "asset_id": "0b61255194854094b26a4a2565504352",
+      "role": "evidence",
+      "sha256": "831b33e978685bb991dc6e69019a6b98e4672f123315b7eca5242212a279316c",
+      "bytes": 1169496,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "b611b6b73f0f42f6b8ecf01248fcb65d",
+      "role": "evidence",
+      "sha256": "d24289110bcfbb7bcf760d54cafb7964f367acde7dfc7360620fe16b7ad93ffa",
+      "bytes": 770597,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "41aa62b5f4e845c5883257fdb76b7dc1",
+      "role": "evidence",
+      "sha256": "be18ce24220a9947cc355ed5b65ddd71795164f1cac88a827750e130d07989d6",
+      "bytes": 122172,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "a12818e554a74684bea6e34785c8b85b",
+      "role": "evidence",
+      "sha256": "30d9b958cd4da3081aa5c2367ba6eaac3bb78747deed45fbf9693c7be245b378",
+      "bytes": 123893,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "00e534aed0e74d6b9f5cfbfb589d28c3",
+      "role": "evidence",
+      "sha256": "06b4f3a32cd997217f5952467e19002eaa844e31df5f45fdfe14ea50fe87ca5f",
+      "bytes": 272995,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "59cb502d984a4c1fafdfaeadf8fd144a",
+      "role": "evidence",
+      "sha256": "4ce04ccf8168b14d83fe3847f532cd2b7e834c693e192e7f7ffc34ee1acf6acf",
+      "bytes": 116337,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "951152e88def4169af4d1149e3447536",
+      "role": "evidence",
+      "sha256": "c35603a522fb1dee01acfb8c6180ff2da8ef16328e960509d6316bfe650dac04",
+      "bytes": 504038,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "46256f4f7a2940feafdca5bc5b9547db",
+      "role": "evidence",
+      "sha256": "d92205358c43888215efab082c3c6032adf955d5f9e9ecb62a2ef3af5fa9c8c7",
+      "bytes": 406801,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "caf3d0aead8a48c089e527c33db3237f",
+      "role": "evidence",
+      "sha256": "022c9a48aa763c8d08ff3c1941e1ad39ff062610aa6d93e9aabf36c0ae192cb3",
+      "bytes": 81375,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "30495f9cf1854fda97e5e3156891e118",
+      "role": "evidence",
+      "sha256": "b665e672c0bef3355aa1da0be72ebd3a92f20b7b4dfa118941d640b45c734147",
+      "bytes": 1208613,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "2ea535747f5e4a50b49570e78e7eceaf",
+      "role": "evidence",
+      "sha256": "15df8007e7b2b00905dbb491835bd94c4bf9d009316b10b082b3a35588aa8237",
+      "bytes": 52911229,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "a661542c449c4f39bf17bc6c9047ef7b",
+      "role": "audio",
+      "sha256": "8ff6c916735add49764125b0a1923d4f47c661bb07912971ca8ac8280888d327",
+      "bytes": 1981869,
+      "file_sha_verified": true
+    }
+  ],
+  "original_operations_unchanged": 28,
+  "new_operations": [
+    {
+      "operation_id": "1ca471a9391b419390d8a20bece4e5c0",
+      "provider": "llm:director",
+      "status": "COMPLETED",
+      "input_hash": "2a08bb77900b518b9f7ef980d8357ca64d5edfd108de380c39b7eca8d34147da",
+      "body_sha256": "55532c6861f5b84831c0f258ee10894bbacf1a54b55671d4d5df56cb1b21d11f",
+      "revision": 11,
+      "result_shot_count": 16,
+      "reason": null,
+      "diagnostic": null,
+      "model": "glm-5.3[1m]",
+      "reasoning_effort": "xhigh",
+      "context_tokens": 1000000
+    },
+    {
+      "operation_id": "8a4390213ef842739bdfc6e66ed53ad9",
+      "provider": "llm:director",
+      "status": "COMPLETED",
+      "input_hash": "4dbee3efadae0ae1961a62195643b769ef09256bc727284fe1e0110c555079b6",
+      "body_sha256": "13f4f82b2c9b62bd7fd727faa1df07e34d9fb3337ef1b7eafe8618685b480cd5",
+      "revision": 11,
+      "result_shot_count": 16,
+      "reason": null,
+      "diagnostic": null,
+      "model": "glm-5.3[1m]",
+      "reasoning_effort": "xhigh",
+      "context_tokens": 1000000
+    },
+    {
+      "operation_id": "5019d2d42ee14afe9ef313cc43402151",
+      "provider": "llm:director",
+      "status": "COMPLETED",
+      "input_hash": "61cb156c19c294d41913ed5260e6d6e3f3b88089246a5edbcd4e62c8d80e39c2",
+      "body_sha256": "d69d0fcf36ccb29395e8794a3b07fa69eb2d175164f1d522d453e447e8f96b6c",
+      "revision": 11,
+      "result_shot_count": 16,
+      "reason": null,
+      "diagnostic": null,
+      "model": "glm-5.3[1m]",
+      "reasoning_effort": "xhigh",
+      "context_tokens": 1000000
+    },
+    {
+      "operation_id": "41f5616c3ea84ec1b63972b42880a02f",
+      "provider": "llm:director",
+      "status": "COMPLETED",
+      "input_hash": "9561d3a557dd9667cde623f83d6c9613d159b48db246e878f56e133b094f25c5",
+      "body_sha256": "dc73ba9b7eddd39a4a616bf567373af365a018829b464a0f83362a547db06efb",
+      "revision": 11,
+      "result_shot_count": 16,
+      "reason": null,
+      "diagnostic": null,
+      "model": "glm-5.3[1m]",
+      "reasoning_effort": "xhigh",
+      "context_tokens": 1000000
+    }
+  ],
+  "shot_count": 16,
+  "component_sets": [
+    "A02",
+    "A07",
+    "B03",
+    "B11",
+    "B12"
+  ],
+  "shots_with_sets": 5,
+  "shot_review_frames": [
+    {
+      "artifact_id": "b463815f072b42fd8375b826e8783868",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-001.png",
+      "sha256": "bfe8c9b1bf43ce9e643be9b0edbc940051b3de75369ab14b90ca68c8a717840f",
+      "bytes": 656594,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "artifact_id": "2fc9d855dfc74a169109c6f1493f4575",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-002.png",
+      "sha256": "dfd30ab9111d150fd44628a3cce0134f8857f1665cb59598bc3cc9f6b9c6052f",
+      "bytes": 649749,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "artifact_id": "fcf1d15095b748428b0072b28ecb202f",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-003.png",
+      "sha256": "d6acf58504193a38edb8e6bd65ba19aad298b0116451bc384e2495043eee8875",
+      "bytes": 194760,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "artifact_id": "9f4f519f429f405082bdf66f72fe332d",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-004.png",
+      "sha256": "628995dd1e946b686509d758d7ae6dd99278ba7446fb0f2d3af9033b6fe920bf",
+      "bytes": 482083,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "artifact_id": "0e0099c745474f2aa095073980fbfc35",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-005.png",
+      "sha256": "68b6b218ac5b3180a39ddfa0f13b999b2255b55f9c14fd330a4cd989a95bd4bb",
+      "bytes": 876225,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "artifact_id": "1a1e8a4f798b4e2d926816d060cfd5bd",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-006.png",
+      "sha256": "d2525b4f67911daca8519fe52af657e9f59745d3fea6e9595e0cf9cc576ed004",
+      "bytes": 981145,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "artifact_id": "08ecfad3b061448e9f7d73f1adc8a391",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-007.png",
+      "sha256": "fa81c50dc103095c68f9d9439b48e90162aa937c59cead75ccc6c8191cbbd520",
+      "bytes": 575814,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "artifact_id": "1e8f244a63af47b79791b16ed81d8193",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-008.png",
+      "sha256": "b354f739d9125ceca5d54b056fdd6d38b7b2d3d4020618ae1d2cb3de20853b73",
+      "bytes": 1014245,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "artifact_id": "b8e8652c224b4440a732f761122d93c7",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-009.png",
+      "sha256": "f5c5a4b94d8f5bb8c4669713b88abbcceebdaddfc24a3b59f6ffaac46066c9e0",
+      "bytes": 139692,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "artifact_id": "4f95179bbe214b958a70eafb0815e118",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-010.png",
+      "sha256": "7397bb17f9b440ef486529fb031ef80508c60f6eebd613d39aafe8353de89719",
+      "bytes": 739929,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "artifact_id": "a57dc245fcce4c66bea5660a2b5efd1d",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-011.png",
+      "sha256": "a9ffc8c3856d06ca60b48b34f019db701e562b6ac3968976077448fd1bda7da2",
+      "bytes": 1592511,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "artifact_id": "9da31065287b4ef9a573556fc455691e",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-012.png",
+      "sha256": "b08f8d75cdd9916d046b2fab2d05dcaaa1934a25d005e09b089d3c4167002ac3",
+      "bytes": 502855,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "artifact_id": "6a23f7b530dc43ad9f1e4d9eac2daafa",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-013.png",
+      "sha256": "4999107376b9b4fa903dead3a468342e0be3540e699a34c1ffad4497a028fd6c",
+      "bytes": 712387,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "artifact_id": "1cde4e29b41a465189f3c14f69c15877",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-014.png",
+      "sha256": "b8c3b4d041b0f419748ff57fcdae0095f8be1924d49cc02cada3374b97f3e738",
+      "bytes": 608449,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "artifact_id": "e6e37b66ce3340759d0d2ab77f3b930a",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-015.png",
+      "sha256": "42b7e63ecf61c7908cb9a85048c45be0c33dd4e301487a56f1a6822340de0dcf",
+      "bytes": 449994,
+      "width": 1080,
+      "height": 1920
+    },
+    {
+      "artifact_id": "cce8b726f9cb465fb1aff2b651de7f41",
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\11\\shot-reviews\\074da36cd44b40dc829d55fc6d6d4537\\shot-016.png",
+      "sha256": "bbcb2bac1b5bfde9dbca9e3d0de49af0310d4bcc6985128b94195bbca8c5cafa",
+      "bytes": 1652972,
+      "width": 1080,
+      "height": 1920
+    }
+  ],
+  "shot_gate_confirmed": false,
+  "complete_video_rendered_this_revision": false,
+  "publication_authorized": false
+}

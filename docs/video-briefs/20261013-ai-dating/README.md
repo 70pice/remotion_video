@@ -1,5 +1,11 @@
 # 本次视频制作输入
 
+2026-10-14 本轮交付为 revision 11 / NEEDS_HUMAN / director：摄影正常输入返工操作 `41f5616c3ea84ec1b63972b42880a02f` 已COMPLETED，生成有效16镜timeline和16张实际Remotion PNG，均1080×1920；原七段文案、11件视觉素材与真实配音保留，原12件文件SHA和前28笔操作复验未变。实际采用A02、A07、B03、B11、B12五套组件，其余镜头采用现有单组件，不能称全部16镜都用了组件套。见[生产出图复验](production-r11-validated-rendering-verification.json)和[真实逐镜包](production-r11-shot-pack.json)。
+
+正常 `sync-review` 后已逐行读回[飞书逐镜审核表](https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tbld1dGlTS2AELat)：16条记录代表帧均非空、文件名与字节大小匹配实际PNG。第一镜有一份监督诊断追加的同名副本，其余各一份，合计17份附件对应16张唯一图片；没有把副本计成新镜头。当前[审核记录](https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblNZJtNYx6gV6VG) `reczz28NK1T3WWAT`、token `557958d114ed32e1117e04f7b1d06d34` 仍是逐镜/待审/意见空。未poll、未改人审结论、未启动成片或发布。
+
+这套图是待修改初稿，机器结构校验通过不代表视觉合格。16张代表帧均已实际打开检查：首屏及若干组件文字裁切，第7/8镜强调字压住白底截图，第11镜重复六次同一收益截图，第12镜“约25万万元”单位重复，第16镜残留模板英文按钮。具体定位见[逐镜初稿观察](production-r11-shot-pack-review.md)；这是监督观察，不是用户审批意见，不能以此伪造人审通过或返工结论。飞书附件与门状态的脱敏读回见[交付验证](production-r11-feishu-delivery-verification.json)。以下为历史时点。
+
 2026-10-14 21:59 当前为 revision 11 / RUNNING / director：已沿当前摄影输入正常 `resume` 提交 `41f5616c3ea84ec1b63972b42880a02f`，集中修复shot-06少3帧，以及shot-03、07、08的 `layers[0]` 高亮组件缺关键词字段。后者由真实 `validate_component_requirements` 独立检出，title不能代替必需的 `props.highlight` 或 `props.items[0]`；屏幕关键词由摄影节点从已审内容提炼，监督会话不代写方案。
 
 下游只读预检在内存诊断副本提前该part的3帧后，素材批准与语义验证通过，source_size填写/实测一致、整镜阅读与表演/审阅设计独立通过；仍被三处高亮层阻断。首次尺寸告警来自诊断漏传metadata，已明确撤回，不能算候选缺陷。实际生产候选未修改、未声称通过。预检保持数据库、任务、操作与49件读文件散列；实际启动复验继续保留原12件文件和前28笔操作，未新采素材或重配音，没有PNG、成片或人审通过。见[只读下游实际与条件检查](production-r11-downstream-readonly-preflight.json)、[集中返工意见](photography-r11-reading-followup-note.txt)及[本轮启动复验](production-r11-reading-and-layer-repair-start-verification.json)。以下为历史时点。
