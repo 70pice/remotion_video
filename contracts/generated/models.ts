@@ -327,6 +327,15 @@ export interface ModelFinding {
   blocking: boolean;
 }
 
+export interface ReplenishMaterialsRequest {
+  base_revision: number;
+  pending_token: string;
+  idempotency_key: string;
+  note: string;
+  materials_note: string;
+  retained_asset_ids: Array<string>;
+}
+
 export interface RestartUnknownRequest {
   base_revision: number;
   operation_id: string;

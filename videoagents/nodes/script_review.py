@@ -72,7 +72,9 @@ def _approval(repository: Repository, job: Job, depth: int = 0) -> Artifact | No
         preserved = authorization["preserved_script"]
         if (original.job_id != job.job_id or original.revision + 1 != job.revision
                 or authorization["source_revision"] != original.revision
-                or authorization.get("acknowledge_possible_usage") is not True
+                or not (authorization.get("acknowledge_possible_usage") is True
+                        or (authorization.get("purpose") == "materials_replenishment"
+                            and authorization.get("authorized_new_collection") is True))
                 or job.brief != original.brief or not job.script or not original.script
                 or job.script.model_copy(update={"revision": original.revision}) != original.script):
             raise Conflict("仅素材重启不能沿用已修改的文案或制作要求")
@@ -84,6 +86,21 @@ def _approval(repository: Repository, job: Job, depth: int = 0) -> Artifact | No
                     or owner != job.job_id or sha256(path) != artifact.sha256):
                 raise Conflict("素材重启的原文案、来源或批准记录已改变")
         _validate_preserved_sources(repository, original, preserved["source_files"])
+        for raw in authorization.get("imported_assets", []):
+            asset = next((item for item in job.assets if item.asset_id == raw["asset"]["asset_id"]), None)
+            if not asset or asset.model_dump() != raw["asset"]:
+                raise Conflict("补采保留的原素材引用已改变")
+            path, artifact, owner = repository.artifact_path(asset.artifact_id)
+            if (owner != job.job_id or artifact.model_dump() != raw["artifact"]
+                    or retained.get(artifact.artifact_id) != artifact or sha256(path) != asset.sha256
+                    or repository.asset_metadata(asset.asset_id) != raw["metadata"]):
+                raise Conflict("补采保留的素材文件或登记信息已改变")
+        for source in authorization.get("imported_research", {}).get("sources", []):
+            path, artifact, owner = repository.artifact_path(source["artifact_id"])
+            if (owner != job.job_id or retained.get(artifact.artifact_id) != artifact
+                    or artifact.kind != "source" or artifact.sha256 != source["sha256"]
+                    or sha256(path) != source["sha256"]):
+                raise Conflict("补采保留的来源正文已改变")
         approval = _approval(repository, original, depth + 1)
         if not approval or approval.artifact_id != preserved["approval_artifact_id"]:
             raise Conflict("素材重启缺少原文案人工批准依据")
@@ -109,7 +126,7 @@ def _validate_preserved_sources(repository: Repository, job: Job, files: list[di
             raise Conflict("素材重启时保存的正文快照已改变或缺失")
 
 
-def preserve_approved_script(repository: Repository, job: Job) -> dict:
+def preserve_approved_script(repository: Repository, job: Job, *, retained_asset_ids: set[str] | None = None) -> dict:
     """Bind existing approval and source bytes without minting a confirm receipt.
 
     Source snapshots are an additional restart-time check. Older script gates
@@ -118,7 +135,8 @@ def preserve_approved_script(repository: Repository, job: Job) -> dict:
     approval = _approval(repository, job)
     if not approval or not job.script:
         raise Conflict("仅素材重启要求原文案已获人工确认")
-    if any(segment.asset_ids for segment in job.script.segments):
+    bound = {key for segment in job.script.segments for key in segment.asset_ids}
+    if bound - (retained_asset_ids or set()):
         raise Conflict("已审文案绑定旧素材，不能清空素材后直接沿用；请重新审核")
     artifacts = [item for item in job.artifacts
                  if item.kind in {"script", "writer_tool_audit", "source"}

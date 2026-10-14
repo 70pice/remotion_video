@@ -10,7 +10,15 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from videoagents.contracts import Brief, RestartUnknownRequest, Script, ScriptSegment, SettingsPatch
+from videoagents.contracts import (
+    Asset,
+    Brief,
+    ReplenishMaterialsRequest,
+    RestartUnknownRequest,
+    Script,
+    ScriptSegment,
+    SettingsPatch,
+)
 from videoagents.main import main
 from videoagents.nodes.common import state_context
 from videoagents.nodes.materials import MaterialsNode, collection_fingerprint
@@ -338,3 +346,217 @@ def test_material_notes_change_actual_paid_call_fingerprint(tmp_path, monkeypatc
     with repo.connection() as db:
         rows = db.execute("SELECT input_hash,status FROM operations").fetchall()
     assert len(rows) == 2 and rows[0][0] != rows[1][0] and all(row[1] == "COMPLETED" for row in rows)
+
+
+@pytest.fixture
+def replenishable(approved_unknown, monkeypatch, capsys):
+    repo, original, operation_id = approved_unknown
+    service = JobService(repo)
+    restarted = service.restart_unknown(original.job_id, restart_request(operation_id))
+
+    def seed(node, state):
+        current = repo.get_job(state["job_id"])
+        folder = repo.root / "jobs" / current.job_id / "revisions" / str(current.revision) / "sources"
+        folder.mkdir(parents=True)
+        text = folder / "source.txt"
+        text.write_text("UNIT source for retained paid-chat screenshots", encoding="utf-8")
+        artifact = service.register_artifact(current, text, "source", "text/plain")
+        source = {"url": SOURCE, "final_url": SOURCE, "title": "UNIT original source",
+                  "text": text.read_text(encoding="utf-8"), "sha256": artifact.sha256,
+                  "knowledge_status": "skill_read", "artifact_id": artifact.artifact_id,
+                  "artifact_url": artifact.url, "asset_ids": []}
+        repo.update_artifact_metadata(artifact.artifact_id, {"source_url": SOURCE, "receipt": source})
+        repo.update_job(current.job_id, artifacts=current.artifacts + [artifact])
+        research = {"schema_version": "3", "status": "COMPLETED", "sources": [source], "visuals": [],
+                    "limitations": [], "collection_fingerprint": collection_fingerprint(current, NOTE)}
+        for index in range(3):
+            current = repo.get_job(current.job_id)
+            path = folder / f"UNIT-image-{index}.png"
+            path.write_bytes(b"\x89PNG\r\n\x1a\nUNIT-fixture-image-" + str(index).encode())
+            artifact = service.register_artifact(current, path, "asset", "image/png")
+            asset = Asset(asset_id=f"UNIT-retained-{index}", name=path.name, role="evidence", mime_type="image/png",
+                          size_bytes=artifact.size_bytes, sha256=artifact.sha256, source_url=SOURCE,
+                          artifact_id=artifact.artifact_id, url=artifact.url,
+                          timeline_src=f"videoagents/{current.job_id}/assets/{index}.png")
+            repo.update_asset_metadata(asset.asset_id, {"origin": "capture", "source_url": SOURCE,
+                                                      "width": 1920, "height": 1080})
+            repo.update_job(current.job_id, assets=current.assets + [asset], artifacts=current.artifacts + [artifact])
+            MaterialsNode.add_visual(research, source, asset, "screenshot", "", "", usage="personal")
+        service.write_json(repo.get_job(current.job_id), "research.json", research, "research")
+        return state_context(repo, state, route="human_review_script", research=research)
+
+    monkeypatch.setattr(MaterialsNode, "__call__", seed)
+    assert cli(monkeypatch, capsys, repo, "run", restarted.job_id)[0] == 0
+    before = repo.get_job(restarted.job_id)
+    assert cli(monkeypatch, capsys, repo, "select-materials", before.job_id,
+               "--accept-asset", "UNIT-retained-0", "--accept-asset", "UNIT-retained-1",
+               "--reject-asset", "UNIT-retained-2", "--note", "UNIT user retained two HD pictures, rejected low quality")[0] == 0
+    monkeypatch.setattr(MaterialsNode, "__call__", REAL_MATERIALS_CALL)
+    monkeypatch.setattr(MaterialsNode, "collect", REAL_COLLECT)
+    paused = repo.get_job(restarted.job_id)
+    assert script_before_materials_is_approved(repo, paused)
+    return repo, paused
+
+
+REAL_MATERIALS_CALL = MaterialsNode.__call__
+
+
+def replenish_request(job, **changes):
+    payload = dict(base_revision=job.revision, pending_token=job.pending_input["pending_token"],
+                   idempotency_key="UNIT-HD-material-authorization", note="UNIT user authorized HD replenishment",
+                   materials_note=NOTE + " 仅补采高清画面，保留两张已认可图片。",
+                   retained_asset_ids=[asset.asset_id for asset in job.assets])
+    return ReplenishMaterialsRequest(**{**payload, **changes})
+
+
+def replenish_cli_process(repo, job_id, note_file, retained_ids, key="UNIT-HD-material-authorization"):
+    return subprocess.run([sys.executable, "-m", "videoagents.main", "--runtime-dir", str(repo.root),
+        "replenish-materials", job_id, *[value for asset_id in retained_ids for value in ("--retain-asset", asset_id)],
+        "--materials-note-file", str(note_file), "--note", "UNIT user authorized HD replenishment",
+        "--idempotency-key", key], capture_output=True, text=True, encoding="utf-8",
+        env={**os.environ, "PYTHONUTF8": "1", "PYTHONPATH": str(Path(__file__).resolve().parents[2])},
+        cwd=Path(__file__).resolve().parents[2], timeout=30)
+
+
+def operation_rows(repo, job_id):
+    with repo.connection() as db:
+        return [tuple(row) for row in db.execute("SELECT * FROM operations WHERE job_id=? ORDER BY operation_id", (job_id,))]
+
+
+def test_replenish_fresh_cli_normal_graph_imports_retained_bindings_and_stops_joint_gate(
+        replenishable, tmp_path, monkeypatch, capsys):
+    repo, before = replenishable
+    request = replenish_request(before)
+    note = tmp_path / "HD-note.txt"
+    note.write_text(request.materials_note, encoding="utf-8")
+    original_files = {item.artifact_id: repo.artifact_path(item.artifact_id)[0].read_bytes() for item in before.artifacts}
+    operations = operation_rows(repo, before.job_id)
+    result = replenish_cli_process(repo, before.job_id, note, request.retained_asset_ids)
+    assert result.returncode == 0, result.stderr
+    fresh = Repository(repo.root)
+    draft = fresh.get_job(before.job_id)
+    assert draft.status == "DRAFT" and draft.revision == before.revision + 1 and draft.pending_input is None
+    assert draft.assets == before.assets and draft.brief == before.brief
+    assert draft.script.model_copy(update={"revision": before.revision}) == before.script
+    assert script_before_materials_is_approved(fresh, draft)
+    assert MaterialsNode(fresh, JobService(fresh)).saved_json(draft, "research") is None
+    assert not (fresh.root / "jobs" / draft.job_id / "revisions" / str(draft.revision) / "skills-research").exists()
+    assert operation_rows(fresh, before.job_id) == operations
+    repeated = replenish_cli_process(fresh, before.job_id, note, list(reversed(request.retained_asset_ids)))
+    assert repeated.returncode == 0 and json.loads(repeated.stdout)["revision"] == draft.revision
+    assert fresh.get_job(draft.job_id) == draft
+    authorization = fresh.materials_restart_receipt(draft.job_id, draft.revision)
+    imported = authorization["imported_research"]
+    assert set(imported["sources"][0]["asset_ids"]) == set(request.retained_asset_ids)
+    assert {row["asset_id"] for row in imported["visuals"]} == set(request.retained_asset_ids)
+    assert not any(row["asset_id"] == "UNIT-retained-2" for row in imported["visuals"])
+    captured = []
+
+    def collector(model, job_id, revision, role, instruction, context, command_id="", **kwargs):
+        assert role == "materials" and revision == draft.revision
+        assert context["assets"] == [asset.model_dump() for asset in before.assets]
+        assert context["extras"]["imported_research"] == imported
+        assert context["extras"]["materials_note"] == request.materials_note
+        assert context["extras"]["imported_assets"] == authorization["imported_assets"]
+        assert "extras.imported_research" in instruction
+        folder = kwargs["research_directory"]
+        assert folder.parts[-3:] == ("revisions", str(draft.revision), "skills-research")
+        # A legitimate reread of the imported URL must not erase its bindings.
+        text = folder / "new-source.txt"
+        text.write_text("UNIT latest read of the same source", encoding="utf-8")
+        image = folder / "UNIT-new-HD.png"
+        image.write_bytes(b"\x89PNG\r\n\x1a\nUNIT-new-HD-fixture")
+        captured.append(context)
+        return {"sources": [{"url": SOURCE, "title": "UNIT new read", "platform": "UNIT",
+                 "text_file": text.name, "sha256": sha256(text)}],
+                "visuals": [{"kind": "screenshot", "source_url": SOURCE, "file": image.name,
+                             "sha256": sha256(image), "description": "UNIT new HD picture"}], "limitations": []}
+
+    monkeypatch.setattr(JsonModel, "call", collector)
+    monkeypatch.setattr("videoagents.main.PROJECT_ROOT", tmp_path / "project")
+    monkeypatch.setattr("videoagents.nodes.materials.probe", lambda _: {"streams": [
+        {"codec_type": "video", "width": 1920, "height": 1080}]})
+    monkeypatch.setattr("videoagents.nodes.screenwriter.ScreenwriterNode.__call__",
+                        lambda *a: pytest.fail("Replenishment must not call writer"))
+    assert cli(monkeypatch, capsys, fresh, "run", before.job_id)[0] == 0
+    after = fresh.get_job(before.job_id)
+    assert after.status == "NEEDS_HUMAN" and after.pending_input["node_name"] == "human_review_script"
+    assert len(after.assets) == 3 and len(captured) == 1
+    assert all(asset in after.assets for asset in before.assets)
+    assert all(asset.asset_id != "UNIT-retained-2" for asset in after.assets)
+    assert script_before_materials_is_approved(fresh, after)
+    assert after.brief == before.brief and operation_rows(fresh, before.job_id) == operations
+    research = MaterialsNode(fresh, JobService(fresh)).saved_json(after, "research")
+    assert len(research["sources"]) == 1 and len(research["visuals"]) == 3
+    assert set(research["sources"][0]["asset_ids"]) == {asset.asset_id for asset in after.assets}
+    assert research["sources"][0]["artifact_id"] == imported["sources"][0]["artifact_id"]
+    assert research["collection_fingerprint"] == collection_fingerprint(after, request.materials_note, imported)
+    assert MaterialsNode(fresh, JobService(fresh)).collect(after) == research and len(captured) == 1
+    assert fresh.materials_restart_receipt(after.job_id, after.revision)["imported_research"] == imported
+    for artifact_id, content in original_files.items():
+        assert fresh.artifact_path(artifact_id)[0].read_bytes() == content
+    again = replenish_cli_process(fresh, before.job_id, note, request.retained_asset_ids)
+    assert again.returncode == 0 and fresh.get_job(before.job_id) == after
+    # Another explicit collection authorization can reuse the merged source.
+    second = JobService(fresh).replenish_materials(after.job_id,
+        replenish_request(after, idempotency_key="UNIT-HD-material-second"))
+    assert second.revision == after.revision + 1 and script_before_materials_is_approved(fresh, second)
+
+
+@pytest.mark.parametrize("invalid", ["wrong_gate", "stale_token", "stale_revision", "unknown_asset",
+    "rejected_asset", "missing_research", "asset_bytes", "source_bytes", "unapproved", "unknown", "submitting"])
+def test_replenishment_refuses_invalid_authorization_without_saving(replenishable, invalid):
+    repo, job = replenishable
+    request = replenish_request(job)
+    if invalid == "wrong_gate":
+        repo.update_job(job.job_id, pending_input={**job.pending_input, "node_name": "human_review_shots"})
+    elif invalid == "stale_token":
+        request = request.model_copy(update={"pending_token": "UNIT-stale-token-0000"})
+    elif invalid == "stale_revision":
+        request = request.model_copy(update={"base_revision": 1})
+    elif invalid in {"unknown_asset", "rejected_asset"}:
+        request = request.model_copy(update={"retained_asset_ids": ["UNIT-retained-2" if invalid == "rejected_asset"
+                                                                  else "UNIT-nonexistent"]})
+    elif invalid == "missing_research":
+        repo.update_job(job.job_id, artifacts=[artifact for artifact in job.artifacts if artifact.kind != "research"])
+    elif invalid in {"asset_bytes", "source_bytes"}:
+        artifact = next(artifact for artifact in job.artifacts
+                        if artifact.kind == ("asset" if invalid == "asset_bytes" else "source"))
+        repo.artifact_path(artifact.artifact_id)[0].write_text("UNIT altered", encoding="utf-8")
+    elif invalid == "unapproved":
+        repo.update_job(job.job_id, artifacts=[artifact for artifact in job.artifacts
+                                              if artifact.kind != "stage_review"])
+    else:
+        operation = repo.start_operation(job.job_id, "UNIT-unsettled-current", "llm:materials", {"revision": job.revision})
+        if invalid == "unknown":
+            repo.finish_operation(operation["operation_id"], "UNKNOWN", {"revision": job.revision})
+    before = repo.get_job(job.job_id)
+    events = repo.events_after(job.job_id, 0)
+    with pytest.raises((Conflict, ValueError)):
+        JobService(repo).replenish_materials(job.job_id, request)
+    assert repo.get_job(job.job_id) == before and repo.events_after(job.job_id, 0) == events
+    assert not repo.materials_replenishment_receipt(job.job_id, request.idempotency_key)
+
+
+def test_replenishment_concurrent_idempotency_and_conflicting_note(replenishable):
+    repo, job = replenishable
+    request = replenish_request(job)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(lambda _: JobService(Repository(repo.root)).replenish_materials(job.job_id, request), range(2)))
+    assert [item.revision for item in results] == [job.revision + 1] * 2
+    with pytest.raises(Conflict):
+        JobService(repo).replenish_materials(job.job_id, request.model_copy(update={"materials_note": NOTE + " different"}))
+
+
+@pytest.mark.parametrize("changed", ["asset", "metadata", "source"])
+def test_replenishment_rechecks_imported_files_before_model(replenishable, monkeypatch, capsys, changed):
+    repo, job = replenishable
+    draft = JobService(repo).replenish_materials(job.job_id, replenish_request(job))
+    if changed == "metadata":
+        repo.update_asset_metadata(job.assets[0].asset_id, {"width": 480, "height": 270})
+    else:
+        artifact = next(artifact for artifact in draft.artifacts if artifact.kind == changed)
+        repo.artifact_path(artifact.artifact_id)[0].write_text("UNIT changed after authorization", encoding="utf-8")
+    monkeypatch.setattr(JsonModel, "call", lambda *a, **kw: pytest.fail("Invalid imports must stop before model"))
+    code, summary = cli(monkeypatch, capsys, repo, "run", job.job_id)
+    assert code == 1 and summary["status"] == "FAILED"

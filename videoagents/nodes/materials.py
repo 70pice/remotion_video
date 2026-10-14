@@ -4,6 +4,7 @@ import ipaddress
 import json
 import shutil
 import uuid
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 from urllib.parse import urldefrag, urlparse
@@ -29,7 +30,7 @@ PROMPT = load_prompt("materials")
 RESTART_PROMPT = PROMPT + "\n\n" + load_prompt("materials-restart")
 
 
-def collection_fingerprint(job: Job, materials_note: str = "") -> str:
+def collection_fingerprint(job: Job, materials_note: str = "", imported_research: dict | None = None) -> str:
     """Bind the research cache to what the collection is supposed to gather.
 
     The writer now runs first and may revise after materials finished; a new
@@ -45,6 +46,8 @@ def collection_fingerprint(job: Job, materials_note: str = "") -> str:
     }
     if materials_note:
         inputs["materials_note"] = materials_note
+    if imported_research:
+        inputs["imported_research"] = imported_research
     return fingerprint(inputs)
 
 
@@ -179,9 +182,10 @@ class MaterialsNode:
         job = self.active(job)
         restart = self.repo.materials_restart_receipt(job.job_id, job.revision)
         materials_note = restart["materials_note"] if restart else ""
+        imported_research = restart.get("imported_research") if restart else None
         frozen = self.saved_json(job, "research")
         if (frozen is not None and frozen.get("status", "COMPLETED") == "COMPLETED"
-                and frozen.get("collection_fingerprint") == collection_fingerprint(job, materials_note)):
+                and frozen.get("collection_fingerprint") == collection_fingerprint(job, materials_note, imported_research)):
             return frozen
         folder = self.repo.root / "jobs" / job.job_id / "revisions" / str(job.revision) / "skills-research"
         folder.mkdir(parents=True, exist_ok=True)
@@ -190,6 +194,8 @@ class MaterialsNode:
         if materials_note:
             # Pass only collection requirements, never unrelated handoff extras.
             context = {**context, "extras": {"materials_note": materials_note}}
+            if imported_research:
+                context["extras"].update(imported_research=imported_research, imported_assets=restart["imported_assets"])
             fields = (*fields, "extras")
         # sink 在模型可写目录之外；每次调用独立命名，避免重放覆盖已登记记录。
         audit_path = folder.parent / f"material-tool-events-{uuid.uuid4().hex[:12]}.jsonl"
@@ -278,9 +284,12 @@ class MaterialsNode:
                 raise Conflict("冻结的技能输出文件已改变")
             return target
 
-        research = {"schema_version": "3", "status": "COMPLETED", "sources": [], "visuals": [],
+        restart = self.repo.materials_restart_receipt(job.job_id, job.revision)
+        imported = deepcopy(restart.get("imported_research", {})) if restart else {}
+        research = {"schema_version": "3", "status": "COMPLETED", "sources": imported.get("sources", []),
+                    "visuals": imported.get("visuals", []),
                     "limitations": list(bundle.limitations), "collected_at": now()}
-        if not bundle.visuals and (settings["capture_enabled"] or settings["research_download_images"]):
+        if not bundle.visuals and not research["visuals"] and (settings["capture_enabled"] or settings["research_download_images"]):
             research["limitations"].append("本次未取得真实图片或截图，摄影仍需补充画面素材。")
         for item in bundle.sources:
             existing = next((artifact for artifact in self.active(job).artifacts
@@ -305,7 +314,10 @@ class MaterialsNode:
                 self.repo.update_job(job.job_id, job.revision, expected_event_id=current.latest_event_id,
                                      artifacts=current.artifacts + [artifact])
             receipt = {**receipt, "asset_ids": []}
-            research["sources"].append(receipt)
+            if not any(value["url"] == item.url for value in research["sources"]):
+                # Keep imported source bytes/bindings when the collector rereads
+                # that page. The new read still has its own artifact/manifest.
+                research["sources"].append(receipt)
         sources = {item["url"]: item for item in research["sources"]}
         for item in bundle.visuals:
             _, extension = detect_media(files[item.file].read_bytes(), files[item.file])
@@ -315,8 +327,9 @@ class MaterialsNode:
             else:
                 asset = self.attach_image(job, path, item.source_url,
                     "capture" if item.kind == "screenshot" else "source_image", item.description, item.image_url)
-            self.add_visual(research, sources[item.source_url], asset, item.kind, item.image_url, item.media_url,
-                            usage=job.brief.usage)
+            if not any(value["asset_id"] == asset.asset_id for value in research["visuals"]):
+                self.add_visual(research, sources[item.source_url], asset, item.kind, item.image_url, item.media_url,
+                                usage=job.brief.usage)
         current = self.active(job)
         restart = self.repo.materials_restart_receipt(job.job_id, job.revision)
         known_urls = list(dict.fromkeys(current.brief.source_urls + urls))[:50]
@@ -325,7 +338,8 @@ class MaterialsNode:
                                 brief=current.brief.model_copy(update={"source_urls": known_urls}))
         self.service.write_json(self.active(job), "material-skill-manifest.json", bundle.model_dump(), "material_skill_manifest")
         research = {**research, "collection_fingerprint": collection_fingerprint(
-            self.active(job), restart["materials_note"] if restart else "")}
+            self.active(job), restart["materials_note"] if restart else "",
+            restart.get("imported_research") if restart else None)}
         self.service.write_json(self.active(job), "research.json", research, "research")
         return research
 

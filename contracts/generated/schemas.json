@@ -2651,6 +2651,61 @@
       "title": "ModelCatalog",
       "type": "object"
     },
+    "ReplenishMaterialsRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "base_revision": {
+          "minimum": 1,
+          "title": "Base Revision",
+          "type": "integer"
+        },
+        "pending_token": {
+          "maxLength": 100,
+          "minLength": 16,
+          "title": "Pending Token",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "maxLength": 200,
+          "minLength": 8,
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "note": {
+          "maxLength": 3000,
+          "minLength": 1,
+          "title": "Note",
+          "type": "string"
+        },
+        "materials_note": {
+          "maxLength": 30000,
+          "minLength": 1,
+          "title": "Materials Note",
+          "type": "string"
+        },
+        "retained_asset_ids": {
+          "items": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 400,
+          "minItems": 1,
+          "title": "Retained Asset Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "base_revision",
+        "pending_token",
+        "idempotency_key",
+        "note",
+        "materials_note",
+        "retained_asset_ids"
+      ],
+      "title": "ReplenishMaterialsRequest",
+      "type": "object"
+    },
     "RestartUnknownRequest": {
       "additionalProperties": false,
       "properties": {

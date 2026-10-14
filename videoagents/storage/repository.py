@@ -11,7 +11,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
 
-from videoagents.contracts import Artifact, Asset, Brief, Job, RestartUnknownRequest
+from videoagents.contracts import (
+    Artifact,
+    Asset,
+    Brief,
+    Job,
+    ReplenishMaterialsRequest,
+    RestartUnknownRequest,
+)
 
 
 class Conflict(Exception):
@@ -247,9 +254,63 @@ class Repository:
         """Read the explicit authorization; it is never a new human approval."""
         with self.connection() as db:
             rows = db.execute("SELECT value FROM job_inputs WHERE job_id=? "
-                              "AND key LIKE 'authorized_model_restart:%'", (job_id,)).fetchall()
+                              "AND (key LIKE 'authorized_model_restart:%' "
+                              "OR key LIKE 'authorized_materials_replenishment:%')", (job_id,)).fetchall()
         return next((receipt for row in rows if (receipt := json.loads(row[0])).get("materials_only") is True
                      and receipt.get("target_revision") == revision), None)
+
+    def materials_replenishment_receipt(self, job_id: str, key: str) -> dict[str, Any] | None:
+        with self.connection() as db:
+            row = db.execute("SELECT value FROM job_inputs WHERE job_id=? AND key=?",
+                             (job_id, "authorized_materials_replenishment:" + key)).fetchone()
+        return json.loads(row[0]) if row else None
+
+    def replenish_materials(self, job_id: str, request: ReplenishMaterialsRequest, transform: Any) -> Job:
+        """Authorize an independent collection revision at the joint gate."""
+        key = "authorized_materials_replenishment:" + request.idempotency_key
+        digest = fingerprint(request.model_dump())
+        with self.connection(immediate=True) as db:
+            job = self._get(db, job_id)
+            existing = db.execute("SELECT value FROM job_inputs WHERE job_id=? AND key=?", (job_id, key)).fetchone()
+            if existing:
+                receipt = json.loads(existing[0])
+                if receipt["request_hash"] != digest or job.revision != receipt["target_revision"]:
+                    raise Conflict("素材补采授权已改变或属于旧版本")
+                return job
+            self.check_editable(db, job, request.base_revision)
+            pending = job.pending_input or {}
+            if (job.status != "NEEDS_HUMAN" or job.stage != "script"
+                    or pending.get("kind") != "stage_review" or pending.get("stage") != "script"
+                    or pending.get("node_name") != "human_review_script" or pending.get("revision") != job.revision
+                    or pending.get("pending_token") != request.pending_token):
+                raise Conflict("补采素材仅适用于当前文案与素材人工审核待办")
+            unsettled = db.execute("SELECT body FROM operations WHERE job_id=? AND status IN ('SUBMITTING','UNKNOWN')",
+                                   (job_id,)).fetchall()
+            if any(self._operation_revision(row["body"], job.revision) == job.revision for row in unsettled):
+                raise Conflict("当前版本存在未决提交，不能授权补采")
+            from videoagents.nodes.human_review import HumanReviewNode
+
+            if HumanReviewNode(self, node_name="human_review_script")._inputs(job) != pending.get("dependency_fingerprint"):
+                raise Conflict("待审文案与素材已改变，不能授权补采")
+            original = job.model_dump()
+            updated, imported, preserved, research = transform(job)
+            updated = Job.model_validate(updated.model_dump())
+            if updated.revision != request.base_revision + 1 or updated.status != "DRAFT":
+                raise Conflict("素材补采授权只能建立一个新版草稿")
+            receipt = {"purpose": "materials_replenishment", "authorized_new_collection": True,
+                       "materials_only": True, "source_revision": request.base_revision,
+                       "target_revision": updated.revision, "materials_note": request.materials_note,
+                       "note": request.note, "request_hash": digest, "authorized_at": now(),
+                       "previous_pending_input": pending, "previous_job": original,
+                       "preserved_script": preserved, "imported_assets": imported,
+                       "imported_research": research}
+            db.execute("INSERT INTO job_inputs VALUES(?,?,?)", (job_id, key, dumps(receipt)))
+            return self._save(db, updated, "materials_replenishment_authorized", {
+                "source_revision": request.base_revision, "target_revision": updated.revision,
+                "pending_token": request.pending_token, "note": request.note,
+                "materials_note": request.materials_note, "retained_asset_ids": request.retained_asset_ids,
+                "idempotency_key": request.idempotency_key,
+            })
 
     def delete_job(self, job_id: str, base_revision: int, cleanup: Any) -> None:
         """Delete a cancelled, idle job while excluding concurrent queue/edit writes."""

@@ -575,6 +575,31 @@ class DraftRequest(Contract):
     timeline: Timeline | None = None
 
 
+class ReplenishMaterialsRequest(Contract):
+    base_revision: int = Field(ge=1)
+    pending_token: str = Field(min_length=16, max_length=100)
+    idempotency_key: str = Field(min_length=8, max_length=200)
+    note: str = Field(min_length=1, max_length=3000)
+    materials_note: str = Field(min_length=1, max_length=30000)
+    retained_asset_ids: list[Annotated[str, Field(min_length=1, max_length=100)]] = Field(
+        min_length=1, max_length=400,
+    )
+
+    @field_validator("note", "materials_note")
+    @classmethod
+    def nonblank_collection_note(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("补采授权与素材要求不能为空")
+        return value.strip()
+
+    @field_validator("retained_asset_ids")
+    @classmethod
+    def unique_retained_assets(cls, value: list[str]) -> list[str]:
+        if len(value) != len(set(value)) or any(not item.strip() for item in value):
+            raise ValueError("保留素材ID不能为空或重复")
+        return sorted(value)
+
+
 class RestartUnknownRequest(Contract):
     base_revision: int = Field(ge=1)
     operation_id: str = Field(pattern=r"^[a-f0-9]{32}$")

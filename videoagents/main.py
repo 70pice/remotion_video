@@ -15,6 +15,7 @@ from typing import Any
 from videoagents.contracts import (
     Brief,
     MaterialSelectionRequest,
+    ReplenishMaterialsRequest,
     RestartUnknownRequest,
     RetryFailedRunRequest,
     SettingsPatch,
@@ -169,6 +170,27 @@ def cmd_select_materials(args: argparse.Namespace) -> int:
     repo.enqueue(job.job_id, {"action": "resume", **request.model_dump()})
     _drain(_worker(repo))
     return _finish(repo, job.job_id)
+
+
+def cmd_replenish_materials(args: argparse.Namespace) -> int:
+    repo = _repository(args)
+    job = repo.get_job(args.job_id)
+    previous = repo.materials_replenishment_receipt(job.job_id, args.idempotency_key)
+    try:
+        request = ReplenishMaterialsRequest(
+            base_revision=previous["source_revision"] if previous else job.revision,
+            pending_token=(previous["previous_pending_input"] if previous else job.pending_input or {}).get(
+                "pending_token", "0" * 32),
+            idempotency_key=args.idempotency_key, note=args.note,
+            materials_note=(Path(args.materials_note_file).read_text(encoding="utf-8")
+                            if args.materials_note_file else args.materials_note),
+            retained_asset_ids=args.retain_asset,
+        )
+        job = JobService(repo, PROJECT_ROOT).replenish_materials(job.job_id, request)
+    except (ValueError, OSError) as exc:
+        raise Conflict(str(exc)) from exc
+    emit(_job_summary(job))
+    return 0
 
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -372,6 +394,16 @@ def build_parser() -> argparse.ArgumentParser:
     material_notes.add_argument("--materials-note", default="", help="仅交给素材角色的采集要求")
     material_notes.add_argument("--materials-note-file", default="", help="UTF-8 素材采集要求文件")
     restart.set_defaults(handler=cmd_restart_unknown)
+
+    replenish = sub.add_parser("replenish-materials", help="联合待审时保留已审文案与指定素材，授权新版补采；随后 run")
+    replenish.add_argument("job_id")
+    replenish.add_argument("--retain-asset", action="append", required=True, help="显式导入保留素材的完整ID，可重复指定")
+    replenish.add_argument("--note", required=True, help="用户补采授权依据")
+    replenish_notes = replenish.add_mutually_exclusive_group(required=True)
+    replenish_notes.add_argument("--materials-note", help="仅交给素材角色的补采要求")
+    replenish_notes.add_argument("--materials-note-file", help="UTF-8 素材补采要求文件")
+    replenish.add_argument("--idempotency-key", required=True, help="本次补采授权的唯一键；重复相同命令复用授权")
+    replenish.set_defaults(handler=cmd_replenish_materials)
 
     resume = sub.add_parser("resume", help="回复人工审核(飞书不可用时的兜底入口)")
     resume.add_argument("job_id")
