@@ -1,0 +1,128 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "operation_id": "f1dcf1682a9c495289753483ce926b03",
+  "project": "D:\\remotion_video",
+  "runtime": "D:\\remotion_video\\.runtime\\videoagents",
+  "script_path": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents_director_cache_preflight_20261014.py",
+  "report_path": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents_director_cache_preflight_after_20261014.json",
+  "match": true,
+  "preflight_success": true,
+  "ledger_config": {
+    "revision": 9,
+    "cli_provider": "claude_code_cli",
+    "model": "glm-5.3[1m]",
+    "reasoning_effort": "xhigh",
+    "context_tokens": 1000000
+  },
+  "revision": 9,
+  "status": "NEEDS_INPUT",
+  "original_approval_artifact_id": "5d6ec77eb6d1126584932c757263cc5f",
+  "preserved_audio_asset_id": "a661542c449c4f39bf17bc6c9047ef7b",
+  "formal_restart_chain_verified": true,
+  "config": {
+    "provider": "claude_code_cli",
+    "model": "glm-5.3[1m]",
+    "enabled": true,
+    "reasoning_effort": "xhigh",
+    "context_tokens": 1000000
+  },
+  "stored_input_hash": "6adf42221415d14dae856990fe39758068def464e11810891f0829531a307e1b",
+  "computed_input_hash": "6adf42221415d14dae856990fe39758068def464e11810891f0829531a307e1b",
+  "captured_field_names": [
+    "brief",
+    "script",
+    "timeline",
+    "research",
+    "assets",
+    "asset_metadata",
+    "extras"
+  ],
+  "input_field_hashes": {
+    "brief": "60d9f3b15efbce2aed5c6db30a622fa58c282bcd1c15f5e3ff6a70879679049c",
+    "script": "2b7be3490f9978221b51683b0df33b142a5d720b1f52955e8b1730bd93f41462",
+    "timeline": "6acada6f12d3d022fe9993ff2f306731cda0aabbbb778e66839b9359f62c10e0",
+    "research": "dda8f5b03306ee3a5433ef30e644aaf3b8a7bba32c674e907bdc3bb4c076794d",
+    "assets": "9eddef2306f854197c56e38bc317d693db02ed9b5f9378dffd85d358daf3339c",
+    "asset_metadata": "1ed3f0c9f50c5f033cb9b2ee9949ee499b7f62bc179c35e652a25310b74b4342",
+    "extras": "8668b23a3ebbe68561c6ba9075bead2ada76a132df11e30f4b406ace3980f2a0"
+  },
+  "instruction_hash": "306ff6ebab57212bfa576ac75cd033b12ed1a2eab41552e97ab76271e51353d7",
+  "schema_hash": "411eaffa753bf9aa88508b118ae057d67492377d56d98180816e70198d2b8250",
+  "operation_result_hash": "f50cbff2ede0a0ec959efd75159237d797ea34a39763efd5440d134b49348157",
+  "no_repair_issues": true,
+  "no_repair_candidate": true,
+  "readonly_proof": {
+    "sqlite_mode": "ro",
+    "sqlite_immutable": true,
+    "query_only": true,
+    "logical_before": {
+      "job": "4423551aa617f951082ef102f1028bce5572ff14581da62fff9a2a04cbe4f086",
+      "operations": "d0c262519de9c666ad6eebbd5c358c88eac8beec44e5e8823dc9068b36c6cf26",
+      "checkpoints": {
+        "checkpoints": "ee6e9cd3bc1ea0767498140303cac53d79b6df3658a0be47d9ae6112e02dd411",
+        "writes": "2ca3326c7476049d0b49446a128a8ef989f046b0f9ca49f133babf396748425b"
+      }
+    },
+    "logical_after": {
+      "job": "4423551aa617f951082ef102f1028bce5572ff14581da62fff9a2a04cbe4f086",
+      "operations": "d0c262519de9c666ad6eebbd5c358c88eac8beec44e5e8823dc9068b36c6cf26",
+      "checkpoints": {
+        "checkpoints": "ee6e9cd3bc1ea0767498140303cac53d79b6df3658a0be47d9ae6112e02dd411",
+        "writes": "2ca3326c7476049d0b49446a128a8ef989f046b0f9ca49f133babf396748425b"
+      }
+    },
+    "logical_unchanged": true,
+    "database_files_before": {
+      "D:\\remotion_video\\.runtime\\videoagents\\application.sqlite": "33c4db5b8044fa05ae6ce8e510ee859b6dfcc0bd8e2e1aefe95bb609aea46ab1",
+      "D:\\remotion_video\\.runtime\\videoagents\\application.sqlite-wal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "D:\\remotion_video\\.runtime\\videoagents\\application.sqlite-shm": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb",
+      "D:\\remotion_video\\.runtime\\videoagents\\checkpoints.sqlite": "a70d7cd8232447250a4b1f533fe55a8c43b50b3cfa15805491178fef22a6edab",
+      "D:\\remotion_video\\.runtime\\videoagents\\checkpoints.sqlite-wal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "D:\\remotion_video\\.runtime\\videoagents\\checkpoints.sqlite-shm": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    },
+    "database_files_after": {
+      "D:\\remotion_video\\.runtime\\videoagents\\application.sqlite": "33c4db5b8044fa05ae6ce8e510ee859b6dfcc0bd8e2e1aefe95bb609aea46ab1",
+      "D:\\remotion_video\\.runtime\\videoagents\\application.sqlite-wal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "D:\\remotion_video\\.runtime\\videoagents\\application.sqlite-shm": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb",
+      "D:\\remotion_video\\.runtime\\videoagents\\checkpoints.sqlite": "a70d7cd8232447250a4b1f533fe55a8c43b50b3cfa15805491178fef22a6edab",
+      "D:\\remotion_video\\.runtime\\videoagents\\checkpoints.sqlite-wal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "D:\\remotion_video\\.runtime\\videoagents\\checkpoints.sqlite-shm": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    },
+    "database_files_unchanged": true,
+    "read_file_count": 1301,
+    "read_files_unchanged": true,
+    "guards": {
+      "blocked_write_attempts": 0,
+      "blocked_sql_attempts": 0,
+      "blocked_process_attempts": 0,
+      "blocked_network_attempts": 1,
+      "blocked_model_attempts": 0,
+      "original_settings_internal_calls": 0,
+      "original_repository_constructor_calls": 0,
+      "ffprobe_calls": 1,
+      "captured_model_inputs": 1
+    },
+    "nonsecret_settings_substitute": true,
+    "secret_settings_rows_selected": false,
+    "original_settings_internal_invoked": false,
+    "node_call_invoked": false,
+    "model_or_production_provider_invoked": false
+  },
+  "execution_command": [
+    "D:\\remotion_video\\.venv\\Scripts\\python.exe",
+    "-B",
+    "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents_director_cache_preflight_20261014.py",
+    "--project",
+    "D:\\remotion_video",
+    "--runtime",
+    "D:\\remotion_video\\.runtime\\videoagents",
+    "--job",
+    "08e74bed03e94c6e903c89f7f2fbea64",
+    "--operation",
+    "f1dcf1682a9c495289753483ce926b03",
+    "--report",
+    "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents_director_cache_preflight_after_20261014.json",
+    "--ffprobe",
+    "C:\\Users\\70pic\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BtbN.FFmpeg.LGPL.8.1_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-n8.1.2-21-gce3c09c101-win64-lgpl-8.1\\bin\\ffprobe.exe"
+  ]
+}

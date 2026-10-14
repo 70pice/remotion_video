@@ -1,0 +1,34 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 9,
+  "maintenance_commits": ["c120d481c28bc1a7ff38905735eeb81527f3f897", "dc110baae92b999c00e215f64dc3ebf7aefd04f0"],
+  "integrated_commits": ["15551ca", "b5734ce"],
+  "final_maintenance_focused_tests": {"passed": 115, "seconds": 176.67},
+  "integrated_focused_tests": {"passed": 115, "seconds": 178.35},
+  "passed_checks": ["ruff", "contracts", "typecheck", "lint", "Remotion bundle", "diff check"],
+  "bundle_is_video_artifact": false,
+  "independent_review": "Root reviewed the final code separately from the maintenance authors. Exact approval intersection, context/evidence isolation, every production entry, exact visible domains, invalid subtitle relationship rejection and draft reapproval boundaries were checked.",
+  "cache_preflight": "production-r9-completed-cache-recovery-preflight.json",
+  "cache_match": true,
+  "cached_operation_id": "f1dcf1682a9c495289753483ce926b03",
+  "cached_response_shots": 16,
+  "first_normal_cache_run": {
+    "idempotency_key": "photography-context-recovery-r9-20261014",
+    "status": "NEEDS_INPUT",
+    "stage": "director",
+    "issue": "B12.support_3 显示区间不足阅读或超出镜头",
+    "new_external_operations": 0,
+    "validated_shots": 0,
+    "rendered_review_pngs": 0
+  },
+  "formal_photography_repair": {
+    "entry": "resume",
+    "decision": "confirm",
+    "idempotency_key": "photography-r9-b12-reading-repair-20261014",
+    "operation_id": "0b7c7172b84c49a7b3b49a88b785fb50",
+    "recorded_status": "SUBMITTING",
+    "scope": "Fix B12.support_3 readability and shot boundaries using the completed candidate; preserve approved inputs and render every shot PNG before the whole-pack human gate.",
+    "is_shot_gate_approval": false,
+    "is_publication_approval": false
+  }
+}

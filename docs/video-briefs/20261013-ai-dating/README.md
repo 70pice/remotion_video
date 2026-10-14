@@ -1,5 +1,9 @@
 # 本次视频制作输入
 
+2026-10-14 最新为 revision 9 / RUNNING / director：已审同类示意素材与摄影校验衔接修复已合入，维护与视频分支各115项定向回归通过，Ruff、契约、TypeScript、lint及Remotion bundle通过。普通摄影复用、代表帧、剪辑与草稿入口共用精确批准交集和语义关联校验；示意不计涉案证据，伪域名、字幕缺失或不符、普通草稿升版沿用旧批准均阻断。合入后的严格只读输入指纹与原COMPLETED摄影操作精确一致，原输入与25条旧操作保持。
+
+正常缓存续跑确实复用了原16镜响应，没有新外部提交；随后被第2镜“B12.support_3 显示区间不足阅读或超出镜头”阻断。未修改模型响应或降低阅读要求，已按用户再次“继续”经正常 `resume --decision confirm` 将具体问题交摄影修复，操作 `0b7c7172b84c49a7b3b49a88b785fb50` 为SUBMITTING。此confirm仅回复摄影输入问题，不是逐镜门通过；当前实际timeline、逐镜PNG和完整视频仍为0。见[通用修复与正式衔接记录](production-r9-context-recovery-maintenance.json)、[合入后精确缓存预检](production-r9-completed-cache-recovery-preflight.json)、[续跑前原输入与台账复验](production-r9-before-context-recovery-verification.json)。以下状态为对应历史时点。
+
 2026-10-14 当前为 revision 9 / NEEDS_INPUT / director：用户引用上一轮摄影再次超时与需要新授权的消息回复“继续吧”，已通过正式 `restart-unknown --director-only` 后 `run` 仅重启摄影。旧两笔 UNKNOWN 保留；原已审 Brief、七段文案、11件视觉素材及123.781417秒真实配音沿用，原25条操作未重写。
 
 摄影模型和推理仍为 `glm-5.3[1m] / xhigh`。两个既有请求900/1800秒均超时，只读诊断未证实供应商或配置故障，也未发现完整可复用结果。此次小范围放宽通用可配置等待上限至7200秒，默认900秒不变，正常 Settings 只将摄影设为3600秒；其他角色及模型/推理不变。维护9项、合入后50项回归与Ruff、契约、TypeScript、lint、Remotion bundle通过；bundle只验证代码，不是本次视频。
