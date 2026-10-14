@@ -1,5 +1,13 @@
 # 本次视频制作输入
 
+2026-10-14 21:36 当前为 revision 11 / RUNNING / director：同一版本的正常摄影输入返工已提交操作 `8a4390213ef842739bdfc6e66ed53ad9`，以本版已完成的16镜候选为底稿，集中修复阅读时长、空正文和文字长度问题。此前补充意见未进入模型业务输入的问题已通过通用修护 `c632b6c` 修复；合入后相关23项测试、Ruff、编译、契约、TypeScript、lint及Remotion bundle通过，实际候选只读预检通过。当前业务意见绑定本次摄影输入token，仅进入模型输入副本，不构成逐镜审核通过。
+
+启动后复验确认原Brief、七段文案、11件视觉素材和配音保留，12件文件及前28笔操作未变，上一笔16镜COMPLETED响应完整指纹未变。本次沿普通 `resume` 返工，不是UNKNOWN恢复，尚无有效timeline、逐镜PNG或成片；后续须完整校验、逐镜出图，再交整包人工审核。见[意见传递修护与验证](production-r11-repair-note-maintenance.json)、[集中返工要求](photography-r11-layout-repair-note.txt)及[正常返工启动复验](production-r11-layout-repair-start-verification.json)。以下为历史时点。
+
+2026-10-14 21:11 当前为 revision 11 / NEEDS_INPUT / director：摄影操作 `5019d2d42ee14afe9ef313cc43402151` 已COMPLETED，保存完整16镜，未超时。与旧方案逐镜逐字段比较，15镜完全相同，仅shot-02修改；说明本次确实在旧方案上续修。随后完整生产校验停在 `B12.emphasis` 阅读时长，尚无有效timeline、逐镜PNG或成片。只读逐部件及内容检查又定位第5、6镜的时长问题，以及第2、5、6、13镜的空正文/文字长度契约问题；具体清单已准备，不能把本轮COMPLETED当成校验通过。
+
+监督检查发现普通摄影输入 `resume --decision confirm --note` 的补充说明未进入模型业务extras，正在独立维护区以最小变更修复传递，验证后沿同一版本的正常输入返工入口集中处理；不是再次恢复UNKNOWN，也不重做上游。当前前28笔旧操作、原文案与12件文件保持，16镜响应不手改，人审与发布门均未确认。见[真实完成及校验停止](production-r11-candidate-validation-stop.json)、[只读逐部件观察与15镜保留证明](production-r11-layout-observations.json)及[集中返工要求](photography-r11-layout-repair-note.txt)。以下为历史时点。
+
 2026-10-14 21:05 当前为 revision 11 / RUNNING / director：用户引用上一条“仅续修摄影、接受新模型用量”的询问明确回复“可以”，授权针对r10 UNKNOWN `3e16804dab4444beaee599634f0bea95` 的一次新尝试。已经正式 `restart-unknown --director-only --acknowledge-possible-usage` 保存新版，再经正常 `run` 提交摄影操作 `5019d2d42ee14afe9ef313cc43402151`，当前SUBMITTING，模型仍为 `glm-5.3[1m] / xhigh`。新版恢复凭据已只读证明原16镜候选可接续，正常请求以旧方案为修复底稿，要求保留未受问题影响的镜头，完整校验后逐镜出图。
 
 原Brief、七段文案、11件视觉素材、现有真实音频与时间戳保留，12件文件散列及前28笔操作完整记录已复验。仅有本次新增摄影操作，没有编剧、素材、配音或剪辑新调用；实际timeline、逐镜PNG与完整视频目前为0。本次授权不构成逐镜门或发布通过。见[本次明确授权与台账基线](photography-r11-retry-authorization.json)、[已授权摄影要求](photography-r11-authorized-note.txt)、[新版候选接续只读证明](production-r11-candidate-continuation-preflight.json)及[启动后实际复验](production-r11-photography-start-verification.json)。以下为历史时点。

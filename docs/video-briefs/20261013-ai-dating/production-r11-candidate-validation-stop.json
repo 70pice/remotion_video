@@ -1,0 +1,134 @@
+{
+  "checked_at": "2026-10-14T13:11:30.954417+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 11,
+  "status": "NEEDS_INPUT",
+  "stage": "director",
+  "message": "B12.emphasis 显示区间不足阅读或超出镜头",
+  "pending_input": {
+    "kind": "input",
+    "stage": "director",
+    "issues": [
+      "B12.emphasis 显示区间不足阅读或超出镜头"
+    ],
+    "fields": [
+      "timeline"
+    ],
+    "thread_id": "job:08e74bed03e94c6e903c89f7f2fbea64:run:0a8b80a57b3a4f47920218baefc8163d",
+    "revision": 11,
+    "pending_token": "863e953e24504648b404c06327aceabb",
+    "interrupt_id": "3de888ecb4f1a5f4f25ebf6dffe4a5c2"
+  },
+  "approved_brief_unchanged": true,
+  "approved_script_unchanged": true,
+  "retained_asset_files_verified": [
+    {
+      "asset_id": "0b61255194854094b26a4a2565504352",
+      "role": "evidence",
+      "sha256": "831b33e978685bb991dc6e69019a6b98e4672f123315b7eca5242212a279316c",
+      "bytes": 1169496,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "b611b6b73f0f42f6b8ecf01248fcb65d",
+      "role": "evidence",
+      "sha256": "d24289110bcfbb7bcf760d54cafb7964f367acde7dfc7360620fe16b7ad93ffa",
+      "bytes": 770597,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "41aa62b5f4e845c5883257fdb76b7dc1",
+      "role": "evidence",
+      "sha256": "be18ce24220a9947cc355ed5b65ddd71795164f1cac88a827750e130d07989d6",
+      "bytes": 122172,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "a12818e554a74684bea6e34785c8b85b",
+      "role": "evidence",
+      "sha256": "30d9b958cd4da3081aa5c2367ba6eaac3bb78747deed45fbf9693c7be245b378",
+      "bytes": 123893,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "00e534aed0e74d6b9f5cfbfb589d28c3",
+      "role": "evidence",
+      "sha256": "06b4f3a32cd997217f5952467e19002eaa844e31df5f45fdfe14ea50fe87ca5f",
+      "bytes": 272995,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "59cb502d984a4c1fafdfaeadf8fd144a",
+      "role": "evidence",
+      "sha256": "4ce04ccf8168b14d83fe3847f532cd2b7e834c693e192e7f7ffc34ee1acf6acf",
+      "bytes": 116337,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "951152e88def4169af4d1149e3447536",
+      "role": "evidence",
+      "sha256": "c35603a522fb1dee01acfb8c6180ff2da8ef16328e960509d6316bfe650dac04",
+      "bytes": 504038,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "46256f4f7a2940feafdca5bc5b9547db",
+      "role": "evidence",
+      "sha256": "d92205358c43888215efab082c3c6032adf955d5f9e9ecb62a2ef3af5fa9c8c7",
+      "bytes": 406801,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "caf3d0aead8a48c089e527c33db3237f",
+      "role": "evidence",
+      "sha256": "022c9a48aa763c8d08ff3c1941e1ad39ff062610aa6d93e9aabf36c0ae192cb3",
+      "bytes": 81375,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "30495f9cf1854fda97e5e3156891e118",
+      "role": "evidence",
+      "sha256": "b665e672c0bef3355aa1da0be72ebd3a92f20b7b4dfa118941d640b45c734147",
+      "bytes": 1208613,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "2ea535747f5e4a50b49570e78e7eceaf",
+      "role": "evidence",
+      "sha256": "15df8007e7b2b00905dbb491835bd94c4bf9d009316b10b082b3a35588aa8237",
+      "bytes": 52911229,
+      "file_sha_verified": true
+    },
+    {
+      "asset_id": "a661542c449c4f39bf17bc6c9047ef7b",
+      "role": "audio",
+      "sha256": "8ff6c916735add49764125b0a1923d4f47c661bb07912971ca8ac8280888d327",
+      "bytes": 1981869,
+      "file_sha_verified": true
+    }
+  ],
+  "original_operations_unchanged": 28,
+  "new_operations": [
+    {
+      "operation_id": "5019d2d42ee14afe9ef313cc43402151",
+      "provider": "llm:director",
+      "status": "COMPLETED",
+      "input_hash": "61cb156c19c294d41913ed5260e6d6e3f3b88089246a5edbcd4e62c8d80e39c2",
+      "body_sha256": "d69d0fcf36ccb29395e8794a3b07fa69eb2d175164f1d522d453e447e8f96b6c",
+      "revision": 11,
+      "result_shot_count": 16,
+      "reason": null,
+      "diagnostic": null,
+      "model": "glm-5.3[1m]",
+      "reasoning_effort": "xhigh",
+      "context_tokens": 1000000
+    }
+  ],
+  "shot_count": 0,
+  "component_sets": [],
+  "shots_with_sets": 0,
+  "shot_review_frames": [],
+  "shot_gate_confirmed": false,
+  "complete_video_rendered_this_revision": false,
+  "publication_authorized": false
+}

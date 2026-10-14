@@ -1,0 +1,135 @@
+{
+  "checked_at": "2026-10-14T13:16:16.478356+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 11,
+  "operation_id": "5019d2d42ee14afe9ef313cc43402151",
+  "operation_status": "COMPLETED",
+  "body_sha256": "d69d0fcf36ccb29395e8794a3b07fa69eb2d175164f1d522d453e447e8f96b6c",
+  "saved_shot_count": 16,
+  "same_index_identical_shots": [
+    "shot-01",
+    "shot-03",
+    "shot-04",
+    "shot-05",
+    "shot-06",
+    "shot-07",
+    "shot-08",
+    "shot-09",
+    "shot-10",
+    "shot-11",
+    "shot-12",
+    "shot-13",
+    "shot-14",
+    "shot-15",
+    "shot-16"
+  ],
+  "same_index_changed_shots": [
+    "shot-02"
+  ],
+  "reading_time_observations": [
+    {
+      "shot_id": "shot-02",
+      "set_id": "B12",
+      "part_id": "emphasis",
+      "shot_start": 330,
+      "shot_end": 735,
+      "shot_duration": 405,
+      "local_start": 350,
+      "local_end": 405,
+      "actual_frames": 55,
+      "minimum_frames": 65
+    },
+    {
+      "shot_id": "shot-05",
+      "set_id": "B03",
+      "part_id": "support_3",
+      "shot_start": 1149,
+      "shot_end": 1420,
+      "shot_duration": 271,
+      "local_start": 100,
+      "local_end": 200,
+      "actual_frames": 100,
+      "minimum_frames": 113
+    },
+    {
+      "shot_id": "shot-06",
+      "set_id": "A07",
+      "part_id": "support_3",
+      "shot_start": 1420,
+      "shot_end": 1637,
+      "shot_duration": 217,
+      "local_start": 95,
+      "local_end": 160,
+      "actual_frames": 65,
+      "minimum_frames": 73
+    },
+    {
+      "shot_id": "shot-06",
+      "set_id": "A07",
+      "part_id": "support_4",
+      "shot_start": 1420,
+      "shot_end": 1637,
+      "shot_duration": 217,
+      "local_start": 115,
+      "local_end": 185,
+      "actual_frames": 70,
+      "minimum_frames": 78
+    }
+  ],
+  "first_layout_issue_per_shot": [
+    {
+      "shot_id": "shot-02",
+      "issue": "B12.emphasis 显示区间不足阅读或超出镜头"
+    },
+    {
+      "shot_id": "shot-05",
+      "issue": "B03.support_3 显示区间不足阅读或超出镜头"
+    },
+    {
+      "shot_id": "shot-06",
+      "issue": "A07.support_3 显示区间不足阅读或超出镜头"
+    },
+    {
+      "shot_id": "shot-13",
+      "issue": "B rich shot title/body 超出 rich 契约"
+    }
+  ],
+  "first_content_issue_per_shot": [
+    {
+      "shot_id": "shot-02",
+      "set_id": "B12",
+      "issue": "B rich shot title/body 超出 rich 契约",
+      "title_characters": 24,
+      "body_characters": 0,
+      "takeaway_characters": 20
+    },
+    {
+      "shot_id": "shot-05",
+      "set_id": "B03",
+      "issue": "B rich shot title/body 超出 rich 契约",
+      "title_characters": 10,
+      "body_characters": 0,
+      "takeaway_characters": 13
+    },
+    {
+      "shot_id": "shot-06",
+      "set_id": "A07",
+      "issue": "A rich_content title/body/takeaway 必须是 18/60/18 字以内非空文本",
+      "title_characters": 14,
+      "body_characters": 0,
+      "takeaway_characters": 18
+    },
+    {
+      "shot_id": "shot-13",
+      "set_id": "B11",
+      "issue": "B rich shot title/body 超出 rich 契约",
+      "title_characters": 11,
+      "body_characters": 0,
+      "takeaway_characters": 15
+    }
+  ],
+  "notes": [
+    "Read-only observations; no candidate, state or operation edits.",
+    "Per-part duration observations use the current production validator formula; they are not a render or complete production validation."
+  ]
+}
