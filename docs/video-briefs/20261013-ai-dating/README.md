@@ -1,5 +1,9 @@
 # 本次视频制作输入
 
+2026-10-14 21:59 当前为 revision 11 / RUNNING / director：已沿当前摄影输入正常 `resume` 提交 `41f5616c3ea84ec1b63972b42880a02f`，集中修复shot-06少3帧，以及shot-03、07、08的 `layers[0]` 高亮组件缺关键词字段。后者由真实 `validate_component_requirements` 独立检出，title不能代替必需的 `props.highlight` 或 `props.items[0]`；屏幕关键词由摄影节点从已审内容提炼，监督会话不代写方案。
+
+下游只读预检在内存诊断副本提前该part的3帧后，素材批准与语义验证通过，source_size填写/实测一致、整镜阅读与表演/审阅设计独立通过；仍被三处高亮层阻断。首次尺寸告警来自诊断漏传metadata，已明确撤回，不能算候选缺陷。实际生产候选未修改、未声称通过。预检保持数据库、任务、操作与49件读文件散列；实际启动复验继续保留原12件文件和前28笔操作，未新采素材或重配音，没有PNG、成片或人审通过。见[只读下游实际与条件检查](production-r11-downstream-readonly-preflight.json)、[集中返工意见](photography-r11-reading-followup-note.txt)及[本轮启动复验](production-r11-reading-and-layer-repair-start-verification.json)。以下为历史时点。
+
 2026-10-14 21:52 当前为 revision 11 / NEEDS_INPUT / director：摄影操作 `1ca471a9391b419390d8a20bece4e5c0` 已COMPLETED，完整保存16镜，没有超时。相比上一轮仅shot-02、05、06变化，另13镜逐字段保持；独立逐镜组件内容检查全部通过。当前布局仅发现shot-06 / A07.support_4局部115..217=102帧，实际文字最低需要105帧，相差3帧。完整生产校验停在该项，尚无有效timeline与PNG；组件内容检查通过不能替代完整生产校验。
 
 原Brief、七段文案、11件视觉素材、配音及12件文件、前28笔操作保持，三笔本版COMPLETED响应完整保存。已准备该局部问题的正常摄影返工意见，并进行只读下游预检以集中反馈；未手改候选、未恢复UNKNOWN、未确认逐镜或发布。见[本轮停止与原输入复验](production-r11-rich-repair-stop-verification.json)、[实际3帧差与13镜保留证明](production-r11-reading-followup-observations.json)。以下为历史时点。

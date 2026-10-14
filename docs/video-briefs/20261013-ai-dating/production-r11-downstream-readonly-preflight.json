@@ -1,0 +1,314 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 11,
+  "operation_id": "1ca471a9391b419390d8a20bece4e5c0",
+  "operation_body_sha256": "55532c6861f5b84831c0f258ee10894bbacf1a54b55671d4d5df56cb1b21d11f",
+  "specific_layer_issues": [
+    {
+      "shot_id": "shot-03",
+      "layer_index": 0,
+      "component_id": "Talkcraft-keyword-pop-highlight",
+      "local_frames": [
+        93,
+        195
+      ],
+      "title": "同一个Claude，扮演人设陪聊",
+      "props": {},
+      "issues": [
+        "layer Talkcraft-keyword-pop-highlight 需要 props.highlight 或 props.items[0] 作为关键词"
+      ]
+    },
+    {
+      "shot_id": "shot-07",
+      "layer_index": 0,
+      "component_id": "Talkcraft-keyword-pop-highlight",
+      "local_frames": [
+        44,
+        218
+      ],
+      "title": "一次三条，挑一条就发",
+      "props": {},
+      "issues": [
+        "layer Talkcraft-keyword-pop-highlight 需要 props.highlight 或 props.items[0] 作为关键词"
+      ]
+    },
+    {
+      "shot_id": "shot-08",
+      "layer_index": 0,
+      "component_id": "Talkcraft-keyword-pop-highlight",
+      "local_frames": [
+        42,
+        220
+      ],
+      "title": "不能承认：我是AI",
+      "props": {},
+      "issues": [
+        "layer Talkcraft-keyword-pop-highlight 需要 props.highlight 或 props.items[0] 作为关键词"
+      ]
+    }
+  ],
+  "source_size_checks": [
+    {
+      "shot_id": "shot-01",
+      "declared": {
+        "width": 1000,
+        "height": 2222
+      },
+      "actual": {
+        "width": 1000,
+        "height": 2222
+      },
+      "equal": true
+    },
+    {
+      "shot_id": "shot-06",
+      "declared": {
+        "width": 1000,
+        "height": 991
+      },
+      "actual": {
+        "width": 1000,
+        "height": 991
+      },
+      "equal": true
+    }
+  ],
+  "actual": {
+    "shot_count": 16,
+    "duration_frames": 3714,
+    "required_components": 0,
+    "checks": {
+      "approved_context_sources": {
+        "ok": true,
+        "result": [
+          "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/00e534aed0e74d6b9f5cfbfb589d28c3.jpg",
+          "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/0b61255194854094b26a4a2565504352.png",
+          "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/2ea535747f5e4a50b49570e78e7eceaf.mp4",
+          "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/30495f9cf1854fda97e5e3156891e118.png",
+          "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/46256f4f7a2940feafdca5bc5b9547db.png",
+          "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/951152e88def4169af4d1149e3447536.png",
+          "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/a12818e554a74684bea6e34785c8b85b.png",
+          "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/b611b6b73f0f42f6b8ecf01248fcb65d.png",
+          "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/caf3d0aead8a48c089e527c33db3237f.png"
+        ]
+      },
+      "validate_production_timeline": {
+        "ok": false,
+        "type": "ValueError",
+        "error": "A07.support_4 显示区间不足阅读或超出镜头"
+      },
+      "timeline_readability_issues": {
+        "ok": true,
+        "result": []
+      },
+      "validate_media_coverage": {
+        "ok": true,
+        "result": {
+          "target_ratio": 0.7,
+          "target_frames": 2600,
+          "eligible_capacity_frames": 0,
+          "eligible_capacity_ratio": 0.0,
+          "actual_media_frames": 1834,
+          "actual_media_ratio": 0.4938,
+          "source_evidence_frames": 0,
+          "context_example_frames": 1834,
+          "required": false,
+          "segments": [
+            {
+              "segment_id": "s1",
+              "start_frame": 0,
+              "end_frame": 735,
+              "eligible_asset_ids": [],
+              "eligible_capacity_frames": 0
+            },
+            {
+              "segment_id": "s2",
+              "start_frame": 735,
+              "end_frame": 1149,
+              "eligible_asset_ids": [],
+              "eligible_capacity_frames": 0
+            },
+            {
+              "segment_id": "s3",
+              "start_frame": 1149,
+              "end_frame": 1637,
+              "eligible_asset_ids": [],
+              "eligible_capacity_frames": 0
+            },
+            {
+              "segment_id": "s4",
+              "start_frame": 1637,
+              "end_frame": 2075,
+              "eligible_asset_ids": [],
+              "eligible_capacity_frames": 0
+            },
+            {
+              "segment_id": "s5",
+              "start_frame": 2075,
+              "end_frame": 2782,
+              "eligible_asset_ids": [],
+              "eligible_capacity_frames": 0
+            },
+            {
+              "segment_id": "s6",
+              "start_frame": 2782,
+              "end_frame": 3168,
+              "eligible_asset_ids": [],
+              "eligible_capacity_frames": 0
+            },
+            {
+              "segment_id": "s7",
+              "start_frame": 3168,
+              "end_frame": 3714,
+              "eligible_asset_ids": [],
+              "eligible_capacity_frames": 0
+            }
+          ]
+        }
+      },
+      "validate_component_requirements": {
+        "ok": false,
+        "type": "ValueError",
+        "error": "layer Talkcraft-keyword-pop-highlight 需要 props.highlight 或 props.items[0] 作为关键词；组件套使用统计校验失败：A07.support_4 显示区间不足阅读或超出镜头；layer Talkcraft-keyword-pop-highlight 需要 props.highlight 或 props.items[0] 作为关键词；layer Talkcraft-keyword-pop-highlight 需要 props.highlight 或 props.items[0] 作为关键词"
+      },
+      "_performance_payload": {
+        "ok": true,
+        "result": {
+          "segment_performances": 7,
+          "shot_reviews": 16
+        }
+      }
+    }
+  },
+  "conditional_only": {
+    "change": "in-memory shot-06 A07.support_4 start_frame 115 -> 112; no write",
+    "report": {
+      "shot_count": 16,
+      "duration_frames": 3714,
+      "required_components": 0,
+      "checks": {
+        "approved_context_sources": {
+          "ok": true,
+          "result": [
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/00e534aed0e74d6b9f5cfbfb589d28c3.jpg",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/0b61255194854094b26a4a2565504352.png",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/2ea535747f5e4a50b49570e78e7eceaf.mp4",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/30495f9cf1854fda97e5e3156891e118.png",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/46256f4f7a2940feafdca5bc5b9547db.png",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/951152e88def4169af4d1149e3447536.png",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/a12818e554a74684bea6e34785c8b85b.png",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/b611b6b73f0f42f6b8ecf01248fcb65d.png",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/caf3d0aead8a48c089e527c33db3237f.png"
+          ]
+        },
+        "validate_production_timeline": {
+          "ok": true,
+          "result": [
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/00e534aed0e74d6b9f5cfbfb589d28c3.jpg",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/0b61255194854094b26a4a2565504352.png",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/2ea535747f5e4a50b49570e78e7eceaf.mp4",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/30495f9cf1854fda97e5e3156891e118.png",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/46256f4f7a2940feafdca5bc5b9547db.png",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/951152e88def4169af4d1149e3447536.png",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/a12818e554a74684bea6e34785c8b85b.png",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/b611b6b73f0f42f6b8ecf01248fcb65d.png",
+            "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/caf3d0aead8a48c089e527c33db3237f.png"
+          ]
+        },
+        "timeline_readability_issues": {
+          "ok": true,
+          "result": []
+        },
+        "validate_media_coverage": {
+          "ok": true,
+          "result": {
+            "target_ratio": 0.7,
+            "target_frames": 2600,
+            "eligible_capacity_frames": 0,
+            "eligible_capacity_ratio": 0.0,
+            "actual_media_frames": 1834,
+            "actual_media_ratio": 0.4938,
+            "source_evidence_frames": 0,
+            "context_example_frames": 1834,
+            "required": false,
+            "segments": [
+              {
+                "segment_id": "s1",
+                "start_frame": 0,
+                "end_frame": 735,
+                "eligible_asset_ids": [],
+                "eligible_capacity_frames": 0
+              },
+              {
+                "segment_id": "s2",
+                "start_frame": 735,
+                "end_frame": 1149,
+                "eligible_asset_ids": [],
+                "eligible_capacity_frames": 0
+              },
+              {
+                "segment_id": "s3",
+                "start_frame": 1149,
+                "end_frame": 1637,
+                "eligible_asset_ids": [],
+                "eligible_capacity_frames": 0
+              },
+              {
+                "segment_id": "s4",
+                "start_frame": 1637,
+                "end_frame": 2075,
+                "eligible_asset_ids": [],
+                "eligible_capacity_frames": 0
+              },
+              {
+                "segment_id": "s5",
+                "start_frame": 2075,
+                "end_frame": 2782,
+                "eligible_asset_ids": [],
+                "eligible_capacity_frames": 0
+              },
+              {
+                "segment_id": "s6",
+                "start_frame": 2782,
+                "end_frame": 3168,
+                "eligible_asset_ids": [],
+                "eligible_capacity_frames": 0
+              },
+              {
+                "segment_id": "s7",
+                "start_frame": 3168,
+                "end_frame": 3714,
+                "eligible_asset_ids": [],
+                "eligible_capacity_frames": 0
+              }
+            ]
+          }
+        },
+        "validate_component_requirements": {
+          "ok": false,
+          "type": "ValueError",
+          "error": "layer Talkcraft-keyword-pop-highlight 需要 props.highlight 或 props.items[0] 作为关键词；layer Talkcraft-keyword-pop-highlight 需要 props.highlight 或 props.items[0] 作为关键词；layer Talkcraft-keyword-pop-highlight 需要 props.highlight 或 props.items[0] 作为关键词"
+        },
+        "_performance_payload": {
+          "ok": true,
+          "result": {
+            "segment_performances": 7,
+            "shot_reviews": 16
+          }
+        }
+      }
+    }
+  },
+  "unchanged": {
+    "job": true,
+    "operation": true,
+    "database_file": true,
+    "read_artifact_files": true
+  },
+  "read_artifact_count": 49,
+  "query_only": 1,
+  "limitations": [
+    "No representative-frame render or human review; conditional copy is not a production plan.",
+    "Voice identity uses exact nonsecret persisted settings/default fields, without environment secret reads."
+  ]
+}
