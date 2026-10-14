@@ -1,0 +1,20 @@
+{
+  "verified_at": "2026-10-14T02:59:13.336761+00:00",
+  "role": "director",
+  "before": {
+    "enabled": true,
+    "provider": "claude_code_cli",
+    "model": "glm-5.3[1m]",
+    "timeout_seconds": 900
+  },
+  "after": {
+    "enabled": true,
+    "provider": "claude_code_cli",
+    "model": "glm-5.3[1m]",
+    "timeout_seconds": 1800
+  },
+  "changed_via": "videoagents settings set role_models",
+  "other_roles_and_voice_settings_unchanged": true,
+  "runtime_new_submission": false,
+  "reason": "当前摄影cli_timeout发生于900秒；后续显式授权恢复调用预留1800秒，保留模型与推理档位。"
+}

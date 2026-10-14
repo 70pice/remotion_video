@@ -1,0 +1,53 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 7,
+  "verified_at": "2026-10-14T03:25:51.4398964Z",
+  "maintenance_commit": "712c10cf469436c4daa351f9058c392760e5cd23",
+  "integrated_commit": "0ad4b49",
+  "read_only_preflight": "production-r7-photography-recovery-preflight.json",
+  "photography_requirements_file": "photography-recovery-requirements.txt",
+  "photography_requirements_sha256": "f70283eb4216840269210c23ea63064cab534a90dec0d3ff6185ae1c07c5022b",
+  "checks": {
+    "maintenance_focused": {
+      "seconds": 179.84,
+      "passed": 364
+    },
+    "maintenance_final_photography": {
+      "seconds": 74.97,
+      "passed": 47
+    },
+    "integrated_photography": {
+      "seconds": 76.15,
+      "passed": 47
+    },
+    "independent_code_review": "passed",
+    "ruff": "passed",
+    "contract_exports": "passed",
+    "typecheck": "passed",
+    "lint": "passed",
+    "remotion_bundle": "passed",
+    "bundle_directory": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-photo-recovery-bundle-20261014-8bdc55ba07374f5f9d711e60124bf1e1",
+    "cli_help": "director-only present; UTF-8 output verified",
+    "diff_check": "passed"
+  },
+  "actual_status": "NEEDS_INPUT",
+  "actual_stage": "director",
+  "unknown_operation_id": "c2ee429eee8940b6ab47e7a2bc5e8967",
+  "pending_token": "31cd4d6b83244a5ba6027d46d59efd8e",
+  "ready_for_explicit_user_authorization": true,
+  "new_paid_retry_authorized": false,
+  "new_revision_created": false,
+  "new_provider_submission": false,
+  "audio_reused_on_recovery": true,
+  "preserves_old_unknown": true,
+  "retained_visual_asset_count": 11,
+  "audio_duration_seconds": 123.781417,
+  "timeline_exists": false,
+  "shot_review_frames": 0,
+  "final_video_exists": false,
+  "director_timeout_seconds": 1800,
+  "next_entry_point_after_explicit_user_acknowledgement": "videoagents restart-unknown 08e74bed03e94c6e903c89f7f2fbea64 --operation-id c2ee429eee8940b6ab47e7a2bc5e8967 --acknowledge-possible-usage --director-only --note <UTF-8 photography requirements>; then videoagents run <job_id>",
+  "subsequent_required_gate": "director_human_gate: all shot plans and representative PNGs require user review",
+  "policy_source": "AGENTS.md:63-64 and docs/videoagents-glm-coding-plan.md:80",
+  "policy_excerpt": "未决提交继续阻断,不能偷偷降低模型或重放"
+}

@@ -1,0 +1,31 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 7,
+  "verified_at": "2026-10-14T03:23:45.503724+00:00",
+  "mode": "read_only_no_authorization_no_submission",
+  "status": "NEEDS_INPUT",
+  "stage": "director",
+  "passed": true,
+  "approval_artifact_id": "5d6ec77eb6d1126584932c757263cc5f",
+  "approval_projection_fingerprint": "a76e2d83774e1a799b9f96b95f6280edd8a76ca9ee2182652f408920f6f7f8be",
+  "audio_asset_id": "a661542c449c4f39bf17bc6c9047ef7b",
+  "preserved_visual_assets": [
+    "0b61255194854094b26a4a2565504352",
+    "b611b6b73f0f42f6b8ecf01248fcb65d",
+    "41aa62b5f4e845c5883257fdb76b7dc1",
+    "a12818e554a74684bea6e34785c8b85b",
+    "00e534aed0e74d6b9f5cfbfb589d28c3",
+    "59cb502d984a4c1fafdfaeadf8fd144a",
+    "951152e88def4169af4d1149e3447536",
+    "46256f4f7a2940feafdca5bc5b9547db",
+    "caf3d0aead8a48c089e527c33db3237f",
+    "30495f9cf1854fda97e5e3156891e118",
+    "2ea535747f5e4a50b49570e78e7eceaf"
+  ],
+  "retained_artifact_count": 49,
+  "media_and_approval_evidence_verified": true,
+  "production_state_unchanged": true,
+  "new_revision_created": false,
+  "new_provider_submission": false,
+  "new_paid_retry_authorized": false
+}
