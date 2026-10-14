@@ -108,3 +108,34 @@ proof = verify_director_recovery_inputs(repo, repo.get_job(job_id))
 ```
 
 预检会读取登记文件、使用本机 ffprobe 检测音频时长，并验证真实批准指纹；无法证明历史输入时如实报冲突。
+
+### 延续已完成但校验未通过的摄影候选
+
+`--director-only` 如有同任务已保存的摄影 COMPLETED 候选，且该候选尚未进入有效 timeline，
+会沿摄影恢复的 `previous_job` 输入链发现来源。系统使用正常 `state_context → DirectorNode.plan`
+构造原初次摄影请求，以与 `JsonModel.call` 相同的纯指纹函数精确复算原 `input_hash`。
+同时核验已审文案与 Brief、素材文件/hash/metadata、原音频/alignment、批准链、摄影模型及推理配置，
+并绑定源版本 UNKNOWN 修复提交。保存这些依据不会改变旧 COMPLETED 或 UNKNOWN。
+
+新版正常 `run` 把这份候选的全部镜头作为修复底稿，给摄影模型明确校验问题；要求保留未涉及问题的
+镜头，确需改变相邻边界或发现新问题时说明受影响镜头与理由。模型仍返回完整方案，之后照常执行完整
+契约、素材关联、阅读时长、组件与媒体覆盖校验，渲染逐镜 PNG 并停整包人工审核。候选不会被复制成
+已通过 timeline，不恢复逐镜确认，也不渲染成片。
+
+无完成候选时保留原摄影逻辑；存在候选但源输入指纹不能精确证明时阻断。初次请求复算不支持任意历史
+CLI 对话或含修复 extras 的后续请求重建。多次摄影独立恢复优先沿用已证明候选，不让较晚未经证明的
+修复响应替换它；同一版本内的正常 `resume` 仍可按原节点逻辑使用最新完成回执继续修复。已接受的旧
+timeline 继续使用原反馈/重做规则，不属于本桥接范围。模型保留无问题镜头是输入要求，本接口不新增
+强制逐字段冻结或局部 patch 契约，仍须逐镜审阅实际修改。校验可能先报告第一个问题，修复后仍可能
+发现新的问题，不能宣称旧候选其余镜头已全部验证。
+
+以下入口只读返回可用性、来源操作/revision、镜头数量、指纹及已发现问题，不输出候选业务正文：
+
+```python
+from videoagents.services.director_recovery import verify_director_candidate_continuation
+
+proof = verify_director_candidate_continuation(repo, repo.get_job(job_id))
+```
+
+它不授予可能用量授权，不升版本、不调用模型、不修改数据库或生产状态；当前版本 UNKNOWN 屏障保持。
+Claude CLI 使用 `--no-session-persistence`，本功能是保存产物的阶段接续，不是恢复已退出 CLI 的内部会话。

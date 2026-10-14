@@ -2,6 +2,7 @@
 
 import json
 import math
+from copy import deepcopy
 
 from videoagents.contracts import Alignment, Artifact, Job, Script, VoiceAdvice
 from videoagents.nodes.common import needs_script_revision, needs_voice_revision, validate_context_assets
@@ -158,7 +159,11 @@ def _projection(repository: Repository, job: Job, audio) -> tuple[Job, Artifact]
 def preserve_director_inputs(repository: Repository, job: Job, note: str) -> dict:
     if needs_script_revision(note) or needs_voice_revision(note):
         raise Conflict("director_only 的要求不能修改已审文案或音频")
-    return verify_director_recovery_inputs(repository, job)
+    preserved = verify_director_recovery_inputs(repository, job)
+    candidate = _candidate_continuation(repository, job, preserved)
+    if candidate:
+        preserved["candidate_continuation"] = candidate
+    return preserved
 
 
 def verify_director_recovery_inputs(repository: Repository, job: Job) -> dict:
@@ -230,6 +235,194 @@ def validate_director_restart(repository: Repository, job: Job) -> dict:
             raise Conflict("摄影恢复的原联合批准输入或批准链已改变")
         if _audio(repository, job).asset_id != preserved["audio_asset_id"]:
             raise Conflict("摄影恢复选用的音频已改变")
+        if preserved.get("candidate_continuation"):
+            _validate_candidate_receipt(repository, job, preserved, preserved["candidate_continuation"])
         return preserved
     except (KeyError, TypeError, StopIteration, ValueError, NotFound, OSError) as exc:
         raise Conflict("摄影恢复的批准链或媒体凭据缺失或无效") from exc
+
+
+def _model_identity(repository: Repository) -> dict:
+    """Read only nonsecret model configuration; never decrypt credentials."""
+    from videoagents.default_config import DEFAULT_SETTINGS
+    from videoagents.providers.cli_runner import GLM_CONTEXT_TOKENS, GLM_MODEL
+
+    with repository.connection() as db:
+        stored = {row[0]: json.loads(row[1]) for row in db.execute(
+            "SELECT key,value FROM settings WHERE key IN ('role_models','glm_reasoning_effort')")}
+    config = deepcopy(stored.get("role_models", DEFAULT_SETTINGS["role_models"])["director"])
+    identity = {"cli_provider": config["provider"], "model": config["model"]}
+    if config["provider"] == "claude_code_cli" and config["model"].lower().startswith("glm-"):
+        if config["model"].lower().removesuffix("[1m]") != "glm-5.3":
+            raise Conflict("摄影候选模型配置不是支持的 GLM-5.3[1m]")
+        config["model"] = identity["model"] = GLM_MODEL
+        identity.update(reasoning_effort=stored.get("glm_reasoning_effort", DEFAULT_SETTINGS["glm_reasoning_effort"]),
+                        context_tokens=GLM_CONTEXT_TOKENS)
+    elif config["provider"] == "codex_cli" and config.get("codex_reasoning_effort") is not None:
+        identity["reasoning_effort"] = config["codex_reasoning_effort"]
+    if not config["enabled"]:
+        raise Conflict("摄影完成候选接续需要启用原摄影模型")
+    return {"config": config, "ledger": identity}
+
+
+def _business_fingerprint(job: Job, preserved: dict) -> str:
+    return fingerprint({"job_id": job.job_id, "brief": job.brief.model_dump(),
+        "script": job.script.model_copy(update={"revision": 0}).model_dump(),
+        "assets": [asset.model_dump() for asset in job.assets],
+        "director_requirements": job.director_requirements.model_dump() if job.director_requirements else None,
+        "approval_artifact_id": preserved["approval_artifact_id"], "audio_asset_id": preserved["audio_asset_id"],
+        "asset_metadata": preserved["asset_metadata"], "artifacts": preserved["artifacts"]})
+
+
+def _completed_by_id(repository: Repository, job_id: str, operation_id: str) -> dict:
+    with repository.connection() as db:
+        row = db.execute("SELECT job_id,input_hash,provider,status,body FROM operations WHERE operation_id=?",
+                         (operation_id,)).fetchone()
+    if not row or row[0] != job_id or row[2] != "llm:director" or row[3] != "COMPLETED":
+        raise Conflict("摄影候选必须来自同任务已完成的摄影回执")
+    body = json.loads(row[4])
+    if (not isinstance(body.get("result"), dict) or not isinstance(body["result"].get("shots"), list)
+            or not body["result"]["shots"] or any(type(shot) is not dict for shot in body["result"]["shots"])):
+        raise Conflict("已完成摄影回执没有完整候选")
+    return {"operation_id": operation_id, "input_hash": row[1], "body": body}
+
+
+def _unknown_source(repository: Repository, job_id: str, revision: int, pending: dict) -> dict:
+    if (pending.get("kind") != "input" or pending.get("stage") != "director"
+            or pending.get("revision") != revision or pending.get("operation_status") != "UNKNOWN"):
+        raise Conflict("摄影候选接续缺少源版本的未知修复提交关联")
+    with repository.connection() as db:
+        row = db.execute("SELECT job_id,input_hash,provider,status,body FROM operations WHERE operation_id=?",
+                         (pending.get("operation_id"),)).fetchone()
+    if (not row or row[0] != job_id or row[2] != "llm:director" or row[3] != "UNKNOWN"
+            or json.loads(row[4]).get("revision") != revision):
+        raise Conflict("摄影候选接续的源未知操作归属或状态不匹配")
+    return {"operation_id": pending["operation_id"], "input_hash": row[1], "body": json.loads(row[4])}
+
+
+def _validate_candidate_receipt(repository: Repository, job: Job, preserved: dict, candidate: dict) -> dict:
+    operation = _completed_by_id(repository, job.job_id, candidate["operation_id"])
+    unknown = _unknown_source(repository, job.job_id, candidate["source_revision"], candidate["source_pending"])
+    if (operation["body"].get("revision") != candidate["source_revision"]
+            or fingerprint(operation) != candidate["operation_fingerprint"]
+            or fingerprint(unknown) != candidate["unknown_operation_fingerprint"]
+            or _model_identity(repository)["ledger"] != candidate["model_identity"]
+            or _business_fingerprint(job, preserved) != candidate["business_fingerprint"]):
+        raise Conflict("摄影完成候选的回执、模型或已审输入已改变")
+    return operation
+
+
+def _candidate_continuation(repository: Repository, job: Job, preserved: dict) -> dict | None:
+    """Prove an old COMPLETE result without submitting, accepting or rewriting it."""
+    current = job
+    while True:
+        authorization = repository.director_restart_receipt(job.job_id, current.revision)
+        current_preserved = (validate_director_restart(repository, current) if authorization
+                             else verify_director_recovery_inputs(repository, current))
+        if _business_fingerprint(current, current_preserved) != _business_fingerprint(job, preserved):
+            raise Conflict("摄影候选源版本与当前已审上游不一致")
+        inherited = current_preserved.get("candidate_continuation")
+        if inherited:
+            _validate_candidate_receipt(repository, job, preserved, inherited)
+            return inherited
+        if current.timeline is not None:
+            # This bridge repairs rejected, uncommitted candidates. A previous
+            # accepted timeline has its existing feedback/rebuild semantics.
+            return None
+        completed = repository.latest_completed_operation(job.job_id, "llm:director", current.revision)
+        if completed:
+            operation = _completed_by_id(repository, job.job_id, completed["operation_id"])
+            return _prove_initial_candidate(repository, current, current_preserved, operation)
+        if not authorization:
+            return None
+        current = Job.model_validate(authorization["previous_job"])
+
+
+def _prove_initial_candidate(repository: Repository, source: Job, preserved: dict, operation: dict) -> dict:
+    from videoagents.nodes.common import state_context
+    from videoagents.nodes.director import DirectorNode
+    from videoagents.providers.llm import request_fingerprint
+    from videoagents.state import VideoState, clean_handoff
+
+    model = _model_identity(repository)
+    body = operation["body"]
+    if any(body.get(key) != value for key, value in model["ledger"].items()):
+        raise Conflict("摄影完成候选与当前模型配置不一致")
+    if source.timeline is not None:
+        raise Conflict("摄影候选的初始请求无法从当前源版本证明")
+
+    class SourceRepository:
+        """Only substitute the proven historical Job; all other reads stay authoritative."""
+        def get_job(self, job_id):
+            if job_id != source.job_id:
+                raise Conflict("摄影候选上下文引用其他任务")
+            return source
+
+        def __getattr__(self, name):
+            return getattr(repository, name)
+
+    captured = []
+
+    class CaptureModel:
+        def available(self, role):
+            return role == "director"
+
+        def invoke(self, state, role, instruction, *, fields, command_id="", output_schema=None):
+            if role != "director" or captured:
+                raise Conflict("摄影候选只读捕获调用不匹配")
+            shared = clean_handoff(state)
+            context = {key: shared[key] for key in fields if key in shared}
+            value = request_fingerprint(source.revision, model["config"], instruction, output_schema, context,
+                                        glm_reasoning_effort=model["ledger"].get("reasoning_effort"))
+            if value != operation["input_hash"]:
+                raise Conflict("无法复算摄影完成候选的原输入指纹，不能继承")
+            captured.append(value)
+            return deepcopy(body["result"])
+
+    snapshot = SourceRepository()
+    state = state_context(snapshot, VideoState(job_id=source.job_id, revision=source.revision,
+        action="produce", route="director", gate_issues=[], extras={}))
+    audio = next(asset for asset in source.assets if asset.asset_id == preserved["audio_asset_id"])
+    metadata = preserved["asset_metadata"][audio.asset_id]
+    node = DirectorNode(snapshot, None)
+    node.model = CaptureModel()
+    issues = []
+    try:
+        node.plan(source, audio, Alignment.model_validate(metadata["alignment"]),
+                  metadata["duration_seconds"], state=state, restore_candidate=False)
+    except ValueError as exc:
+        if not captured:
+            raise Conflict("无法在原摄影构造入口证明候选") from exc
+        issues = [str(exc)]
+    if not captured:
+        raise Conflict("摄影候选未进入原模型请求构造入口")
+    return {"operation_id": operation["operation_id"], "source_revision": source.revision,
+            "operation_fingerprint": fingerprint(operation), "input_hash": operation["input_hash"],
+            "model_identity": model["ledger"], "business_fingerprint": _business_fingerprint(source, preserved),
+            "repair_issues": issues, "shot_count": len(body["result"]["shots"]),
+            "source_pending": deepcopy(source.pending_input),
+            "unknown_operation_fingerprint": fingerprint(
+                _unknown_source(repository, source.job_id, source.revision, source.pending_input or {}))}
+
+
+def verify_director_candidate_continuation(repository: Repository, job: Job) -> dict:
+    """Read-only discovery; no candidate contents, new revision, approval or provider call."""
+    preserved = verify_director_recovery_inputs(repository, job)
+    candidate = _candidate_continuation(repository, job, preserved)
+    safe_keys = ("operation_id", "source_revision", "operation_fingerprint", "input_hash", "model_identity",
+                 "business_fingerprint", "repair_issues", "shot_count", "unknown_operation_fingerprint")
+    return {"available": candidate is not None,
+            **({key: candidate[key] for key in safe_keys} if candidate else {})}
+
+
+def director_repair_candidate(repository: Repository, job: Job) -> dict | None:
+    authorization = repository.director_restart_receipt(job.job_id, job.revision)
+    if not authorization:
+        return None
+    preserved = validate_director_restart(repository, job)
+    candidate = preserved.get("candidate_continuation")
+    if not candidate:
+        return None
+    operation = _validate_candidate_receipt(repository, job, preserved, candidate)
+    return {"operation_id": candidate["operation_id"], "result": operation["body"]["result"],
+            "repair_issues": candidate["repair_issues"]}

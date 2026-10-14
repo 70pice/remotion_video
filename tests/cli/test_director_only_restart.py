@@ -69,12 +69,12 @@ def operations(repo, job_id):
         return [tuple(row) for row in db.execute("SELECT * FROM operations WHERE job_id=? ORDER BY operation_id", (job_id,))]
 
 
-def wav(path):
+def wav(path, seconds=6):
     with wave.open(str(path), "wb") as stream:
         stream.setnchannels(1)
         stream.setsampwidth(2)
         stream.setframerate(24000)
-        stream.writeframes(b"\x01\x00" * 24000 * 6)
+        stream.writeframes(b"\x01\x00" * 24000 * seconds)
 
 
 @pytest.fixture
@@ -168,22 +168,23 @@ def photography_unknown(tmp_path, monkeypatch, capsys, request):
     def audio(node, current, command_id="", prefer_generation=False, state=None):
         folder = repo.root / "jobs" / current.job_id / "revisions" / str(current.revision)
         path = folder / "narration.wav"
-        wav(path)
+        seconds = 48 if variant == "sixteen_shots" else 6
+        wav(path, seconds)
         artifact = service.register_artifact(current, path, "voice", "audio/wav")
         asset = Asset(asset_id="UNIT-real-audio", name=path.name, role="audio", mime_type="audio/wav",
                       size_bytes=artifact.size_bytes, sha256=artifact.sha256, artifact_id=artifact.artifact_id,
                       url=artifact.url, timeline_src=f"videoagents/{current.job_id}/assets/narration.wav")
         alignment = Alignment(origin="provider", verified=True, audio_sha256=asset.sha256,
             note="UNIT recorded timing", segments=[{"segment_id": "s1", "text": current.script.segments[0].narration,
-                                                   "start_ms": 100, "end_ms": 5800}])
+                                                   "start_ms": 100, "end_ms": seconds * 1000 - 200}])
         service.write_json(current, "voice_guidance.json", {"delivery_notes": ["UNIT preserve natural pauses"]},
                            "voice_guidance")
         repo.attach_generated_audio(current.job_id, current.revision, asset, artifact, {
-            "origin": "byte_ws", "duration_seconds": 6.0, "alignment": alignment.model_dump(),
+            "origin": "byte_ws", "duration_seconds": float(seconds), "alignment": alignment.model_dump(),
             "script_fingerprint": fingerprint([{"segment_id": "s1", "narration": current.script.segments[0].narration}]),
             "voice_fingerprint": voice_fingerprint(SettingsService(repo).internal()),
         })
-        return asset, alignment, 6.0
+        return asset, alignment, float(seconds)
 
     def unknown(node, current, *args, **kwargs):
         ledger = {"revision": current.revision, "reason": "cli_timeout", "command_id": "UNIT-old-command"}

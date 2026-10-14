@@ -44,6 +44,21 @@ def semantic(value):
     return value
 
 
+def request_fingerprint(revision: int, config: dict[str, Any], instruction: str,
+                        schema: dict[str, Any], context: Any, *, research_mode: bool = False,
+                        glm_reasoning_effort: str | None = None) -> str:
+    """Pure identity shared by paid submission and read-only candidate proof."""
+    payload = {"revision": revision, "provider": config["provider"], "model": config["model"],
+               "instruction": instruction, "schema": schema, "context": semantic(context)}
+    if research_mode:
+        payload["mode"] = "research"
+    if config["provider"] == "claude_code_cli" and config["model"].lower().startswith("glm-"):
+        payload.update(reasoning_effort=glm_reasoning_effort, context_tokens=GLM_CONTEXT_TOKENS)
+    if config["provider"] == "codex_cli" and config.get("codex_reasoning_effort") is not None:
+        payload["reasoning_effort"] = config["codex_reasoning_effort"]
+    return fingerprint(payload)
+
+
 class JsonModel:
     def __init__(self, repository: Repository):
         self.repo = repository
@@ -124,17 +139,8 @@ class JsonModel:
                 raise CapabilityMissing("请先配置智谱 Coding Plan API Key", ["zhipu_api_key"])
             config = {**config, "model": GLM_MODEL}
         mode = "research" if research_mode else "structured"
-        fingerprint_payload = {"revision": revision, "provider": config["provider"], "model": config["model"],
-                               "instruction": instruction, "schema": schema, "context": semantic(context)}
-        if research_mode:
-            fingerprint_payload["mode"] = mode
-        if glm_model:
-            fingerprint_payload.update(reasoning_effort=settings["glm_reasoning_effort"],
-                                       context_tokens=GLM_CONTEXT_TOKENS)
-        if codex_effort is not None:
-            # Unset effort keeps the historical fingerprint and completed receipts.
-            fingerprint_payload["reasoning_effort"] = codex_effort
-        input_hash = fingerprint(fingerprint_payload)
+        input_hash = request_fingerprint(revision, config, instruction, schema, context,
+            research_mode=research_mode, glm_reasoning_effort=settings["glm_reasoning_effort"] if glm_model else None)
         previous = self.repo.operation(job_id, input_hash, provider)
         if previous:
             if previous["status"] == "COMPLETED":

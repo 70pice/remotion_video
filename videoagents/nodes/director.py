@@ -569,7 +569,8 @@ class DirectorNode:
         return "director_demo"
 
     def plan(self, job: Job, audio: Asset, alignment: Alignment, duration: float,
-             research: dict | None = None, state: VideoState | None = None) -> Timeline:
+             research: dict | None = None, state: VideoState | None = None, *,
+             restore_candidate: bool = True) -> Timeline:
         self._last_director_plan = None
         asset_metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
         model_available = self.model.available("director")
@@ -696,6 +697,25 @@ class DirectorNode:
             if repair_issues and not rebuilding and job.timeline is not None:
                 reviewed_timeline = job.timeline.model_dump()
             planning_timeline = Timeline.model_validate(reviewed_timeline) if reviewed_timeline else timeline
+            continuation = None
+            if restore_candidate and not rebuilding and not feedback:
+                from videoagents.services.director_recovery import director_repair_candidate
+
+                continuation = director_repair_candidate(self.repo, job)
+                if continuation:
+                    repair_issues = list(dict.fromkeys([*repair_issues, *continuation["repair_issues"]]))
+                    latest = self.repo.latest_completed_operation(job.job_id, "llm:director", job.revision)
+                    if latest and external_repair_issues:
+                        continuation = {"operation_id": latest["operation_id"], "result": latest["result"]}
+                    try:
+                        # Candidate shots are only a model repair draft. Do not
+                        # resolve components or commit them as a production plan.
+                        planning_timeline = Timeline.model_validate({**timeline.model_dump(),
+                            "shots": continuation["result"]["shots"]})
+                    except ValueError:
+                        # A malformed candidate stays available in extras for
+                        # repair; measured baseline remains the contract carrier.
+                        pass
             coverage = media_coverage_report(
                 planning_timeline,
                 job,
@@ -721,7 +741,17 @@ class DirectorNode:
                     model_state["extras"]["timeline_repair_candidate"] = {
                         "operation_id": candidate["operation_id"], "result": candidate["result"],
                     }
+            if continuation:
+                model_state["extras"]["timeline_repair_candidate"] = {
+                    "operation_id": continuation["operation_id"], "result": continuation["result"],
+                }
             instruction = director_prompt(job.brief.usage)
+            if continuation:
+                instruction += ("\n\n本次沿已证明来源的完成候选续修，不能从空白重做。"
+                    "以 extras.timeline_repair_candidate 为底稿，修复明确列出的问题，保留无问题镜头、"
+                    "素材和组件组合；确需改变相邻边界或发现其他校验问题时，在 visual_action 中说明"
+                    "受影响镜头及理由。候选尚未通过校验或人审；返回完整 shots、segment_performances、"
+                    "shot_reviews，仍需完整校验与逐镜代表帧人工审核。")
             if coverage["required"]:
                 instruction += ("\n\n本次提交的硬约束：图片/视频镜头至少覆盖 "
                                 f"{coverage['target_frames']} 帧（全片 {total} 帧），"
