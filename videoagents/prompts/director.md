@@ -71,6 +71,20 @@ box 是安全内容区 x=64,y=96,width=952,height=1304 内的 0..1 归一化位�
 source_refs，具体字段与数量遵守每套内容条件。title/body 只放 shot，不在 content
 重复。数字套的 numeric_items 必须带当前任务已经记录的真实 source_refs，且求和、
 差值、单位必须一致。计数型 metric 是真实 items 条数，不能拿演示数字装成统计。
+增强套 A07-A12 和 B01-B18 的 shot.title、shot.body、content.takeaway 均为非空，
+字数上限依次为18/60/18；正文可以留空的通用建议不适用于这些套。末尾注入的
+生产增强套内容校验条件直接来自运行时规则：required_content_fields 是必填字段，
+counts.items/supporting/numeric 分别限制 items/supporting_items/numeric_items 条数，
+items_range 是闭区间，metric 指明计数、求和或差值语义。登记摘要中的增强内容
+字段、条数、metric 计数语义也适用于普通生产，不因标注样片而免除。
+上述条件满足后才选择套，不能为凑结构编造新事实，也不能只修改首个报错而遗漏其余条件。
+
+每个 part 的时间是镜头本地帧号，须满足 end_frame <= 镜头总帧数。
+按其实际 binding 取完整文字，chars=len(text.replace(" ", ""))；
+items/supporting_items 按全部条目连接后的文字计算，不能只计算当前一条短句。
+entrance 对 media 为0，对文字为 ceil(0.5*fps)，最短显示帧数为
+entrance + max(ceil(1.5*fps), ceil(chars/12*fps))。
+这是阅读与入场预算，仍需另按实际槽位宽高检查字号、行数和裁切，不能据此宣称像素排版已通过。
 有素材套必须用当前任务已导入的 asset_src；视频可通过 shot.props 的
 start_seconds/end_seconds/fit 调整真实取段，不能循环凑时长。
 操作跟随 A09 必须提供 `set_design.focus_steps`：口令、真实目标归一化框和对应

@@ -43,6 +43,10 @@ from videoagents.tools.components import (
 )
 from videoagents.tools.media import sha256
 from videoagents.tools.timeline import (
+    B_RICH_EXPECTED_KEYS,
+    B_RICH_RULES,
+    MATERIAL_RICH_EXPECTED_KEYS,
+    MATERIAL_RICH_RULES,
     asset_renderable,
     media_coverage_report,
     validate_media_coverage,
@@ -453,8 +457,22 @@ def director_prompt(usage: str) -> str:
     # One immutable mapping drives the director, validator, renderer and counts.
     # It contains geometry/timing shapes, never sample content or asset paths.
     templates = allowed_component_set_templates(usage)
+    content_contracts = {}
+    for set_id in templates:
+        rules = B_RICH_RULES if set_id in B_RICH_RULES else MATERIAL_RICH_RULES
+        if set_id not in rules:
+            continue
+        keys = B_RICH_EXPECTED_KEYS if set_id in B_RICH_RULES else MATERIAL_RICH_EXPECTED_KEYS
+        content_contracts[set_id] = {
+            "nonempty_shot_fields": ["title", "body"],
+            "max_chars": {"shot.title": 18, "shot.body": 60, "content.takeaway": 18},
+            "required_content_fields": sorted(keys[set_id] - {"title", "body"}),
+            "counts": rules[set_id],
+        }
     return prompt + "\n\n生产组件套固定部件与默认布局（可调整 parts，不可替换内部组件 ID）：\n" + json.dumps(
         list(templates.values()), ensure_ascii=False, separators=(",", ":")
+    ) + "\n\n生产增强套内容校验条件：\n" + json.dumps(
+        content_contracts, ensure_ascii=False, separators=(",", ":")
     )
 
 
