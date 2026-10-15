@@ -1,0 +1,284 @@
+{
+  "checked_at": "2026-10-15T11:37:53.479168+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 15,
+  "status": "DRAFT",
+  "stage": "complete",
+  "command": {
+    "command_id": "671df5b4991b4b628825e0935dc6c023",
+    "status": "DONE",
+    "pid": 3348
+  },
+  "approval_message_id": "om_x100b623fcbff14acdf287681af9b81a",
+  "approval_message_link": "https://applink.feishu.cn/client/chat/open?openChatId=oc_34b61a867da7f3916adeb716200f9794&position=246",
+  "approval_review_artifact": {
+    "artifact_id": "3442bed8c2faa300df0a9a9de3ac47ad",
+    "kind": "stage_review",
+    "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\stage-review-director_human_gate-cb043115a15446685fda142deadc0336.json"
+  },
+  "reviewed_shot_ids": [
+    "shot-01",
+    "shot-02",
+    "shot-03",
+    "shot-04",
+    "shot-05",
+    "shot-06",
+    "shot-07",
+    "shot-08",
+    "shot-09",
+    "shot-10",
+    "shot-11",
+    "shot-12",
+    "shot-13",
+    "shot-14",
+    "shot-15",
+    "shot-16"
+  ],
+  "user_approved": true,
+  "final_artifact": {
+    "artifact_id": "1964d3869ecf4c08a7dea70b0302e3c8",
+    "kind": "final",
+    "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\renders\\4d7f194add7745a39ce852dcda0a754f\\final.mp4"
+  },
+  "cover_artifact": {
+    "artifact_id": "bf52474a33b14093b04efb942b66b53b",
+    "kind": "cover",
+    "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\renders\\4d7f194add7745a39ce852dcda0a754f\\cover.png"
+  },
+  "captions_artifact": {
+    "artifact_id": "49a98025c48c4339a9f0ffdc71d88c22",
+    "kind": "captions",
+    "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\renders\\4d7f194add7745a39ce852dcda0a754f\\captions.srt"
+  },
+  "editing_guidance_artifact": {
+    "artifact_id": "95f09a0052724b5faccd7f1fec89a3e5",
+    "kind": "editing_guidance",
+    "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\editing_guidance.json"
+  },
+  "editing_guidance": {
+    "pacing_notes": [
+      "开头0–3s/0–5s核验：[0,90)与[0,150)仅与shot-01[0,330)相交；字幕100ms起即交付『至少两万五千名独立用户与AI人设聊天』，画面首帧即『25000人，聊的是AI』＋中文App大图、口径小字与GTG-15001角标，3–5秒内字幕出现『你手机里要有交友软件，别划走』的利害句。首句爆点、口径与画面匹配，无需返工。",
+      "shot-01[0,330)（11秒）：media_slides四图各停留约81–83帧（≈2.7秒）加8帧过渡，作为首屏同位轮换足够；充值入口、『真人』标签、计价行等细读由shot-03/06/10/11的长停留承接。预览确认交叉过渡不吞掉每图可辨时间即可。",
+      "shot-02[330,735)（13.5秒）：steps三卡在0/15/30帧内出现，已回应『组件要快点出来』；第4卡『两周至少25000名用户』局部255帧（全局19.5秒）揭示，与口播『两万五是今年四月…』时段对应，之后仍有150帧全卡可读，无空等。",
+      "shot-09[2075,2163)（2.93秒）与shot-10[2163,2249)（2.87秒）均高于75帧可读下限，但分别为小字计价设置图（蓝鲸图灰字对比偏低）与弹窗图，同时读标题、正文、来源角标加字幕略紧；建议预览确认关键行可读，若挤可由导演精简正文文字（不动时间轴）。",
+      "shot-12[2374,2782)（13.6秒）：4张卡0/34/100/238帧逐项揭示，末卡238+15帧入场后仍有155帧完整可读，与口播『充值流水大约二十五万元』落点匹配；属有信息推进的长镜头，不判静态等待。",
+      "shot-13[2782,3168)（12.9秒）：B11部件60→386帧错峰入场，『点赞访客／预录顶替／记录起疑』随口播推进，emphasis 300–386帧收束takeaway，节奏成立。",
+      "揭示时刻抽核（含cue后≥90帧校验）：shot-04第2卡局部65帧→全局33.2秒，落在『约二百三十六万条消息』字幕段（31.0–38.3秒）；shot-05右卡163帧后余108帧、shot-15右卡101帧后余114帧、shot-02末卡255帧后余150帧、shot-12末卡238帧后余170帧，均≥90帧，无切镜前闪现。",
+      "全片3714帧＝123.8秒，低于brief目标180秒；旁白与音频冻结、末条字幕123.67秒与时间轴闭合，按规则不作阻断。逐段语义对位：s1↔shot-01/02、s2↔shot-03/04、s3↔shot-05/06、s4↔shot-07/08、s5↔shot-09–12、s6↔shot-13、s7↔shot-14–16，无空档或错位。"
+    ],
+    "layout_notes": [
+      "组件语义总览：规模链路用steps（shot-02）、口径数字用data（shot-04/12）、构成与判断对比用comparison（shot-05/15）、真实界面用PhoneFrame/LaptopFrame/tilt-3d-page/slow-push-in/ImageZoomReveal（shot-01/03/06–11）、收尾用QuoteCard＋EndCard（shot-14/16），与各段语义匹配，无明显错配。",
+      "shot-01轮播合同核验：Snapcn-PhoneFrame media_slides共4张已导入真实图片，首项start_frame=0且asset_src等于shot.asset_src，后续83/166/249严格递增且<330，carousel_transition_frames=8（0–15内）；来源角标覆盖cnr与time-weekly两来源并统一标注『同类中文界面示意，非报告涉案App』；未与set_design/focus混用，符合正式轮播契约，已落实用户『在一个地方轮播』的意见。",
+      "来源边界：本案事实只落在GTG-15001译文卡（shot-02/04/05/13/14/15来源标签），9张国内界面/功能图全部保持另案示例或同类示意标注；shot-07明示『图中一条建议，报告为一次三条候选』，shot-08标『同类功能示例，非涉案工具』，未见context_example被当本案证据或口径扩大。",
+      "shot-06[1420,1637)：95–217帧内main媒体＋support_1引言卡＋support_3/4＋emphasis同屏，文字部件偏多；emphasis与support_1绑定同一takeaway约2秒双显属允许的短时强调，预览确认各小卡文字互不挤压即可，非阻断。",
+      "shot-09 crop{x:0,y:0.1,w:1,h:0.51}边界合法（y+h=0.61≤1），意图聚焦计价区；该图计价行的实际像素位置无核验依据，需预览确认『消息5金币/条』等落在裁剪窗内，不能凭元数据断言已框住。",
+      "结尾链完整：shot-14封禁事实＋『不等于全部下架或有判决』边界→shot-15左右对照给出可复述判断标准（与final_answer口径一致）→shot-16转发CTA配同类示意聊天背景，回应开头『对面是谁』，无其他案件、防骗清单或求关注元素。",
+      "编程演示MP4（2ea535747，CodeBuddy，37.5秒）未上屏：符合用户『不使用编译器画面』的视觉取舍及整包确认，s2由shot-02 steps＋shot-03同类界面示意承接且标注诚实，按规则不判为遗漏素材，不要求放回。"
+    ],
+    "findings": [
+      {
+        "severity": "warning",
+        "message": "shot-14 [3168,3330)（5.4秒，Rve-QuoteCard）title『Anthropic已封禁相关账号和组织』与body首句逐字重复，观众在同一镜头内同句读两遍。建议导演把title缩短为『封禁账号并同步线索』一类短句，body完整保留『并把线索同步给相关平台；不等于全部下架或有判决』的口径，事实与边界不变；不改镜头时长与顺序，非阻断风格问题。",
+        "owner": "director",
+        "blocking": false
+      },
+      {
+        "severity": "info",
+        "message": "动态核验缺口（非阻断）：本轮审核为逐镜静帧，以下效果需在预览或成片播放中确认：①shot-01[0,330)手机框内4图轮播的8帧交叉过渡是否每图可辨、外框与标题不重启；②shot-09[2075,2163) crop{y:0.1,h:0.51}是否实际框住『消息5金币/条、语音30金币/分钟、视频80金币/分钟』计价行（元数据无像素位置依据）；③shot-06/shot-13 set_design各部件错峰入场是否互相遮挡；④shot-02/04/05/12/15各reveal与字幕实测跟随。逐镜PNG仅证明代表帧静态可渲染，不宣称已观看成片。",
+        "owner": "editing",
+        "blocking": false
+      }
+    ]
+  },
+  "new_operations": [
+    {
+      "id": "dabcf04338094d60a5660a45c9abe865",
+      "status": "COMPLETED",
+      "provider": "llm:editing"
+    }
+  ],
+  "model_settings": [
+    {
+      "cli_provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "reasoning_effort": "xhigh",
+      "context_tokens": 1000000
+    }
+  ],
+  "all_50_prior_operation_rows_unchanged": true,
+  "script_assets_and_entire_approved_timeline_unchanged": true,
+  "probe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1080,
+        "height": 1920,
+        "r_frame_rate": "30/1",
+        "duration": "123.800000",
+        "nb_frames": "3714",
+        "side_data_list": [
+          {}
+        ]
+      },
+      {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "r_frame_rate": "0/0",
+        "duration": "123.819000",
+        "nb_frames": "5806"
+      }
+    ],
+    "format": {
+      "duration": "123.819000",
+      "size": "19293161"
+    }
+  },
+  "sha256": "27a0a8bd6a9acb6c898c67e51536f54f2180059537cf8674b8e10e6885dc97bb",
+  "cover_sha256": "77a96b26f1418bbca2c90c58664fdca043e5d66eeb78ca95871747b56c90e414",
+  "decode_exit_code": 0,
+  "inspection_samples": [
+    {
+      "frame": 41,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-0041.png",
+      "sha256": "70f9e400251c3bc461d4824d8102f433d1468784b9d4a71e73fb0fff3af632c2"
+    },
+    {
+      "frame": 86,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-0086.png",
+      "sha256": "734d3a1dc126d7ee7fd96f49862dd254e0484393c6f3236360510e87e8483061"
+    },
+    {
+      "frame": 124,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-0124.png",
+      "sha256": "c2cd9a0b23b8bb1c3f53eb2d7689af503d27596c5a38fc8134d10209c9efe313"
+    },
+    {
+      "frame": 207,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-0207.png",
+      "sha256": "de3a1c72465cf2738a1980aae373924d5f3beeeedb596cfc50295333159adb46"
+    },
+    {
+      "frame": 289,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-0289.png",
+      "sha256": "2780e1a7cece79465db6aceb0d45933bdcc2e66896e3eb5bb8182e7ab9dde6ad"
+    },
+    {
+      "frame": 333,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-0333.png",
+      "sha256": "f12fae1a28ee3e77653a745b9ed5d79c1ef43b9d9103a85bd791b2d3f28fc47d"
+    },
+    {
+      "frame": 345,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-0345.png",
+      "sha256": "1d280e80a717d4507c54f5dcce0e8fa9f81989f6a1b0cb74045163774b18895d"
+    },
+    {
+      "frame": 360,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-0360.png",
+      "sha256": "68f1be4538aa706d817e7132028f51f6bae60bdc03b93ffe4a0607aa6f95d64d"
+    },
+    {
+      "frame": 630,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-0630.png",
+      "sha256": "f86797cec1d794529ab5eccce163052c4d8edcf4814ad6a7dcf94a061306da4b"
+    },
+    {
+      "frame": 1005,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-1005.png",
+      "sha256": "3d6fcd7818e8b1e972d17ee3f1118ded0975c8ab9295b0e69ea4391295b9d6a7"
+    },
+    {
+      "frame": 1340,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-1340.png",
+      "sha256": "9892e7678dbffe1af5261d05668def73f818828d93553d402eeb79f5e45d480b"
+    },
+    {
+      "frame": 1530,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-1530.png",
+      "sha256": "fb10ee2c439969ad8c08e4c8b7d86eae0dbf9e3fcd148bf5bb5154a97818dfa1"
+    },
+    {
+      "frame": 1610,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-1610.png",
+      "sha256": "1d05e3a19409d5062dc1ae108810c6678319be0dbef6e1cfad2b7dde27ec0f0c"
+    },
+    {
+      "frame": 2120,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-2120.png",
+      "sha256": "5ca0a4af194aea670f3f42bb0f1764ff23772a7e165a300e63d5d38801d0dfac"
+    },
+    {
+      "frame": 2215,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-2215.png",
+      "sha256": "068d35eaedc6c7e0f7dfd3fa54fd65d6fe165cfd9367895ce60ab0c4cd88cac4"
+    },
+    {
+      "frame": 2700,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-2700.png",
+      "sha256": "cd6a61e8a0dc0b6548b3e0ef107dc7c8e00f43c17f82b0c4d81dba4333df17fa"
+    },
+    {
+      "frame": 2860,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-2860.png",
+      "sha256": "2333c801a3485773e0d17a0b3e1b6344ced99dca11f5871c85d78ac071d4c884"
+    },
+    {
+      "frame": 3040,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-3040.png",
+      "sha256": "17a2b79aa53d12875898a1fdbf16c6464d6d26580dcd02343d0e88b901170111"
+    },
+    {
+      "frame": 3140,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-3140.png",
+      "sha256": "d6263705bac61384dd0728a36d60ccd3f853e7e914e751f52f8a4831be45ceaa"
+    },
+    {
+      "frame": 3490,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-3490.png",
+      "sha256": "84407c2c2caefe0816c881858c1b2e85e1e6408eab1bf7f4d439276565542d6b"
+    },
+    {
+      "frame": 3650,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r15-inspection-20261015\\frame-3650.png",
+      "sha256": "e4406f77235321d46d4d4ac8adb9f33c996a8ca695e001341fe6149be7e03c19"
+    }
+  ],
+  "visual_inspection_complete": true,
+  "published": false,
+  "key_frame_inspection_complete": true,
+  "inspected_frames": [
+    41,
+    86,
+    124,
+    207,
+    289,
+    333,
+    360,
+    1610,
+    2120,
+    2700,
+    3040,
+    3140,
+    3650
+  ],
+  "full_realtime_watch": false,
+  "visual_observations": [
+    "Four opening pages and an intermediate dissolve retain one phone shell and title, with only inner media changing.",
+    "Shot02 has its first step visible at frame333, within 0.1 seconds of the shot start; frame360 has the next step visible.",
+    "Shot09 frame2120 includes the complete 5 coins/message,30 coins/minute voice,80 coins/minute video rows.",
+    "Shot06 frame1610 retains separate media, support cards, emphasis and caption regions.",
+    "Shot12 frame2700 clearly labels the 250000-yuan calculation as hypothetical, not actual revenue."
+  ],
+  "preserved_approved_visual_limitations": [
+    "Shot13 support badge text is clipped at its small card edge at inspected frames3040/3140; this is unchanged from the user-approved timeline.",
+    "Shot16 retains the component English label next action, unchanged from the user-approved shot.",
+    "Opening square source images use contain with letterboxing; some small source-image text remains small."
+  ],
+  "scope_note": "Render and deliver the exact approved package; do not silently rewrite approved later shots.",
+  "delivery_verified": true,
+  "video_message_id": "om_x100b623ff874e4a4c0a1a05456b3a6d",
+  "video_message_link": "https://applink.feishu.cn/client/chat/open?openChatId=oc_34b61a867da7f3916adeb716200f9794&position=250"
+}
