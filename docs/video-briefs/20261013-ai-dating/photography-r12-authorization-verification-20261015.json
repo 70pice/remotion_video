@@ -1,0 +1,30 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 12,
+  "status": "DRAFT",
+  "source_operation": "a290785969554baab4bb2cebbbcd9c42",
+  "source_revision": 11,
+  "director_only": true,
+  "acknowledge_possible_usage": true,
+  "authorized_at": "2026-10-15T02:34:59.445943+00:00",
+  "note_matches": true,
+  "note_characters": 1378,
+  "note_sha256": "1b2e54788c97415efe085539b7d223aa53ec4709b4c53028d1382a31ff41d382",
+  "approved_brief_unchanged": true,
+  "approved_script_business_unchanged": true,
+  "retained_asset_count": 12,
+  "retained_asset_files_verified": true,
+  "previous_unknown_unchanged": true,
+  "current_operations": 0,
+  "new_timeline_absent": true,
+  "new_human_approval_granted": false,
+  "maintenance_commit": "9c7ff79",
+  "preserved_director_proof_keys": [
+    "approval_artifact_id",
+    "approval_projection",
+    "artifacts",
+    "asset_metadata",
+    "audio_asset_id",
+    "candidate_continuation"
+  ]
+}

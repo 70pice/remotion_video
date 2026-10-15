@@ -1,5 +1,7 @@
 # 本次视频制作输入
 
+2026-10-15 10:35 用户明确要求摄影重新开始并监控问题。经正常仅摄影恢复保存r12，再从维护HEAD `9c7ff79` 正常run；新操作 `cdef242d12dd438a86a10559928f884e` 为SUBMITTING，GLM-5.3[1m]/xhigh，台账已记录重试限值。原文案、12件素材/音频和旧UNKNOWN保持，未确认逐镜或成片。见[r12摄影恢复监控](photography-r12-monitoring-20261015.md)、[正式要求](photography-r12-authorized-note-20261015.txt)及[启动前验证](photography-r12-authorization-verification-20261015.json)。本条为启动时点，实时结果继续追加。
+
 2026-10-15 10:15 针对 UNKNOWN 后 token 损失风险，独立维护提交 `9c7ff79` 固定 Claude 子进程 API 错误重试为0、结构化生成次数为1、非流式超时重试为0，并移除无限重试 watchdog；台账保存限值，不改模型、已有五倍超时、成功缓存或UNKNOWN屏障。258项调用回归、41项候选接续回归通过，独立复核与类型/lint/构建通过。本轮没有供应商请求，不能证明r11根因已修复或实际账单。原r11 / NEEDS_INPUT及文案、12件文件、历史操作、16+17张PNG保持；详情和代码见[重试限损修护](cli-retry-loss-prevention-20261015.md)与[生产只读复验](cli-retry-loss-prevention-verification-20261015.json)。以下为历史时点。
 
 2026-10-15 追加核查：本任务共九笔历史UNKNOWN，具体原因码、证据边界、完整操作ID和代码阅读路径见[UNKNOWN原因与代码核对](unknown-causes-and-code-20261015.md)及[只读清单](unknown-causes-readonly-20261015.json)。最新r11已确认Claude子进程退出1，不能归因为引擎超时；上游具体错误未保存，本机已查位置未找到原始回执，仍不能宣称实际调用已经修好。
