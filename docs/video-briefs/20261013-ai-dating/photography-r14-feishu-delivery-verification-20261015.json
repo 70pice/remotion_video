@@ -1,0 +1,255 @@
+{
+  "checked_at": "2026-10-15T07:01:45.298655+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 14,
+  "status": "NEEDS_HUMAN",
+  "stage": "director",
+  "pending_token": "740b2b7c63dba8b621189b75edbce2f4",
+  "shots_table_url": "https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tbld1dGlTS2AELat",
+  "review_table_url": "https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tblNZJtNYx6gV6VG",
+  "local_png_count": 16,
+  "current_images_attached": 16,
+  "rows": [
+    {
+      "shot_id": "shot-01",
+      "record_id": "reczz28NK1Ojaaeb",
+      "review_frame": 285,
+      "filename": "shot-001.png",
+      "bytes": 640435,
+      "sha256": "ea1911a283ae5a09f1a358487b614b6f6cf1573b326c0faffedc455d588ab29f",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 2,
+      "total_historical_attachments": 7
+    },
+    {
+      "shot_id": "shot-02",
+      "record_id": "reczz28NK1Ojawex",
+      "review_frame": 710,
+      "filename": "shot-002.png",
+      "bytes": 689444,
+      "sha256": "04b95e1b66930483cb4e1789182e7f74839fc123515794b55729c975cd021fdf",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 1,
+      "total_historical_attachments": 5
+    },
+    {
+      "shot_id": "shot-03",
+      "record_id": "reczz28NK1OjaxmA",
+      "review_frame": 870,
+      "filename": "shot-003.png",
+      "bytes": 208332,
+      "sha256": "f5a2248c6ff0e234e9ab6dbac7fd45db6e4748abd63aa7bec641ac5f1146cb2f",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 1,
+      "total_historical_attachments": 5
+    },
+    {
+      "shot_id": "shot-04",
+      "record_id": "reczz28NK1OjafoH",
+      "review_frame": 1090,
+      "filename": "shot-004.png",
+      "bytes": 476988,
+      "sha256": "f0b7d79a51daa241a0fe73ddb3d4411cbd1480aeed4396f621f575220dbcc21e",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 1,
+      "total_historical_attachments": 5
+    },
+    {
+      "shot_id": "shot-05",
+      "record_id": "reczz28NK1OjaG3I",
+      "review_frame": 1350,
+      "filename": "shot-005.png",
+      "bytes": 872462,
+      "sha256": "0cac15c28018bcab629c092ed28958ec14ae3707af0f71536af2a1c1e7e4805d",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 1,
+      "total_historical_attachments": 5
+    },
+    {
+      "shot_id": "shot-06",
+      "record_id": "reczz28NK1OjesDh",
+      "review_frame": 1560,
+      "filename": "shot-006.png",
+      "bytes": 929611,
+      "sha256": "c704eb18df1fad605087a89ed023a0ec099f82f5d81be15a35158dd2904fe434",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 1,
+      "total_historical_attachments": 5
+    },
+    {
+      "shot_id": "shot-07",
+      "record_id": "reczz28NK1OjfSUy",
+      "review_frame": 1750,
+      "filename": "shot-007.png",
+      "bytes": 144307,
+      "sha256": "6121448717e78738afe9e17c8786b0f726970c08dbdce6ed80812dc243e6a2a7",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 1,
+      "total_historical_attachments": 5
+    },
+    {
+      "shot_id": "shot-08",
+      "record_id": "reczz28NK1OjeGY7",
+      "review_frame": 1930,
+      "filename": "shot-008.png",
+      "bytes": 468796,
+      "sha256": "4c3ae26de848b69dda8b07da1bb6f415d57c1300a7e8d2cca6113799a1ed7f49",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 1,
+      "total_historical_attachments": 5
+    },
+    {
+      "shot_id": "shot-09",
+      "record_id": "reczz28NK1Ojf7h8",
+      "review_frame": 2115,
+      "filename": "shot-009.png",
+      "bytes": 156438,
+      "sha256": "61e8c4ccb7100a7a4670557cefddf7333e4367adf191226507e316bb50b894ab",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 1,
+      "total_historical_attachments": 5
+    },
+    {
+      "shot_id": "shot-10",
+      "record_id": "reczz28NK1OjdLHt",
+      "review_frame": 2200,
+      "filename": "shot-010.png",
+      "bytes": 724426,
+      "sha256": "62f13117cfa8b147eb608deab82c34db274af1e8441b5be8f3e41eb42723c960",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 1,
+      "total_historical_attachments": 5
+    },
+    {
+      "shot_id": "shot-11",
+      "record_id": "reczz28NK1OjealR",
+      "review_frame": 2300,
+      "filename": "shot-011.png",
+      "bytes": 1747654,
+      "sha256": "8c82cefd801af68f69d7a922f4c7caadaac8a56402aa3c3525943523bac5d027",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 1,
+      "total_historical_attachments": 5
+    },
+    {
+      "shot_id": "shot-12",
+      "record_id": "reczz28NK1OjemPN",
+      "review_frame": 2650,
+      "filename": "shot-012.png",
+      "bytes": 485884,
+      "sha256": "4c0e22925425133eca3eb294d43565a91748fdb020d557fbc343d502ab7a7364",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 1,
+      "total_historical_attachments": 5
+    },
+    {
+      "shot_id": "shot-13",
+      "record_id": "reczz28NK1Ojgx3Y",
+      "review_frame": 3110,
+      "filename": "shot-013.png",
+      "bytes": 705502,
+      "sha256": "6398a4586caefb7b6d9427d0727871fd407589434bb7291e8f2edb034879f4cc",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 1,
+      "total_historical_attachments": 5
+    },
+    {
+      "shot_id": "shot-14",
+      "record_id": "reczz28NK1OjegJv",
+      "review_frame": 3250,
+      "filename": "shot-014.png",
+      "bytes": 628282,
+      "sha256": "4a135d066485cf786b081822fe9387534c0a9e64a4c67cfcb28a0f7d6f289a55",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 1,
+      "total_historical_attachments": 5
+    },
+    {
+      "shot_id": "shot-15",
+      "record_id": "reczz28NK1Ojh0tb",
+      "review_frame": 3480,
+      "filename": "shot-015.png",
+      "bytes": 449994,
+      "sha256": "42b7e63ecf61c7908cb9a85048c45be0c33dd4e301487a56f1a6822340de0dcf",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 3,
+      "total_historical_attachments": 5
+    },
+    {
+      "shot_id": "shot-16",
+      "record_id": "reczz28NK1Ojf3nN",
+      "review_frame": 3650,
+      "filename": "shot-016.png",
+      "bytes": 1640262,
+      "sha256": "8a5771e9a3eaabe235dc61b578526653500a9ea2bbd76b13dfa7869c689ecd51",
+      "width": 1080,
+      "height": 1920,
+      "current_name_and_size_matches": 1,
+      "total_historical_attachments": 5
+    }
+  ],
+  "operations": [
+    {
+      "operation_id": "49badb7416bb49fa9dd4d8161750ba51",
+      "status": "COMPLETED",
+      "model": "glm-5.3[1m]",
+      "reasoning_effort": "xhigh"
+    },
+    {
+      "operation_id": "977a646624a44cd8aa08e88a20a536f5",
+      "status": "COMPLETED",
+      "model": "glm-5.3[1m]",
+      "reasoning_effort": "xhigh"
+    },
+    {
+      "operation_id": "993966f781df4f8a9a87fad76d64be87",
+      "status": "COMPLETED",
+      "model": "glm-5.3[1m]",
+      "reasoning_effort": "xhigh"
+    },
+    {
+      "operation_id": "ffa0032d4b5c450a8de5d1f9a7ff4669",
+      "status": "COMPLETED",
+      "model": "glm-5.3[1m]",
+      "reasoning_effort": "xhigh"
+    }
+  ],
+  "current_review": {
+    "record_id": "reczz28NapJQRJdS",
+    "待办令牌": "740b2b7c63dba8b621189b75edbce2f4",
+    "意见": null,
+    "结论": [
+      "待审"
+    ],
+    "阶段": [
+      "逐镜"
+    ]
+  },
+  "shot_gate_confirmed": false,
+  "final_video_rendered": false,
+  "visual_quality_approved": false,
+  "limitations": [
+    "Remote file bytes were not downloaded; attachment name and size checked against SHA-verified local originals.",
+    "Historical attachments and one obsolete shot-02b row remain; this package requires shot-01 through shot-16 only.",
+    "Actual image inspection found unresolved layout defects; see the visual audit, no human decision was fabricated."
+  ],
+  "maintenance_commits": [
+    "5a883ab",
+    "87c541c"
+  ]
+}

@@ -1,0 +1,338 @@
+{
+  "saved_shot02": {
+    "shot_id": "shot-02",
+    "start_frame": 330,
+    "end_frame": 735,
+    "component_id": "Rve-QuoteCard",
+    "title": "用Claude做二十多款App",
+    "body": "报告GTG-15001披露：中国匿名工作室；Claude既开发App，又扮人设陪聊；目标用户在美国",
+    "asset_src": null,
+    "source_label": "来源：Anthropic 2026年9月威胁报告GTG-15001（中译）",
+    "accent_color": "#5B8CFF",
+    "props": {},
+    "set_design": {
+      "set_id": "B12",
+      "content": {
+        "takeaway": "两万五≠已证实受害人",
+        "items": [
+          "报告披露：GTG-15001",
+          "中国匿名工作室用Claude开发",
+          "20多款交友App·用户在美国"
+        ],
+        "supporting_items": [
+          "2026年4月·两周观察窗",
+          "至少25000名独立用户",
+          "非已证实受害人数"
+        ],
+        "metric": {
+          "label": "链路要点",
+          "value": "3项",
+          "detail": "报告→工作室→App·用户"
+        },
+        "source_refs": [
+          "https://www.anthropic.com/threat-intelligence-report-september-2026"
+        ]
+      },
+      "parts": [
+        {
+          "part_id": "title",
+          "start_frame": 0,
+          "end_frame": 140,
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 0.1227
+          }
+        },
+        {
+          "part_id": "main",
+          "start_frame": 95,
+          "end_frame": 405,
+          "box": {
+            "x": 0.0,
+            "y": 0.1442,
+            "width": 1.0,
+            "height": 0.2761
+          }
+        },
+        {
+          "part_id": "support_1",
+          "start_frame": 260,
+          "end_frame": 405,
+          "box": {
+            "x": 0.0,
+            "y": 0.4417,
+            "width": 0.479,
+            "height": 0.1687
+          }
+        },
+        {
+          "part_id": "support_2",
+          "start_frame": 190,
+          "end_frame": 405,
+          "box": {
+            "x": 0.5,
+            "y": 0.4417,
+            "width": 0.5,
+            "height": 0.1687
+          }
+        },
+        {
+          "part_id": "support_3",
+          "start_frame": 190,
+          "end_frame": 405,
+          "box": {
+            "x": 0.0,
+            "y": 0.6319,
+            "width": 0.479,
+            "height": 0.1687
+          }
+        },
+        {
+          "part_id": "emphasis",
+          "start_frame": 335,
+          "end_frame": 405,
+          "box": {
+            "x": 0.0,
+            "y": 0.8252,
+            "width": 1.0,
+            "height": 0.1748
+          }
+        }
+      ]
+    }
+  },
+  "raw_results": [
+    {
+      "operation_id": "ffa0032d4b5c450a8de5d1f9a7ff4669",
+      "status": "COMPLETED",
+      "shot02": {
+        "accent_color": "#5B8CFF",
+        "asset_src": null,
+        "body": "报告GTG-15001披露：中国匿名工作室；Claude既开发App，又扮人设陪聊；目标用户在美国",
+        "component_id": "Rve-QuoteCard",
+        "end_frame": 735,
+        "media_usage": "source_evidence",
+        "props": {},
+        "set_design": {
+          "content": {
+            "items": [
+              "报告披露：GTG-15001",
+              "中国匿名工作室用Claude开发",
+              "20多款交友App·用户在美国"
+            ],
+            "metric": {
+              "detail": "报告→工作室→App·用户",
+              "label": "链路要点",
+              "value": "3项"
+            },
+            "source_refs": [
+              "https://www.anthropic.com/threat-intelligence-report-september-2026"
+            ],
+            "supporting_items": [
+              "2026年4月·两周观察窗",
+              "至少25000名独立用户",
+              "非已证实受害人数"
+            ],
+            "takeaway": "25000人≠已证实受害人"
+          },
+          "parts": [
+            {
+              "box": {
+                "height": 0.1227,
+                "width": 1.0,
+                "x": 0.0,
+                "y": 0.0
+              },
+              "end_frame": 140,
+              "part_id": "title",
+              "start_frame": 0
+            },
+            {
+              "box": {
+                "height": 0.2761,
+                "width": 1.0,
+                "x": 0.0,
+                "y": 0.1442
+              },
+              "end_frame": 405,
+              "part_id": "main",
+              "start_frame": 95
+            },
+            {
+              "box": {
+                "height": 0.1687,
+                "width": 0.479,
+                "x": 0.0,
+                "y": 0.4417
+              },
+              "end_frame": 405,
+              "part_id": "support_1",
+              "start_frame": 260
+            },
+            {
+              "box": {
+                "height": 0.1687,
+                "width": 0.5,
+                "x": 0.5,
+                "y": 0.4417
+              },
+              "end_frame": 405,
+              "part_id": "support_2",
+              "start_frame": 190
+            },
+            {
+              "box": {
+                "height": 0.1687,
+                "width": 0.479,
+                "x": 0.0,
+                "y": 0.6319
+              },
+              "end_frame": 405,
+              "part_id": "support_3",
+              "start_frame": 190
+            },
+            {
+              "box": {
+                "height": 0.1748,
+                "width": 1.0,
+                "x": 0.0,
+                "y": 0.8252
+              },
+              "end_frame": 405,
+              "part_id": "emphasis",
+              "start_frame": 335
+            }
+          ],
+          "set_id": "B12"
+        },
+        "shot_id": "shot-02",
+        "source_label": "来源：Anthropic 2026年9月威胁报告GTG-15001（中译）",
+        "start_frame": 330,
+        "title": "用Claude做20多款交友App"
+      },
+      "review": {
+        "component_reason": "组件套B12：报告链路无对应截图，用关系链套承载；标题17字、非空正文、否定进主文的takeaway、items=3与metric=3项均保留；本次把support_3由260..405提前到190..405（215帧），满足完整items连接文字的阅读下限，修复『显示区间不足阅读』校验问题。",
+        "review_frame": 710,
+        "shot_id": "shot-02",
+        "visual_action": "代表帧710处：引用卡三条链路、步骤条、翻词卡与底部高亮『25000人≠已证实受害人』同屏可读；support_3已于第190帧与步骤条同步入场并保持到段末，第335帧起高亮保持70帧覆盖口播收尾。"
+      }
+    },
+    {
+      "operation_id": "977a646624a44cd8aa08e88a20a536f5",
+      "status": "COMPLETED",
+      "shot02": {
+        "accent_color": "#5B8CFF",
+        "asset_src": null,
+        "body": "报告GTG-15001披露：中国匿名工作室；Claude既开发App，又扮人设陪聊；目标用户在美国",
+        "component_id": "Rve-QuoteCard",
+        "end_frame": 735,
+        "media_usage": "source_evidence",
+        "props": {},
+        "set_design": {
+          "content": {
+            "items": [
+              "报告披露：GTG-15001",
+              "中国匿名工作室用Claude开发",
+              "20多款交友App·用户在美国"
+            ],
+            "metric": {
+              "detail": "报告→工作室→App·用户",
+              "label": "链路要点",
+              "value": "3项"
+            },
+            "source_refs": [
+              "https://www.anthropic.com/threat-intelligence-report-september-2026"
+            ],
+            "supporting_items": [
+              "2026年4月·两周观察窗",
+              "至少25000名独立用户",
+              "非已证实受害人数"
+            ],
+            "takeaway": "两万五≠已证实受害人"
+          },
+          "parts": [
+            {
+              "box": {
+                "height": 0.1227,
+                "width": 1.0,
+                "x": 0.0,
+                "y": 0.0
+              },
+              "end_frame": 140,
+              "part_id": "title",
+              "start_frame": 0
+            },
+            {
+              "box": {
+                "height": 0.2761,
+                "width": 1.0,
+                "x": 0.0,
+                "y": 0.1442
+              },
+              "end_frame": 405,
+              "part_id": "main",
+              "start_frame": 95
+            },
+            {
+              "box": {
+                "height": 0.1687,
+                "width": 0.479,
+                "x": 0.0,
+                "y": 0.4417
+              },
+              "end_frame": 405,
+              "part_id": "support_1",
+              "start_frame": 260
+            },
+            {
+              "box": {
+                "height": 0.1687,
+                "width": 0.5,
+                "x": 0.5,
+                "y": 0.4417
+              },
+              "end_frame": 405,
+              "part_id": "support_2",
+              "start_frame": 190
+            },
+            {
+              "box": {
+                "height": 0.1687,
+                "width": 0.479,
+                "x": 0.0,
+                "y": 0.6319
+              },
+              "end_frame": 405,
+              "part_id": "support_3",
+              "start_frame": 190
+            },
+            {
+              "box": {
+                "height": 0.1748,
+                "width": 1.0,
+                "x": 0.0,
+                "y": 0.8252
+              },
+              "end_frame": 405,
+              "part_id": "emphasis",
+              "start_frame": 335
+            }
+          ],
+          "set_id": "B12"
+        },
+        "shot_id": "shot-02",
+        "source_label": "来源：Anthropic 2026年9月威胁报告GTG-15001（中译）",
+        "start_frame": 330,
+        "title": "用Claude做二十多款App"
+      },
+      "review": {
+        "component_reason": "组件套B12：报告链路无对应截图，用关系链套承载；本轮修复真实渲染失败——support_2由放不下三条34px步骤的Rve-ProgressSteps换为同槽Rve-AnimatedList逐条展开，三条完整显示不截断；title/takeaway均回到18字上限内且非空，items=3、metric=3项、support_3为190..405满足完整items连接文字阅读下限。",
+        "review_frame": 710,
+        "shot_id": "shot-02",
+        "visual_action": "代表帧710处：引用卡三条链路、列表条目、翻词卡与底部高亮『两万五≠已证实受害人』同屏可读；support_2/support_3已于第190帧同步入场并保持到段末，第335帧起高亮保持70帧覆盖口播收尾；其余时间主卡常驻供阅读。"
+      }
+    }
+  ]
+}

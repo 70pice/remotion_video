@@ -1,0 +1,17 @@
+{
+  "checked_at": "2026-10-15T06:00:39.767065+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 14,
+  "command_id": "cb53bdf9fbfa4832bb8fffe7994601fa",
+  "command_status": "CLAIMED",
+  "new_operation_id": "ffa0032d4b5c450a8de5d1f9a7ff4669",
+  "answered_pending_token": "e4f9ae79b0ca4964b192fb4a4674d44e",
+  "note_matches": true,
+  "note_characters": 1468,
+  "note_sha256": "14996720351fcd9b6bd07fbc71d6551e07fd1c2497cdb896ddf287a55ac03e40",
+  "candidate_operation_id": "49badb7416bb49fa9dd4d8161750ba51",
+  "candidate_shots": 16,
+  "candidate_body_sha256": "258d3a75a8410bccb6ede48eeb77e82741cc322cf65827316457fe9829855860",
+  "input_repair_not_human_shot_confirmation": true,
+  "new_human_approval_granted": false
+}

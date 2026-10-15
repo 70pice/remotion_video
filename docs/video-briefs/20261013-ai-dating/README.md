@@ -1,5 +1,7 @@
 # 本次视频制作输入
 
+2026-10-15 15:01最新状态：用户授权重试后沿用已审文案、素材和配音进入r14，本轮4次摄影操作均正常返回，无新UNKNOWN，已实际生成并交付16张逐镜PNG。修复了已知文字容量失败误走原图重渲染的恢复路由（维护提交5a883ab），以及跨工作目录附件上传失败被吞掉的飞书交付问题（87c541c）。[飞书镜头表](https://my.feishu.cn/base/FiiebSriRaMxe3s56nSciW27nle?table=tbld1dGlTS2AELat)中每行最后附件为本轮图，旧shot-02b不属于当前包。画面仍有重复字、裁切、重复六图及英文占位词，尚未通过质量审阅；停在NEEDS_HUMAN逐镜门，未渲染成片。见[本轮监控与修复](photography-r14-monitoring-20261015.md)、[实际逐镜观察](photography-r14-visual-audit-20261015.md)、[交付读回](photography-r14-feishu-delivery-verification-20261015.json)。以下保留历史时点记录。
+
 2026-10-15进一步只读分析：实际停止可定位到Claude Code的API错误，未进入渲染、未触发节点超时；
 原始回执在本次精确临时/会话目录均未找到。另复现并修复适配器漏读CLI固定 `api_error` 分类的
 记录缺陷，236项本地回归及静态/构建/独立复核通过；不证明本笔历史API错误的具体触发原因。

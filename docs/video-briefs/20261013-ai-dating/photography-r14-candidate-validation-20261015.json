@@ -1,0 +1,99 @@
+{
+  "checked_at": "2026-10-15T05:58:16.000814+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 14,
+  "operation_id": "49badb7416bb49fa9dd4d8161750ba51",
+  "shot_count": 16,
+  "no_provider_calls": true,
+  "no_production_state_mutation": true,
+  "checks": [
+    {
+      "check": "production_timeline",
+      "passed": true
+    },
+    {
+      "check": "readability",
+      "passed": true,
+      "issues": []
+    },
+    {
+      "check": "media_coverage",
+      "passed": true
+    },
+    {
+      "check": "native_component_requirements",
+      "passed": false,
+      "issue": "layer Talkcraft-keyword-pop-highlight 需要 props.highlight 或 props.items[0] 作为关键词；layer Talkcraft-keyword-pop-highlight 需要 props.highlight 或 props.items[0] 作为关键词；layer Talkcraft-keyword-pop-highlight 需要 props.highlight 或 props.items[0] 作为关键词"
+    },
+    {
+      "check": "shot-01.set_content",
+      "passed": true
+    },
+    {
+      "check": "shot-01.set_layout",
+      "passed": true
+    },
+    {
+      "check": "shot-02.set_content",
+      "passed": true
+    },
+    {
+      "check": "shot-02.set_layout",
+      "passed": true
+    },
+    {
+      "check": "shot-05.set_content",
+      "passed": true
+    },
+    {
+      "check": "shot-05.set_layout",
+      "passed": true
+    },
+    {
+      "check": "shot-06.set_content",
+      "passed": true
+    },
+    {
+      "check": "shot-06.set_layout",
+      "passed": true
+    },
+    {
+      "check": "shot-13.set_content",
+      "passed": true
+    },
+    {
+      "check": "shot-13.set_layout",
+      "passed": true
+    }
+  ],
+  "keyword_layers": [
+    {
+      "shot_id": "shot-03",
+      "layer_index": 0,
+      "title": "同一个Claude，扮演人设陪聊",
+      "props": {},
+      "visible_frames": 102
+    },
+    {
+      "shot_id": "shot-07",
+      "layer_index": 0,
+      "title": "一次三条，挑一条就发",
+      "props": {},
+      "visible_frames": 140
+    },
+    {
+      "shot_id": "shot-08",
+      "layer_index": 0,
+      "title": "不能承认：我是AI",
+      "props": {},
+      "visible_frames": 190
+    }
+  ],
+  "media_coverage_summary": {
+    "target_frames": 2600,
+    "eligible_capacity_ratio": 0.0,
+    "actual_media_frames": 1648,
+    "actual_media_ratio": 0.4437,
+    "required": false
+  }
+}

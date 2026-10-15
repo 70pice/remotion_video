@@ -1,0 +1,7 @@
+继续 r14 最新完成的16镜候选 977a646624a44cd8aa08e88a20a536f5，不从头制作。这是实际渲染失败返工，未授予人工审核通过。
+
+刚才返回值有一处明确错误：第2镜 shot-02 的 shot_reviews 说“support_2从Rve-ProgressSteps换成Rve-AnimatedList”，但 B12 套内部件的 component_id 是固定目录绑定，parts 只支持 part_id/start_frame/end_frame/box，不能替换组件。你并没有改变 support_2 的实际 box，也没有改变其绑定的 items，程序仍按 Rve-ProgressSteps 在476×220槽里显示原三条文字，所以完全复现同一错误。不是程序丢掉了你的尺寸修改：你的原始输出就没有尺寸修改。不要再只在理由里声称换了组件。
+
+本次只纠正这个真实参数问题：在完整返回的 shots 中，给 shot-02.set_design.parts 的 support_2 写入足以容纳完整三条文字的实际 box。已经测量同文案宽476px时高320px能通过；按安全区952×1304换算，高度至少320/1304约0.2454，原0.1687绝对不够。可以给更充足空间，由你负责与其它部件的同时显示区域及安全区关系；组件仍是B12固定的Rve-ProgressSteps，不得在说明里虚构组件替换。保留原三条items和34px最低字号、最多两行，不截断、不隐藏、不选避开文字的代表帧，不去改无关标题或takeaway。
+
+其它已保存字段保持：文案/音频/字幕、素材、2249帧切点、第9镜有效收费图裁切、第14镜封禁进展、有效关键词props等不回退。完整返回 shots、segment_performances、shot_reviews；第2镜理由准确陈述实际box变化，不得用文字描述代替参数。之后仍需真实渲染全套逐镜PNG并交用户审核。

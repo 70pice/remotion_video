@@ -1,0 +1,13 @@
+继续当前r14摄影校验返工，以extras.timeline_repair_candidate中本轮已COMPLETED操作49badb7416bb49fa9dd4d8161750ba51的完整16镜方案为底稿；不要回退r9，不从空白重做。此为kind=input的参数纠正，不是逐镜人工审核通过。保留当前已审文案、11件视觉素材、真实配音、alignment/captions、3714总帧和所有无问题镜头。
+
+只读重放本轮候选已确认：production_timeline、readability、media_coverage、五套组件的内容与layout校验均通过。原生组件校验目前只有以下3处遗漏，不能降低校验或删除全部动画层来绕过：
+1. shot-03第0层Talkcraft-keyword-pop-highlight，可见102帧，现title为“同一个Claude，扮演人设陪聊”，props为空。
+2. shot-07第0层同组件，可见140帧，现title为“一次三条，挑一条就发”，props为空。
+3. shot-08第0层同组件，可见190帧，现title为“不能承认：我是AI”，props为空。
+这3层必须填写非空字符串props.highlight，或非空字符串数组props.items的首项作为真正的关键词；仅layer.title或props.keyword不能满足当前keyword_required校验。此处highlight是强调文字，不是图片坐标。请用本镜头已有文字中的准确短关键词，合理安排title与keyword，避免同一整句或“同一个Claude”重复显示；保留至少60帧可见和已安排的字幕语义切点。检查其余所有层与内容字段，完整返回shots、segment_performances、shot_reviews。
+
+保留本轮有效修改：shot-02 emphasis70帧等阅读时长、B12/B03/A07/B11的非空内容与条数；shot-10/11切点2249对应真人口播，shot-14 body真正包含“Anthropic已封禁相关账号和组织”；shot-07、08现有contain防止横图/人像裁切改善。不得重新引入上轮已指出的问题。
+
+shot-09仍只有content_mode=media和asset_fit=contain，没有放大5/30/80金币行的实际参数。监督本轮已读取这张真实图片：a12818e554a74684bea6e34785c8b85b，683×819像素，收费设置，5金币/条、30金币/分钟、80金币/分钟。三项计价集中在全宽的约y=82..500像素，上方页头及下方灰色说明占用大量空间；这是真实像素核验，可作为摄影构图依据。使用当前组件支持的asset_crop（归一化x=0,y约0.10,width=1,height约0.51）或合适的实际素材槽布局显示这三行，减少无效留白，不只写visual_action声称已放大。保留“国内同类付费界面示意，非报告涉案App”边界，不把历史价格说成涉案App价格，不重复堆叠长限定。若改动影响真实计价行或阅读时间，须同步核对。
+
+全片仅GTG-15001这一案，开头“两周、至少25000名独立用户”不是确认受害人数。被拒模糊素材、探探/Soul等不回流。不修改原文案和音频，不触发上游或成片。修完仍由正常引擎完整校验并渲染逐镜PNG，整包交人工审核；未渲染的图不声称已经看过或合格。
