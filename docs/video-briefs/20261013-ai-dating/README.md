@@ -1,5 +1,13 @@
 # 本次视频制作输入
 
+2026-10-15 12:26 r13首次摄影操作已COMPLETED并返回16镜，随后因部件阅读预算停止在正常输入校验，
+没有出现新的UNKNOWN。已复现4处显示时间不足及增强内容条件问题；独立复核另发现2256帧切点、
+引用卡封禁主事实、横条截图裁切与来源重复仍需修改。维护提交 `ebe47a1` 澄清生产组件套提示，
+161项定向回归及Ruff/类型/lint/wheel构建通过，未降低校验。已通过正常 `resume` 将集中意见交摄影，
+本次操作 `1eaeeda9e64049c9abe59f2c922250e2` 为SUBMITTING；仍r13，仅摄影，不是从头制作。
+本次回复的是输入校验待办，未确认逐镜审核。详见[r13监控](photography-r13-monitoring-20261015.md)、
+[集中返工要求](photography-r13-layout-feedback-20261015.txt)和[输入与台账复验](photography-r13-preservation-verification-20261015.json)。以下为历史时点。
+
 2026-10-15 12:13 用户引用“两次纠正已配置、摄影仍停在r12”的消息明确回复“继续吧”，已通过正常
 `restart-unknown --director-only` 保存r13，再从独立维护提交 `dfde322` 经正常 `run` 发起一次摄影。
 新操作 `90912e13e0bd43bba8638c7b0247a099` 当前SUBMITTING，台账确认首次加最多两次结构化纠正。
