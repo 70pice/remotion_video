@@ -79,3 +79,24 @@ test('single-image and video inputs retain their existing renderer path', () => 
     assert.equal((html.match(/<section /g) ?? []).length, 1);
   }
 });
+
+test('carousel keeps complete multi-source attribution inside the existing header slot', async () => {
+  const remotion = {Img: props => createElement('img', props), staticFile: src => src,
+    useCurrentFrame: () => 190, useVideoConfig: () => ({width:1080, height:1920, fps:30, durationInFrames:330})};
+  const layout = await load('./adapters/layout.tsx', name => name === 'remotion' ? remotion : nodeRequire(name));
+  const actual = await load('./PhoneFrameMaterial.tsx', name => {
+    if (name === './adapters/layout') return layout;
+    if (name === 'remotion') return remotion;
+    if (name === './phoneCarousel') return {phoneCarouselAt};
+    if (name.endsWith('/snapcn/phone-frame')) return {PhoneFrame: ({children}) => createElement('section', {}, children)};
+    if (name === './phoneTutorial' || name === './focusGeometry') return {};
+    return nodeRequire(name);
+  });
+  const source = '另案示例｜news.cnr.cn｜time-weekly.com｜浦东警方供图·时代财经2022；同类中文界面示意，非报告涉案App，事实见GTG-15001';
+  const html = renderToStaticMarkup(createElement(actual.PhoneFrameMaterial, {shot:{...shot, source_label:source}}));
+  assert.ok(html.includes(source));
+  assert.ok(!html.includes('text-overflow:ellipsis'));
+  const legacy = renderToStaticMarkup(createElement(actual.PhoneFrameMaterial,
+    {shot:{...shot, source_label:'另案示例｜example.com', props:{content_mode:'media'}}}));
+  assert.ok(legacy.includes('white-space:nowrap'));
+});

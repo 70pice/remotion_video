@@ -109,7 +109,8 @@ export const PhoneFrameMaterial = ({shot}: {shot: TimelineShot}) => {
         border: '1px solid #FFFFFF29', borderRadius: 999, padding: `${7 * unit}px ${14 * unit}px`,
         background: '#07101FCC', color: muted, fontWeight: 700}}>
         <FittedText text={shot.source_label} width={contentWidth - 28 * unit} height={sourceHeight}
-          fontSize={(vertical ? 22 : 14) * unit} minFontSize={(vertical ? 15 : 11) * unit} preferSingleLine />
+          fontSize={(vertical ? 22 : 14) * unit} minFontSize={(vertical ? 15 : 11) * unit}
+          preferSingleLine={!Array.isArray(shot.props.media_slides)} />
       </div> : null}
     </div> : null}
     {guided ? <style>{'.guided-phone-frame div { box-sizing: border-box; }'}</style> : null}
