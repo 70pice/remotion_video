@@ -1,0 +1,187 @@
+{
+  "checked_at": "2026-10-15T11:21:19.374124+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 15,
+  "command": {
+    "command_id": "51adc23291ea4ca69d4207a5e23c42fc",
+    "status": "DONE",
+    "pid": 13404
+  },
+  "new_operations": [
+    {
+      "id": "2092a1da39594abcbdbd1a59028526c3",
+      "status": "COMPLETED",
+      "provider": "llm:director"
+    },
+    {
+      "id": "f8592b77e53940f9b5cc5e1399175c92",
+      "status": "COMPLETED",
+      "provider": "llm:director"
+    }
+  ],
+  "model_settings": [
+    {
+      "cli_provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "reasoning_effort": "xhigh",
+      "context_tokens": 1000000
+    },
+    {
+      "cli_provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "reasoning_effort": "xhigh",
+      "context_tokens": 1000000
+    }
+  ],
+  "one_phone_shot": {
+    "shot_id": "shot-01",
+    "start_frame": 0,
+    "end_frame": 330,
+    "component_id": "Snapcn-PhoneFrame",
+    "title": "25000人，聊的是AI",
+    "body": "两周观察窗·至少25000名独立用户",
+    "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/0b61255194854094b26a4a2565504352.png",
+    "source_label": "另案示例｜news.cnr.cn｜time-weekly.com｜浦东警方供图·时代财经2022；同类中文界面示意，非报告涉案App，事实见GTG-15001",
+    "media_usage": "context_example",
+    "accent_color": "#8CFFB8",
+    "props": {
+      "content_mode": "media",
+      "carousel_transition_frames": 8,
+      "media_slides": [
+        {
+          "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/0b61255194854094b26a4a2565504352.png",
+          "start_frame": 0,
+          "asset_fit": "cover"
+        },
+        {
+          "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/59cb502d984a4c1fafdfaeadf8fd144a.jpg",
+          "start_frame": 83,
+          "asset_fit": "contain"
+        },
+        {
+          "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/b611b6b73f0f42f6b8ecf01248fcb65d.png",
+          "start_frame": 166,
+          "asset_fit": "contain"
+        },
+        {
+          "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/00e534aed0e74d6b9f5cfbfb589d28c3.jpg",
+          "start_frame": 249,
+          "asset_fit": "contain"
+        }
+      ]
+    }
+  },
+  "locked_shots02_to16_unchanged": true,
+  "script_assets_audio_captions_timing_unchanged": true,
+  "all_48_prior_operation_rows_unchanged": true,
+  "timeline_artifact": {
+    "id": "5f965a53a7ec412f8dad3bd78b570dfe",
+    "kind": "timeline",
+    "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\timeline-9d6a4d7a.json"
+  },
+  "review_artifact": {
+    "id": "17df44c853be48c5a36df3af720bf368",
+    "kind": "director_shot_review",
+    "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\shot-reviews\\9d672cb97da445868ad01eb02e9adecf\\director-shot-review.json"
+  },
+  "preview_artifact": {
+    "id": "92fde019ca4e4782bbba536cadb6c033",
+    "kind": "preview",
+    "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\renders\\44990a0bbdda4d50b7c99f04f9b39851\\preview.mp4"
+  },
+  "cover_artifact": {
+    "id": "42a04bdf3e3d4b68a2bb942389fc954b",
+    "kind": "cover",
+    "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\renders\\44990a0bbdda4d50b7c99f04f9b39851\\cover.png"
+  },
+  "preview_sha256": "272bea2db3ee9e3960f6017852f73a09a5bb416e5333d7b98ef04694b11b05ec",
+  "probe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_type": "video",
+        "width": 540,
+        "height": 960,
+        "r_frame_rate": "30/1",
+        "nb_frames": "735",
+        "side_data_list": [
+          {}
+        ]
+      },
+      {
+        "codec_type": "audio",
+        "r_frame_rate": "0/0",
+        "nb_frames": "1151"
+      }
+    ],
+    "format": {
+      "duration": "24.512000",
+      "size": "1385709"
+    }
+  },
+  "decode_exit_code": 0,
+  "inspection_samples": [
+    {
+      "page": 1,
+      "frame": 41,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-r15-fixed-carousel-inspection-20261015\\fixed-phone-page-01.png",
+      "sha256": "07b155b32dc5b4fabdef99db8e2f1335da7fdbf44716e3a25c2c3d66e7480422",
+      "source": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/0b61255194854094b26a4a2565504352.png"
+    },
+    {
+      "page": 2,
+      "frame": 124,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-r15-fixed-carousel-inspection-20261015\\fixed-phone-page-02.png",
+      "sha256": "87c659e2a9875f88616a58c655d70b4a211ed3dca729fc029a0635c523664e4d",
+      "source": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/59cb502d984a4c1fafdfaeadf8fd144a.jpg"
+    },
+    {
+      "page": 3,
+      "frame": 207,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-r15-fixed-carousel-inspection-20261015\\fixed-phone-page-03.png",
+      "sha256": "277e6b3d0bb5366abc914372d1ed0e4aeb791544f79d0039b9ab0b70c8815a70",
+      "source": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/b611b6b73f0f42f6b8ecf01248fcb65d.png"
+    },
+    {
+      "page": 4,
+      "frame": 289,
+      "image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-r15-fixed-carousel-inspection-20261015\\fixed-phone-page-04.png",
+      "sha256": "af38deadf54c397316a1bab556ac9e83ab64714cf0618f08ec8bc3ab65432cc6",
+      "source": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/00e534aed0e74d6b9f5cfbfb589d28c3.jpg"
+    }
+  ],
+  "pending_token": "cb043115a15446685fda142deadc0336",
+  "user_approved": false,
+  "new_final_rendered": false,
+  "common_code_commit": "c42d0cd",
+  "visual_inspection_complete": true,
+  "common_code_commits": [
+    "c42d0cd",
+    "aa6a550"
+  ],
+  "second_model_call_changed_only_source_label": true,
+  "render_only_recovery_added_no_model_operation": true,
+  "human_visual_observations": [
+    "Four sampled pages and the frame86 dissolve keep the original large phone shell and title in place.",
+    "Only the phone screen image changes at local frames83,166,249; one shot covers0-330.",
+    "Reply-for-money and recharge popup retain complete text and buttons; square pages use contain with letterboxing.",
+    "Third page keeps its original two-screen layout; small in-image labels remain small in the half-scale preview.",
+    "Complete combined source label wraps inside the original header slot; no title or phone overlap observed."
+  ],
+  "validation": {
+    "python_full_suite": "1674 passed, 3 skipped",
+    "js_full_suite": "141 passed",
+    "typecheck": "passed",
+    "lint": "passed",
+    "contracts": "passed",
+    "production_component_manifest": "passed",
+    "component_paths": "passed; optional workbook payload absent in maintenance worktree"
+  },
+  "limitations": [
+    "Preview is540x960; production PNGs are1080x1920. Square photos have screen letterboxing.",
+    "No new full video rendered; current package still requires human shot review."
+  ],
+  "user_feedback_message_id": "om_x100b623f475c18a0c013ec201e7c215",
+  "delivery_verified": true
+}

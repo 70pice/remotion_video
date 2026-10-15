@@ -1,0 +1,4450 @@
+{
+  "created_at": "2026-10-15T11:06:37.475469+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 15,
+  "quoted_caption_id": "om_x100b623eb19608a8c137e1be415db70",
+  "user_feedback": "镜头2可以 镜头1不行 我说在一个地方轮播图 不是你换一个镜头好吗",
+  "scope": "Only logical shot-01; retain the user-approved shot-02 and shots03-16 exactly",
+  "timeline": {
+    "schema_version": "1",
+    "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+    "revision": 15,
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "duration_in_frames": 3714,
+    "audio_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/a661542c449c4f39bf17bc6c9047ef7b.mp3",
+    "shots": [
+      {
+        "shot_id": "shot-01-a",
+        "start_frame": 0,
+        "end_frame": 83,
+        "component_id": "Snapcn-PhoneFrame",
+        "title": "25000人，聊的是AI",
+        "body": "两周观察窗·至少25000名独立用户",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/0b61255194854094b26a4a2565504352.png",
+        "source_label": "另案示例｜news.cnr.cn｜浦东警方供图；同类中文界面示意，非报告涉案App，事实见GTG-15001",
+        "media_usage": "context_example",
+        "accent_color": "#8CFFB8",
+        "props": {
+          "content_mode": "media"
+        }
+      },
+      {
+        "shot_id": "shot-01-b",
+        "start_frame": 83,
+        "end_frame": 166,
+        "component_id": "Talkcraft-tilt-3d-page",
+        "title": "25000人，聊的是AI",
+        "body": "两周观察窗·至少25000名独立用户",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/59cb502d984a4c1fafdfaeadf8fd144a.jpg",
+        "source_label": "另案示例｜time-weekly.com｜时代财经2022；国内同类付费界面示意，非报告涉案App",
+        "media_usage": "context_example",
+        "accent_color": "#8CFFB8",
+        "props": {
+          "asset_fit": "contain",
+          "content_mode": "media"
+        }
+      },
+      {
+        "shot_id": "shot-01-c",
+        "start_frame": 166,
+        "end_frame": 249,
+        "component_id": "Talkcraft-tilt-3d-page",
+        "title": "25000人，聊的是AI",
+        "body": "两周观察窗·至少25000名独立用户",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/b611b6b73f0f42f6b8ecf01248fcb65d.png",
+        "source_label": "另案示例｜news.cnr.cn｜浦东警方供图；同类中文界面示意，非报告涉案App，事实见GTG-15001",
+        "media_usage": "context_example",
+        "accent_color": "#8CFFB8",
+        "props": {
+          "asset_fit": "contain",
+          "content_mode": "media"
+        }
+      },
+      {
+        "shot_id": "shot-01-d",
+        "start_frame": 249,
+        "end_frame": 330,
+        "component_id": "Talkcraft-tilt-3d-page",
+        "title": "25000人，聊的是AI",
+        "body": "两周观察窗·至少25000名独立用户",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/00e534aed0e74d6b9f5cfbfb589d28c3.jpg",
+        "source_label": "另案示例｜time-weekly.com｜时代财经2022；国内同类付费界面示意，非报告涉案App",
+        "media_usage": "context_example",
+        "accent_color": "#8CFFB8",
+        "props": {
+          "asset_fit": "contain",
+          "content_mode": "media"
+        }
+      },
+      {
+        "shot_id": "shot-02",
+        "start_frame": 330,
+        "end_frame": 735,
+        "component_id": "steps",
+        "title": "一个工作室，二十多款App",
+        "body": "",
+        "asset_src": null,
+        "source_label": "来源：Anthropic 2026年9月威胁报告GTG-15001（中译）",
+        "accent_color": "#5B8CFF",
+        "props": {
+          "items": [
+            {
+              "title": "中国的匿名工作室",
+              "reveal_frame": 0
+            },
+            {
+              "title": "用Claude开发",
+              "reveal_frame": 15
+            },
+            {
+              "title": "做出20多款交友App",
+              "reveal_frame": 30
+            },
+            {
+              "title": "两周至少25000名用户",
+              "reveal_frame": 255
+            }
+          ],
+          "layout": "flow"
+        }
+      },
+      {
+        "shot_id": "shot-03",
+        "start_frame": 735,
+        "end_frame": 930,
+        "component_id": "image_focus",
+        "title": "写App的，也来陪你聊",
+        "body": "同类界面：回复消息能赚钱",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/59cb502d984a4c1fafdfaeadf8fd144a.jpg",
+        "source_label": "另案示例｜time-weekly.com｜时代财经2022；国内同类付费界面示意，非报告涉案App",
+        "media_usage": "context_example",
+        "accent_color": "#5B8CFF",
+        "props": {},
+        "layers": [
+          {
+            "component_id": "Talkcraft-keyword-pop-highlight",
+            "role": "emphasis",
+            "start_frame": 90,
+            "end_frame": 160,
+            "title": "同一个",
+            "body": "",
+            "accent_color": "#5B8CFF",
+            "props": {
+              "highlight": "Claude"
+            }
+          }
+        ]
+      },
+      {
+        "shot_id": "shot-04",
+        "start_frame": 930,
+        "end_frame": 1149,
+        "component_id": "data",
+        "title": "开发的是它，陪聊的也是它",
+        "body": "口径：2026年4月两周观察窗；消息量≠受害人数",
+        "asset_src": null,
+        "source_label": "来源：Anthropic 2026年9月威胁报告GTG-15001（中译）",
+        "accent_color": "#8CFFB8",
+        "props": {
+          "items": [
+            {
+              "label": "AI人设",
+              "value": "4700+个",
+              "detail": "两周内参与对话",
+              "reveal_frame": 5
+            },
+            {
+              "label": "Claude角色消息",
+              "value": "约236万条",
+              "detail": "两周观察窗发出",
+              "reveal_frame": 65
+            }
+          ]
+        }
+      },
+      {
+        "shot_id": "shot-05",
+        "start_frame": 1149,
+        "end_frame": 1420,
+        "component_id": "comparison",
+        "title": "对面是谁？约三比一",
+        "body": "口径：整个匹配流构成，非某个人的概率",
+        "asset_src": null,
+        "source_label": "来源：Anthropic 2026年9月威胁报告GTG-15001（中译）",
+        "accent_color": "#5B8CFF",
+        "props": {
+          "left_title": "AI人设：约3个",
+          "left_body": "自主接住大部分对话",
+          "right_title": "真人零工：1个",
+          "right_body": "干「真人感」的活",
+          "right_reveal_frame": 163
+        }
+      },
+      {
+        "shot_id": "shot-06",
+        "start_frame": 1420,
+        "end_frame": 1637,
+        "component_id": "Talkcraft-slow-push-in",
+        "title": "真人的活：视频、回关、发消息",
+        "body": "报告：真人干更有「真人感」的活；界面为同类中文示意",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/b611b6b73f0f42f6b8ecf01248fcb65d.png",
+        "source_label": "另案示例｜news.cnr.cn｜浦东警方供图；同类中文界面示意，非报告涉案App，事实见GTG-15001",
+        "media_usage": "context_example",
+        "accent_color": "#A78BFA",
+        "props": {},
+        "set_design": {
+          "set_id": "A07",
+          "content": {
+            "takeaway": "真实感是AI加真人拼出来的",
+            "items": [
+              "自己发消息",
+              "接视频通话",
+              "回关你的社交账号"
+            ],
+            "supporting_items": [
+              "示意：真人混入匹配流",
+              "口径：整个匹配流约三比一",
+              "事实出处：GTG-15001"
+            ],
+            "source_refs": [
+              "https://www.anthropic.com/threat-intelligence-report-september-2026"
+            ]
+          },
+          "parts": [
+            {
+              "part_id": "main",
+              "start_frame": 0,
+              "end_frame": 217,
+              "box": {
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1.0,
+                "height": 0.4294
+              }
+            },
+            {
+              "part_id": "title",
+              "start_frame": 0,
+              "end_frame": 90,
+              "box": {
+                "x": 0.0,
+                "y": 0.4478,
+                "width": 1.0,
+                "height": 0.115
+              }
+            },
+            {
+              "part_id": "support_1",
+              "start_frame": 30,
+              "end_frame": 190,
+              "box": {
+                "x": 0.0,
+                "y": 0.5844,
+                "width": 0.479,
+                "height": 0.161
+              }
+            },
+            {
+              "part_id": "support_2",
+              "start_frame": 40,
+              "end_frame": 165,
+              "box": {
+                "x": 0.5,
+                "y": 0.5844,
+                "width": 0.5,
+                "height": 0.161
+              }
+            },
+            {
+              "part_id": "support_3",
+              "start_frame": 95,
+              "end_frame": 217,
+              "box": {
+                "x": 0.0,
+                "y": 0.7638,
+                "width": 0.479,
+                "height": 0.138
+              }
+            },
+            {
+              "part_id": "support_4",
+              "start_frame": 95,
+              "end_frame": 217,
+              "box": {
+                "x": 0.5,
+                "y": 0.7638,
+                "width": 0.5,
+                "height": 0.138
+              }
+            },
+            {
+              "part_id": "emphasis",
+              "start_frame": 130,
+              "end_frame": 217,
+              "box": {
+                "x": 0.0,
+                "y": 0.9218,
+                "width": 1.0,
+                "height": 0.0782
+              }
+            }
+          ],
+          "source_size": {
+            "width": 1000,
+            "height": 991
+          }
+        }
+      },
+      {
+        "shot_id": "shot-07",
+        "start_frame": 1637,
+        "end_frame": 1821,
+        "component_id": "Snapcn-LaptopFrame",
+        "title": "真人打字时，AI先拟好回复",
+        "body": "AI拟一条建议，真人点「使用」发出；报告：涉案为一次三条候选",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/caf3d0aead8a48c089e527c33db3237f.png",
+        "source_label": "另案示例｜cloud.tencent.com｜腾讯云官方文档；同类功能示例，非涉案工具",
+        "media_usage": "context_example",
+        "accent_color": "#FFC24B",
+        "props": {
+          "asset_fit": "contain",
+          "content_mode": "media"
+        },
+        "layers": [
+          {
+            "component_id": "Talkcraft-keyword-pop-highlight",
+            "role": "emphasis",
+            "start_frame": 44,
+            "end_frame": 184,
+            "title": "一次三条，挑一条就发",
+            "body": "",
+            "accent_color": "#FFC24B",
+            "props": {
+              "highlight": "三条候选"
+            }
+          }
+        ]
+      },
+      {
+        "shot_id": "shot-08",
+        "start_frame": 1821,
+        "end_frame": 2075,
+        "component_id": "Talkcraft-tilt-3d-page",
+        "title": "脸和话，都设计成真人",
+        "body": "头像由图像编辑模型生成；提示词要求不承认自动化",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/30495f9cf1854fda97e5e3156891e118.png",
+        "source_label": "另案示例｜training.tencentads.com｜腾讯广告AIGC手册P15；同类功能示例，非涉案工具",
+        "media_usage": "context_example",
+        "accent_color": "#FF6B6B",
+        "props": {
+          "asset_fit": "contain",
+          "content_mode": "media"
+        },
+        "layers": [
+          {
+            "component_id": "Talkcraft-keyword-pop-highlight",
+            "role": "emphasis",
+            "start_frame": 60,
+            "end_frame": 250,
+            "title": "不能承认：我是AI",
+            "body": "",
+            "accent_color": "#FF6B6B",
+            "props": {
+              "highlight": "不承认自动化"
+            }
+          }
+        ]
+      },
+      {
+        "shot_id": "shot-09",
+        "start_frame": 2075,
+        "end_frame": 2163,
+        "component_id": "Talkcraft-slow-push-in",
+        "title": "聊天和匹配，都消耗额度",
+        "body": "同类界面：消息、语音、视频按金币计价",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/a12818e554a74684bea6e34785c8b85b.png",
+        "source_label": "另案示例｜lanjinger.com｜蓝鲸财经2020；国内同类付费界面示意，非报告涉案App",
+        "media_usage": "context_example",
+        "accent_color": "#FFC24B",
+        "props": {
+          "asset_crop": {
+            "x": 0.0,
+            "y": 0.1,
+            "width": 1.0,
+            "height": 0.51
+          },
+          "asset_fit": "contain",
+          "content_mode": "media"
+        }
+      },
+      {
+        "shot_id": "shot-10",
+        "start_frame": 2163,
+        "end_frame": 2249,
+        "component_id": "image_focus",
+        "title": "额度用完，金币来补",
+        "body": "金币不足提示与充值入口；报告：用App金币购买补充",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/00e534aed0e74d6b9f5cfbfb589d28c3.jpg",
+        "source_label": "另案示例｜time-weekly.com｜时代财经2022；国内同类付费界面示意，非报告涉案App",
+        "media_usage": "context_example",
+        "accent_color": "#FFC24B",
+        "props": {}
+      },
+      {
+        "shot_id": "shot-11",
+        "start_frame": 2249,
+        "end_frame": 2374,
+        "component_id": "Rve-ImageZoomReveal",
+        "title": "真人零工：干多少活，拿多少钱",
+        "body": "奖励按条消息记录；报告：按完成的消息、视频、回关计件",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/951152e88def4169af4d1149e3447536.png",
+        "source_label": "另案示例｜finance.ifeng.com｜消费者报道2024；国内同类付费界面示意，非报告涉案App",
+        "media_usage": "context_example",
+        "accent_color": "#A78BFA",
+        "props": {
+          "content_mode": "media"
+        }
+      },
+      {
+        "shot_id": "shot-12",
+        "start_frame": 2374,
+        "end_frame": 2782,
+        "component_id": "data",
+        "title": "假设测算：约25万元（非实际收入）",
+        "body": "",
+        "asset_src": null,
+        "source_label": "假设测算，非报告数据；基数25000人来自Anthropic GTG-15001",
+        "accent_color": "#FFC24B",
+        "props": {
+          "items": [
+            {
+              "label": "测算基数",
+              "value": "25000人",
+              "detail": "报告：两周独立用户数",
+              "reveal_frame": 0
+            },
+            {
+              "label": "假设付费比例",
+              "value": "10%",
+              "detail": "假设，非报告数据",
+              "reveal_frame": 34
+            },
+            {
+              "label": "假设人均充值",
+              "value": "100元",
+              "detail": "假设，非报告数据",
+              "reveal_frame": 100
+            },
+            {
+              "label": "两周充值流水（情景）",
+              "value": "约25万元",
+              "detail": "25000×10%×100元，非实际收入",
+              "reveal_frame": 238
+            }
+          ]
+        }
+      },
+      {
+        "shot_id": "shot-13",
+        "start_frame": 2782,
+        "end_frame": 3168,
+        "component_id": "Rve-ProgressSteps",
+        "title": "点赞和访客，也能后台造",
+        "body": "报告原文：后台可生成点赞、访客；无真人时放预录；记录起疑用户",
+        "asset_src": null,
+        "source_label": "来源：Anthropic 2026年9月威胁报告GTG-15001（中译）；无原始后台界面，画面均为示意",
+        "accent_color": "#FF6B6B",
+        "props": {},
+        "set_design": {
+          "set_id": "B11",
+          "content": {
+            "takeaway": "从心动到起疑，每一步都在设计里",
+            "items": [
+              "点赞、访客记录",
+              "真人视频没人接",
+              "用户开始起疑"
+            ],
+            "supporting_items": [
+              "示意：后台可直接生成",
+              "示意：放预录内容顶替",
+              "示意：系统记录该用户"
+            ],
+            "metric": {
+              "label": "报告列出的后台手法",
+              "value": "3项",
+              "detail": "点赞访客·预录顶替·记录起疑"
+            },
+            "source_refs": [
+              "https://www.anthropic.com/threat-intelligence-report-september-2026"
+            ]
+          },
+          "parts": [
+            {
+              "part_id": "title",
+              "start_frame": 0,
+              "end_frame": 130,
+              "box": {
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1.0,
+                "height": 0.1227
+              }
+            },
+            {
+              "part_id": "main",
+              "start_frame": 20,
+              "end_frame": 386,
+              "box": {
+                "x": 0.0,
+                "y": 0.1442,
+                "width": 1.0,
+                "height": 0.2761
+              }
+            },
+            {
+              "part_id": "support_1",
+              "start_frame": 60,
+              "end_frame": 200,
+              "box": {
+                "x": 0.0,
+                "y": 0.4417,
+                "width": 0.479,
+                "height": 0.1687
+              }
+            },
+            {
+              "part_id": "support_2",
+              "start_frame": 140,
+              "end_frame": 330,
+              "box": {
+                "x": 0.5,
+                "y": 0.4417,
+                "width": 0.5,
+                "height": 0.1687
+              }
+            },
+            {
+              "part_id": "support_3",
+              "start_frame": 220,
+              "end_frame": 360,
+              "box": {
+                "x": 0.0,
+                "y": 0.6319,
+                "width": 0.479,
+                "height": 0.1687
+              }
+            },
+            {
+              "part_id": "emphasis",
+              "start_frame": 300,
+              "end_frame": 386,
+              "box": {
+                "x": 0.0,
+                "y": 0.8252,
+                "width": 1.0,
+                "height": 0.1748
+              }
+            }
+          ]
+        }
+      },
+      {
+        "shot_id": "shot-14",
+        "start_frame": 3168,
+        "end_frame": 3330,
+        "component_id": "Rve-QuoteCard",
+        "title": "Anthropic已封禁相关账号和组织",
+        "body": "Anthropic已封禁相关账号和组织，并把线索同步给相关平台；不等于全部下架或有判决",
+        "asset_src": null,
+        "source_label": "来源：Anthropic 2026年9月威胁报告GTG-15001（译文）",
+        "accent_color": "#5B8CFF",
+        "props": {}
+      },
+      {
+        "shot_id": "shot-15",
+        "start_frame": 3330,
+        "end_frame": 3545,
+        "component_id": "comparison",
+        "title": "判断标准：平台敢不敢明说",
+        "body": "",
+        "asset_src": null,
+        "source_label": "判断基于Anthropic GTG-15001披露事实",
+        "accent_color": "#A78BFA",
+        "props": {
+          "left_title": "明说是AI，明码标价",
+          "left_body": "这样的陪伴服务，本身不是骗",
+          "right_title": "宣传真人，隐瞒自动化",
+          "right_body": "再用假心动催你充值，才是问题",
+          "right_reveal_frame": 101
+        }
+      },
+      {
+        "shot_id": "shot-16",
+        "start_frame": 3545,
+        "end_frame": 3714,
+        "component_id": "RemotionUI-EndCard",
+        "title": "先看清屏幕后面是谁",
+        "body": "转给爱用社交App的朋友",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/46256f4f7a2940feafdca5bc5b9547db.png",
+        "source_label": "另案示例｜finance.ifeng.com｜消费者报道2024；同类中文界面示意，非报告涉案App",
+        "media_usage": "context_example",
+        "accent_color": "#8CFFB8",
+        "props": {
+          "content_mode": "media"
+        }
+      }
+    ],
+    "captions": [
+      {
+        "text": "两",
+        "start_ms": 100.0,
+        "end_ms": 280.0
+      },
+      {
+        "text": "周",
+        "start_ms": 280.0,
+        "end_ms": 440.00000000000006
+      },
+      {
+        "text": "里，",
+        "start_ms": 440.00000000000006,
+        "end_ms": 680.0
+      },
+      {
+        "text": "至",
+        "start_ms": 860.0,
+        "end_ms": 1050.0
+      },
+      {
+        "text": "少",
+        "start_ms": 1050.0,
+        "end_ms": 1250.0
+      },
+      {
+        "text": "两",
+        "start_ms": 1250.0,
+        "end_ms": 1410.0
+      },
+      {
+        "text": "万",
+        "start_ms": 1410.0,
+        "end_ms": 1510.0
+      },
+      {
+        "text": "五",
+        "start_ms": 1510.0,
+        "end_ms": 1680.0
+      },
+      {
+        "text": "千",
+        "start_ms": 1680.0,
+        "end_ms": 1859.9999999999998
+      },
+      {
+        "text": "名",
+        "start_ms": 1859.9999999999998,
+        "end_ms": 2000.0
+      },
+      {
+        "text": "独",
+        "start_ms": 2000.0,
+        "end_ms": 2140.0
+      },
+      {
+        "text": "立",
+        "start_ms": 2140.0,
+        "end_ms": 2250.0
+      },
+      {
+        "text": "用",
+        "start_ms": 2250.0,
+        "end_ms": 2370.0
+      },
+      {
+        "text": "户",
+        "start_ms": 2370.0,
+        "end_ms": 2600.0
+      },
+      {
+        "text": "在",
+        "start_ms": 2600.0,
+        "end_ms": 2780.0
+      },
+      {
+        "text": "交",
+        "start_ms": 2780.0,
+        "end_ms": 2949.9999999999995
+      },
+      {
+        "text": "友",
+        "start_ms": 2949.9999999999995,
+        "end_ms": 3120.0
+      },
+      {
+        "text": "App",
+        "start_ms": 3120.0,
+        "end_ms": 3360.0
+      },
+      {
+        "text": "上",
+        "start_ms": 3390.0,
+        "end_ms": 3600.0
+      },
+      {
+        "text": "跟",
+        "start_ms": 3600.0,
+        "end_ms": 3780.0
+      },
+      {
+        "text": "AI",
+        "start_ms": 3989.9999999999995,
+        "end_ms": 4030.0000000000005
+      },
+      {
+        "text": "人",
+        "start_ms": 4030.0000000000005,
+        "end_ms": 4160.0
+      },
+      {
+        "text": "设",
+        "start_ms": 4160.0,
+        "end_ms": 4310.000000000001
+      },
+      {
+        "text": "聊",
+        "start_ms": 4310.000000000001,
+        "end_ms": 4460.0
+      },
+      {
+        "text": "天",
+        "start_ms": 4460.0,
+        "end_ms": 4720.000000000001
+      },
+      {
+        "text": "—",
+        "start_ms": 4975.042,
+        "end_ms": 5030.0416000000005
+      },
+      {
+        "text": "—",
+        "start_ms": 5030.0416000000005,
+        "end_ms": 5060.042
+      },
+      {
+        "text": "而",
+        "start_ms": 5060.042,
+        "end_ms": 5110.042
+      },
+      {
+        "text": "这",
+        "start_ms": 5110.042,
+        "end_ms": 5250.042
+      },
+      {
+        "text": "些",
+        "start_ms": 5250.042,
+        "end_ms": 5410.0418
+      },
+      {
+        "text": "App",
+        "start_ms": 5410.0418,
+        "end_ms": 5680.041700000001
+      },
+      {
+        "text": "宣",
+        "start_ms": 5770.042,
+        "end_ms": 5860.042
+      },
+      {
+        "text": "传",
+        "start_ms": 5930.041700000001,
+        "end_ms": 5990.041700000001
+      },
+      {
+        "text": "的",
+        "start_ms": 5990.041700000001,
+        "end_ms": 6060.042
+      },
+      {
+        "text": "全",
+        "start_ms": 6060.042,
+        "end_ms": 6210.042
+      },
+      {
+        "text": "是",
+        "start_ms": 6210.042,
+        "end_ms": 6340.0416000000005
+      },
+      {
+        "text": "真",
+        "start_ms": 6340.0416000000005,
+        "end_ms": 6460.042
+      },
+      {
+        "text": "人。",
+        "start_ms": 6460.042,
+        "end_ms": 6670.042
+      },
+      {
+        "text": "你",
+        "start_ms": 7210.083,
+        "end_ms": 7340.0830000000005
+      },
+      {
+        "text": "手",
+        "start_ms": 7340.0830000000005,
+        "end_ms": 7550.0830000000005
+      },
+      {
+        "text": "机",
+        "start_ms": 7550.0830000000005,
+        "end_ms": 7660.0830000000005
+      },
+      {
+        "text": "里",
+        "start_ms": 7660.0830000000005,
+        "end_ms": 7810.0833
+      },
+      {
+        "text": "要",
+        "start_ms": 7810.0833,
+        "end_ms": 7900.083
+      },
+      {
+        "text": "有",
+        "start_ms": 7900.083,
+        "end_ms": 8000.083
+      },
+      {
+        "text": "交",
+        "start_ms": 8000.083,
+        "end_ms": 8200.082999999999
+      },
+      {
+        "text": "友",
+        "start_ms": 8200.082999999999,
+        "end_ms": 8280.082999999999
+      },
+      {
+        "text": "软",
+        "start_ms": 8280.082999999999,
+        "end_ms": 8440.082999999999
+      },
+      {
+        "text": "件，",
+        "start_ms": 8440.082999999999,
+        "end_ms": 8730.082999999999
+      },
+      {
+        "text": "别",
+        "start_ms": 8875.124999999998,
+        "end_ms": 8980.125
+      },
+      {
+        "text": "划",
+        "start_ms": 8980.125,
+        "end_ms": 9120.125
+      },
+      {
+        "text": "走：",
+        "start_ms": 9120.125,
+        "end_ms": 9150.125
+      },
+      {
+        "text": "对",
+        "start_ms": 9570.125,
+        "end_ms": 9700.125
+      },
+      {
+        "text": "面",
+        "start_ms": 9700.125,
+        "end_ms": 9830.124999999998
+      },
+      {
+        "text": "可",
+        "start_ms": 9830.124999999998,
+        "end_ms": 9970.125999999998
+      },
+      {
+        "text": "能",
+        "start_ms": 9970.125999999998,
+        "end_ms": 10060.125
+      },
+      {
+        "text": "不",
+        "start_ms": 10060.125,
+        "end_ms": 10180.126
+      },
+      {
+        "text": "是",
+        "start_ms": 10180.126,
+        "end_ms": 10290.125
+      },
+      {
+        "text": "真",
+        "start_ms": 10290.125,
+        "end_ms": 10470.125999999998
+      },
+      {
+        "text": "人，",
+        "start_ms": 10470.125999999998,
+        "end_ms": 10670.124999999998
+      },
+      {
+        "text": "却",
+        "start_ms": 10820.125,
+        "end_ms": 11030.125
+      },
+      {
+        "text": "在",
+        "start_ms": 11030.125,
+        "end_ms": 11150.125
+      },
+      {
+        "text": "让",
+        "start_ms": 11150.125,
+        "end_ms": 11280.125
+      },
+      {
+        "text": "你",
+        "start_ms": 11280.125,
+        "end_ms": 11410.124999999998
+      },
+      {
+        "text": "为",
+        "start_ms": 11410.124999999998,
+        "end_ms": 11550.125999999998
+      },
+      {
+        "text": "心",
+        "start_ms": 11550.125999999998,
+        "end_ms": 11700.125
+      },
+      {
+        "text": "动",
+        "start_ms": 11700.125,
+        "end_ms": 11820.125
+      },
+      {
+        "text": "花",
+        "start_ms": 11820.125,
+        "end_ms": 12000.124999999998
+      },
+      {
+        "text": "钱。",
+        "start_ms": 12000.124999999998,
+        "end_ms": 12200.125
+      },
+      {
+        "text": "Anthropic",
+        "start_ms": 12790.166,
+        "end_ms": 13210.166
+      },
+      {
+        "text": "的",
+        "start_ms": 13210.166,
+        "end_ms": 13280.166
+      },
+      {
+        "text": "九",
+        "start_ms": 13280.166,
+        "end_ms": 13460.166
+      },
+      {
+        "text": "月",
+        "start_ms": 13460.166,
+        "end_ms": 13560.167
+      },
+      {
+        "text": "威",
+        "start_ms": 13560.167,
+        "end_ms": 13710.166
+      },
+      {
+        "text": "胁",
+        "start_ms": 13710.166,
+        "end_ms": 13860.166
+      },
+      {
+        "text": "报",
+        "start_ms": 13860.166,
+        "end_ms": 13990.166000000001
+      },
+      {
+        "text": "告",
+        "start_ms": 13990.166000000001,
+        "end_ms": 14100.167
+      },
+      {
+        "text": "披",
+        "start_ms": 14100.167,
+        "end_ms": 14320.167
+      },
+      {
+        "text": "露：",
+        "start_ms": 14320.167,
+        "end_ms": 14350.167
+      },
+      {
+        "text": "一",
+        "start_ms": 14660.166000000001,
+        "end_ms": 14790.166
+      },
+      {
+        "text": "个",
+        "start_ms": 14790.166,
+        "end_ms": 14890.167
+      },
+      {
+        "text": "在",
+        "start_ms": 14890.167,
+        "end_ms": 15030.166
+      },
+      {
+        "text": "中",
+        "start_ms": 15030.166,
+        "end_ms": 15210.166
+      },
+      {
+        "text": "国",
+        "start_ms": 15210.166,
+        "end_ms": 15320.167
+      },
+      {
+        "text": "的",
+        "start_ms": 15320.167,
+        "end_ms": 15410.166000000001
+      },
+      {
+        "text": "匿",
+        "start_ms": 15410.166000000001,
+        "end_ms": 15540.166
+      },
+      {
+        "text": "名",
+        "start_ms": 15540.166,
+        "end_ms": 15680.167
+      },
+      {
+        "text": "工",
+        "start_ms": 15680.167,
+        "end_ms": 15810.167
+      },
+      {
+        "text": "作",
+        "start_ms": 15810.167,
+        "end_ms": 15930.165999999997
+      },
+      {
+        "text": "室",
+        "start_ms": 15930.165999999997,
+        "end_ms": 16180.166
+      },
+      {
+        "text": "用",
+        "start_ms": 16180.166,
+        "end_ms": 16330.167000000003
+      },
+      {
+        "text": "Claude",
+        "start_ms": 16655.208000000002,
+        "end_ms": 16790.208
+      },
+      {
+        "text": "做",
+        "start_ms": 16790.208,
+        "end_ms": 16890.209000000003
+      },
+      {
+        "text": "了",
+        "start_ms": 16890.209000000003,
+        "end_ms": 16990.207000000002
+      },
+      {
+        "text": "二",
+        "start_ms": 16990.207000000002,
+        "end_ms": 17100.208000000002
+      },
+      {
+        "text": "十",
+        "start_ms": 17100.208000000002,
+        "end_ms": 17210.208000000002
+      },
+      {
+        "text": "多",
+        "start_ms": 17210.208000000002,
+        "end_ms": 17340.208
+      },
+      {
+        "text": "款",
+        "start_ms": 17340.208,
+        "end_ms": 17520.208
+      },
+      {
+        "text": "交",
+        "start_ms": 17520.208,
+        "end_ms": 17710.208000000002
+      },
+      {
+        "text": "友",
+        "start_ms": 17710.208000000002,
+        "end_ms": 17810.209
+      },
+      {
+        "text": "App，",
+        "start_ms": 17810.209,
+        "end_ms": 18190.208000000002
+      },
+      {
+        "text": "目",
+        "start_ms": 18420.207000000002,
+        "end_ms": 18550.209000000003
+      },
+      {
+        "text": "标",
+        "start_ms": 18550.209000000003,
+        "end_ms": 18680.208
+      },
+      {
+        "text": "用",
+        "start_ms": 18680.208,
+        "end_ms": 18820.207
+      },
+      {
+        "text": "户",
+        "start_ms": 18820.207,
+        "end_ms": 18950.208
+      },
+      {
+        "text": "在",
+        "start_ms": 18950.208,
+        "end_ms": 19100.208000000002
+      },
+      {
+        "text": "美",
+        "start_ms": 19100.208000000002,
+        "end_ms": 19230.209000000003
+      },
+      {
+        "text": "国。",
+        "start_ms": 19230.209000000003,
+        "end_ms": 19520.208
+      },
+      {
+        "text": "两",
+        "start_ms": 19735.25,
+        "end_ms": 19860.25
+      },
+      {
+        "text": "万",
+        "start_ms": 19860.25,
+        "end_ms": 19970.25
+      },
+      {
+        "text": "五",
+        "start_ms": 19970.25,
+        "end_ms": 20120.250000000004
+      },
+      {
+        "text": "是",
+        "start_ms": 20120.250000000004,
+        "end_ms": 20250.25
+      },
+      {
+        "text": "今",
+        "start_ms": 20250.25,
+        "end_ms": 20390.25
+      },
+      {
+        "text": "年",
+        "start_ms": 20390.25,
+        "end_ms": 20540.25
+      },
+      {
+        "text": "四",
+        "start_ms": 20540.25,
+        "end_ms": 20760.250000000004
+      },
+      {
+        "text": "月",
+        "start_ms": 20760.250000000004,
+        "end_ms": 20930.25
+      },
+      {
+        "text": "两",
+        "start_ms": 20930.25,
+        "end_ms": 21090.25
+      },
+      {
+        "text": "周",
+        "start_ms": 21090.25,
+        "end_ms": 21250.25
+      },
+      {
+        "text": "观",
+        "start_ms": 21250.25,
+        "end_ms": 21390.25
+      },
+      {
+        "text": "察",
+        "start_ms": 21390.25,
+        "end_ms": 21540.25
+      },
+      {
+        "text": "窗",
+        "start_ms": 21540.25,
+        "end_ms": 21700.25
+      },
+      {
+        "text": "里",
+        "start_ms": 21700.25,
+        "end_ms": 21780.250000000004
+      },
+      {
+        "text": "的",
+        "start_ms": 21780.250000000004,
+        "end_ms": 21870.250000000004
+      },
+      {
+        "text": "独",
+        "start_ms": 21870.250000000004,
+        "end_ms": 22000.25
+      },
+      {
+        "text": "立",
+        "start_ms": 22000.25,
+        "end_ms": 22100.250000000004
+      },
+      {
+        "text": "用",
+        "start_ms": 22100.250000000004,
+        "end_ms": 22210.250000000004
+      },
+      {
+        "text": "户",
+        "start_ms": 22210.250000000004,
+        "end_ms": 22340.25
+      },
+      {
+        "text": "数，",
+        "start_ms": 22340.25,
+        "end_ms": 22600.250000000004
+      },
+      {
+        "text": "不",
+        "start_ms": 22770.25,
+        "end_ms": 22890.25
+      },
+      {
+        "text": "是",
+        "start_ms": 22890.25,
+        "end_ms": 23080.250000000004
+      },
+      {
+        "text": "已",
+        "start_ms": 23080.250000000004,
+        "end_ms": 23150.25
+      },
+      {
+        "text": "证",
+        "start_ms": 23150.25,
+        "end_ms": 23300.250000000004
+      },
+      {
+        "text": "实",
+        "start_ms": 23300.250000000004,
+        "end_ms": 23490.251
+      },
+      {
+        "text": "受",
+        "start_ms": 23490.251,
+        "end_ms": 23640.25
+      },
+      {
+        "text": "害",
+        "start_ms": 23640.25,
+        "end_ms": 23760.250000000004
+      },
+      {
+        "text": "人",
+        "start_ms": 23760.250000000004,
+        "end_ms": 23890.25
+      },
+      {
+        "text": "数。",
+        "start_ms": 23890.25,
+        "end_ms": 24070.249
+      },
+      {
+        "text": "工",
+        "start_ms": 24510.249000000003,
+        "end_ms": 24670.249000000003
+      },
+      {
+        "text": "作",
+        "start_ms": 24670.249000000003,
+        "end_ms": 24810.249
+      },
+      {
+        "text": "室",
+        "start_ms": 24810.249,
+        "end_ms": 24990.249
+      },
+      {
+        "text": "先",
+        "start_ms": 24990.249,
+        "end_ms": 25190.249
+      },
+      {
+        "text": "用",
+        "start_ms": 25190.249,
+        "end_ms": 25340.249
+      },
+      {
+        "text": "Claude",
+        "start_ms": 25340.249,
+        "end_ms": 25680.249
+      },
+      {
+        "text": "写",
+        "start_ms": 25680.249,
+        "end_ms": 25840.249
+      },
+      {
+        "text": "代",
+        "start_ms": 25840.249,
+        "end_ms": 25990.249000000003
+      },
+      {
+        "text": "码",
+        "start_ms": 25990.249000000003,
+        "end_ms": 26140.249
+      },
+      {
+        "text": "做",
+        "start_ms": 26140.249,
+        "end_ms": 26310.249
+      },
+      {
+        "text": "出",
+        "start_ms": 26310.249,
+        "end_ms": 26440.249
+      },
+      {
+        "text": "一",
+        "start_ms": 26440.249,
+        "end_ms": 26510.249000000003
+      },
+      {
+        "text": "款",
+        "start_ms": 26510.249000000003,
+        "end_ms": 26680.249
+      },
+      {
+        "text": "款",
+        "start_ms": 26680.249,
+        "end_ms": 26850.249
+      },
+      {
+        "text": "App，",
+        "start_ms": 26850.249,
+        "end_ms": 27260.249000000003
+      },
+      {
+        "text": "再",
+        "start_ms": 27615.2906,
+        "end_ms": 27690.2907
+      },
+      {
+        "text": "让",
+        "start_ms": 27690.2907,
+        "end_ms": 27780.2906
+      },
+      {
+        "text": "同",
+        "start_ms": 27780.2906,
+        "end_ms": 28010.2906
+      },
+      {
+        "text": "一",
+        "start_ms": 28010.2906,
+        "end_ms": 28060.2906
+      },
+      {
+        "text": "个",
+        "start_ms": 28060.2906,
+        "end_ms": 28170.290699999998
+      },
+      {
+        "text": "Claude",
+        "start_ms": 28170.290699999998,
+        "end_ms": 28530.291
+      },
+      {
+        "text": "扮",
+        "start_ms": 28570.291,
+        "end_ms": 28740.290999999997
+      },
+      {
+        "text": "演",
+        "start_ms": 28740.290999999997,
+        "end_ms": 28860.291
+      },
+      {
+        "text": "交",
+        "start_ms": 28860.291,
+        "end_ms": 29060.290599999997
+      },
+      {
+        "text": "友",
+        "start_ms": 29060.290599999997,
+        "end_ms": 29170.290699999998
+      },
+      {
+        "text": "人",
+        "start_ms": 29170.290699999998,
+        "end_ms": 29330.2906
+      },
+      {
+        "text": "设、",
+        "start_ms": 29460.2907,
+        "end_ms": 29490.290999999997
+      },
+      {
+        "text": "自",
+        "start_ms": 29720.290399999998,
+        "end_ms": 29860.291
+      },
+      {
+        "text": "主",
+        "start_ms": 29860.291,
+        "end_ms": 29960.2907
+      },
+      {
+        "text": "陪",
+        "start_ms": 29960.2907,
+        "end_ms": 30140.2905
+      },
+      {
+        "text": "聊。",
+        "start_ms": 30140.2905,
+        "end_ms": 30380.290800000002
+      },
+      {
+        "text": "那",
+        "start_ms": 30675.332300000002,
+        "end_ms": 30800.332300000002
+      },
+      {
+        "text": "两",
+        "start_ms": 30800.332300000002,
+        "end_ms": 30960.332000000002
+      },
+      {
+        "text": "周，",
+        "start_ms": 30960.332000000002,
+        "end_ms": 31200.3324
+      },
+      {
+        "text": "四",
+        "start_ms": 31200.3324,
+        "end_ms": 31440.332000000002
+      },
+      {
+        "text": "千",
+        "start_ms": 31440.332000000002,
+        "end_ms": 31650.332000000002
+      },
+      {
+        "text": "七",
+        "start_ms": 31650.332000000002,
+        "end_ms": 31860.3323
+      },
+      {
+        "text": "百",
+        "start_ms": 31860.3323,
+        "end_ms": 31990.332400000003
+      },
+      {
+        "text": "多",
+        "start_ms": 31990.332400000003,
+        "end_ms": 32100.332499999993
+      },
+      {
+        "text": "个",
+        "start_ms": 32100.332499999993,
+        "end_ms": 32280.3323
+      },
+      {
+        "text": "AI",
+        "start_ms": 32280.3323,
+        "end_ms": 32410.332
+      },
+      {
+        "text": "人",
+        "start_ms": 32410.332,
+        "end_ms": 32580.332
+      },
+      {
+        "text": "设，",
+        "start_ms": 32580.332,
+        "end_ms": 32840.331999999995
+      },
+      {
+        "text": "仅",
+        "start_ms": 33135.373999999996,
+        "end_ms": 33210.373999999996
+      },
+      {
+        "text": "Claude",
+        "start_ms": 33240.373999999996,
+        "end_ms": 33550.373999999996
+      },
+      {
+        "text": "角",
+        "start_ms": 33550.373999999996,
+        "end_ms": 33720.373999999996
+      },
+      {
+        "text": "色",
+        "start_ms": 33720.373999999996,
+        "end_ms": 33930.374
+      },
+      {
+        "text": "就",
+        "start_ms": 33930.374,
+        "end_ms": 34080.373999999996
+      },
+      {
+        "text": "发",
+        "start_ms": 34080.373999999996,
+        "end_ms": 34280.373999999996
+      },
+      {
+        "text": "出",
+        "start_ms": 34280.373999999996,
+        "end_ms": 34550.373999999996
+      },
+      {
+        "text": "约",
+        "start_ms": 34550.373999999996,
+        "end_ms": 34760.373999999996
+      },
+      {
+        "text": "二",
+        "start_ms": 34760.373999999996,
+        "end_ms": 34920.373999999996
+      },
+      {
+        "text": "百",
+        "start_ms": 34920.373999999996,
+        "end_ms": 35030.373999999996
+      },
+      {
+        "text": "三",
+        "start_ms": 35030.373999999996,
+        "end_ms": 35180.374
+      },
+      {
+        "text": "十",
+        "start_ms": 35180.374,
+        "end_ms": 35300.373999999996
+      },
+      {
+        "text": "六",
+        "start_ms": 35300.373999999996,
+        "end_ms": 35410.37499999999
+      },
+      {
+        "text": "万",
+        "start_ms": 35410.37499999999,
+        "end_ms": 35520.37499999999
+      },
+      {
+        "text": "条",
+        "start_ms": 35520.37499999999,
+        "end_ms": 35660.37499999999
+      },
+      {
+        "text": "消",
+        "start_ms": 35660.37499999999,
+        "end_ms": 35820.375
+      },
+      {
+        "text": "息。",
+        "start_ms": 35820.375,
+        "end_ms": 36000.373999999996
+      },
+      {
+        "text": "开",
+        "start_ms": 36315.416,
+        "end_ms": 36450.416
+      },
+      {
+        "text": "发",
+        "start_ms": 36450.416,
+        "end_ms": 36590.41499999999
+      },
+      {
+        "text": "的",
+        "start_ms": 36590.41499999999,
+        "end_ms": 36660.416
+      },
+      {
+        "text": "是",
+        "start_ms": 36660.416,
+        "end_ms": 36810.415499999996
+      },
+      {
+        "text": "它，",
+        "start_ms": 36810.415499999996,
+        "end_ms": 37050.415
+      },
+      {
+        "text": "陪",
+        "start_ms": 37080.416,
+        "end_ms": 37250.416
+      },
+      {
+        "text": "聊",
+        "start_ms": 37250.416,
+        "end_ms": 37390.415
+      },
+      {
+        "text": "的",
+        "start_ms": 37390.415,
+        "end_ms": 37490.416
+      },
+      {
+        "text": "也",
+        "start_ms": 37490.416,
+        "end_ms": 37590.41499999999
+      },
+      {
+        "text": "是",
+        "start_ms": 37590.41499999999,
+        "end_ms": 37720.41499999999
+      },
+      {
+        "text": "它。",
+        "start_ms": 37720.41499999999,
+        "end_ms": 37850.415
+      },
+      {
+        "text": "对",
+        "start_ms": 38310.41500000001,
+        "end_ms": 38440.415
+      },
+      {
+        "text": "面",
+        "start_ms": 38440.415,
+        "end_ms": 38570.415
+      },
+      {
+        "text": "是",
+        "start_ms": 38570.415,
+        "end_ms": 38720.415
+      },
+      {
+        "text": "谁？",
+        "start_ms": 38720.415,
+        "end_ms": 39000.415
+      },
+      {
+        "text": "报",
+        "start_ms": 39485.4567,
+        "end_ms": 39560.45680000001
+      },
+      {
+        "text": "告",
+        "start_ms": 39560.45680000001,
+        "end_ms": 39620.4567
+      },
+      {
+        "text": "给",
+        "start_ms": 39620.4567,
+        "end_ms": 39750.4567
+      },
+      {
+        "text": "的",
+        "start_ms": 39750.4567,
+        "end_ms": 39870.4567
+      },
+      {
+        "text": "是",
+        "start_ms": 39870.4567,
+        "end_ms": 40060.45680000001
+      },
+      {
+        "text": "整",
+        "start_ms": 40060.45680000001,
+        "end_ms": 40190.456600000005
+      },
+      {
+        "text": "个",
+        "start_ms": 40190.456600000005,
+        "end_ms": 40290.4568
+      },
+      {
+        "text": "匹",
+        "start_ms": 40290.4568,
+        "end_ms": 40430.4567
+      },
+      {
+        "text": "配",
+        "start_ms": 40430.4567,
+        "end_ms": 40570.4568
+      },
+      {
+        "text": "流",
+        "start_ms": 40570.4568,
+        "end_ms": 40670.4567
+      },
+      {
+        "text": "的",
+        "start_ms": 40670.4567,
+        "end_ms": 40770.45680000001
+      },
+      {
+        "text": "构",
+        "start_ms": 40770.45680000001,
+        "end_ms": 40920.4567
+      },
+      {
+        "text": "成：",
+        "start_ms": 40920.4567,
+        "end_ms": 40950.456600000005
+      },
+      {
+        "text": "大",
+        "start_ms": 41420.4567,
+        "end_ms": 41580.4568
+      },
+      {
+        "text": "约",
+        "start_ms": 41580.4568,
+        "end_ms": 41690.456600000005
+      },
+      {
+        "text": "每",
+        "start_ms": 41690.456600000005,
+        "end_ms": 41830.4568
+      },
+      {
+        "text": "四",
+        "start_ms": 41830.4568,
+        "end_ms": 42020.457
+      },
+      {
+        "text": "个",
+        "start_ms": 42020.457,
+        "end_ms": 42080.4568
+      },
+      {
+        "text": "对",
+        "start_ms": 42080.4568,
+        "end_ms": 42200.456600000005
+      },
+      {
+        "text": "象",
+        "start_ms": 42200.456600000005,
+        "end_ms": 42390.4567
+      },
+      {
+        "text": "里，",
+        "start_ms": 42390.4567,
+        "end_ms": 42560.457
+      },
+      {
+        "text": "三",
+        "start_ms": 42765.498700000004,
+        "end_ms": 42870.498700000004
+      },
+      {
+        "text": "个",
+        "start_ms": 42870.498700000004,
+        "end_ms": 42960.499
+      },
+      {
+        "text": "是",
+        "start_ms": 42960.499,
+        "end_ms": 43220.498600000006
+      },
+      {
+        "text": "AI",
+        "start_ms": 43220.498600000006,
+        "end_ms": 43320.4985
+      },
+      {
+        "text": "人",
+        "start_ms": 43320.4985,
+        "end_ms": 43450.498600000006
+      },
+      {
+        "text": "设，",
+        "start_ms": 43450.498600000006,
+        "end_ms": 43690.499
+      },
+      {
+        "text": "一",
+        "start_ms": 43730.499,
+        "end_ms": 43820.4985
+      },
+      {
+        "text": "个",
+        "start_ms": 43820.4985,
+        "end_ms": 43890.498700000004
+      },
+      {
+        "text": "是",
+        "start_ms": 43890.498700000004,
+        "end_ms": 43990.4986
+      },
+      {
+        "text": "真",
+        "start_ms": 43990.4986,
+        "end_ms": 44090.4985
+      },
+      {
+        "text": "人。",
+        "start_ms": 44090.4985,
+        "end_ms": 44370.498700000004
+      },
+      {
+        "text": "AI",
+        "start_ms": 44780.5405,
+        "end_ms": 44860.540400000005
+      },
+      {
+        "text": "人",
+        "start_ms": 44860.540400000005,
+        "end_ms": 45000.54030000001
+      },
+      {
+        "text": "设",
+        "start_ms": 45000.54030000001,
+        "end_ms": 45180.54
+      },
+      {
+        "text": "自",
+        "start_ms": 45180.54,
+        "end_ms": 45310.54
+      },
+      {
+        "text": "主",
+        "start_ms": 45310.54,
+        "end_ms": 45430.54
+      },
+      {
+        "text": "接",
+        "start_ms": 45430.54,
+        "end_ms": 45560.54
+      },
+      {
+        "text": "住",
+        "start_ms": 45560.54,
+        "end_ms": 45660.54000000001
+      },
+      {
+        "text": "大",
+        "start_ms": 45660.54000000001,
+        "end_ms": 45800.5405
+      },
+      {
+        "text": "部",
+        "start_ms": 45800.5405,
+        "end_ms": 45860.540400000005
+      },
+      {
+        "text": "分",
+        "start_ms": 45860.540400000005,
+        "end_ms": 45970.5405
+      },
+      {
+        "text": "对",
+        "start_ms": 45970.5405,
+        "end_ms": 46100.541000000005
+      },
+      {
+        "text": "话；",
+        "start_ms": 46100.541000000005,
+        "end_ms": 46390.541
+      },
+      {
+        "text": "真",
+        "start_ms": 46585.582,
+        "end_ms": 46690.58200000001
+      },
+      {
+        "text": "人",
+        "start_ms": 46690.58200000001,
+        "end_ms": 46810.583
+      },
+      {
+        "text": "零",
+        "start_ms": 46810.583,
+        "end_ms": 46970.582500000004
+      },
+      {
+        "text": "工",
+        "start_ms": 46970.582500000004,
+        "end_ms": 47170.582
+      },
+      {
+        "text": "干",
+        "start_ms": 47170.582,
+        "end_ms": 47350.583
+      },
+      {
+        "text": "更",
+        "start_ms": 47350.583,
+        "end_ms": 47500.582
+      },
+      {
+        "text": "需",
+        "start_ms": 47500.582,
+        "end_ms": 47670.582
+      },
+      {
+        "text": "要",
+        "start_ms": 47670.582,
+        "end_ms": 47730.582
+      },
+      {
+        "text": "「",
+        "start_ms": 47730.582,
+        "end_ms": 47760.582
+      },
+      {
+        "text": "真",
+        "start_ms": 47760.582,
+        "end_ms": 47910.582
+      },
+      {
+        "text": "人",
+        "start_ms": 47910.582,
+        "end_ms": 48050.582
+      },
+      {
+        "text": "感",
+        "start_ms": 48050.582,
+        "end_ms": 48160.582
+      },
+      {
+        "text": "」",
+        "start_ms": 48160.582,
+        "end_ms": 48190.583000000006
+      },
+      {
+        "text": "的",
+        "start_ms": 48190.583000000006,
+        "end_ms": 48250.582
+      },
+      {
+        "text": "活",
+        "start_ms": 48250.582,
+        "end_ms": 48430.583000000006
+      },
+      {
+        "text": "—",
+        "start_ms": 48430.583000000006,
+        "end_ms": 48460.582
+      },
+      {
+        "text": "—",
+        "start_ms": 48700.582,
+        "end_ms": 48730.582
+      },
+      {
+        "text": "自",
+        "start_ms": 48730.582,
+        "end_ms": 48830.58200000001
+      },
+      {
+        "text": "己",
+        "start_ms": 48830.58200000001,
+        "end_ms": 48940.583000000006
+      },
+      {
+        "text": "发",
+        "start_ms": 48940.583000000006,
+        "end_ms": 49090.582
+      },
+      {
+        "text": "消",
+        "start_ms": 49090.582,
+        "end_ms": 49260.582
+      },
+      {
+        "text": "息、",
+        "start_ms": 49260.582,
+        "end_ms": 49290.582
+      },
+      {
+        "text": "接",
+        "start_ms": 49490.582,
+        "end_ms": 49620.582
+      },
+      {
+        "text": "视",
+        "start_ms": 49620.582,
+        "end_ms": 49760.582
+      },
+      {
+        "text": "频",
+        "start_ms": 49760.582,
+        "end_ms": 49870.582
+      },
+      {
+        "text": "通",
+        "start_ms": 49870.582,
+        "end_ms": 50060.582
+      },
+      {
+        "text": "话、",
+        "start_ms": 50060.582,
+        "end_ms": 50210.582
+      },
+      {
+        "text": "回",
+        "start_ms": 50430.583000000006,
+        "end_ms": 50570.582
+      },
+      {
+        "text": "关",
+        "start_ms": 50570.582,
+        "end_ms": 50740.582
+      },
+      {
+        "text": "你",
+        "start_ms": 50740.582,
+        "end_ms": 50820.582
+      },
+      {
+        "text": "的",
+        "start_ms": 50820.582,
+        "end_ms": 50890.582
+      },
+      {
+        "text": "社",
+        "start_ms": 50890.582,
+        "end_ms": 51020.583
+      },
+      {
+        "text": "交",
+        "start_ms": 51020.583,
+        "end_ms": 51120.582
+      },
+      {
+        "text": "账",
+        "start_ms": 51120.582,
+        "end_ms": 51250.582
+      },
+      {
+        "text": "号。",
+        "start_ms": 51250.582,
+        "end_ms": 51510.582
+      },
+      {
+        "text": "你",
+        "start_ms": 51705.624,
+        "end_ms": 51850.625
+      },
+      {
+        "text": "感",
+        "start_ms": 51850.625,
+        "end_ms": 51960.624
+      },
+      {
+        "text": "到",
+        "start_ms": 51960.624,
+        "end_ms": 52030.624
+      },
+      {
+        "text": "的",
+        "start_ms": 52030.624,
+        "end_ms": 52110.624
+      },
+      {
+        "text": "真",
+        "start_ms": 52110.624,
+        "end_ms": 52250.624
+      },
+      {
+        "text": "实",
+        "start_ms": 52250.624,
+        "end_ms": 52410.624
+      },
+      {
+        "text": "感，",
+        "start_ms": 52410.624,
+        "end_ms": 52600.625
+      },
+      {
+        "text": "就",
+        "start_ms": 52600.625,
+        "end_ms": 52710.624
+      },
+      {
+        "text": "是",
+        "start_ms": 52710.624,
+        "end_ms": 52930.624500000005
+      },
+      {
+        "text": "AI",
+        "start_ms": 52930.624500000005,
+        "end_ms": 53060.624
+      },
+      {
+        "text": "加",
+        "start_ms": 53060.624,
+        "end_ms": 53220.624
+      },
+      {
+        "text": "真",
+        "start_ms": 53220.624,
+        "end_ms": 53330.624
+      },
+      {
+        "text": "人",
+        "start_ms": 53330.624,
+        "end_ms": 53480.624
+      },
+      {
+        "text": "这",
+        "start_ms": 53480.624,
+        "end_ms": 53580.624
+      },
+      {
+        "text": "样",
+        "start_ms": 53580.624,
+        "end_ms": 53660.624
+      },
+      {
+        "text": "拼",
+        "start_ms": 53660.624,
+        "end_ms": 53820.624
+      },
+      {
+        "text": "出",
+        "start_ms": 53820.624,
+        "end_ms": 53950.624
+      },
+      {
+        "text": "来",
+        "start_ms": 53950.624,
+        "end_ms": 54060.624
+      },
+      {
+        "text": "的。",
+        "start_ms": 54060.624,
+        "end_ms": 54160.623999999996
+      },
+      {
+        "text": "怎",
+        "start_ms": 54570.623999999996,
+        "end_ms": 54720.624
+      },
+      {
+        "text": "么",
+        "start_ms": 54720.624,
+        "end_ms": 54930.623999999996
+      },
+      {
+        "text": "不",
+        "start_ms": 54930.623999999996,
+        "end_ms": 55040.623999999996
+      },
+      {
+        "text": "露",
+        "start_ms": 55040.623999999996,
+        "end_ms": 55160.623999999996
+      },
+      {
+        "text": "馅？",
+        "start_ms": 55160.623999999996,
+        "end_ms": 55490.623999999996
+      },
+      {
+        "text": "真",
+        "start_ms": 56045.6657,
+        "end_ms": 56120.6657
+      },
+      {
+        "text": "人",
+        "start_ms": 56120.6657,
+        "end_ms": 56180.6657
+      },
+      {
+        "text": "零",
+        "start_ms": 56180.6657,
+        "end_ms": 56270.66559999999
+      },
+      {
+        "text": "工",
+        "start_ms": 56270.66559999999,
+        "end_ms": 56450.6657
+      },
+      {
+        "text": "打",
+        "start_ms": 56450.6657,
+        "end_ms": 56620.6657
+      },
+      {
+        "text": "字",
+        "start_ms": 56620.6657,
+        "end_ms": 56770.665799999995
+      },
+      {
+        "text": "时，",
+        "start_ms": 56770.665799999995,
+        "end_ms": 57120.6657
+      },
+      {
+        "text": "小",
+        "start_ms": 57260.66559999999,
+        "end_ms": 57440.6657
+      },
+      {
+        "text": "模",
+        "start_ms": 57440.6657,
+        "end_ms": 57570.665499999996
+      },
+      {
+        "text": "型",
+        "start_ms": 57570.665499999996,
+        "end_ms": 57740.6656
+      },
+      {
+        "text": "一",
+        "start_ms": 57740.6656,
+        "end_ms": 57850.665799999995
+      },
+      {
+        "text": "次",
+        "start_ms": 57850.665799999995,
+        "end_ms": 58050.665799999995
+      },
+      {
+        "text": "给",
+        "start_ms": 58050.665799999995,
+        "end_ms": 58190.6657
+      },
+      {
+        "text": "三",
+        "start_ms": 58190.6657,
+        "end_ms": 58410.6657
+      },
+      {
+        "text": "条",
+        "start_ms": 58410.6657,
+        "end_ms": 58570.665499999996
+      },
+      {
+        "text": "候",
+        "start_ms": 58570.665499999996,
+        "end_ms": 58690.6654
+      },
+      {
+        "text": "选",
+        "start_ms": 58690.6654,
+        "end_ms": 58860.665499999996
+      },
+      {
+        "text": "回",
+        "start_ms": 58860.665499999996,
+        "end_ms": 59020.6654
+      },
+      {
+        "text": "复，",
+        "start_ms": 59020.6654,
+        "end_ms": 59300.666
+      },
+      {
+        "text": "挑",
+        "start_ms": 59500.666,
+        "end_ms": 59700.6657
+      },
+      {
+        "text": "一",
+        "start_ms": 59700.6657,
+        "end_ms": 59760.66559999999
+      },
+      {
+        "text": "条",
+        "start_ms": 59760.66559999999,
+        "end_ms": 59950.6657
+      },
+      {
+        "text": "就",
+        "start_ms": 59950.6657,
+        "end_ms": 60060.66529999999
+      },
+      {
+        "text": "发；",
+        "start_ms": 60060.66529999999,
+        "end_ms": 60350.66529999999
+      },
+      {
+        "text": "头",
+        "start_ms": 60705.7077,
+        "end_ms": 60890.7077
+      },
+      {
+        "text": "像",
+        "start_ms": 60890.7077,
+        "end_ms": 61090.708
+      },
+      {
+        "text": "图",
+        "start_ms": 61090.708,
+        "end_ms": 61250.708
+      },
+      {
+        "text": "像",
+        "start_ms": 61250.708,
+        "end_ms": 61430.7076
+      },
+      {
+        "text": "由",
+        "start_ms": 61430.7076,
+        "end_ms": 61550.708
+      },
+      {
+        "text": "图",
+        "start_ms": 61550.708,
+        "end_ms": 61740.7076
+      },
+      {
+        "text": "像",
+        "start_ms": 61740.7076,
+        "end_ms": 61960.708
+      },
+      {
+        "text": "编",
+        "start_ms": 61960.708,
+        "end_ms": 62140.7077
+      },
+      {
+        "text": "辑",
+        "start_ms": 62140.7077,
+        "end_ms": 62280.708
+      },
+      {
+        "text": "模",
+        "start_ms": 62280.708,
+        "end_ms": 62380.708
+      },
+      {
+        "text": "型",
+        "start_ms": 62380.708,
+        "end_ms": 62530.708
+      },
+      {
+        "text": "生",
+        "start_ms": 62530.708,
+        "end_ms": 62700.708
+      },
+      {
+        "text": "成；",
+        "start_ms": 62700.708,
+        "end_ms": 62990.708
+      },
+      {
+        "text": "提",
+        "start_ms": 63265.748999999996,
+        "end_ms": 63440.748999999996
+      },
+      {
+        "text": "示",
+        "start_ms": 63440.748999999996,
+        "end_ms": 63590.748999999996
+      },
+      {
+        "text": "词",
+        "start_ms": 63590.748999999996,
+        "end_ms": 63780.7495
+      },
+      {
+        "text": "还",
+        "start_ms": 63780.7495,
+        "end_ms": 63920.748999999996
+      },
+      {
+        "text": "要",
+        "start_ms": 63920.748999999996,
+        "end_ms": 64050.748999999996
+      },
+      {
+        "text": "求",
+        "start_ms": 64050.748999999996,
+        "end_ms": 64380.748999999996
+      },
+      {
+        "text": "AI",
+        "start_ms": 64380.748999999996,
+        "end_ms": 64510.74899999999
+      },
+      {
+        "text": "不",
+        "start_ms": 64510.74899999999,
+        "end_ms": 64630.748999999996
+      },
+      {
+        "text": "能",
+        "start_ms": 64630.748999999996,
+        "end_ms": 64750.74899999998
+      },
+      {
+        "text": "承",
+        "start_ms": 64750.74899999998,
+        "end_ms": 64910.748999999996
+      },
+      {
+        "text": "认",
+        "start_ms": 64910.748999999996,
+        "end_ms": 65040.74899999999
+      },
+      {
+        "text": "自",
+        "start_ms": 65040.74899999999,
+        "end_ms": 65160.748999999996
+      },
+      {
+        "text": "己",
+        "start_ms": 65160.748999999996,
+        "end_ms": 65290.749999999985
+      },
+      {
+        "text": "是",
+        "start_ms": 65290.749999999985,
+        "end_ms": 65440.748999999996
+      },
+      {
+        "text": "自",
+        "start_ms": 65440.748999999996,
+        "end_ms": 65560.74899999998
+      },
+      {
+        "text": "动",
+        "start_ms": 65560.74899999998,
+        "end_ms": 65620.74999999999
+      },
+      {
+        "text": "化",
+        "start_ms": 65620.74999999999,
+        "end_ms": 65680.749
+      },
+      {
+        "text": "程",
+        "start_ms": 65680.749,
+        "end_ms": 65740.749
+      },
+      {
+        "text": "序。",
+        "start_ms": 65740.749,
+        "end_ms": 65800.749
+      },
+      {
+        "text": "脸",
+        "start_ms": 66650.79099999998,
+        "end_ms": 66810.791
+      },
+      {
+        "text": "和",
+        "start_ms": 66810.791,
+        "end_ms": 66990.79099999998
+      },
+      {
+        "text": "话，",
+        "start_ms": 66990.79099999998,
+        "end_ms": 67280.791
+      },
+      {
+        "text": "都",
+        "start_ms": 67420.791,
+        "end_ms": 67580.791
+      },
+      {
+        "text": "为",
+        "start_ms": 67580.791,
+        "end_ms": 67680.79099999998
+      },
+      {
+        "text": "了",
+        "start_ms": 67680.79099999998,
+        "end_ms": 67770.79099999998
+      },
+      {
+        "text": "让",
+        "start_ms": 67770.79099999998,
+        "end_ms": 67900.79099999998
+      },
+      {
+        "text": "你",
+        "start_ms": 67900.79099999998,
+        "end_ms": 68010.791
+      },
+      {
+        "text": "信",
+        "start_ms": 68010.791,
+        "end_ms": 68260.791
+      },
+      {
+        "text": "以",
+        "start_ms": 68260.791,
+        "end_ms": 68290.79099999998
+      },
+      {
+        "text": "为",
+        "start_ms": 68290.79099999998,
+        "end_ms": 68440.791
+      },
+      {
+        "text": "真。",
+        "start_ms": 68440.791,
+        "end_ms": 68690.791
+      },
+      {
+        "text": "钱",
+        "start_ms": 69180.791,
+        "end_ms": 69430.791
+      },
+      {
+        "text": "怎",
+        "start_ms": 69430.791,
+        "end_ms": 69500.791
+      },
+      {
+        "text": "么",
+        "start_ms": 69500.791,
+        "end_ms": 69590.791
+      },
+      {
+        "text": "走？",
+        "start_ms": 69590.791,
+        "end_ms": 69870.791
+      },
+      {
+        "text": "聊",
+        "start_ms": 70495.8327,
+        "end_ms": 70570.8327
+      },
+      {
+        "text": "天",
+        "start_ms": 70570.8327,
+        "end_ms": 70660.8326
+      },
+      {
+        "text": "和",
+        "start_ms": 70660.8326,
+        "end_ms": 70780.8326
+      },
+      {
+        "text": "匹",
+        "start_ms": 70780.8326,
+        "end_ms": 70970.8326
+      },
+      {
+        "text": "配",
+        "start_ms": 70970.8326,
+        "end_ms": 71120.8327
+      },
+      {
+        "text": "消",
+        "start_ms": 71120.8327,
+        "end_ms": 71270.8325
+      },
+      {
+        "text": "耗",
+        "start_ms": 71270.8325,
+        "end_ms": 71440.8326
+      },
+      {
+        "text": "额",
+        "start_ms": 71440.8326,
+        "end_ms": 71540.83249999999
+      },
+      {
+        "text": "度，",
+        "start_ms": 71540.83249999999,
+        "end_ms": 71780.8328
+      },
+      {
+        "text": "额",
+        "start_ms": 72090.8327,
+        "end_ms": 72120.8327
+      },
+      {
+        "text": "度",
+        "start_ms": 72120.8327,
+        "end_ms": 72250.8325
+      },
+      {
+        "text": "用",
+        "start_ms": 72250.8325,
+        "end_ms": 72380.8327
+      },
+      {
+        "text": "完，",
+        "start_ms": 72380.8327,
+        "end_ms": 72650.8326
+      },
+      {
+        "text": "要",
+        "start_ms": 72870.8327,
+        "end_ms": 72980.8326
+      },
+      {
+        "text": "用",
+        "start_ms": 72980.8326,
+        "end_ms": 73130.8327
+      },
+      {
+        "text": "App",
+        "start_ms": 73130.8327,
+        "end_ms": 73390.833
+      },
+      {
+        "text": "里",
+        "start_ms": 73420.8326,
+        "end_ms": 73480.8326
+      },
+      {
+        "text": "的",
+        "start_ms": 73480.8326,
+        "end_ms": 73540.83249999999
+      },
+      {
+        "text": "金",
+        "start_ms": 73540.83249999999,
+        "end_ms": 73700.8324
+      },
+      {
+        "text": "币",
+        "start_ms": 73700.8324,
+        "end_ms": 73890.833
+      },
+      {
+        "text": "购",
+        "start_ms": 73890.833,
+        "end_ms": 74020.833
+      },
+      {
+        "text": "买",
+        "start_ms": 74020.833,
+        "end_ms": 74140.833
+      },
+      {
+        "text": "补",
+        "start_ms": 74140.833,
+        "end_ms": 74290.83249999999
+      },
+      {
+        "text": "充；",
+        "start_ms": 74290.83249999999,
+        "end_ms": 74540.83249999999
+      },
+      {
+        "text": "真",
+        "start_ms": 74955.8744,
+        "end_ms": 75100.8744
+      },
+      {
+        "text": "人",
+        "start_ms": 75100.8744,
+        "end_ms": 75220.8743
+      },
+      {
+        "text": "零",
+        "start_ms": 75220.8743,
+        "end_ms": 75390.8744
+      },
+      {
+        "text": "工",
+        "start_ms": 75390.8744,
+        "end_ms": 75640.8744
+      },
+      {
+        "text": "按",
+        "start_ms": 75640.8744,
+        "end_ms": 75760.8743
+      },
+      {
+        "text": "自",
+        "start_ms": 75760.8743,
+        "end_ms": 75890.8744
+      },
+      {
+        "text": "己",
+        "start_ms": 75890.8744,
+        "end_ms": 76010.8743
+      },
+      {
+        "text": "完",
+        "start_ms": 76010.8743,
+        "end_ms": 76150.8746
+      },
+      {
+        "text": "成",
+        "start_ms": 76150.8746,
+        "end_ms": 76280.874
+      },
+      {
+        "text": "的",
+        "start_ms": 76280.874,
+        "end_ms": 76360.874
+      },
+      {
+        "text": "消",
+        "start_ms": 76360.874,
+        "end_ms": 76560.87439999999
+      },
+      {
+        "text": "息、",
+        "start_ms": 76560.87439999999,
+        "end_ms": 76590.8747
+      },
+      {
+        "text": "视",
+        "start_ms": 76960.87499999999,
+        "end_ms": 77160.874
+      },
+      {
+        "text": "频、",
+        "start_ms": 77160.874,
+        "end_ms": 77190.874
+      },
+      {
+        "text": "回",
+        "start_ms": 77610.874,
+        "end_ms": 77800.87499999999
+      },
+      {
+        "text": "关",
+        "start_ms": 77800.87499999999,
+        "end_ms": 78050.87499999999
+      },
+      {
+        "text": "计",
+        "start_ms": 78110.874,
+        "end_ms": 78260.875
+      },
+      {
+        "text": "件",
+        "start_ms": 78260.875,
+        "end_ms": 78430.87399999998
+      },
+      {
+        "text": "拿",
+        "start_ms": 78430.87399999998,
+        "end_ms": 78570.874
+      },
+      {
+        "text": "钱。",
+        "start_ms": 78570.874,
+        "end_ms": 78850.874
+      },
+      {
+        "text": "做",
+        "start_ms": 79135.916,
+        "end_ms": 79290.915
+      },
+      {
+        "text": "个",
+        "start_ms": 79290.915,
+        "end_ms": 79370.915
+      },
+      {
+        "text": "假",
+        "start_ms": 79370.915,
+        "end_ms": 79520.916
+      },
+      {
+        "text": "设",
+        "start_ms": 79520.916,
+        "end_ms": 79670.916
+      },
+      {
+        "text": "测",
+        "start_ms": 79670.916,
+        "end_ms": 79810.916
+      },
+      {
+        "text": "算：",
+        "start_ms": 79810.916,
+        "end_ms": 79840.916
+      },
+      {
+        "text": "如",
+        "start_ms": 80280.916,
+        "end_ms": 80430.916
+      },
+      {
+        "text": "果",
+        "start_ms": 80430.916,
+        "end_ms": 80540.915
+      },
+      {
+        "text": "两",
+        "start_ms": 80540.915,
+        "end_ms": 80710.916
+      },
+      {
+        "text": "周",
+        "start_ms": 80710.916,
+        "end_ms": 80870.915
+      },
+      {
+        "text": "里",
+        "start_ms": 80870.915,
+        "end_ms": 81090.916
+      },
+      {
+        "text": "有",
+        "start_ms": 81130.916,
+        "end_ms": 81270.916
+      },
+      {
+        "text": "一",
+        "start_ms": 81270.916,
+        "end_ms": 81410.915
+      },
+      {
+        "text": "成",
+        "start_ms": 81410.915,
+        "end_ms": 81550.916
+      },
+      {
+        "text": "用",
+        "start_ms": 81550.916,
+        "end_ms": 81700.916
+      },
+      {
+        "text": "户",
+        "start_ms": 81700.916,
+        "end_ms": 81800.916
+      },
+      {
+        "text": "付",
+        "start_ms": 81800.916,
+        "end_ms": 82000.91549999999
+      },
+      {
+        "text": "费、",
+        "start_ms": 82440.91599999998,
+        "end_ms": 82470.91599999998
+      },
+      {
+        "text": "人",
+        "start_ms": 82475.95799999998,
+        "end_ms": 82550.958
+      },
+      {
+        "text": "均",
+        "start_ms": 82550.958,
+        "end_ms": 82670.958
+      },
+      {
+        "text": "充",
+        "start_ms": 82670.958,
+        "end_ms": 82840.958
+      },
+      {
+        "text": "一",
+        "start_ms": 82840.958,
+        "end_ms": 82950.958
+      },
+      {
+        "text": "百",
+        "start_ms": 82950.958,
+        "end_ms": 83130.958
+      },
+      {
+        "text": "元",
+        "start_ms": 83130.958,
+        "end_ms": 83340.958
+      },
+      {
+        "text": "—",
+        "start_ms": 83340.958,
+        "end_ms": 83370.958
+      },
+      {
+        "text": "—",
+        "start_ms": 83440.958,
+        "end_ms": 83470.958
+      },
+      {
+        "text": "这",
+        "start_ms": 83500.957,
+        "end_ms": 83620.958
+      },
+      {
+        "text": "两",
+        "start_ms": 83620.958,
+        "end_ms": 83740.958
+      },
+      {
+        "text": "个",
+        "start_ms": 83740.958,
+        "end_ms": 83820.95799999998
+      },
+      {
+        "text": "数",
+        "start_ms": 83820.95799999998,
+        "end_ms": 83960.95749999999
+      },
+      {
+        "text": "都",
+        "start_ms": 83960.95749999999,
+        "end_ms": 84070.95799999998
+      },
+      {
+        "text": "是",
+        "start_ms": 84070.95799999998,
+        "end_ms": 84170.958
+      },
+      {
+        "text": "假",
+        "start_ms": 84170.958,
+        "end_ms": 84340.958
+      },
+      {
+        "text": "设，",
+        "start_ms": 84340.958,
+        "end_ms": 84620.958
+      },
+      {
+        "text": "不",
+        "start_ms": 84735.99999999999,
+        "end_ms": 84811.0
+      },
+      {
+        "text": "是",
+        "start_ms": 84811.0,
+        "end_ms": 84911.0
+      },
+      {
+        "text": "报",
+        "start_ms": 84911.0,
+        "end_ms": 85041.00099999999
+      },
+      {
+        "text": "告",
+        "start_ms": 85041.00099999999,
+        "end_ms": 85151.00099999999
+      },
+      {
+        "text": "数",
+        "start_ms": 85151.00099999999,
+        "end_ms": 85330.999
+      },
+      {
+        "text": "据",
+        "start_ms": 85330.999,
+        "end_ms": 85591.0
+      },
+      {
+        "text": "—",
+        "start_ms": 85801.001,
+        "end_ms": 85830.999
+      },
+      {
+        "text": "—",
+        "start_ms": 85830.999,
+        "end_ms": 85860.99999999999
+      },
+      {
+        "text": "按",
+        "start_ms": 85860.99999999999,
+        "end_ms": 85891.00099999999
+      },
+      {
+        "text": "两",
+        "start_ms": 85891.00099999999,
+        "end_ms": 86051.001
+      },
+      {
+        "text": "万",
+        "start_ms": 86051.001,
+        "end_ms": 86141.00099999999
+      },
+      {
+        "text": "五",
+        "start_ms": 86141.00099999999,
+        "end_ms": 86281.001
+      },
+      {
+        "text": "千",
+        "start_ms": 86281.001,
+        "end_ms": 86451.00099999999
+      },
+      {
+        "text": "人",
+        "start_ms": 86451.00099999999,
+        "end_ms": 86570.999
+      },
+      {
+        "text": "算，",
+        "start_ms": 86570.999,
+        "end_ms": 86830.999
+      },
+      {
+        "text": "充",
+        "start_ms": 87076.042,
+        "end_ms": 87151.04299999999
+      },
+      {
+        "text": "值",
+        "start_ms": 87151.04299999999,
+        "end_ms": 87241.04299999999
+      },
+      {
+        "text": "流",
+        "start_ms": 87241.04299999999,
+        "end_ms": 87411.041
+      },
+      {
+        "text": "水",
+        "start_ms": 87411.041,
+        "end_ms": 87621.04199999999
+      },
+      {
+        "text": "大",
+        "start_ms": 87621.04199999999,
+        "end_ms": 87791.04199999999
+      },
+      {
+        "text": "约",
+        "start_ms": 87791.04199999999,
+        "end_ms": 87871.04199999999
+      },
+      {
+        "text": "二",
+        "start_ms": 87871.04199999999,
+        "end_ms": 88001.04099999998
+      },
+      {
+        "text": "十",
+        "start_ms": 88001.04099999998,
+        "end_ms": 88061.043
+      },
+      {
+        "text": "五",
+        "start_ms": 88061.043,
+        "end_ms": 88091.04099999998
+      },
+      {
+        "text": "万",
+        "start_ms": 88091.04099999998,
+        "end_ms": 88121.04199999999
+      },
+      {
+        "text": "元。",
+        "start_ms": 88121.04199999999,
+        "end_ms": 88151.04299999999
+      },
+      {
+        "text": "它",
+        "start_ms": 88871.084,
+        "end_ms": 88991.083
+      },
+      {
+        "text": "是",
+        "start_ms": 88991.083,
+        "end_ms": 89141.08499999999
+      },
+      {
+        "text": "按",
+        "start_ms": 89141.08499999999,
+        "end_ms": 89261.084
+      },
+      {
+        "text": "假",
+        "start_ms": 89261.084,
+        "end_ms": 89451.08399999999
+      },
+      {
+        "text": "设",
+        "start_ms": 89451.08399999999,
+        "end_ms": 89641.08499999999
+      },
+      {
+        "text": "算",
+        "start_ms": 89641.08499999999,
+        "end_ms": 89801.085
+      },
+      {
+        "text": "出",
+        "start_ms": 89801.085,
+        "end_ms": 89891.08499999999
+      },
+      {
+        "text": "来",
+        "start_ms": 89891.08499999999,
+        "end_ms": 89951.08399999999
+      },
+      {
+        "text": "的",
+        "start_ms": 89951.08399999999,
+        "end_ms": 90031.08399999999
+      },
+      {
+        "text": "情",
+        "start_ms": 90031.08399999999,
+        "end_ms": 90231.08499999999
+      },
+      {
+        "text": "景，",
+        "start_ms": 90231.08499999999,
+        "end_ms": 90441.08399999999
+      },
+      {
+        "text": "不",
+        "start_ms": 90571.08299999998,
+        "end_ms": 90671.083
+      },
+      {
+        "text": "是",
+        "start_ms": 90671.083,
+        "end_ms": 90791.084
+      },
+      {
+        "text": "这",
+        "start_ms": 90791.084,
+        "end_ms": 90891.08499999999
+      },
+      {
+        "text": "个",
+        "start_ms": 90891.08499999999,
+        "end_ms": 90961.084
+      },
+      {
+        "text": "工",
+        "start_ms": 90961.084,
+        "end_ms": 91101.08399999999
+      },
+      {
+        "text": "作",
+        "start_ms": 91101.08399999999,
+        "end_ms": 91221.08499999999
+      },
+      {
+        "text": "室",
+        "start_ms": 91221.08499999999,
+        "end_ms": 91391.08499999999
+      },
+      {
+        "text": "实",
+        "start_ms": 91391.08499999999,
+        "end_ms": 91571.08299999998
+      },
+      {
+        "text": "际",
+        "start_ms": 91571.08299999998,
+        "end_ms": 91691.08399999999
+      },
+      {
+        "text": "赚",
+        "start_ms": 91691.08399999999,
+        "end_ms": 91851.08399999999
+      },
+      {
+        "text": "到",
+        "start_ms": 91851.08399999999,
+        "end_ms": 91941.08399999999
+      },
+      {
+        "text": "的",
+        "start_ms": 91941.08399999999,
+        "end_ms": 92021.084
+      },
+      {
+        "text": "钱。",
+        "start_ms": 92021.084,
+        "end_ms": 92271.084
+      },
+      {
+        "text": "连",
+        "start_ms": 92741.084,
+        "end_ms": 92921.08399999999
+      },
+      {
+        "text": "「",
+        "start_ms": 92921.08399999999,
+        "end_ms": 92951.08399999999
+      },
+      {
+        "text": "有",
+        "start_ms": 92951.08399999999,
+        "end_ms": 93021.084
+      },
+      {
+        "text": "人",
+        "start_ms": 93021.084,
+        "end_ms": 93121.084
+      },
+      {
+        "text": "喜",
+        "start_ms": 93121.084,
+        "end_ms": 93321.084
+      },
+      {
+        "text": "欢",
+        "start_ms": 93321.084,
+        "end_ms": 93391.08399999999
+      },
+      {
+        "text": "你",
+        "start_ms": 93391.08399999999,
+        "end_ms": 93451.08399999999
+      },
+      {
+        "text": "」",
+        "start_ms": 93451.08399999999,
+        "end_ms": 93481.084
+      },
+      {
+        "text": "的",
+        "start_ms": 93481.084,
+        "end_ms": 93541.084
+      },
+      {
+        "text": "感",
+        "start_ms": 93541.084,
+        "end_ms": 93661.084
+      },
+      {
+        "text": "觉",
+        "start_ms": 93661.084,
+        "end_ms": 93831.084
+      },
+      {
+        "text": "也",
+        "start_ms": 93831.084,
+        "end_ms": 93911.084
+      },
+      {
+        "text": "能",
+        "start_ms": 93911.084,
+        "end_ms": 94071.084
+      },
+      {
+        "text": "批",
+        "start_ms": 94071.084,
+        "end_ms": 94271.084
+      },
+      {
+        "text": "量",
+        "start_ms": 94271.084,
+        "end_ms": 94391.08399999999
+      },
+      {
+        "text": "造：",
+        "start_ms": 94391.08399999999,
+        "end_ms": 94421.08399999999
+      },
+      {
+        "text": "点",
+        "start_ms": 94781.08399999999,
+        "end_ms": 94951.08399999999
+      },
+      {
+        "text": "赞、",
+        "start_ms": 95111.084,
+        "end_ms": 95141.08399999999
+      },
+      {
+        "text": "访",
+        "start_ms": 95486.1257,
+        "end_ms": 95561.1257
+      },
+      {
+        "text": "客",
+        "start_ms": 95561.1257,
+        "end_ms": 95651.1256
+      },
+      {
+        "text": "记",
+        "start_ms": 95651.1256,
+        "end_ms": 95771.1258
+      },
+      {
+        "text": "录，",
+        "start_ms": 95771.1258,
+        "end_ms": 96031.1258
+      },
+      {
+        "text": "后",
+        "start_ms": 96061.1257,
+        "end_ms": 96261.12550000001
+      },
+      {
+        "text": "台",
+        "start_ms": 96261.12550000001,
+        "end_ms": 96411.1256
+      },
+      {
+        "text": "可",
+        "start_ms": 96411.1256,
+        "end_ms": 96521.12599999999
+      },
+      {
+        "text": "以",
+        "start_ms": 96521.12599999999,
+        "end_ms": 96611.126
+      },
+      {
+        "text": "直",
+        "start_ms": 96611.126,
+        "end_ms": 96751.126
+      },
+      {
+        "text": "接",
+        "start_ms": 96751.126,
+        "end_ms": 96861.126
+      },
+      {
+        "text": "生",
+        "start_ms": 96861.126,
+        "end_ms": 97011.12550000001
+      },
+      {
+        "text": "成；",
+        "start_ms": 97011.12550000001,
+        "end_ms": 97191.126
+      },
+      {
+        "text": "该",
+        "start_ms": 97546.1674,
+        "end_ms": 97691.1673
+      },
+      {
+        "text": "真",
+        "start_ms": 97691.1673,
+        "end_ms": 97811.167
+      },
+      {
+        "text": "人",
+        "start_ms": 97811.167,
+        "end_ms": 97951.1676
+      },
+      {
+        "text": "接",
+        "start_ms": 97951.1676,
+        "end_ms": 98081.16699999999
+      },
+      {
+        "text": "视",
+        "start_ms": 98081.16699999999,
+        "end_ms": 98221.1675
+      },
+      {
+        "text": "频",
+        "start_ms": 98221.1675,
+        "end_ms": 98381.16739999999
+      },
+      {
+        "text": "却",
+        "start_ms": 98381.16739999999,
+        "end_ms": 98541.167
+      },
+      {
+        "text": "没",
+        "start_ms": 98541.167,
+        "end_ms": 98681.1676
+      },
+      {
+        "text": "人",
+        "start_ms": 98681.1676,
+        "end_ms": 98811.167
+      },
+      {
+        "text": "时，",
+        "start_ms": 98811.167,
+        "end_ms": 99041.167
+      },
+      {
+        "text": "就",
+        "start_ms": 99221.1675,
+        "end_ms": 99351.167
+      },
+      {
+        "text": "放",
+        "start_ms": 99351.167,
+        "end_ms": 99531.1675
+      },
+      {
+        "text": "预",
+        "start_ms": 99531.1675,
+        "end_ms": 99651.1674
+      },
+      {
+        "text": "录",
+        "start_ms": 99651.1674,
+        "end_ms": 99781.167
+      },
+      {
+        "text": "内",
+        "start_ms": 99781.167,
+        "end_ms": 99891.1676
+      },
+      {
+        "text": "容；",
+        "start_ms": 99891.1676,
+        "end_ms": 100101.1677
+      },
+      {
+        "text": "系",
+        "start_ms": 100326.20899999999,
+        "end_ms": 100401.20899999999
+      },
+      {
+        "text": "统",
+        "start_ms": 100401.20899999999,
+        "end_ms": 100511.20899999999
+      },
+      {
+        "text": "还",
+        "start_ms": 100511.20899999999,
+        "end_ms": 100601.209
+      },
+      {
+        "text": "会",
+        "start_ms": 100601.209,
+        "end_ms": 100691.209
+      },
+      {
+        "text": "记",
+        "start_ms": 100691.209,
+        "end_ms": 100801.209
+      },
+      {
+        "text": "下",
+        "start_ms": 100801.209,
+        "end_ms": 100971.2095
+      },
+      {
+        "text": "开",
+        "start_ms": 100971.2095,
+        "end_ms": 101091.209
+      },
+      {
+        "text": "始",
+        "start_ms": 101091.209,
+        "end_ms": 101221.2095
+      },
+      {
+        "text": "怀",
+        "start_ms": 101221.2095,
+        "end_ms": 101351.209
+      },
+      {
+        "text": "疑",
+        "start_ms": 101351.209,
+        "end_ms": 101431.209
+      },
+      {
+        "text": "「",
+        "start_ms": 101431.209,
+        "end_ms": 101461.209
+      },
+      {
+        "text": "对",
+        "start_ms": 101461.209,
+        "end_ms": 101571.209
+      },
+      {
+        "text": "面",
+        "start_ms": 101571.209,
+        "end_ms": 101671.209
+      },
+      {
+        "text": "是",
+        "start_ms": 101671.209,
+        "end_ms": 101801.209
+      },
+      {
+        "text": "机",
+        "start_ms": 101801.209,
+        "end_ms": 101911.209
+      },
+      {
+        "text": "器",
+        "start_ms": 101911.209,
+        "end_ms": 102041.20899999999
+      },
+      {
+        "text": "人",
+        "start_ms": 102041.20899999999,
+        "end_ms": 102101.209
+      },
+      {
+        "text": "」",
+        "start_ms": 102101.209,
+        "end_ms": 102131.209
+      },
+      {
+        "text": "的",
+        "start_ms": 102131.209,
+        "end_ms": 102191.209
+      },
+      {
+        "text": "用",
+        "start_ms": 102191.209,
+        "end_ms": 102341.209
+      },
+      {
+        "text": "户。",
+        "start_ms": 102341.209,
+        "end_ms": 102531.209
+      },
+      {
+        "text": "从",
+        "start_ms": 102786.25099999999,
+        "end_ms": 102941.25099999999
+      },
+      {
+        "text": "心",
+        "start_ms": 102941.25099999999,
+        "end_ms": 103131.251
+      },
+      {
+        "text": "动",
+        "start_ms": 103131.251,
+        "end_ms": 103291.251
+      },
+      {
+        "text": "到",
+        "start_ms": 103291.251,
+        "end_ms": 103441.25099999999
+      },
+      {
+        "text": "起",
+        "start_ms": 103441.25099999999,
+        "end_ms": 103771.25099999999
+      },
+      {
+        "text": "疑，",
+        "start_ms": 103771.25099999999,
+        "end_ms": 103811.251
+      },
+      {
+        "text": "每",
+        "start_ms": 103931.251,
+        "end_ms": 104111.25099999999
+      },
+      {
+        "text": "一",
+        "start_ms": 104111.25099999999,
+        "end_ms": 104141.252
+      },
+      {
+        "text": "步",
+        "start_ms": 104141.252,
+        "end_ms": 104321.251
+      },
+      {
+        "text": "都",
+        "start_ms": 104321.251,
+        "end_ms": 104411.25099999999
+      },
+      {
+        "text": "在",
+        "start_ms": 104411.25099999999,
+        "end_ms": 104511.251
+      },
+      {
+        "text": "这",
+        "start_ms": 104511.251,
+        "end_ms": 104601.251
+      },
+      {
+        "text": "套",
+        "start_ms": 104601.251,
+        "end_ms": 104691.25099999999
+      },
+      {
+        "text": "设",
+        "start_ms": 104691.25099999999,
+        "end_ms": 104861.25099999999
+      },
+      {
+        "text": "计",
+        "start_ms": 104861.25099999999,
+        "end_ms": 104961.251
+      },
+      {
+        "text": "里。",
+        "start_ms": 104961.251,
+        "end_ms": 105021.25099999999
+      },
+      {
+        "text": "Anthropic",
+        "start_ms": 105611.25099999999,
+        "end_ms": 106131.25099999999
+      },
+      {
+        "text": "已",
+        "start_ms": 106251.25099999999,
+        "end_ms": 106291.25099999999
+      },
+      {
+        "text": "封",
+        "start_ms": 106291.25099999999,
+        "end_ms": 106511.25099999999
+      },
+      {
+        "text": "禁",
+        "start_ms": 106511.25099999999,
+        "end_ms": 106711.25099999999
+      },
+      {
+        "text": "相",
+        "start_ms": 106711.25099999999,
+        "end_ms": 106931.25099999999
+      },
+      {
+        "text": "关",
+        "start_ms": 106931.25099999999,
+        "end_ms": 107091.251
+      },
+      {
+        "text": "账",
+        "start_ms": 107091.251,
+        "end_ms": 107281.251
+      },
+      {
+        "text": "号",
+        "start_ms": 107281.251,
+        "end_ms": 107461.25099999999
+      },
+      {
+        "text": "和",
+        "start_ms": 107461.25099999999,
+        "end_ms": 107591.251
+      },
+      {
+        "text": "组",
+        "start_ms": 107591.251,
+        "end_ms": 107771.25099999999
+      },
+      {
+        "text": "织，",
+        "start_ms": 107771.25099999999,
+        "end_ms": 108021.25099999999
+      },
+      {
+        "text": "线",
+        "start_ms": 108231.25099999999,
+        "end_ms": 108471.25099999999
+      },
+      {
+        "text": "索",
+        "start_ms": 108471.25099999999,
+        "end_ms": 108701.251
+      },
+      {
+        "text": "同",
+        "start_ms": 108701.251,
+        "end_ms": 108881.25099999999
+      },
+      {
+        "text": "步",
+        "start_ms": 108881.25099999999,
+        "end_ms": 109001.25099999999
+      },
+      {
+        "text": "给",
+        "start_ms": 109001.25099999999,
+        "end_ms": 109141.251
+      },
+      {
+        "text": "相",
+        "start_ms": 109141.251,
+        "end_ms": 109291.25099999999
+      },
+      {
+        "text": "关",
+        "start_ms": 109291.25099999999,
+        "end_ms": 109431.25099999999
+      },
+      {
+        "text": "平",
+        "start_ms": 109431.25099999999,
+        "end_ms": 109591.25099999999
+      },
+      {
+        "text": "台。",
+        "start_ms": 109591.25099999999,
+        "end_ms": 109921.251
+      },
+      {
+        "text": "我",
+        "start_ms": 110281.29239999999,
+        "end_ms": 110421.29269999999
+      },
+      {
+        "text": "的",
+        "start_ms": 110421.29269999999,
+        "end_ms": 110511.29239999999
+      },
+      {
+        "text": "判",
+        "start_ms": 110511.29239999999,
+        "end_ms": 110661.29249999998
+      },
+      {
+        "text": "断",
+        "start_ms": 110661.29249999998,
+        "end_ms": 110781.29299999999
+      },
+      {
+        "text": "很",
+        "start_ms": 110781.29299999999,
+        "end_ms": 110911.29249999998
+      },
+      {
+        "text": "简",
+        "start_ms": 110911.29249999998,
+        "end_ms": 111181.2925
+      },
+      {
+        "text": "单：",
+        "start_ms": 111181.2925,
+        "end_ms": 111271.2926
+      },
+      {
+        "text": "明",
+        "start_ms": 111621.2925,
+        "end_ms": 111791.29259999999
+      },
+      {
+        "text": "说",
+        "start_ms": 111791.29259999999,
+        "end_ms": 111971.29239999999
+      },
+      {
+        "text": "是",
+        "start_ms": 111971.29239999999,
+        "end_ms": 112121.2925
+      },
+      {
+        "text": "AI、",
+        "start_ms": 112431.2925,
+        "end_ms": 112461.29269999999
+      },
+      {
+        "text": "明",
+        "start_ms": 112581.2926,
+        "end_ms": 112741.293
+      },
+      {
+        "text": "码",
+        "start_ms": 112741.293,
+        "end_ms": 112921.29199999999
+      },
+      {
+        "text": "标",
+        "start_ms": 112921.29199999999,
+        "end_ms": 113091.29229999999
+      },
+      {
+        "text": "价",
+        "start_ms": 113091.29229999999,
+        "end_ms": 113211.29269999999
+      },
+      {
+        "text": "的",
+        "start_ms": 113211.29269999999,
+        "end_ms": 113301.29199999999
+      },
+      {
+        "text": "陪",
+        "start_ms": 113301.29199999999,
+        "end_ms": 113441.29299999999
+      },
+      {
+        "text": "伴",
+        "start_ms": 113441.29299999999,
+        "end_ms": 113601.293
+      },
+      {
+        "text": "不",
+        "start_ms": 113601.293,
+        "end_ms": 113701.29299999999
+      },
+      {
+        "text": "是",
+        "start_ms": 113701.29299999999,
+        "end_ms": 113831.29299999999
+      },
+      {
+        "text": "骗；",
+        "start_ms": 113831.29299999999,
+        "end_ms": 114071.29299999999
+      },
+      {
+        "text": "宣",
+        "start_ms": 114386.33399999999,
+        "end_ms": 114541.33399999999
+      },
+      {
+        "text": "传",
+        "start_ms": 114541.33399999999,
+        "end_ms": 114741.33399999999
+      },
+      {
+        "text": "真",
+        "start_ms": 114741.33399999999,
+        "end_ms": 114971.334
+      },
+      {
+        "text": "人、",
+        "start_ms": 114971.334,
+        "end_ms": 115001.334
+      },
+      {
+        "text": "隐",
+        "start_ms": 115311.335,
+        "end_ms": 115421.33399999999
+      },
+      {
+        "text": "瞒",
+        "start_ms": 115421.33399999999,
+        "end_ms": 115581.334
+      },
+      {
+        "text": "自",
+        "start_ms": 115581.334,
+        "end_ms": 115731.33499999999
+      },
+      {
+        "text": "动",
+        "start_ms": 115731.33499999999,
+        "end_ms": 115911.334
+      },
+      {
+        "text": "化、",
+        "start_ms": 115911.334,
+        "end_ms": 116091.33399999999
+      },
+      {
+        "text": "用",
+        "start_ms": 116301.334,
+        "end_ms": 116501.334
+      },
+      {
+        "text": "假",
+        "start_ms": 116501.334,
+        "end_ms": 116721.334
+      },
+      {
+        "text": "心",
+        "start_ms": 116721.334,
+        "end_ms": 116881.334
+      },
+      {
+        "text": "动",
+        "start_ms": 116881.334,
+        "end_ms": 117091.33399999999
+      },
+      {
+        "text": "催",
+        "start_ms": 117091.33399999999,
+        "end_ms": 117281.33399999999
+      },
+      {
+        "text": "你",
+        "start_ms": 117281.33399999999,
+        "end_ms": 117391.33399999999
+      },
+      {
+        "text": "充",
+        "start_ms": 117391.33399999999,
+        "end_ms": 117541.33399999999
+      },
+      {
+        "text": "值",
+        "start_ms": 117541.33399999999,
+        "end_ms": 117601.3345
+      },
+      {
+        "text": "才",
+        "start_ms": 117601.3345,
+        "end_ms": 117661.33499999999
+      },
+      {
+        "text": "是。",
+        "start_ms": 117661.33499999999,
+        "end_ms": 117721.334
+      },
+      {
+        "text": "把",
+        "start_ms": 118461.37499999999,
+        "end_ms": 118601.3755
+      },
+      {
+        "text": "这",
+        "start_ms": 118601.3755,
+        "end_ms": 118721.375
+      },
+      {
+        "text": "条",
+        "start_ms": 118721.375,
+        "end_ms": 118911.37499999999
+      },
+      {
+        "text": "转",
+        "start_ms": 118911.37499999999,
+        "end_ms": 119081.375
+      },
+      {
+        "text": "给",
+        "start_ms": 119081.375,
+        "end_ms": 119221.375
+      },
+      {
+        "text": "你",
+        "start_ms": 119221.375,
+        "end_ms": 119301.375
+      },
+      {
+        "text": "身",
+        "start_ms": 119301.375,
+        "end_ms": 119491.37599999999
+      },
+      {
+        "text": "边",
+        "start_ms": 119491.37599999999,
+        "end_ms": 119701.37599999999
+      },
+      {
+        "text": "爱",
+        "start_ms": 119741.37599999999,
+        "end_ms": 119851.3755
+      },
+      {
+        "text": "用",
+        "start_ms": 119851.3755,
+        "end_ms": 119951.37599999999
+      },
+      {
+        "text": "社",
+        "start_ms": 119951.37599999999,
+        "end_ms": 120131.37499999999
+      },
+      {
+        "text": "交",
+        "start_ms": 120131.37499999999,
+        "end_ms": 120311.37599999999
+      },
+      {
+        "text": "App",
+        "start_ms": 120311.37599999999,
+        "end_ms": 120571.376
+      },
+      {
+        "text": "的",
+        "start_ms": 120601.3755,
+        "end_ms": 120671.375
+      },
+      {
+        "text": "朋",
+        "start_ms": 120671.375,
+        "end_ms": 120921.375
+      },
+      {
+        "text": "友：",
+        "start_ms": 120921.375,
+        "end_ms": 120951.37599999999
+      },
+      {
+        "text": "下",
+        "start_ms": 121211.37499999999,
+        "end_ms": 121411.37499999999
+      },
+      {
+        "text": "次",
+        "start_ms": 121411.37499999999,
+        "end_ms": 121531.37599999999
+      },
+      {
+        "text": "心",
+        "start_ms": 121531.37599999999,
+        "end_ms": 121691.37599999999
+      },
+      {
+        "text": "动",
+        "start_ms": 121691.37599999999,
+        "end_ms": 121831.375
+      },
+      {
+        "text": "前，",
+        "start_ms": 121831.375,
+        "end_ms": 122101.37599999999
+      },
+      {
+        "text": "先",
+        "start_ms": 122346.416,
+        "end_ms": 122421.41699999999
+      },
+      {
+        "text": "看",
+        "start_ms": 122421.41699999999,
+        "end_ms": 122531.416
+      },
+      {
+        "text": "清",
+        "start_ms": 122531.416,
+        "end_ms": 122731.41699999999
+      },
+      {
+        "text": "屏",
+        "start_ms": 122731.41699999999,
+        "end_ms": 122911.41699999999
+      },
+      {
+        "text": "幕",
+        "start_ms": 122911.41699999999,
+        "end_ms": 123021.41599999998
+      },
+      {
+        "text": "后",
+        "start_ms": 123021.41599999998,
+        "end_ms": 123151.417
+      },
+      {
+        "text": "面",
+        "start_ms": 123151.417,
+        "end_ms": 123241.417
+      },
+      {
+        "text": "是",
+        "start_ms": 123241.417,
+        "end_ms": 123391.416
+      },
+      {
+        "text": "谁。",
+        "start_ms": 123391.416,
+        "end_ms": 123671.41699999999
+      }
+    ]
+  },
+  "script": {
+    "title": "两周至少两万五千人跟AI人设聊天：一个中国工作室怎么用Claude搭出二十多款「全真人」交友App",
+    "title_hook": "两万五千人，聊的是AI",
+    "opening_visual": "竖屏首屏：超大字卡「25000」叠在真实中文交友App消息列表或匹配页截图上（角标「同类中文界面示意，非涉案App」），明亮、手机端可读；下方小字「2026年4月·两周观察窗·至少25000名独立用户·非已证实受害人·目标用户在美国」，角标「来源：Anthropic 2026年9月威胁报告GTG-15001」。禁用美国界面、整屏英文UI、暗色科技底。",
+    "final_answer": "两周里至少两万五千名独立用户，跟被包装成真人的AI人设聊天：Claude写App又陪聊，真人零工接视频、做回关；聊天和匹配消耗额度，补充额度要用App金币。判断标准只有一条：对面是谁，平台敢不敢明说。把它转给身边爱用社交App的朋友。",
+    "segments": [
+      {
+        "segment_id": "s1",
+        "narration": "两周里，至少两万五千名独立用户在交友App上跟AI人设聊天——而这些App宣传的全是真人。你手机里要有交友软件，别划走：对面可能不是真人，却在让你为心动花钱。Anthropic的九月威胁报告披露：一个在中国的匿名工作室用Claude做了二十多款交友App，目标用户在美国。两万五是今年四月两周观察窗里的独立用户数，不是已证实受害人数。",
+        "screen_text": "宣传全真人，聊天的是AI",
+        "source_refs": [
+          "https://www.anthropic.com/threat-intelligence-report-september-2026"
+        ],
+        "asset_ids": [],
+        "visual_need": "竖屏首屏，最高优先级：超大字卡「25000」叠加真实中文交友/社交App消息列表或匹配页截图（国内真实中文界面，屏内标注「同类中文界面示意，非涉案App」，不得暗示该平台涉案；品牌与隐私按需裁切，保留真实来源）；明亮配色，手机尺寸可读。第二屏字卡「对面可能不是真人」。口径小字卡：「2026年4月·两周观察窗·至少25000名独立用户·非已证实受害人数·目标用户在美国」，角标「来源：Anthropic 2026年9月威胁报告GTG-15001」。禁用美国界面、整屏英文UI、美国人物街景、暗色科技底。无真实中文截图时用中文数字字卡＋报告译文卡并记录缺口，不虚构界面，不把截图做成视频。"
+      },
+      {
+        "segment_id": "s2",
+        "narration": "工作室先用Claude写代码做出一款款App，再让同一个Claude扮演交友人设、自主陪聊。那两周，四千七百多个AI人设，仅Claude角色就发出约二百三十六万条消息。开发的是它，陪聊的也是它。",
+        "screen_text": "开发的是它，陪聊也是它",
+        "source_refs": [
+          "https://www.anthropic.com/threat-intelligence-report-september-2026"
+        ],
+        "asset_ids": [],
+        "visual_need": "两部分：①真实中文代码编辑器或AI编程工具界面的公开截图、演示录屏（标「示意：用Claude写代码开发App」，不标Claude Code）；②中文应用图标墙示意卡（标「示意：二十多款App」，不伪造真实图标冒充涉案应用）。数字用中文字卡：「4700+个AI人设」「两周约236万条Claude角色消息」，配报告中文译文卡注明出处，附小字「消息量≠受害人数」。不用美国界面；找不到真实编程录屏则用纯字卡并记录缺口。"
+      },
+      {
+        "segment_id": "s3",
+        "narration": "对面是谁？报告给的是整个匹配流的构成：大约每四个对象里，三个是AI人设，一个是真人。AI人设自主接住大部分对话；真人零工干更需要「真人感」的活——自己发消息、接视频通话、回关你的社交账号。你感到的真实感，就是AI加真人这样拼出来的。",
+        "screen_text": "四个对象，三个是AI",
+        "source_refs": [
+          "https://www.anthropic.com/threat-intelligence-report-september-2026"
+        ],
+        "asset_ids": [],
+        "visual_need": "最高优先级：真实中文交友App聊天界面、消息列表、个人资料页截图或公开演示录屏（均标「同类中文界面示意，非涉案App」）。分工示意卡（标「示意」）：匹配流中4个头像3个标AI、1个标真人，卡面注明「整个匹配流构成·非某个人的概率」；真人节点列三项任务「发消息／视频通话／社交回关」，角注报告出处。人物仅用剪影或插画，不冒充真实零工或用户；不做「视频之后聊天者身份概率」的暗示。找不到对应界面则记录缺口，用字卡替代。"
+      },
+      {
+        "segment_id": "s4",
+        "narration": "怎么不露馅？真人零工打字时，小模型一次给三条候选回复，挑一条就发；头像图像由图像编辑模型生成；提示词还要求AI不能承认自己是自动化程序。脸和话，都为了让你信以为真。",
+        "screen_text": "脸和话，都设计成真人",
+        "source_refs": [
+          "https://www.anthropic.com/threat-intelligence-report-september-2026"
+        ],
+        "asset_ids": [],
+        "visual_need": "中文聊天输入框截图（标「同类中文界面示意，非涉案App」）展示三条候选回复三选一（三个聊天气泡示意，标「示意」）；头像部分用中性插画头像加「图像编辑模型生成」标签示意卡（标「示意：头像图像由图像编辑模型生成」，不使用真实他人照片，不标比例，不推断原始照片来源）。报告中文译文卡逐句呈现：「小模型一次提供三条候选回复」「头像图像由图像编辑模型生成」「提示词要求不承认自动化程序」，每张停≥3秒并注明GTG-15001出处。明亮呈现，不加花哨转场。"
+      },
+      {
+        "segment_id": "s5",
+        "narration": "钱怎么走？聊天和匹配消耗额度，额度用完，要用App里的金币购买补充；真人零工按自己完成的消息、视频、回关计件拿钱。做个假设测算：如果两周里有一成用户付费、人均充一百元——这两个数都是假设，不是报告数据——按两万五千人算，充值流水大约二十五万元。它是按假设算出来的情景，不是这个工作室实际赚到的钱。",
+        "screen_text": "假设测算：两周约25万元",
+        "source_refs": [
+          "https://www.anthropic.com/threat-intelligence-report-september-2026"
+        ],
+        "asset_ids": [],
+        "visual_need": "最高优先级：真实中文App金币或钻石充值页、礼物商城、会员购买页截图或公开演示录屏（标「同类中文界面示意，非涉案App」，具体App与可靠来源由素材节点选）。计费链示意卡（标「示意」）：聊天、匹配消耗额度→额度用完用App金币购买补充；不暗示初始额度必然付费；点赞、访客通知不加收费角标。零工按本人完成的消息／视频／回关计件，不画成AI对话自动产生真人工资。「假设测算卡」与报告事实卡视觉明显区分，大字标注「假设测算·非实际收入」：25000人×10%付费×人均100元≈25万元（两周充值流水情景；人民币仅为方便理解的计量单位）。无充值截图时用字卡并记录缺口。"
+      },
+      {
+        "segment_id": "s6",
+        "narration": "连「有人喜欢你」的感觉也能批量造：点赞、访客记录，后台可以直接生成；该真人接视频却没人时，就放预录内容；系统还会记下开始怀疑「对面是机器人」的用户。从心动到起疑，每一步都在这套设计里。",
+        "screen_text": "点赞和访客，也能后台造",
+        "source_refs": [
+          "https://www.anthropic.com/threat-intelligence-report-september-2026"
+        ],
+        "asset_ids": [],
+        "visual_need": "真实中文App点赞通知、访客记录、消息通知列表截图（标「同类中文界面示意，非涉案App」）；预录内容用带播放条的视频通话界面卡（标「示意：预录内容」，仅表现报告写明的「无真人可接时顶替」这一事实，不做全员离线表述）。报告中文译文卡：「后台可生成点赞、访客」「系统记录开始怀疑对面是机器人的用户」。截图不做视频化冒充真实通话；不做标记后处置结果的字卡。"
+      },
+      {
+        "segment_id": "s7",
+        "narration": "Anthropic已封禁相关账号和组织，线索同步给相关平台。我的判断很简单：明说是AI、明码标价的陪伴不是骗；宣传真人、隐瞒自动化、用假心动催你充值才是。把这条转给你身边爱用社交App的朋友：下次心动前，先看清屏幕后面是谁。",
+        "screen_text": "转给爱用社交App的朋友",
+        "source_refs": [
+          "https://www.anthropic.com/threat-intelligence-report-september-2026"
+        ],
+        "asset_ids": [],
+        "visual_need": "报告译文卡（简洁单卡）：「Anthropic已封禁相关账号和组织，线索同步相关平台」；判断卡：「明示AI、明码标价≠骗；宣传真人＋隐瞒自动化＋假心动催充值＝问题」。尾屏：中文聊天界面素材为背景（标「同类中文界面示意，非涉案App」），中央转发箭头图标加大字卡「转给爱用社交App的朋友｜先看清屏幕后面是谁」。不出现其他案件画面、下架／判决／退款边界长卡、防骗清单版式或求关注元素。"
+      }
+    ],
+    "origin": "model",
+    "revision": 15
+  },
+  "assets": [
+    {
+      "asset_id": "0b61255194854094b26a4a2565504352",
+      "name": "对应s4真人身份包装；叙事用途：让人相信的线索。警方提供、央广网原页刊载的真实PNG，1000×2222，已解码。明亮中文界面，充值入口、多个“真人”标签及个人简介可读，可放大标签，保留原图人脸打码。国内同类欺诈场景证据画面、本案辅助理解画面。没有收费动作，不算补齐收费链；来源称部分头像使用AI生成或美颜，无法判定图中哪张由AI生成，更不证明自主模型对话。上屏须持续标“国内同类付费/欺诈场景，非报",
+      "role": "evidence",
+      "mime_type": "image/png",
+      "size_bytes": 1169496,
+      "sha256": "831b33e978685bb991dc6e69019a6b98e4672f123315b7eca5242212a279316c",
+      "source_url": "https://news.cnr.cn/native/gd/20260113/t20260113_527492219.shtml",
+      "license_note": "真实网页截图/来源图片；个人视频制作，素材可直接入片；保留原始来源",
+      "artifact_id": "6c50cd02c1ff426e9d9c31cc7e7b787d",
+      "url": "/api/artifacts/6c50cd02c1ff426e9d9c31cc7e7b787d",
+      "timeline_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/0b61255194854094b26a4a2565504352.png"
+    },
+    {
+      "asset_id": "b611b6b73f0f42f6b8ecf01248fcb65d",
+      "name": "对应s3视频入口、s5付费视频机制备选；叙事用途：收费提示。警方提供、央广网原页刊载原PNG，1000×991，已解码。两个手机界面：左上100金币/分钟，下方视频约会；右侧通话邀请与视频电话按钮，人物已由来源打码。适合放大计价行或邀请按钮，是原新闻图片，不能动画后冒称视频。国内收费入口证据画面、本案辅助理解画面；只有计价和邀请，不证明扣款、通话接通、预录或AI换脸，不反推人民币汇率。上屏须持续标",
+      "role": "evidence",
+      "mime_type": "image/png",
+      "size_bytes": 770597,
+      "sha256": "d24289110bcfbb7bcf760d54cafb7964f367acde7dfc7360620fe16b7ad93ffa",
+      "source_url": "https://news.cnr.cn/native/gd/20260113/t20260113_527492219.shtml",
+      "license_note": "真实网页截图/来源图片；个人视频制作，素材可直接入片；保留原始来源",
+      "artifact_id": "d617506959794ad4b6859dcedcab39e0",
+      "url": "/api/artifacts/d617506959794ad4b6859dcedcab39e0",
+      "timeline_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/b611b6b73f0f42f6b8ecf01248fcb65d.png"
+    },
+    {
+      "asset_id": "41aa62b5f4e845c5883257fdb76b7dc1",
+      "name": "对应s1/s3中文私聊、s4聊天包装、s5按条收费；叙事用途：让人相信的线索／收费。腾讯图床实际下载的央视财经同调查原JPEG，1280×720，已完整解码并看图；四个中文私聊截面中红圈“消息收费7钻石/条”“8钻石/条”“5钻石/条”可读，保留央视财经/财经调查出处和源处理。是国内收费提示证据、本案辅助理解，可标注每条消息扣费，不能当三条AI候选回复界面。腾讯转载正文读取失败，图片以已核验央视原",
+      "role": "evidence",
+      "mime_type": "image/jpeg",
+      "size_bytes": 122172,
+      "sha256": "be18ce24220a9947cc355ed5b65ddd71795164f1cac88a827750e130d07989d6",
+      "source_url": "https://tv.cctv.com/2025/04/20/VIDE5gJG9pJqDPTapHM9pQor250420.shtml",
+      "license_note": "真实网页截图/来源图片；个人视频制作，素材可直接入片；保留原始来源",
+      "artifact_id": "d58940c5bce244408a56f49641c2549d",
+      "url": "/api/artifacts/d58940c5bce244408a56f49641c2549d",
+      "timeline_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/41aa62b5f4e845c5883257fdb76b7dc1.jpg"
+    },
+    {
+      "asset_id": "a12818e554a74684bea6e34785c8b85b",
+      "name": "对应s3/s5；叙事用途：真人任务／计价。2020-07-24锌刻度/蓝鲸财经附原PNG，683×819，已看原图。实际可读“消息价格5金币/条”“语音价格设置30金币/分钟”“视频价格设置80金币/分钟”及开关。国内历史收费设置的证据画面、本案辅助理解画面；可聚焦计价行，灰字对比略低，保留原尺寸。正文最高档300/800不能替换图中30/80。持续标“国内同类付费界面示意，非报告涉案App”。不",
+      "role": "evidence",
+      "mime_type": "image/png",
+      "size_bytes": 123893,
+      "sha256": "30d9b958cd4da3081aa5c2367ba6eaac3bb78747deed45fbf9693c7be245b378",
+      "source_url": "https://www.lanjinger.com/d/141048",
+      "license_note": "真实网页截图/来源图片；个人视频制作，素材可直接入片；保留原始来源",
+      "artifact_id": "e4459ca5d0a746f2b4d4cf3405fd7005",
+      "url": "/api/artifacts/e4459ca5d0a746f2b4d4cf3405fd7005",
+      "timeline_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/a12818e554a74684bea6e34785c8b85b.png"
+    },
+    {
+      "asset_id": "00e534aed0e74d6b9f5cfbfb589d28c3",
+      "name": "对应s5；叙事用途：额度不足→充值补充。时代财经2022-08-13记者心遇体验所附原JPEG，1170×1038，已看原图；白底大字“金币不足”“做任务或购买金币”、首充35金币仅需1元与“立刻充值1元”清楚。国内历史充值提示的证据画面、本案辅助理解，可聚焦弹窗与购买入口，保留原界面与来源。持续标“国内同类付费界面示意，非报告涉案App”。图中也有任务获得金币与互关免费提示，不概括为所有服务均收",
+      "role": "evidence",
+      "mime_type": "image/jpeg",
+      "size_bytes": 272995,
+      "sha256": "06b4f3a32cd997217f5952467e19002eaa844e31df5f45fdfe14ea50fe87ca5f",
+      "source_url": "https://www.time-weekly.com/post/294485",
+      "license_note": "真实网页截图/来源图片；个人视频制作，素材可直接入片；保留原始来源",
+      "artifact_id": "05ca5c4b2b7748e2bf07eb71463a2eb1",
+      "url": "/api/artifacts/05ca5c4b2b7748e2bf07eb71463a2eb1",
+      "timeline_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/00e534aed0e74d6b9f5cfbfb589d28c3.jpg"
+    },
+    {
+      "asset_id": "59cb502d984a4c1fafdfaeadf8fd144a",
+      "name": "对应s3/s5；叙事用途：回复方奖励激励。时代财经2022-08-13心遇体验原JPEG，908×888，已看原图；“回复消息能赚钱”“立刻回消息”清楚，背景为中文消息列表，保留源头像/昵称打码。是该历史界面奖励提示的证据画面、本案辅助理解，适合聚焦弹窗。持续标“国内同类付费界面示意，非报告涉案App”。只证明记者取得的界面出现激励提示，不证明到账、零工身份、AI或欺诈；不能说AI自动聊天会触发真",
+      "role": "evidence",
+      "mime_type": "image/jpeg",
+      "size_bytes": 116337,
+      "sha256": "4ce04ccf8168b14d83fe3847f532cd2b7e834c693e192e7f7ffc34ee1acf6acf",
+      "source_url": "https://www.time-weekly.com/post/294485",
+      "license_note": "真实网页截图/来源图片；个人视频制作，素材可直接入片；保留原始来源",
+      "artifact_id": "7a81112603c7491d906d968a0b564e6a",
+      "url": "/api/artifacts/7a81112603c7491d906d968a0b564e6a",
+      "timeline_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/59cb502d984a4c1fafdfaeadf8fd144a.jpg"
+    },
+    {
+      "asset_id": "951152e88def4169af4d1149e3447536",
+      "name": "对应s3/s5；叙事用途：按消息记收益。消费者报道、凤凰网2024-01-15转载所附原PNG，1290×2796，已看原图；“我的奖励”、多条“付费消息”及+0.05/+0.02清楚，记录日期2023-12-26，源昵称遮挡保留。页面显示可提现/累计3.61元与提现按钮，可聚焦记录，区别收益提示与实际到账。历史同类收益记录的证据画面、本案辅助理解。持续标“国内同类付费界面示意，非报告涉案App”",
+      "role": "evidence",
+      "mime_type": "image/png",
+      "size_bytes": 504038,
+      "sha256": "c35603a522fb1dee01acfb8c6180ff2da8ef16328e960509d6316bfe650dac04",
+      "source_url": "https://finance.ifeng.com/c/8WN7OiiHCDA",
+      "license_note": "真实网页截图/来源图片；个人视频制作，素材可直接入片；保留原始来源",
+      "artifact_id": "359443bf4d1346e9a4433cef0710e98a",
+      "url": "/api/artifacts/359443bf4d1346e9a4433cef0710e98a",
+      "timeline_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/951152e88def4169af4d1149e3447536.png"
+    },
+    {
+      "asset_id": "46256f4f7a2940feafdca5bc5b9547db",
+      "name": "对应s1/s3/s5/s7；叙事用途：中文聊天环境／视频任务收益入口。消费者报道、凤凰网2024-01-15所附原PNG，1290×739，已看原图；“心动4级”、解锁语音/视频提示和蓝色“收益1.49元/分钟起”可读，灰色说明较浅；保留头像与聊天内容源打码。实际静态聊天截面，适合聚焦蓝字或作中文界面背景；国内历史界面证据、本案辅助理解。持续标“国内同类付费界面示意，非报告涉案App”。1.49元",
+      "role": "evidence",
+      "mime_type": "image/png",
+      "size_bytes": 406801,
+      "sha256": "d92205358c43888215efab082c3c6032adf955d5f9e9ecb62a2ef3af5fa9c8c7",
+      "source_url": "https://finance.ifeng.com/c/8WN7OiiHCDA",
+      "license_note": "真实网页截图/来源图片；个人视频制作，素材可直接入片；保留原始来源",
+      "artifact_id": "bbb66f1a615740409604c74124160272",
+      "url": "/api/artifacts/bbb66f1a615740409604c74124160272",
+      "timeline_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/46256f4f7a2940feafdca5bc5b9547db.png"
+    },
+    {
+      "asset_id": "caf3d0aead8a48c089e527c33db3237f",
+      "name": "对应s4；叙事用途：AI拟建议→真人采用。腾讯云官方AI辅助文档更新2026-07-01，图内时间2025-05-14；真实下载原PNG，1590×442，已看原图。“智能回复”“重新生成”“使用”“Enter键发送”及推荐正文清楚，适合聚焦建议与按钮。正规客服功能的证据画面、本案辅助理解；持续标“同类功能示例，非涉案工具”。图中只有一条建议，不能冒称三选一原样实录；使用按钮不证明已经发出，不证明",
+      "role": "evidence",
+      "mime_type": "image/png",
+      "size_bytes": 81375,
+      "sha256": "022c9a48aa763c8d08ff3c1941e1ad39ff062610aa6d93e9aabf36c0ae192cb3",
+      "source_url": "https://cloud.tencent.com/document/product/269/118704",
+      "license_note": "真实网页截图/来源图片；个人视频制作，素材可直接入片；保留原始来源",
+      "artifact_id": "258b30d7463d4114bccbd92cc83063a6",
+      "url": "/api/artifacts/258b30d7463d4114bccbd92cc83063a6",
+      "timeline_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/caf3d0aead8a48c089e527c33db3237f.png"
+    },
+    {
+      "asset_id": "30495f9cf1854fda97e5e3156891e118",
+      "name": "对应s4；叙事用途：头像生成机制。同来源真实PDF《汽车行业广告AIGC能力应用》第15页“人物肖像生成”，封面2024年8月，PDF创建2024-09-18。原PDF页960×540pt，以2倍渲染为1920×1080静态PNG并解码看图；大字“文生图”“图生图”、亚洲人物生成结果可辨，编辑器细字较小。相关功能区域可聚焦，保留页码/腾讯广告出处；这是源页截图，本案辅助理解，非自己生成头像或录屏。",
+      "role": "evidence",
+      "mime_type": "image/png",
+      "size_bytes": 1208613,
+      "sha256": "b665e672c0bef3355aa1da0be72ebd3a92f20b7b4dfa118941d640b45c734147",
+      "source_url": "https://training.tencentads.com/uploads/202409/ABjmxInf_A1pYpq.pdf",
+      "license_note": "真实网页截图/来源图片；个人视频制作，素材可直接入片；保留原始来源",
+      "artifact_id": "710daf6d2ec14f55bb02597c4424888b",
+      "url": "/api/artifacts/710daf6d2ec14f55bb02597c4424888b",
+      "timeline_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/30495f9cf1854fda97e5e3156891e118.png"
+    },
+    {
+      "asset_id": "2ea535747f5e4a50b49570e78e7eceaf",
+      "name": "对应s2；叙事用途：中文AI编程过程。腾讯CodeBuddy官方公开剪辑演示，页未标发布日期，2026-10-14采集。真实MP4，52911229字节、37.533秒、HEVC 7680×4628/30fps＋AAC，完整解码并查看逐秒及原尺寸代表帧。5.5–15.5秒：多文件写入、中文创建组件说明与“接受”；26.5–28.5秒：构建输出及中文成功说明；32.0–37.0秒：网页图鉴预览与部署",
+      "role": "evidence",
+      "mime_type": "video/mp4",
+      "size_bytes": 52911229,
+      "sha256": "15df8007e7b2b00905dbb491835bd94c4bf9d009316b10b082b3a35588aa8237",
+      "source_url": "https://www.codebuddy.cn/ide/",
+      "license_note": "真实来源视频；个人视频制作，素材可直接入片；保留原始来源",
+      "artifact_id": "54ee294f65644ed4a8e5af5cc2959b12",
+      "url": "/api/artifacts/54ee294f65644ed4a8e5af5cc2959b12",
+      "timeline_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/2ea535747f5e4a50b49570e78e7eceaf.mp4"
+    },
+    {
+      "asset_id": "a661542c449c4f39bf17bc6c9047ef7b",
+      "name": "字节复刻分段配音.mp3",
+      "role": "audio",
+      "mime_type": "audio/mpeg",
+      "size_bytes": 1981869,
+      "sha256": "8ff6c916735add49764125b0a1923d4f47c661bb07912971ca8ac8280888d327",
+      "source_url": "",
+      "license_note": "用户配置的自有复刻音色；逐段表演并拼接，最终需人工听审",
+      "artifact_id": "4493244167424cf1b0a1e388b85faf99",
+      "url": "/api/artifacts/4493244167424cf1b0a1e388b85faf99",
+      "timeline_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/a661542c449c4f39bf17bc6c9047ef7b.mp3"
+    }
+  ],
+  "pending_input": {
+    "kind": "stage_review",
+    "stage": "director",
+    "node_name": "director_human_gate",
+    "title": "摄影逐镜组件与画面审核",
+    "thread_id": "job:08e74bed03e94c6e903c89f7f2fbea64:run:48cb1c17d9074ba79d1520c48109e196",
+    "revision": 15,
+    "pending_token": "4f5aae356fccf556a16c6ce6b044aee9",
+    "dependency_fingerprint": "a9ed3ef46ae8c239eae1f717fd960b3f7c34a96e237f88747bf827ffc20d1d5d",
+    "policy_fingerprint": "a6ff70cd9eb0737fd2bcf337262e1b44711ea567c9d55e9b1bd397ecdb03baf8",
+    "confirmation_requirements": [
+      "逐镜核对组件或组件套、实际内部组件和选择理由",
+      "逐镜查看真实Remotion代表帧，核对素材可读性、版式和画面表演",
+      "旁白、案例、数字和来源对应，代表帧只证明该帧画面，不能证明整镜字幕同步",
+      "所有镜头审阅完成后才能确认并进入完整成片渲染"
+    ],
+    "min_note_length": 10,
+    "review_mode": "per_shot_stills",
+    "required_shot_ids": [
+      "shot-01-a",
+      "shot-01-b",
+      "shot-01-c",
+      "shot-01-d",
+      "shot-02",
+      "shot-03",
+      "shot-04",
+      "shot-05",
+      "shot-06",
+      "shot-07",
+      "shot-08",
+      "shot-09",
+      "shot-10",
+      "shot-11",
+      "shot-12",
+      "shot-13",
+      "shot-14",
+      "shot-15",
+      "shot-16"
+    ],
+    "director_shot_review_artifact_id": "826da45ba0e2461e9c2e48b7f64c9dd0",
+    "interrupt_id": "723c64d62041073d4a7b43271377ce49"
+  },
+  "command": {
+    "command_id": "38e3cd8e843e429eb51a7bb430932199",
+    "status": "DONE"
+  },
+  "existing_artifact_ids": [
+    "0127412d8c9bd40e7c39969a4d783d2d",
+    "39eab0643fc7db69eb5c9e4524069032",
+    "ee0f8b05d717281ec9a66751b8f9721e",
+    "f3e90acb52ac20dde6dd5cd7fefe99db",
+    "717a557b1099e4f82ebd8c0126c47e24",
+    "094a48125dc8dfe36e13341379e9f196",
+    "9b4008b988c54d3db5034cdd0b0d8872",
+    "d6afeca1685b41dbb949eb2231c53d71",
+    "06a68aa9c2dd1fa1b91f6dea1a5e0956",
+    "439a28381b8b4339bd5ce6287b4b7909",
+    "6eeae328935243f19857050e0fa8f149",
+    "fa714ab63e9e42419739451045caf79e",
+    "6c50cd02c1ff426e9d9c31cc7e7b787d",
+    "d617506959794ad4b6859dcedcab39e0",
+    "b5260cdb625d5c553a55513cb67c6555",
+    "d8bf4126838645e88a3f30d0baf9bd5c",
+    "fe1673b2b58c4ba7a3d759fb6516b978",
+    "069462650aa4416cb75245457ed14389",
+    "3722e1491a454b339f81c386b1fbdf5c",
+    "d58940c5bce244408a56f49641c2549d",
+    "aa4aaf2ae99e35d1643f27c87f6ab3f0",
+    "f2ae3e4b167f4491bf03de7748c16757",
+    "1a8aa34c7b1140e09c6b0603e6084878",
+    "90793b9fee5f46f4a01332e17f0c25d5",
+    "982f5d6f4593482288d25b8caac86bd2",
+    "3784bf1f4a65469193d3857ececad62b",
+    "2cbe1c1181fb4b6c87847c582896cf84",
+    "9619c855e3cc4b44a15753c235d15883",
+    "94ff076da1804f9fbf951ce2db9f8acd",
+    "935a4a8e00ff495f837f85ab20b79a36",
+    "e4459ca5d0a746f2b4d4cf3405fd7005",
+    "05ca5c4b2b7748e2bf07eb71463a2eb1",
+    "7a81112603c7491d906d968a0b564e6a",
+    "359443bf4d1346e9a4433cef0710e98a",
+    "bbb66f1a615740409604c74124160272",
+    "258b30d7463d4114bccbd92cc83063a6",
+    "710daf6d2ec14f55bb02597c4424888b",
+    "54ee294f65644ed4a8e5af5cc2959b12",
+    "9e992786b64646ea8b768364de74ec78",
+    "9a51359a4e584574bc0ca852795e78ac",
+    "88f9e64d32844930ad4dc53e2c6f7d87",
+    "ea393a628b00452b855eb44bf99aa3fb",
+    "3d5cc7b053fc445091bdeba2a20ad788",
+    "5cd5e15b7e2f92f86f254044071cfcc8",
+    "5d6ec77eb6d1126584932c757263cc5f",
+    "a8a8e9e20d6f40b7918553a8f54ea0c6",
+    "4493244167424cf1b0a1e388b85faf99",
+    "489ac27aeda640cca79d42e35719b707",
+    "edb7a9acf0ba47cd91fcb981cb77e126",
+    "1c0dba8cb16edc4aa038bf878ee4a17b",
+    "f5e2c02ca6d34b9eaf642e39fc007fa1",
+    "36fb25f204a44fffa4b790c18aafe702",
+    "a17533ca2ede4667b3e318298f009619",
+    "16b1a9c08f3240af8d794668f9b8fbd1",
+    "36029909d48a4d1d93ec7d9fa9aba69b",
+    "18b9c4aa2f024436a72f6b6761bd834f",
+    "a6ce967d42104cd3909b7ebef8db479b",
+    "cb3a75f773ad439fad4d17a095eb33d5",
+    "837e97c79f24432298ea54b030c221ef",
+    "2ba09cd124e14451a8b456cdbf34f669",
+    "ca03c7fdf60b4fc59953777826b64c9a",
+    "3697e95e755943e3b90968020107ecfd",
+    "a58313115c3a451c9a42bbb34d81461d",
+    "14e37824809e45daaddd8d6d14f317d8",
+    "9212912cb41544fa8ed97aae33a40454",
+    "f8af6c81748d4f07b9130dc3da69095c",
+    "f2e28f9dae114d0a9b628844482f245d",
+    "6bae9a39270d46b8b719a5429680a206",
+    "a56bf3c7ef864865b0f03f174027f65d",
+    "d233ff27250e4d939884d4f5c27a5913",
+    "8fd618cd9b6e4d6299946d22f5ee9e57",
+    "cc550b13cab04c8c995f30c684c67a97",
+    "7ee0816199034508be4fa4fa53922118",
+    "826da45ba0e2461e9c2e48b7f64c9dd0",
+    "086d028f465e447ebe2770db76fb09a5",
+    "70878a7bf5ff4446aa4652bd7b8de192",
+    "948e04da720249e2ad074a9476dcba6c"
+  ],
+  "all_operations_hashes": {
+    "2ae98979056144c78a6eee181a799f63": "3642d44998c5266744109eb37399269d78da97a93403b84861c64f41e4801340",
+    "aaa970232e7941e6994065ef9ff3df90": "e2c5df08548a7d9c7a7921d1dcf469e9e3ecf325c70caacccb39f0e5c2e004cd",
+    "3e16804dab4444beaee599634f0bea95": "c582a2dcd0847df31ad82d25fb9659e03e7aad6ab58943762c9c8f7a94b29029",
+    "49badb7416bb49fa9dd4d8161750ba51": "e46a590e28a5af3714e90828d055f9bd14507f64aec445de403fee96ceb40437",
+    "4201ca37c33f4269a8ac8cc526c8fc40": "3b1812dcee79a39f04dfe9944a295bbba91e30ab9e614cce8e3f58fae5ae647b",
+    "aaa397c839e14035ba4a71ed9289e93c": "df3dc338dbbeec082c3020bdce6a4aa0f186aa97d9e0fe703bd195256cb6a2d1",
+    "f1570ba092464fa6a4351ea8ee938608": "5ef963c9ec1a0eda212a273d549437908eb35ec2bcd5274c47526a1b64dc8d24",
+    "b8232e664b9048daa1fb39bd8bfa960a": "eb88bce4ce92da1380e43cddd229d49c10487418ee1a320215beb522703979a3",
+    "560106d6ee24433e8be3be0f6bf10e6a": "1a432d2f8bad2fe5a7e16fc77fe617dc3dd18b05fb8c9e3523b809fb5ec3413d",
+    "0b7c7172b84c49a7b3b49a88b785fb50": "e589dbf684417d3ce6891b5afa203793b3013bdc99ff721f078077b0c1a3e741",
+    "1ca471a9391b419390d8a20bece4e5c0": "d7710d5605af2ca04192de1fdd8dc8b022074040e91c99756f53922f6e44f28f",
+    "b088dceefa7b4e30816429b72ab3c3e4": "886cc524c59804875f3ec0e1343a028d47c7551ea73c7ef33c367de1d4b9e030",
+    "ecef2fece55d468a978d104564994e7b": "0de0f39232836876a709c15056f6266c173c1ff2fc51c5831a571fe996833381",
+    "35bd822a24834d389cca2436086c277c": "f675e8a0805fb295144722fdff54848c65387b6626abf39c9462b12fd8fbda17",
+    "00e688d94aa043fb965259e3b946ca16": "fca888a25a5b82ad8ce77e6ceeb24e5e4928bb1a5a2a3bc3c3d670da18cf3e72",
+    "51292e8e94dd4e4d8afce200c279600c": "0aaace130df765eeed4764a3ab3ce4c57270945af6627b27be051e96d21fc2ba",
+    "01423dff24d54faaabf8dfb0f9f49592": "07db95dedb8a49b51bf0e32bb55ad156741bc0e6ebc6b7ea56add5488e2a1a8f",
+    "a290785969554baab4bb2cebbbcd9c42": "0686f268747270f5328cc1e59280ef373b2a70e0c0ff898662b85df7c672e93d",
+    "8a4390213ef842739bdfc6e66ed53ad9": "cb970522b4c267c641a2e13cfaf00f38f9ae924c2f52827a7d064ad69068b7bd",
+    "7411d1353925400ab1b5035c5f6fc173": "381acb9cf07b5cf6a862cef2cdfff57827c903a75a525e4e4f997f5dab1bdd62",
+    "f2d962b7e08f410ab0872e163a170fa0": "90450b3bd910972920f3cbb617c6735ee5a93dfa096a5a106d05e67d071f1e5d",
+    "5019d2d42ee14afe9ef313cc43402151": "aad687535d2654851a62512456bbc8901a21b455f8368327fc1ccf51d0c149c1",
+    "23ceac81a5e04fcd8b45cb21e0857908": "b828cabf374df42be45990fb53bdb5181e21e286fde41f50071679069beaeeb1",
+    "f1dcf1682a9c495289753483ce926b03": "f5f3656e706a2b8258bea3e1828d8743fdf31f1a0e69da87f8bc05593a2c4ed8",
+    "9feb383537714278a770ec24c2f2928d": "8b18e7fe1099c1e455495e614a6282e7e896858dc005096aa123515d26fb7061",
+    "7d4cb114779b488190906e66c605cc0f": "2d9235ffcae2dd4f71c23049419c7d653b7ad75820f9c50724352ac2bc6558e2",
+    "a7512f324ece420c9f9609df9c1174cf": "a22bf8d825ef66acef383ad2b05642332c3af76c1165ac574655cfdf0455291f",
+    "1eaeeda9e64049c9abe59f2c922250e2": "b01c4825a8a8950efa4665f08aa2909f0a0e9e7417b68e4cb87a4b4804a85d86",
+    "977a646624a44cd8aa08e88a20a536f5": "16f2f9add12e5ad8aee91fa7a21b95b698958df6bb45549a31eb5caf777d6e82",
+    "993966f781df4f8a9a87fad76d64be87": "6ae87d5d305ca5d5f4665fa995f358bfc508ae47a01853f34cd98a2e381d1588",
+    "41f5616c3ea84ec1b63972b42880a02f": "f4a4367cd27797f78af9085d32e4f0450980ae7f94017c8f785361ef17eb1c0a",
+    "1cf819d4b53643f48b7cbc25b1d1ff91": "b14a6f82272049927c032e33942492eff99ef1eee5eaa025254ec5850529b859",
+    "515a815f0a5e4baf85e0230e52168023": "ba6efef869e633677b537f9e9791435567aadb7b75b254da73fdd59532261d53",
+    "53c2c9e7f0dc4f9ea3cc6df7adfd3b56": "c41ec4d8b1016a6f1080e3fdfecada6d271476041c92a099cba11d7e35c623df",
+    "cadc57f5cc8a4383923c2594e4c141d8": "2d776bbae029255b2c3ced38b2cc2b2975b97dd5971b0a1aec4191fa3835b387",
+    "a5494b114d0542928a83f4a40159b2cb": "dfd96e8a9cf5d5730b664def00495d7ebb12d22f1037e2e408037f870be5564b",
+    "6c3d212fdbf8441781f50d3a2ae9acfe": "64f018b46e51f9aaa7ce4232573b37c72b0fbee2194c0481f89463ae62de6c88",
+    "2013f7e0f2be44a8b6613f2718750429": "55481e9345688c1d7fa6e94b161f9509b9111827605e7d205f8093ce74efe222",
+    "ffa0032d4b5c450a8de5d1f9a7ff4669": "abff0ba64fe0f34fd0c657b4a3ebd4d748772a8fc25c4582633ffd90e989d95b",
+    "c2ee429eee8940b6ab47e7a2bc5e8967": "383acd51d2ecc0fed72508200770015bf6dbd3625c95cc1e6f506935e9a64cd0",
+    "47191acbd9a44ffa9ca8818983ffc7e2": "2892cf2fca092252aa3d2c9b02c296090c661e2d87f8af6b5767bf934ee48cdb",
+    "385328428a954492b96b8c0d56652b49": "4905300f8d8698abec15d358084a3f032bdb7ba6c34fb0f0a86b6e27c4285f5c",
+    "90912e13e0bd43bba8638c7b0247a099": "9e4a5096b96593a1c1c1b6b6c22418767764fd71f18a99c228845e6d14445c9d",
+    "6dd7b49d793740f88d6b1bac857c1fe3": "04b132cee995dcc459dacb3869de9a9cdb4e5dd63ff1ed275f9c24b3d581435d",
+    "c34539df84044a7cb5eb6cbe86c3ff32": "450e7ce346d048aa92e0aee4ba3c64390f18feccd1c930c47dbcf7d4a752d7fd",
+    "d936ba4a16014648a6b8c6648070c06e": "6ed60c7d856be8ee0be63a9d3395266cfa29386c8a3cc1f5d5da217acbc1f9b4",
+    "2cb7f646bd224feb88565a9b7c2af96f": "3592e19a5b932aa86db4526d9eadad335e5a063f90ff0e5e3f6befafc9635914",
+    "cdef242d12dd438a86a10559928f884e": "043992a266cb1d9b01d48c1c4ca1d9cfc592cfd10a2e035a9b1b5fbb5d01e23e"
+  }
+}

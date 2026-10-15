@@ -1,0 +1,14 @@
+用户最新逐镜意见（替代上一轮将“轮播”解释为拆镜的错误执行要求）：
+“镜头2可以 镜头1不行 我说在一个地方轮播图 不是你换一个镜头好吗”。
+
+仅修改逻辑镜头1。用户已通过当前 r15 的 shot-02，shot-02 的完整对象逐字段原样保留；shot-03 至 shot-16 同样逐字段保留。文案、素材库、音频、字幕、总时长、所有原时间基准不变。不重新配音，不重新采集。
+
+逻辑镜头1必须恢复成一个 shot-01：start_frame=0、end_frame=330、component_id=Snapcn-PhoneFrame。保留原大幅App手机框、“25000人，聊的是AI”标题、原正文与强调色。不要 shot-01-a/b/c/d 四个子镜头，不用 Talkcraft 页面组件，不切换场景、组件、标题或外框，不重复外框入场。
+
+本轮通用生产组件已经实现真正的同位置多图能力，摄影须先读更新的 docs/knowledge/remotion-shot-library.md。使用一个普通 Snapcn-PhoneFrame 镜头的 props.media_slides：2至8张已导入真实图片，每项 asset_src、局部整数 start_frame、asset_fit（contain 或 cover），可选经核验的归一化asset_crop。首项 start_frame=0 且等于 shot.asset_src，后续起点严格递增且小于330。carousel_transition_frames 可设0至15，默认6。它只在同一个手机屏幕内部淡化换图，外框、布局、标题保持，不再进场。不与 set_design/focus/tutorial 混用。
+
+第一张沿用原已通过的App大图：videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/0b61255194854094b26a4a2565504352.png。其余从本任务已导入、已批准的中文付费社交真实图片中选；可参考上次使用的59cb502d984a4c1fafdfaeadf8fd144a.jpg、b611b6b73f0f42f6b8ecf01248fcb65d.png、00e534aed0e74d6b9f5cfbfb589d28c3.jpg，但不是必须凑四张。多图在同一个屏幕位置轮换，重点清楚、比例不拉伸、足够阅读；不放大裁掉重要文字，不把截图动画冒充真实视频。
+
+来源须覆盖实际轮播图的真实来源，保持另案示例身份，不把中国同类界面当成报告匿名公司的App。不新增大段防御文案。按每页真实展示区间验证素材关联；已批准另案素材正常复用。
+
+通过正常摄影节点输出完整逐镜审核包及本次已有连续动态预览；预览应看到同一手机框内部至少两次换图。完成后停在人工逐镜审核门，不授予整包通过，不渲染新完整成片。新审核包将为16镜（shot-01、shot-02至shot-16）。

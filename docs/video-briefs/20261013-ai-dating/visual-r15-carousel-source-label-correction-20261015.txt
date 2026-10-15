@@ -1,0 +1,8 @@
+这次为输入修复，不是人工逐镜确认，不授予整包审核通过。
+
+摄影已完成的候选 operation_id=f8592b77e53940f9b5cc5e1399175c92 已正确生成16镜：单一shot-01、固定Snapcn-PhoneFrame、四张图在0/83/166/249帧屏内轮换。不要重新设计或恢复四个子镜头；沿用该已保存候选完整方案及shot_reviews、segment_performances。用户通过的shot-02和后续shot-03至shot-16继续逐字段保留。
+
+唯一阻断是source_label写成 news.cnr.cn/time-weekly.com，被精确域名规则视为前一域名的URL路径。仅把shot-01来源标签中的两个域名用独立的中文竖线分开，示例：
+另案示例｜news.cnr.cn｜time-weekly.com｜浦东警方供图·时代财经2022；同类中文界面示意，非报告涉案App，事实见GTG-15001
+
+不要改图片、media_slides、起止帧、asset_fit、标题、正文、强调色、其他镜头、文案、音频或字幕。检查真实域名各自独立。经原摄影节点重新验证并渲染逐镜PNG及连续动态预览，停回人工逐镜审核门。本次输入确认仅授权修复该标注问题，不确认待审镜头。
