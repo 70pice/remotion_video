@@ -42,13 +42,71 @@ CLAUDE_RESEARCH_TOOLS = {
 }
 CLAUDE_RESEARCH_METADATA = {"tool_progress", "tool_use_summary", "auth_status"}
 # Fixed result subtypes from the Claude SDK, plus the legacy model error.
-# Never promote errors/result text into a diagnostic or user-facing message.
+# Never persist errors/result prose; diagnostic codes use fixed allowlists.
 CLAUDE_FAILURE_HINTS = {
     "error_during_execution": "CLI执行失败，具体供应商原因尚未确定",
     "error_max_turns": "CLI达到本次会话轮次上限，未取得可用结果",
     "error_max_budget_usd": "CLI达到本次调用预算上限，未取得可用结果",
     "error_max_structured_output_retries": "CLI未生成有效结构化输出（重试次数已耗尽）",
     "unrecognized_model": "CLI错误回执报告模型标识无法识别",
+}
+API_ERROR_TYPES = {
+    "invalid_request_error", "authentication_error", "billing_error", "permission_error",
+    "not_found_error", "rate_limit_error", "api_error", "overloaded_error", "request_too_large",
+    "conflict_error", "timeout_error",
+}
+HTTP_FAILURE_HINTS = {
+    400: "CLI报告接口拒绝请求（HTTP 400），具体参数原因尚未确定",
+    401: "CLI报告接口认证失败（HTTP 401）",
+    402: "CLI报告接口账单错误（HTTP 402）",
+    403: "CLI报告接口权限不足（HTTP 403）",
+    404: "CLI报告接口资源不存在（HTTP 404）",
+    408: "CLI报告接口请求超时（HTTP 408）",
+    409: "CLI报告接口请求冲突（HTTP 409）",
+    413: "CLI报告接口请求过大（HTTP 413）",
+    422: "CLI报告接口无法处理请求（HTTP 422），具体参数原因尚未确定",
+    429: "CLI报告接口限制请求（HTTP 429），尚不能区分限流与额度原因",
+    500: "CLI报告接口内部错误（HTTP 500）",
+    502: "CLI报告接口网关错误（HTTP 502）",
+    503: "CLI报告接口暂不可用（HTTP 503）",
+    504: "CLI报告接口网关超时（HTTP 504）",
+    529: "CLI报告接口过载（HTTP 529）",
+}
+TRANSPORT_FAILURE_MESSAGES = {
+    "Connection error.": "connection_error",
+    "Request timed out.": "request_timeout",
+    "Stream closed": "stream_closed",
+    "Connection lost mid-response": "stream_closed",
+    "The response stream was malformed": "malformed_stream",
+    "Unexpected end of JSON input": "unexpected_json_end",
+}
+TRANSPORT_FAILURE_HINTS = {
+    "connection_error": "CLI报告连接错误，尚不能区分本机网络与供应商中断",
+    "request_timeout": "CLI报告请求超时，尚不能确定发生在哪一端",
+    "stream_closed": "CLI报告响应流提前关闭，未取得完整结果",
+    "malformed_stream": "CLI报告响应流格式错误，未取得完整结果",
+    "unexpected_json_end": "CLI报告JSON读取到意外结尾，具体截断原因尚未确定",
+}
+CLAUDE_TERMINAL_HINTS = {
+    "completed": "CLI报告本轮会话结束，但未取得可用结果，失败原因尚未确定",
+    "max_turns": "CLI报告达到会话轮次上限",
+    "tool_deferred": "CLI报告工具执行被延期",
+    "aborted_streaming": "CLI报告响应流被中止",
+    "aborted_tools": "CLI报告工具执行被中止",
+    "hook_stopped": "CLI报告被停止钩子终止",
+    "stop_hook_prevented": "CLI报告停止钩子阻止结束",
+    "background_requested": "CLI报告请求转为后台执行",
+    "blocking_limit": "CLI报告达到阻断限制，具体限制尚未确定",
+    "rapid_refill_breaker": "CLI报告快速重填保护触发，具体原因尚未确定",
+    "prompt_too_long": "CLI报告输入过长",
+    "image_error": "CLI报告图片处理错误",
+    "model_error": "CLI报告模型错误，供应商具体原因尚未确定",
+    "api_error": "CLI报告API错误，未提供可识别的HTTP状态",
+    "malformed_tool_use_exhausted": "CLI报告无效工具调用的重试次数已耗尽",
+    "budget_exhausted": "CLI报告本次调用预算耗尽",
+    "structured_output_retry_exhausted": "CLI报告结构化输出重试次数已耗尽",
+    "tool_deferred_unavailable": "CLI报告延期工具不可用",
+    "turn_setup_failed": "CLI报告会话轮次初始化失败",
 }
 # The CLI transport needs OpenAI's strict schema subset. Business contracts
 # contain defaults/free-form props, so carry their locally validated JSON as a
@@ -118,8 +176,19 @@ class CliFailure(Exception):
             diagnostic = json.loads(details)
         except (ValueError, RecursionError):
             return ""
-        subtype = diagnostic.get("subtype") if isinstance(diagnostic, dict) else None
-        return CLAUDE_FAILURE_HINTS.get(subtype, "") if isinstance(subtype, str) else ""
+        if not isinstance(diagnostic, dict):
+            return ""
+        status, kind = diagnostic.get("reported_http_status"), diagnostic.get("reported_error_kind")
+        if type(status) is int and status in HTTP_FAILURE_HINTS:
+            return HTTP_FAILURE_HINTS[status]
+        if isinstance(kind, str) and kind in TRANSPORT_FAILURE_HINTS:
+            return TRANSPORT_FAILURE_HINTS[kind]
+        terminal = diagnostic.get("reported_terminal_reason")
+        if isinstance(terminal, str) and terminal != "completed" and terminal in CLAUDE_TERMINAL_HINTS:
+            return CLAUDE_TERMINAL_HINTS[terminal]
+        subtype = diagnostic.get("subtype")
+        subtype_hint = CLAUDE_FAILURE_HINTS.get(subtype, "") if isinstance(subtype, str) else ""
+        return subtype_hint or (CLAUDE_TERMINAL_HINTS["completed"] if terminal == "completed" else "")
 
 
 @dataclass(frozen=True)
@@ -417,10 +486,40 @@ def _claude_result(output: str) -> CliResult:
     return CliResult(_business_object(value.get("structured_output")), value.get("usage"))
 
 
+def _reported_failure_details(messages: Any, source: str) -> dict[str, Any]:
+    """Recognize bounded error headers; retain codes only, never error prose."""
+    if not isinstance(messages, list):
+        return {}
+    for message in reversed(messages[-16:]):
+        if not isinstance(message, str) or len(message) > MAX_STDERR_TAIL_BYTES:
+            continue
+        message = message.strip()
+        match = re.fullmatch(r"API Error: ([45][0-9]{2})(?:\s+(.*))?", message, re.DOTALL)
+        if match and int(match[1]) in HTTP_FAILURE_HINTS:
+            details = {"reported_http_status": int(match[1]), "reported_error_kind": "http_error",
+                       "error_detail_source": source}
+            try:
+                body = json.loads(match[2] or "")
+            except (ValueError, RecursionError):
+                pass
+            else:
+                error = body.get("error") if isinstance(body, dict) and body.get("type") == "error" else None
+                kind = error.get("type") if isinstance(error, dict) else None
+                if isinstance(kind, str) and kind in API_ERROR_TYPES:
+                    details["reported_error_kind"] = kind
+            return details
+        kind = TRANSPORT_FAILURE_MESSAGES.get(message.removeprefix("API Error: ").removeprefix("Error: "))
+        if kind:
+            return {"reported_error_kind": kind, "error_detail_source": source}
+    return {}
+
+
 def _failure_diagnostic(reason_code: str, provider: str, output: list[str], stdout_bytes: int,
-                        exit_code: int | None, stderr_tail_bytes: int) -> str:
+                        exit_code: int | None, stderr_tail_bytes: int,
+                        stderr_tail: list[bytes] | None = None) -> str:
     """Project a failed process into fixed diagnostics, never its response text."""
     shape, subtype, response_shape = "empty", "unknown", "absent"
+    reported_details, terminal_details = {}, {}
     if provider == "claude_code_cli" and output:
         try:
             value = json.loads("\n".join(output))
@@ -433,6 +532,21 @@ def _failure_diagnostic(reason_code: str, provider: str, output: list[str], stdo
                 candidate = value.get("subtype")
                 if isinstance(candidate, str) and candidate in CLAUDE_FAILURE_HINTS:
                     subtype = candidate
+                if value.get("is_error") is True:
+                    terminal = value.get("terminal_reason")
+                    if isinstance(terminal, str) and terminal in CLAUDE_TERMINAL_HINTS:
+                        terminal_details = {"reported_terminal_reason": terminal}
+                    errors = value.get("errors")
+                    reported_details = _reported_failure_details(
+                        [errors] if isinstance(errors, str) else errors, "claude_result_errors")
+                    if not reported_details:
+                        reported_details = _reported_failure_details([value.get("result")], "claude_result_error_text")
+                    status = value.get("api_error_status")
+                    if type(status) is int and status in HTTP_FAILURE_HINTS:
+                        kind = (reported_details.get("reported_error_kind", "http_error")
+                                if reported_details.get("reported_http_status") == status else "http_error")
+                        reported_details = {"reported_http_status": status, "reported_error_kind": kind,
+                                            "error_detail_source": "claude_result_api_error_status"}
                 structured = value.get("structured_output")
                 if isinstance(structured, dict):
                     inner = structured.get("response_json")
@@ -445,10 +559,14 @@ def _failure_diagnostic(reason_code: str, provider: str, output: list[str], stdo
                 shape = "other_json"
     elif stdout_bytes:
         shape = "event_stream"
+    if not reported_details and provider == "claude_code_cli" and stderr_tail:
+        stderr_lines = b"".join(stderr_tail)[-MAX_STDERR_TAIL_BYTES:].decode("utf-8", errors="replace").splitlines()
+        reported_details = _reported_failure_details(stderr_lines, "stderr")
     return reason_code + "; " + json.dumps({
         "exit_code": exit_code, "stdout_bytes": stdout_bytes,
         "stdout_shape": shape, "subtype": subtype,
         "response_json_shape": response_shape, "stderr_tail_bytes": stderr_tail_bytes,
+        **reported_details, **terminal_details,
     }, sort_keys=True)
 
 
@@ -779,7 +897,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 stderr_reader.join(timeout=1)
                 raise CliFailure(_failure_diagnostic(
                     "cli_nonzero_exit", provider, output, size, exit_code,
-                    sum(len(chunk) for chunk in stderr_tail)))
+                    sum(len(chunk) for chunk in stderr_tail), stderr_tail))
             if provider == "claude_code_cli" and not research:
                 return _claude_result("\n".join(output))
             if last_agent_message is not None:
@@ -792,7 +910,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 stderr_reader.join(timeout=1)
                 exc.reason = _failure_diagnostic(
                     exc.reason, provider, output, size, exit_code,
-                    sum(len(chunk) for chunk in stderr_tail))
+                    sum(len(chunk) for chunk in stderr_tail), stderr_tail)
                 exc.args = (exc.reason,)
             if not exc.rejected and exc.submitted:
                 # Attach the captured tail for the operation ledger; the reason
@@ -806,7 +924,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 stderr_reader.join(timeout=1)
             raise CliFailure(_failure_diagnostic(
                 "invalid_cli_output", provider, output, size, exit_code,
-                sum(len(chunk) for chunk in stderr_tail))) from None
+                sum(len(chunk) for chunk in stderr_tail), stderr_tail)) from None
         finally:
             stopped.set()
             _cleanup_cli_resource(lambda: terminate_tree(process), "process_tree")
