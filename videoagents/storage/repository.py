@@ -16,6 +16,7 @@ from videoagents.contracts import (
     Asset,
     Brief,
     Job,
+    RefreshShotsRequest,
     ReplenishMaterialsRequest,
     RestartUnknownRequest,
 )
@@ -382,6 +383,13 @@ class Repository:
         return None
 
     def enqueue(self, job_id: str, payload: dict[str, Any]) -> Job:
+        if payload.get("action") == "refresh_shots":
+            try:
+                request = RefreshShotsRequest.model_validate(
+                    {key: value for key, value in payload.items() if key != "action"})
+            except ValueError as exc:
+                raise Conflict("刷新镜头请求无效：" + str(exc)) from exc
+            payload = {"action": "refresh_shots", **request.model_dump()}
         if payload.get("decision") == "select_materials":
             from videoagents.contracts import MaterialSelectionRequest
 
@@ -407,6 +415,19 @@ class Repository:
                 raise Conflict("任务版本已变化，请刷新后重试")
             if db.execute("SELECT 1 FROM commands WHERE job_id=? AND status IN ('PENDING','CLAIMED')", (job_id,)).fetchone():
                 raise Conflict("任务已有待执行或执行中的命令")
+            if payload.get("action") == "refresh_shots":
+                from videoagents.nodes.director_review import validate_shot_refresh
+
+                if job.status != "NEEDS_HUMAN" or job.stage != "director" or not job.pending_input:
+                    raise Conflict("仅摄影逐镜待审任务可刷新镜头")
+                validate_shot_refresh(self, job, payload, job.pending_input)
+                unsettled = db.execute(
+                    "SELECT body FROM operations WHERE job_id=? AND status IN ('SUBMITTING','UNKNOWN')",
+                    (job_id,),
+                ).fetchall()
+                if any(self._operation_revision(row["body"], job.revision) == job.revision for row in unsettled):
+                    raise Conflict("存在状态未知的外部提交，不能刷新镜头")
+                payload = dict(payload, pending_input=job.pending_input)
             if payload.get("action") == "retry":
                 if job.status != "FAILED" or job.pending_input:
                     raise Conflict("仅失败且无待办的任务可从失败命令续跑")

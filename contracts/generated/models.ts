@@ -327,6 +327,14 @@ export interface ModelFinding {
   blocking: boolean;
 }
 
+export interface RefreshShotsRequest {
+  base_revision: number;
+  pending_token: string;
+  director_plan_artifact_id: string;
+  director_plan_sha256: string;
+  idempotency_key: string;
+}
+
 export interface ReplenishMaterialsRequest {
   base_revision: number;
   pending_token: string;

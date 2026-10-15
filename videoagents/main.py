@@ -15,13 +15,14 @@ from typing import Any
 from videoagents.contracts import (
     Brief,
     MaterialSelectionRequest,
+    RefreshShotsRequest,
     ReplenishMaterialsRequest,
     RestartUnknownRequest,
     RetryFailedRunRequest,
     SettingsPatch,
 )
 from videoagents.default_config import PROJECT_ROOT, RUNTIME_ROOT
-from videoagents.nodes.director_review import current_shot_review_artifact
+from videoagents.nodes.director_review import current_plan_artifact, current_shot_review_artifact
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.storage import Conflict, NotFound, Repository
@@ -122,6 +123,32 @@ def cmd_retry(args: argparse.Namespace) -> int:
         idempotency_key=f"cli-retry-{row[0][:12]}-{int(time.time())}"))
     _drain(_worker(repo))
     return _finish(repo, args.job_id)
+
+
+def cmd_refresh_shots(args: argparse.Namespace) -> int:
+    repo = _repository(args)
+    job = repo.get_job(args.job_id)
+    with repo.connection() as db:
+        existing = db.execute("SELECT payload FROM commands WHERE job_id=? AND idempotency_key=?",
+                              (job.job_id, args.idempotency_key)).fetchone()
+    if existing:
+        saved = json.loads(existing["payload"])
+        if saved.get("action") != "refresh_shots":
+            raise Conflict("同一个幂等键不能用于不同请求")
+        request = RefreshShotsRequest.model_validate(
+            {key: saved[key] for key in RefreshShotsRequest.model_fields})
+    else:
+        try:
+            plan, _ = current_plan_artifact(repo, job)
+            request = RefreshShotsRequest(base_revision=job.revision,
+                pending_token=(job.pending_input or {}).get("pending_token", "0" * 32),
+                director_plan_artifact_id=plan.artifact_id, director_plan_sha256=plan.sha256,
+                idempotency_key=args.idempotency_key)
+        except ValueError as exc:
+            raise Conflict(str(exc)) from exc
+    repo.enqueue(job.job_id, {"action": "refresh_shots", **request.model_dump()})
+    _drain(_worker(repo))
+    return _finish(repo, job.job_id)
 
 
 def cmd_resume(args: argparse.Namespace) -> int:
@@ -379,6 +406,11 @@ def build_parser() -> argparse.ArgumentParser:
     retry = sub.add_parser("retry", help="失败续跑")
     retry.add_argument("job_id")
     retry.set_defaults(handler=cmd_retry)
+
+    refresh = sub.add_parser("refresh-shots", help="同一摄影方案重渲全部代表帧，重新等待整包人工审核")
+    refresh.add_argument("job_id")
+    refresh.add_argument("--idempotency-key", required=True, help="本次逐镜刷新唯一键；重放同键不重复渲染")
+    refresh.set_defaults(handler=cmd_refresh_shots)
 
     restart = sub.add_parser("restart-unknown", help="明确接受可能计费后保存新版草稿，不自动执行")
     restart.add_argument("job_id")

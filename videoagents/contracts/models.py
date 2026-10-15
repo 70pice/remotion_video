@@ -661,6 +661,14 @@ class RetryFailedRunRequest(Contract):
     idempotency_key: str = Field(min_length=8, max_length=200)
 
 
+class RefreshShotsRequest(Contract):
+    base_revision: int = Field(ge=1)
+    pending_token: str = Field(pattern=r"^[a-f0-9]{32}$")
+    director_plan_artifact_id: str = Field(pattern=r"^[a-f0-9]{32}$")
+    director_plan_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    idempotency_key: str = Field(min_length=8, max_length=200)
+
+
 class ComponentDemoTutorialTarget(Contract):
     x: float = Field(ge=0, le=1)
     y: float = Field(ge=0, le=1)

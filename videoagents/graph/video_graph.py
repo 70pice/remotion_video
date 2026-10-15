@@ -17,10 +17,12 @@ from videoagents.nodes.common import current_job, request_input, state_context, 
 from videoagents.nodes.component_demo import ComponentDemoNode
 from videoagents.nodes.director import DirectorNode
 from videoagents.nodes.director_demo import DirectorDemoNode
+from videoagents.nodes.director_review import validate_shot_refresh
 from videoagents.nodes.editing import EditingNode
 from videoagents.nodes.gates import AudioGateNode, ScriptGateNode
 from videoagents.nodes.human_review import HumanReviewNode
 from videoagents.nodes.materials import MaterialsNode
+from videoagents.nodes.reviewers import dependency_fingerprint
 from videoagents.nodes.screenwriter import ScreenwriterNode
 from videoagents.nodes.script_review import (
     JOINT_REVIEW_NODE,
@@ -87,7 +89,7 @@ class VideoProductionGraph(AbstractContextManager):
         graph.add_node("after_director_demo_review", self.after_director_demo_review)
         graph.add_conditional_edges(START, self.start_route, {
             "component_demo": "component_demo", "screenwriter": "screenwriter", "materials": "materials",
-            "audio_gate": "audio_gate",
+            "audio_gate": "audio_gate", "director_demo": "director_demo",
         })
         self.add_cleanup_edge(graph, "component_demo", {"director_demo": "director_demo", "await_input": "await_input"})
         self.add_cleanup_edge(graph, "screenwriter", {
@@ -164,6 +166,8 @@ class VideoProductionGraph(AbstractContextManager):
         # materials collects evidence and footage against the visual needs.
         if state.get("action") == "component_demo":
             return "component_demo"
+        if state.get("action") == "refresh_shots":
+            return "director_demo"
         job = current_job(self.repo, state)
         if self.repo.director_restart_receipt(job.job_id, job.revision):
             from videoagents.services.director_recovery import validate_director_restart
@@ -271,7 +275,26 @@ class VideoProductionGraph(AbstractContextManager):
             result = self.graph.invoke(None, config)
             self.sync_pending(config, job)
             return state_context(self.repo, result)
+        if payload["action"] == "refresh_shots":
+            pending = payload["pending_input"]
+            source_thread = pending.get("thread_id", "")
+            if not source_thread.startswith(f"job:{job.job_id}:run:"):
+                raise Conflict("刷新镜头的原待办检查点不属于当前任务")
+            source = self.graph.get_state({"configurable": {"thread_id": source_thread}})
+            if (source.values.get("job_id") != job.job_id or source.values.get("revision") != job.revision
+                    or not any(isinstance(item.value, dict)
+                               and item.value.get("pending_token") == payload["pending_token"]
+                               for item in source.interrupts)):
+                raise Conflict("刷新镜头绑定的原工作流待办已失效")
+            for name in ("brief", "script", "assets", "timeline", "director_requirements"):
+                if source.values.get(name) != job.model_dump().get(name):
+                    raise Conflict("刷新镜头的制作输入已变化")
+            validate_shot_refresh(self.repo, job, payload, pending)
         extras = {"component_demo": payload["component_demo"]} if payload["action"] == "component_demo" else {}
+        if payload["action"] == "refresh_shots":
+            extras["shot_refresh"] = {"director_plan_artifact_id": payload["director_plan_artifact_id"],
+                                      "director_plan_sha256": payload["director_plan_sha256"],
+                                      "dependency_fingerprint": dependency_fingerprint(job)}
         state = state_context(self.repo, VideoState(job_id=job.job_id, revision=job.revision,
                               action=payload["action"], run_id=command["command_id"], thread_id=thread_id,
                               gate_issues=[], extras=extras))

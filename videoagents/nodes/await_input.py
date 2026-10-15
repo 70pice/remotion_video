@@ -106,7 +106,8 @@ class AwaitInputNode:
             # Older checkpoints tagged copy-fit failures as render-only retries.
             # Confirm still repairs the frozen plan through the photography node;
             # it does not approve the shots or replay a provider submission.
-            layout_repair = (pending.get("stage") == "director"
+            layout_repair = (state.get("action") != "refresh_shots"
+                and pending.get("stage") == "director"
                 and set(pending.get("fields") or []) == {"render"}
                 and not pending.get("operation_status")
                 and render_text_fit_issues(pending.get("issues") or []))

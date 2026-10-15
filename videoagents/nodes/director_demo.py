@@ -40,19 +40,35 @@ class DirectorDemoNode:
     def __call__(self, state: VideoState) -> dict[str, Any]:
         job = start_stage(self.repo, state, "director", "摄影正在准备逐镜审核画面")
         try:
-            _, plan = current_plan_artifact(self.repo, job)
+            plan_artifact, plan = current_plan_artifact(self.repo, job)
         except ValueError as exc:
+            if state.get("action") == "refresh_shots":
+                raise Conflict(str(exc)) from exc
             return request_input(self.repo, state, "director", [str(exc)], ["director_plan"], exc)
         per_shot = plan.get("review_mode") == SHOT_REVIEW_MODE
+        refresh_id = state["run_id"] if state.get("action") == "refresh_shots" else None
+        if refresh_id and not per_shot:
+            raise Conflict("仅逐镜审核方案可刷新镜头")
+        binding = state.get("extras", {}).get("shot_refresh")
+        if refresh_id and binding and binding != {
+                "director_plan_artifact_id": plan_artifact.artifact_id,
+                "director_plan_sha256": plan_artifact.sha256,
+                "dependency_fingerprint": dependency_fingerprint(job)}:
+            raise Conflict("刷新镜头绑定的摄影方案或制作输入已变化")
         try:
             try:
                 if per_shot:
-                    current_shot_review_artifact(self.repo, job)
+                    review, _ = current_shot_review_artifact(self.repo, job)
+                    if refresh_id and self.repo.artifact_metadata(review.artifact_id).get("refresh_command_id") != refresh_id:
+                        raise ValueError("当前刷新命令尚未生成完整逐镜审核包")
                 else:
                     current_demo_artifact(self.repo, job)
             except ValueError:
                 if per_shot:
-                    self.render_shots(job)
+                    if refresh_id:
+                        self.render_shots(job, refresh_command_id=refresh_id)
+                    else:
+                        self.render_shots(job)
                 else:
                     self.renderer.render_video(job, "preview", state=state)
             current = self.repo.get_job(job.job_id)
@@ -61,7 +77,7 @@ class DirectorDemoNode:
             else:
                 current_demo_artifact(self.repo, current)
         except (CapabilityMissing, ValueError, TimeoutError, OSError) as exc:
-            if isinstance(exc, ValueError) and render_text_fit_issues([str(exc)]):
+            if not refresh_id and isinstance(exc, ValueError) and render_text_fit_issues([str(exc)]):
                 return request_input(self.repo, state, "director", [str(exc)], ["timeline", "render"], exc)
             return request_input(self.repo, state, "director", [str(exc)], ["render"], exc,
                                  retry_node="director_demo")
@@ -78,7 +94,7 @@ class DirectorDemoNode:
                              else "摄影方案和Demo已就绪，准备人工审核", progress=1)
         return state_context(self.repo, state, route="director_human_gate")
 
-    def render_shots(self, job) -> None:
+    def render_shots(self, job, *, refresh_command_id: str | None = None) -> None:
         plan_artifact, plan = current_plan_artifact(self.repo, job)
         validate_context_assets(self.repo, job)
         metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
@@ -109,6 +125,8 @@ class DirectorDemoNode:
         images, items = [], []
         image_metadata = {"dependency_fingerprint": dependency_fingerprint(job),
                           "director_plan_sha256": plan_artifact.sha256}
+        if refresh_command_id:
+            image_metadata["refresh_command_id"] = refresh_command_id
         for index, (shot, spec, output) in enumerate(zip(job.timeline.shots, plan["shot_reviews"], rendered, strict=True), 1):
             if (not isinstance(output, dict) or output.get("shot_id") != shot.shot_id
                     or output.get("frame") != spec["review_frame"]
