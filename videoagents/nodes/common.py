@@ -434,3 +434,17 @@ def request_input(repository: Repository, state: VideoState, stage: str, issues:
     repository.update_job(state["job_id"], state["revision"], status="NEEDS_INPUT", stage=stage,
                           message="；".join(issues)[:2000], pending_input=pending)
     return state_context(repository, state, route="await_input", gate_issues=issues, pending_snapshot=pending)
+
+
+def render_text_fit_issues(issues: list[str]) -> bool:
+    """Recognize renderer copy-fit guards, never generic render/provider errors."""
+    guards = (
+        r"ProgressSteps production slot \d+x\d+ cannot fit (?:"
+        r"the step marker and readable labels\. Increase this slot\."
+        r"|[1-4] steps at 34px with at most two lines per step\. Increase this slot or split the steps\.)",
+        r"WordFlip production slot \d+x\d+ cannot fit its words at 42px with at most two lines\. "
+        r"Increase this slot or split the words\.",
+    )
+    return bool(issues) and all(isinstance(issue, str) and any(
+        re.fullmatch("Remotion 渲染失败：" + guard, issue) for guard in guards
+    ) for issue in issues)

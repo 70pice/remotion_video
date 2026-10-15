@@ -180,6 +180,19 @@ test('B12: original short slots show the complete copy and steps', async () => {
   assertFits('B12', await measure('B12'));
 });
 
+const detailedReportSteps = ['报告披露：GTG-15001', '中国匿名工作室用Claude开发', '20多款交友App·用户在美国'];
+
+test('B12: detailed mixed-language steps reject the 476x220 slot', async () => {
+  await assert.rejects(measure('B12', detailedReportSteps, [48], {onlyNativeId: 'Rve-ProgressSteps'}),
+    /ProgressSteps production slot 476x220 cannot fit/);
+});
+
+test('B12: more height preserves complete detailed steps at the readable font floor', async () => {
+  assertFits('B12 detailed steps with space', await measure('B12', detailedReportSteps, [48, 108, 168], {
+    onlyNativeId: 'Rve-ProgressSteps', stepHeight: 320,
+  }));
+});
+
 test('minimal: three one-character steps fit at 456x210', async () => {
   assertFits('A02 minimal steps', await measure('A02', ['一', '二', '三'], [168]), 'Rve-ProgressSteps');
 });

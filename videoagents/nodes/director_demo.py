@@ -6,7 +6,13 @@ from pathlib import Path
 from typing import Any
 
 from videoagents.contracts import DirectorShotReviewManifest
-from videoagents.nodes.common import request_input, start_stage, state_context, validate_context_assets
+from videoagents.nodes.common import (
+    render_text_fit_issues,
+    request_input,
+    start_stage,
+    state_context,
+    validate_context_assets,
+)
 from videoagents.nodes.director_review import (
     SHOT_REVIEW_MODE,
     checked_review_png,
@@ -55,6 +61,8 @@ class DirectorDemoNode:
             else:
                 current_demo_artifact(self.repo, current)
         except (CapabilityMissing, ValueError, TimeoutError, OSError) as exc:
+            if isinstance(exc, ValueError) and render_text_fit_issues([str(exc)]):
+                return request_input(self.repo, state, "director", [str(exc)], ["timeline", "render"], exc)
             return request_input(self.repo, state, "director", [str(exc)], ["render"], exc,
                                  retry_node="director_demo")
         if state.get("action") in {"preview", "component_demo"} or (per_shot and state.get("action") == "storyboard"):

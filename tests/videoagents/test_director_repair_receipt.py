@@ -35,7 +35,8 @@ def test_repair_receipt_is_completed_and_bound_to_job_role_revision(tmp_path):
     assert repo.latest_completed_operation(job.job_id, "llm:voice", job.revision) is None
 
 
-def test_first_rejected_director_candidate_resumes_with_frozen_audio_and_completed_receipt(tmp_path, monkeypatch):
+@pytest.mark.parametrize("failure", ["duplicate_layer", "render_fit", "legacy_render_fit"])
+def test_first_rejected_director_candidate_resumes_with_frozen_audio_and_completed_receipt(tmp_path, monkeypatch, failure):
     repo = Repository(tmp_path / "runtime")
     service = JobService(repo, tmp_path / "project")
     job = repo.create_job(Brief(topic="UNIT: director recovery", width=240, height=426, fps=30,
@@ -61,6 +62,10 @@ def test_first_rejected_director_candidate_resumes_with_frozen_audio_and_complet
     ))
     original_audio_metadata = copy.deepcopy(repo.asset_metadata(audio.asset_id))
     calls, completed_candidates = [], []
+    issue = ("同一镜头不能重复组件层 ID" if failure == "duplicate_layer" else
+             "Remotion 渲染失败：ProgressSteps production slot 476x220 cannot fit 3 steps at 34px "
+             "with at most two lines per step. Increase this slot or split the steps.")
+    render_calls = []
     monkeypatch.setattr(JsonModel, "available", lambda self, role: role == "director")
 
     def model(self, job_id, revision, role, instruction, context, command_id="", output_schema=None):
@@ -72,18 +77,18 @@ def test_first_rejected_director_candidate_resumes_with_frozen_audio_and_complet
             for item in original_audio_metadata["alignment"]["segments"]
         ]
         shots = copy.deepcopy(context["timeline"]["shots"])
-        if len(calls) == 1:
+        if len(calls) == 1 and failure == "duplicate_layer":
             layer = {"component_id": "Snapcn-TextHighlight", "role": "emphasis", "start_frame": 0,
                      "end_frame": 30, "title": "UNIT: duplicate highlight"}
             shots[0]["layers"] = [layer, copy.deepcopy(layer)]
-        else:
+        elif len(calls) > 1:
             candidate = context["extras"]["timeline_repair_candidate"]
             assert candidate == {"operation_id": completed_candidates[0]["operation_id"],
                                  "result": completed_candidates[0]["result"]}
-            assert "同一镜头不能重复组件层 ID" in "；".join(context["extras"]["timeline_repair_issues"])
+            assert issue in "；".join(context["extras"]["timeline_repair_issues"])
             assert context["extras"].get("timeline_repair_note") == (
                 "UNIT: retry the invalid candidate without changing the audio.")
-            assert "layers" not in shots[0]
+            assert not shots[0].get("layers")
             shots[0]["title"] = "UNIT: repaired visual"
         result = {
             "shots": shots,
@@ -102,6 +107,9 @@ def test_first_rejected_director_candidate_resumes_with_frozen_audio_and_complet
     monkeypatch.setattr(JsonModel, "call", model)
 
     def render_frames(project, timeline_path, request_path, output_manifest, timeout, cancelled, progress):
+        render_calls.append(str(timeline_path))
+        if failure != "duplicate_layer" and len(render_calls) == 1:
+            raise ValueError(issue)
         images = []
         for item in json.loads(request_path.read_text(encoding="utf-8")):
             width, height = 240, 426
@@ -117,6 +125,10 @@ def test_first_rejected_director_candidate_resumes_with_frozen_audio_and_complet
         return {"images": images}
 
     monkeypatch.setattr("videoagents.nodes.director_demo.render_shot_reviews", render_frames)
+    if failure == "legacy_render_fit":
+        # Persist the former render-only pause, then recover it through the
+        # current normal resume path without patching its checkpoint or SQL.
+        monkeypatch.setattr("videoagents.nodes.director_demo.render_text_fit_issues", lambda issues: False)
     for node in ("screenwriter.ScreenwriterNode", "materials.MaterialsNode", "voice.VoiceNode"):
         monkeypatch.setattr(f"videoagents.nodes.{node}.__call__", lambda *args: pytest.fail("Must retain upstream"))
     monkeypatch.setattr(EditingNode, "render_video", lambda *args, **kwargs: (_ for _ in ()).throw(
@@ -137,10 +149,17 @@ def test_first_rejected_director_candidate_resumes_with_frozen_audio_and_complet
     repo.finish(command["command_id"])
     paused = repo.get_job(job.job_id)
     assert paused.status == "NEEDS_INPUT" and paused.pending_input["stage"] == "director"
-    assert "同一镜头不能重复组件层 ID" in "；".join(paused.pending_input["issues"])
-    assert paused.timeline is None and len(calls) == 1
-    assert not any(item.kind in {"director_plan", "storyboard", "timeline", "stage_review"}
-                   for item in paused.artifacts)
+    assert issue in "；".join(paused.pending_input["issues"])
+    assert len(calls) == 1
+    if failure == "duplicate_layer":
+        assert paused.timeline is None
+        assert not any(item.kind in {"director_plan", "storyboard", "timeline", "stage_review"}
+                       for item in paused.artifacts)
+    else:
+        assert paused.timeline is not None
+        assert (paused.pending_input.get("retry_node") == "director_demo") == (failure == "legacy_render_fit")
+        assert not any(item.kind in {"director_shot_review", "shot_review_frame", "stage_review", "final"}
+                       for item in paused.artifacts)
     assert repo.latest_completed_operation(job.job_id, "llm:director", job.revision)["result"] == completed_candidates[0]["result"]
 
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "resume", "decision": "confirm",
