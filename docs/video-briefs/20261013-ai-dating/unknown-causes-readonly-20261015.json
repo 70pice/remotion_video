@@ -1,0 +1,167 @@
+{
+  "checked_at": "2026-10-15T01:18:39.565729+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 11,
+  "status": "NEEDS_INPUT",
+  "stage": "director",
+  "unsettled_operation_count": 9,
+  "unsettled_operations": [
+    {
+      "operation_id": "560106d6ee24433e8be3be0f6bf10e6a",
+      "provider": "llm:screenwriter",
+      "status": "UNKNOWN",
+      "revision": 1,
+      "cli_provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "reason_code": "cli_output_limit",
+      "diagnostic": {},
+      "reason_sha256": "475f98e1ff620046d0885b1540310876e6d3aed3123d88672ff7fbfd0a681762"
+    },
+    {
+      "operation_id": "2013f7e0f2be44a8b6613f2718750429",
+      "provider": "llm:materials",
+      "status": "UNKNOWN",
+      "revision": 2,
+      "cli_provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "reason_code": "unexpected_cli_event",
+      "diagnostic": {},
+      "reason_sha256": "c3d46f3d3aaab18e190ed40a57fc82f36faee301f81aab1ced69ec75dab2d06e"
+    },
+    {
+      "operation_id": "515a815f0a5e4baf85e0230e52168023",
+      "provider": "llm:screenwriter",
+      "status": "UNKNOWN",
+      "revision": 3,
+      "cli_provider": "claude_code_cli",
+      "model": "doubao-seed-2-1-pro-260915",
+      "reason_code": "cli_timeout",
+      "diagnostic": {},
+      "reason_sha256": "5052654bea2f72cdfdd888756b4b676308683457432ed52ac87fb955378f9453"
+    },
+    {
+      "operation_id": "c34539df84044a7cb5eb6cbe86c3ff32",
+      "provider": "llm:materials",
+      "status": "UNKNOWN",
+      "revision": 4,
+      "cli_provider": "codex_cli",
+      "model": "gpt-6.1-sol",
+      "reason_code": "PermissionError",
+      "diagnostic": {},
+      "reason_sha256": "82593005b507e27784d97919c03474901926113a86f19ee54f295be208b322fe"
+    },
+    {
+      "operation_id": "c2ee429eee8940b6ab47e7a2bc5e8967",
+      "provider": "llm:director",
+      "status": "UNKNOWN",
+      "revision": 7,
+      "cli_provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "reason_code": "cli_timeout",
+      "diagnostic": {},
+      "reason_sha256": "5052654bea2f72cdfdd888756b4b676308683457432ed52ac87fb955378f9453"
+    },
+    {
+      "operation_id": "2cb7f646bd224feb88565a9b7c2af96f",
+      "provider": "llm:director",
+      "status": "UNKNOWN",
+      "revision": 8,
+      "cli_provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "reason_code": "cli_timeout",
+      "diagnostic": {},
+      "reason_sha256": "5052654bea2f72cdfdd888756b4b676308683457432ed52ac87fb955378f9453"
+    },
+    {
+      "operation_id": "0b7c7172b84c49a7b3b49a88b785fb50",
+      "provider": "llm:director",
+      "status": "UNKNOWN",
+      "revision": 9,
+      "cli_provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "reason_code": "invalid_cli_output",
+      "diagnostic": {},
+      "reason_sha256": "61a0825026b4787a2628fd10d079eb6db6208e0690114b3350e006a0e8ddec3b"
+    },
+    {
+      "operation_id": "3e16804dab4444beaee599634f0bea95",
+      "provider": "llm:director",
+      "status": "UNKNOWN",
+      "revision": 10,
+      "cli_provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "reason_code": "cli_nonzero_exit",
+      "diagnostic": {},
+      "reason_sha256": "742e72de42a7bd9e6503389e18923712234d2b03d6e81c73e910b4198e2795e9"
+    },
+    {
+      "operation_id": "a290785969554baab4bb2cebbbcd9c42",
+      "provider": "llm:director",
+      "status": "UNKNOWN",
+      "revision": 11,
+      "cli_provider": "claude_code_cli",
+      "model": "glm-5.3[1m]",
+      "reason_code": "cli_nonzero_exit",
+      "diagnostic": {
+        "exit_code": 1,
+        "response_json_shape": "absent",
+        "stderr_tail_bytes": 78,
+        "stdout_bytes": 1701,
+        "stdout_shape": "claude_error_result",
+        "subtype": "unknown"
+      },
+      "reason_sha256": "eecd623ba60973e5d0980ccca5142225caef21633b07d946f51b8c23c4c057c3"
+    }
+  ],
+  "latest_photography_command": {
+    "command_id": "15a0ac7bf45f49f39ae805066d33ed03",
+    "status": "DONE",
+    "created_at": "2026-10-14T15:38:57.505865+00:00"
+  },
+  "photography_events_since_command_created": [
+    {
+      "created_at": "2026-10-14T15:38:57.505865+00:00",
+      "type": "queued",
+      "status": "QUEUED",
+      "stage": "director",
+      "revision": 11
+    },
+    {
+      "created_at": "2026-10-14T15:38:57.803817+00:00",
+      "type": "updated",
+      "status": "NEEDS_HUMAN",
+      "stage": "director",
+      "revision": 11
+    },
+    {
+      "created_at": "2026-10-14T15:39:56.906752+00:00",
+      "type": "updated",
+      "status": "RUNNING",
+      "stage": "director",
+      "revision": 11
+    },
+    {
+      "created_at": "2026-10-14T15:39:57.112345+00:00",
+      "type": "updated",
+      "status": "RUNNING",
+      "stage": "director",
+      "revision": 11
+    },
+    {
+      "created_at": "2026-10-14T16:11:06.382899+00:00",
+      "type": "updated",
+      "status": "NEEDS_INPUT",
+      "stage": "director",
+      "revision": 11
+    },
+    {
+      "created_at": "2026-10-14T16:11:06.615663+00:00",
+      "type": "updated",
+      "status": "NEEDS_INPUT",
+      "stage": "director",
+      "revision": 11
+    }
+  ],
+  "read_only": true,
+  "supplier_calls": 0
+}
