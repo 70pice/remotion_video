@@ -1,0 +1,29 @@
+{
+  "checked_at": "2026-10-15T03:07:13.081812+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 12,
+  "status": "NEEDS_INPUT",
+  "stage": "director",
+  "approved_brief_unchanged": true,
+  "approved_script_business_unchanged": true,
+  "retained_asset_count": 12,
+  "retained_asset_files_verified": true,
+  "previous_unknown_operation_id": "a290785969554baab4bb2cebbbcd9c42",
+  "previous_unknown_body_unchanged": true,
+  "current_operation_id": "cdef242d12dd438a86a10559928f884e",
+  "current_revision_operations": 1,
+  "current_operation_status": "UNKNOWN",
+  "current_operation_body_sha256": "7ac48aed8e6cf0b2fee4e876110534facaed44ed283987ec4584341930cc7dfe",
+  "total_operations": 35,
+  "total_unknown_operations": 10,
+  "current_artifacts": 0,
+  "current_timeline_shots": 0,
+  "current_frame_count": 0,
+  "current_complete_video_count": 0,
+  "active_commands": 0,
+  "new_human_approval_granted": false,
+  "historical_frame_files_verified": {
+    "11": 33
+  },
+  "local_repair_did_not_submit_another_operation": true
+}

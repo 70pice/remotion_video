@@ -1,5 +1,11 @@
 # 本次视频制作输入
 
+2026-10-15 追加：r12摄影于10:50:54停止，当前NEEDS_INPUT，操作 `cdef242d12dd438a86a10559928f884e` 为UNKNOWN。
+本次退出1并明确报告结构化输出尝试耗尽，不是18000秒等待超时；未生成新方案或PNG。已在独立维护提交
+`a1443e1` 修复零纠正机会的策略、输出提示及固定诊断，311项相关回归、静态检查、构建与独立复核通过。
+这不证明本次具体首错字段或真实供应商已恢复；没有自动再次提交。原文案、12件素材/音频及33张历史PNG保持。
+详见[r12停止、修复与代码位置](photography-r12-stop-and-repair-20261015.md)和[停止后复验](photography-r12-postrepair-verification-20261015.json)。以下均为历史时点。
+
 2026-10-15 10:35 用户明确要求摄影重新开始并监控问题。经正常仅摄影恢复保存r12，再从维护HEAD `9c7ff79` 正常run；新操作 `cdef242d12dd438a86a10559928f884e` 为SUBMITTING，GLM-5.3[1m]/xhigh，台账已记录重试限值。原文案、12件素材/音频和旧UNKNOWN保持，未确认逐镜或成片。见[r12摄影恢复监控](photography-r12-monitoring-20261015.md)、[正式要求](photography-r12-authorized-note-20261015.txt)及[启动前验证](photography-r12-authorization-verification-20261015.json)。本条为启动时点，实时结果继续追加。
 
 2026-10-15 10:15 针对 UNKNOWN 后 token 损失风险，独立维护提交 `9c7ff79` 固定 Claude 子进程 API 错误重试为0、结构化生成次数为1、非流式超时重试为0，并移除无限重试 watchdog；台账保存限值，不改模型、已有五倍超时、成功缓存或UNKNOWN屏障。258项调用回归、41项候选接续回归通过，独立复核与类型/lint/构建通过。本轮没有供应商请求，不能证明r11根因已修复或实际账单。原r11 / NEEDS_INPUT及文案、12件文件、历史操作、16+17张PNG保持；详情和代码见[重试限损修护](cli-retry-loss-prevention-20261015.md)与[生产只读复验](cli-retry-loss-prevention-verification-20261015.json)。以下为历史时点。
