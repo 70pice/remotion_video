@@ -15,7 +15,7 @@ from videoagents.storage import Repository
 
 RETRY_ENV = {
     "CLAUDE_CODE_MAX_RETRIES": "0",
-    "MAX_STRUCTURED_OUTPUT_RETRIES": "1",
+    "MAX_STRUCTURED_OUTPUT_RETRIES": "2",
     "CLAUDE_CODE_NONSTREAMING_TIMEOUT_RETRIES": "0",
 }
 AMBIENT_RETRY_ENV = {**dict.fromkeys(RETRY_ENV, "999"), "CLAUDE_CODE_RETRY_WATCHDOG": "1"}
@@ -67,7 +67,7 @@ def test_retry_limits_are_auditable_and_completed_result_does_not_resubmit(tmp_p
         row = db.execute("SELECT status,body FROM operations").fetchone()
     assert row[0] == "COMPLETED"
     assert json.loads(row[1])["cli_retry_limits"] == {
-        "api_error_retries": 0, "structured_output_attempts": 1,
+        "api_error_retries": 0, "structured_output_attempts": 2,
         "nonstreaming_timeout_retries": 0, "retry_watchdog": False,
     }
     monkeypatch.setattr("videoagents.providers.llm.run_cli", lambda *a, **k: pytest.fail("must reuse completed result"))

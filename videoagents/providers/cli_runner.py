@@ -33,10 +33,11 @@ MAX_RESEARCH_STREAM_BYTES = 64 * 1024 * 1024
 MAX_AUTH_BYTES = 1024 * 1024
 MAX_STDERR_TAIL_BYTES = 8 * 1024
 # A logical engine operation must not silently multiply retries inside Claude.
+# Keep one correction after an invalid structured submission, not zero.
 # Normal tool turns can still make several requests; this is not a token cap.
 CLAUDE_RETRY_ENV = {
     "CLAUDE_CODE_MAX_RETRIES": "0",
-    "MAX_STRUCTURED_OUTPUT_RETRIES": "1",
+    "MAX_STRUCTURED_OUTPUT_RETRIES": "2",
     "CLAUDE_CODE_NONSTREAMING_TIMEOUT_RETRIES": "0",
 }
 _LOGGER = logging.getLogger(__name__)
@@ -190,6 +191,8 @@ class CliFailure(Exception):
             return HTTP_FAILURE_HINTS[status]
         if isinstance(kind, str) and kind in TRANSPORT_FAILURE_HINTS:
             return TRANSPORT_FAILURE_HINTS[kind]
+        if diagnostic.get("reported_structured_error") == "response_json_not_string":
+            return "CLI报告 response_json 类型错误：要求字符串，结构化尝试已耗尽"
         terminal = diagnostic.get("reported_terminal_reason")
         if isinstance(terminal, str) and terminal != "completed" and terminal in CLAUDE_TERMINAL_HINTS:
             return CLAUDE_TERMINAL_HINTS[terminal]
@@ -504,6 +507,15 @@ def _reported_failure_details(messages: Any, source: str) -> dict[str, Any]:
         if not isinstance(message, str) or len(message) > MAX_STDERR_TAIL_BYTES:
             continue
         message = message.strip()
+        # Match the installed CLI's fixed validation header and wire-schema path
+        # exactly. Arbitrary paths, values and extra error text are not retained.
+        structured = re.fullmatch(
+            r"Failed to provide valid structured output after ([1-9][0-9]{0,2}) attempts"
+            r" — last StructuredOutput error: Output does not match required schema: "
+            r"/response_json: must be string", message)
+        if structured:
+            return {"reported_structured_error": "response_json_not_string",
+                    "reported_structured_attempts": int(structured[1]), "error_detail_source": source}
         match = re.fullmatch(r"API Error: ([45][0-9]{2})(?:\s+(.*))?", message, re.DOTALL)
         if match and int(match[1]) in HTTP_FAILURE_HINTS:
             details = {"reported_http_status": int(match[1]), "reported_error_kind": "http_error",
@@ -776,7 +788,6 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
         transport_prompt = (prefix_text + prompt + "\n业务 JSON schema：\n" + json.dumps(output_schema, ensure_ascii=False)
                             + '\n最终传输格式必须为 {"response_json":"业务 JSON 对象序列化后的字符串"}。'
                             + "response_json 内的对象遵循上面的业务 schema，外层仅有 response_json 一个字段。")
-        source.write_text(transport_prompt, encoding="utf-8")
         mcp_config = None
         if research and provider == "claude_code_cli":
             mcp_config = control / "research-mcp.json"
@@ -793,7 +804,16 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
             mcp_config.write_text(json.dumps({"mcpServers": {"videoagents_research": research_server}}), encoding="utf-8")
             transport_prompt += ("\n本次只使用启用的 videoagents_research MCP 工具。" + research_goal +
                                  "工具会保存文件并返回真实路径及 SHA256；不使用 shell 或读取本机任意路径。")
-            source.write_text(transport_prompt, encoding="utf-8")
+        if provider == "claude_code_cli":
+            transport_prompt += (
+                "\n最终使用 Claude Code 内部 StructuredOutput 工具提交传输对象；"
+                "它仅提交结构化结果，不属于上述禁止的外部业务工具。"
+                "response_json 的值必须是字符串：先将完整业务 JSON 对象序列化，再放入该字段，"
+                "不能直接传嵌套对象、数组或 Markdown 代码块。"
+                '例如业务对象 {"ok":true} 应提交 {"response_json":"{\\"ok\\":true}"}。'
+                "此输出提交例外不授权检索、shell、文件或额外 MCP 工具。"
+            )
+        source.write_text(transport_prompt, encoding="utf-8")
         args = build_arguments(provider, prefix, model, directory, schema, research=research, mcp_config=mcp_config,
                                glm_reasoning_effort=glm_reasoning_effort,
                                codex_reasoning_effort=codex_reasoning_effort)

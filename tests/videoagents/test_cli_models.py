@@ -38,6 +38,10 @@ def test_structured_subprocess_and_utf8_stdin(tmp_path, monkeypatch, provider):
     result = run_cli(provider, "model ;$(touch secret)", 5, "中文输入", {"type": "object"})
     assert "中文输入" in result.data["text"] and "业务 JSON schema" in result.data["text"]
     assert result.usage == {"output_tokens": 2}
+    if provider == "claude_code_cli":
+        assert "StructuredOutput" in result.data["text"]
+        assert "response_json 的值必须是字符串" in result.data["text"]
+        assert "不授权检索、shell、文件或额外 MCP 工具" in result.data["text"]
 
 
 def test_claude_ark_credential_is_child_environment_only(tmp_path, monkeypatch):
@@ -132,6 +136,42 @@ def test_claude_known_error_subtype_survives_real_process_failure(tmp_path, monk
     assert diagnostic["response_json_shape"] == "absent"
     assert failure.value.submitted and not failure.value.rejected
     assert "UNIT-secret" not in failure.value.reason and "secret.invalid" not in str(failure.value)
+
+
+@pytest.mark.parametrize("exit_code", [0, 1])
+@pytest.mark.parametrize("suffix,recognized", [("", True), (" UNIT-secret", False)])
+def test_claude_wire_schema_error_keeps_only_fixed_cause(tmp_path, monkeypatch, exit_code, suffix, recognized):
+    message = ("Failed to provide valid structured output after 2 attempts — last StructuredOutput error: "
+               "Output does not match required schema: /response_json: must be string" + suffix)
+    payload = {"type": "result", "subtype": "error_max_structured_output_retries", "is_error": True,
+               "terminal_reason": "structured_output_retry_exhausted", "errors": [message]}
+    fixture_cli(tmp_path, monkeypatch, f"print(json.dumps({payload!r}))\nsys.exit({exit_code})")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {})
+    diagnostic = json.loads(failure.value.reason.partition("; ")[2])
+    if recognized:
+        assert diagnostic["reported_structured_error"] == "response_json_not_string"
+        assert diagnostic["reported_structured_attempts"] == 2
+        assert "response_json" in failure.value.hint and "字符串" in failure.value.hint
+    else:
+        assert "reported_structured_error" not in diagnostic
+        assert "reported_structured_attempts" not in diagnostic
+    assert message not in failure.value.reason and "UNIT-secret" not in failure.value.reason
+    assert failure.value.submitted and not failure.value.rejected
+
+
+def test_plain_role_prompt_does_not_forbid_internal_output_submission(tmp_path, monkeypatch):
+    repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(role_models={"director": {
+        "enabled": True, "provider": "claude_code_cli", "model": "fixture-model",
+    }}))
+    monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *_: ["fixture"])
+    def transport(provider, model, timeout, prompt, schema, **kwargs):
+        assert "不调用工具。" not in prompt and "这是无工具" not in prompt
+        assert "不读取本机文件、不调用外部工具" in prompt
+        return CliResult({"ok": True})
+    monkeypatch.setattr("videoagents.providers.llm.run_cli", transport)
+    assert JsonModel(repo).call("fixture-job", 1, "director", "fixture", {}) == {"ok": True}
 
 
 @pytest.mark.parametrize("exit_code", [0, 1])
