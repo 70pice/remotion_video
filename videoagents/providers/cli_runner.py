@@ -63,6 +63,37 @@ API_ERROR_TYPES = {
     "not_found_error", "rate_limit_error", "api_error", "overloaded_error", "request_too_large",
     "conflict_error", "timeout_error",
 }
+# Fixed kinds exposed by the installed Claude Code SDK's result.api_error.
+# Arbitrary api_error_code identifiers and free-form error text remain private.
+CLAUDE_API_ERROR_HINTS = {
+    "max_output_tokens": "CLI报告达到输出Token上限，未取得完整结果",
+    "dlp_request_denied": "CLI报告请求被数据防泄漏策略拒绝",
+    "claude_code_version_too_old": "CLI报告客户端版本低于接口要求",
+    "safety_monitor_blocked": "CLI报告请求被安全监控阻止",
+    "effort_requires_thinking": "CLI报告推理档位要求启用相应思考设置",
+    "advisor_incompatible": "CLI报告顾问模式不兼容",
+    "tool_history_mismatch": "CLI报告工具调用历史不匹配",
+    "autocompact_thrashing": "CLI报告上下文自动压缩反复触发",
+    "pdf_too_large": "CLI报告PDF过大",
+    "pdf_password_protected": "CLI报告PDF受密码保护",
+    "media_removed": "CLI报告媒体已移除",
+    "no_response": "CLI报告未取得响应，具体中断位置尚未确定",
+    "tls_untrusted_ca": "CLI报告TLS证书不受信任",
+    "gateway_content_type": "CLI报告网关响应内容类型异常",
+    "provider_credentials": "CLI报告供应商凭据问题",
+    "gateway_signin_required": "CLI报告网关需要登录",
+    "gateway_session_expired": "CLI报告网关会话过期",
+    "api_key_auth_disabled": "CLI报告API密钥认证被禁用",
+    "org_disabled_credential": "CLI报告组织已禁用凭据",
+    "invalid_credential_header": "CLI报告凭据请求头无效",
+    "model_requires_usage_credits": "CLI报告该模型需要用量额度",
+    "long_context_credits_required": "CLI报告长上下文需要相应用量额度",
+    "consent_unanswered": "CLI报告授权同意尚未回答",
+    "no_allowed_fallback": "CLI报告没有获准使用的备用模型",
+    "model_substitution_disabled": "CLI报告模型替换被禁用",
+    "field_not_granted": "CLI报告请求字段未获授权",
+    "usage_limit_reached": "CLI报告达到用量限制，具体额度范围尚未确定",
+}
 HTTP_FAILURE_HINTS = {
     400: "CLI报告接口拒绝请求（HTTP 400），具体参数原因尚未确定",
     401: "CLI报告接口认证失败（HTTP 401）",
@@ -191,6 +222,9 @@ class CliFailure(Exception):
             return HTTP_FAILURE_HINTS[status]
         if isinstance(kind, str) and kind in TRANSPORT_FAILURE_HINTS:
             return TRANSPORT_FAILURE_HINTS[kind]
+        typed_error = diagnostic.get("reported_api_error")
+        if isinstance(typed_error, str) and typed_error in CLAUDE_API_ERROR_HINTS:
+            return CLAUDE_API_ERROR_HINTS[typed_error]
         if diagnostic.get("reported_structured_error") == "response_json_not_string":
             return "CLI报告 response_json 类型错误：要求字符串，结构化尝试已耗尽"
         terminal = diagnostic.get("reported_terminal_reason")
@@ -541,7 +575,7 @@ def _failure_diagnostic(reason_code: str, provider: str, output: list[str], stdo
                         stderr_tail: list[bytes] | None = None) -> str:
     """Project a failed process into fixed diagnostics, never its response text."""
     shape, subtype, response_shape = "empty", "unknown", "absent"
-    reported_details, terminal_details = {}, {}
+    reported_details, terminal_details, typed_details = {}, {}, {}
     if provider == "claude_code_cli" and output:
         try:
             value = json.loads("\n".join(output))
@@ -552,9 +586,13 @@ def _failure_diagnostic(reason_code: str, provider: str, output: list[str], stdo
                 shape = ("claude_success_result" if value.get("subtype") == "success"
                          and value.get("is_error") is False else "claude_error_result")
                 candidate = value.get("subtype")
-                if isinstance(candidate, str) and candidate in CLAUDE_FAILURE_HINTS:
+                if isinstance(candidate, str) and (candidate in CLAUDE_FAILURE_HINTS or candidate == "success"):
                     subtype = candidate
                 if value.get("is_error") is True:
+                    typed_error = value.get("api_error")
+                    if isinstance(typed_error, str) and typed_error in CLAUDE_API_ERROR_HINTS:
+                        typed_details = {"reported_api_error": typed_error,
+                                         "typed_error_source": "claude_result_api_error"}
                     terminal = value.get("terminal_reason")
                     if isinstance(terminal, str) and terminal in CLAUDE_TERMINAL_HINTS:
                         terminal_details = {"reported_terminal_reason": terminal}
@@ -588,7 +626,7 @@ def _failure_diagnostic(reason_code: str, provider: str, output: list[str], stdo
         "exit_code": exit_code, "stdout_bytes": stdout_bytes,
         "stdout_shape": shape, "subtype": subtype,
         "response_json_shape": response_shape, "stderr_tail_bytes": stderr_tail_bytes,
-        **reported_details, **terminal_details,
+        **reported_details, **terminal_details, **typed_details,
     }, sort_keys=True)
 
 
