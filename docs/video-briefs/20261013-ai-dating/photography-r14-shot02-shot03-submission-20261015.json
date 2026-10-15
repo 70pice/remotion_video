@@ -1,0 +1,14 @@
+{
+  "command_id": "dfedb40e36034bc39c2570572df2b77a",
+  "pending_token_matches": true,
+  "note_matches": true,
+  "decision": "revise",
+  "approved_this_round": [
+    "shot-01",
+    "shot-05"
+  ],
+  "revised_shots": [
+    "shot-02",
+    "shot-03"
+  ]
+}
