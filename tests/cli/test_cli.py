@@ -79,7 +79,7 @@ def test_create_status_settings_and_shots_listing(tmp_path, capsys):
     assert patched["research_max_searches"] == 5
 
 
-@pytest.mark.parametrize("timeout_seconds", [3600, 7200, 7201])
+@pytest.mark.parametrize("timeout_seconds", [29, 3600, 7200, 9000, 18000, 36000, 36001])
 def test_settings_cli_role_timeout_limits_preserve_other_settings(tmp_path, capsys, timeout_seconds):
     runtime = tmp_path / "runtime"
     settings = SettingsService(Repository(runtime))
@@ -90,7 +90,7 @@ def test_settings_cli_role_timeout_limits_preserve_other_settings(tmp_path, caps
     original = settings.internal()
     argv = ["--runtime-dir", str(runtime), "settings", "set", "role_models",
             json.dumps({"director": {"timeout_seconds": timeout_seconds}})]
-    if timeout_seconds > 7200:
+    if not 30 <= timeout_seconds <= 36000:
         with pytest.raises(ValidationError):
             run_cli(argv)
         assert settings.internal() == original
@@ -101,6 +101,31 @@ def test_settings_cli_role_timeout_limits_preserve_other_settings(tmp_path, caps
     expected["director"]["timeout_seconds"] = timeout_seconds
     assert public["role_models"] == expected
     assert SettingsService(Repository(runtime)).internal() == original
+
+
+def test_settings_cli_extended_timeouts_apply_to_all_roles_and_render(tmp_path, capsys):
+    runtime = tmp_path / "runtime"
+    settings = SettingsService(Repository(runtime))
+    settings.patch(SettingsPatch(role_models={
+        "materials": {"timeout_seconds": 1800, "provider": "codex_cli", "model": "gpt-6.1-sol",
+                      "codex_reasoning_effort": "xhigh"},
+        "director": {"timeout_seconds": 3600},
+    }))
+    original = settings.internal()
+    role_updates = {role: {"timeout_seconds": config["timeout_seconds"] * 5}
+                    for role, config in original["role_models"].items()}
+    run_cli(["--runtime-dir", str(runtime), "settings", "set", "role_models", json.dumps(role_updates)])
+    run_cli(["--runtime-dir", str(runtime), "settings", "set", "render_timeout_seconds",
+             str(original["render_timeout_seconds"] * 5)])
+    capsys.readouterr()
+    expected = {**original, "role_models": {
+        role: {**config, **role_updates[role]} for role, config in original["role_models"].items()
+    }, "render_timeout_seconds": original["render_timeout_seconds"] * 5}
+    assert settings.internal() == expected
+    for invalid in (29, 36001):
+        with pytest.raises(ValidationError):
+            run_cli(["--runtime-dir", str(runtime), "settings", "set", "render_timeout_seconds", str(invalid)])
+        assert settings.internal() == expected
 
 
 def test_run_pauses_at_script_gate_resume_confirms_and_shots_list(tmp_path, monkeypatch, capsys):

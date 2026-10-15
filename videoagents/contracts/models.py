@@ -1143,7 +1143,7 @@ class RoleModelConfig(Contract):
     enabled: bool = False
     provider: ModelProvider = "codex_cli"
     model: str = Field(default="", max_length=200)
-    timeout_seconds: int = Field(default=900, ge=30, le=7200)
+    timeout_seconds: int = Field(default=900, ge=30, le=36000)
     codex_reasoning_effort: Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"] | None = Field(
         default=None, exclude_if=lambda value: value is None,
     )
@@ -1290,7 +1290,7 @@ class SettingsPatch(Contract):
     capture_enabled: bool | None = None
     max_llm_calls: int | None = Field(default=None, ge=1, le=100)
     max_voice_chars: int | None = Field(default=None, ge=1, le=100000)
-    render_timeout_seconds: int | None = Field(default=None, ge=30, le=7200)
+    render_timeout_seconds: int | None = Field(default=None, ge=30, le=36000)
 
     @field_validator("research_platforms")
     @classmethod
