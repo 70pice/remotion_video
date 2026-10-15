@@ -1,0 +1,48 @@
+{
+  "checked_at": "2026-10-15T10:00:23.338826+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 14,
+  "inspection_method": "全部16镜从实际MP4抽取的代表帧逐张查看；不是整段动态播放或人工听审。",
+  "technical_media_checks_pass": true,
+  "all_16_representative_frames_match_approved_png": true,
+  "minimum_frame_ssim": 0.990234,
+  "visual_quality_pass": false,
+  "publish_ready_claimed": false,
+  "findings": [
+    {
+      "shot_id": "shot-06",
+      "frame": 1560,
+      "actual_mp4_frame": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-06.png",
+      "observation": "多个组件重复同一信息，部分辅助标签字号很小；需减少重复并重排。",
+      "resolved": false
+    },
+    {
+      "shot_id": "shot-11",
+      "frame": 2300,
+      "actual_mp4_frame": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-11.png",
+      "observation": "同一收益长图以六个缩略图呈现，逐条奖励金额在当前画面难以阅读。",
+      "resolved": false
+    },
+    {
+      "shot_id": "shot-13",
+      "frame": 3110,
+      "actual_mp4_frame": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-13.png",
+      "observation": "左下辅助组件的蓝色重复文字在右边界被截断。",
+      "resolved": false
+    },
+    {
+      "shot_id": "shot-16",
+      "frame": 3650,
+      "actual_mp4_frame": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-16.png",
+      "observation": "结束卡右侧仍显示模板英文占位文字 next action。",
+      "resolved": false
+    }
+  ],
+  "other_observations": [
+    "shot-03回复消息能赚钱主体完整可读；shot-09裁切覆盖消息5金币/条、语音30/视频80金币/分钟。",
+    "shot-10金币不足与立即充值1元主体完整可读，仍只有约2.9秒；未改已确认时间轴。",
+    "shot-07/08标题与强调字间距较紧，静帧不能代替完整动画检查。"
+  ],
+  "runtime_inputs_changed": false,
+  "known_findings_disclosed_in_delivery_caption": true
+}

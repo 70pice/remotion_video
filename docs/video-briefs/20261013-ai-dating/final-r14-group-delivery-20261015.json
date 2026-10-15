@@ -1,0 +1,23 @@
+{
+  "checked_at": "2026-10-15T10:00:23.338826+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 14,
+  "chat_id": "oc_34b61a867da7f3916adeb716200f9794",
+  "caption_message_id": "om_x100b623e75c818b0c1360857d4b5dfe",
+  "caption_message_link": "https://applink.feishu.cn/client/chat/open?openChatId=oc_34b61a867da7f3916adeb716200f9794&position=232",
+  "video_message_id": "om_x100b623e759d30b0c138320f72893e0",
+  "video_message_link": "https://applink.feishu.cn/client/chat/open?openChatId=oc_34b61a867da7f3916adeb716200f9794&position=233",
+  "caption_matches": true,
+  "exact_ids_verified": true,
+  "sender_matches": true,
+  "video_count": 1,
+  "cover_attached": true,
+  "remote_download_hash_matches": true,
+  "sha256": "766ed5da5657cc05466e9a51008df0884bea51a5256e70bc31bc0959bce9538c",
+  "size_bytes": 20151013,
+  "video": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\renders\\c1fd902219654394bd4f52e0fd2e72d4\\final.mp4",
+  "cover": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\renders\\c1fd902219654394bd4f52e0fd2e72d4\\cover.png",
+  "duration_seconds": 123.8,
+  "delivery_kind": "review_copy",
+  "published": false
+}

@@ -1,0 +1,186 @@
+{
+  "checked_at": "2026-10-15T09:56:31.040704+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 14,
+  "status": "DRAFT",
+  "stage": "complete",
+  "command": {
+    "command_id": "2c5c725973794ab692e4bdd16c805409",
+    "status": "DONE"
+  },
+  "checks": {
+    "job_complete_draft": true,
+    "command_done": true,
+    "timeline_unchanged": true,
+    "script_unchanged": true,
+    "assets_unchanged": true,
+    "review_receipt_confirms_all_16": true,
+    "editing_has_no_blocking_findings": true,
+    "old_44_operations_unchanged": true,
+    "two_completed_editing_checks_no_other_model_calls": true,
+    "original_blocked_guidance_preserved": true,
+    "registered_mp4_hash_matches": true,
+    "cover_hash_matches": true,
+    "video_1080x1920_30fps": true,
+    "video_frame_count_matches": true,
+    "video_duration_matches": true,
+    "audio_duration_matches": true,
+    "complete_decode_succeeded": true,
+    "audio_is_non_silent": true,
+    "all_16_approved_frames_match_encoded_video": true
+  },
+  "all_checks_pass": true,
+  "video": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\renders\\c1fd902219654394bd4f52e0fd2e72d4\\final.mp4",
+  "cover": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\renders\\c1fd902219654394bd4f52e0fd2e72d4\\cover.png",
+  "captions": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\renders\\c1fd902219654394bd4f52e0fd2e72d4\\captions.srt",
+  "duration_seconds": 123.8,
+  "size_bytes": 20151013,
+  "sha256": "766ed5da5657cc05466e9a51008df0884bea51a5256e70bc31bc0959bce9538c",
+  "video_stream": {
+    "codec_name": "h264",
+    "width": 1080,
+    "height": 1920,
+    "pix_fmt": "yuvj420p",
+    "avg_frame_rate": "30/1",
+    "duration": "123.800000",
+    "nb_frames": "3714"
+  },
+  "audio_stream": {
+    "codec_name": "aac",
+    "sample_rate": "48000",
+    "channels": 2,
+    "duration": "123.819000"
+  },
+  "audio_volume_db": {
+    "mean": -17.7,
+    "peak": -1.9
+  },
+  "frame_comparisons": [
+    {
+      "shot_id": "shot-01",
+      "frame": 210,
+      "ssim": 0.993353,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-01.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-001.png"
+    },
+    {
+      "shot_id": "shot-02",
+      "frame": 630,
+      "ssim": 0.993687,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-02.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-002.png"
+    },
+    {
+      "shot_id": "shot-03",
+      "frame": 885,
+      "ssim": 0.992491,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-03.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-003.png"
+    },
+    {
+      "shot_id": "shot-04",
+      "frame": 1090,
+      "ssim": 0.993423,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-04.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-004.png"
+    },
+    {
+      "shot_id": "shot-05",
+      "frame": 1359,
+      "ssim": 0.993689,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-05.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-005.png"
+    },
+    {
+      "shot_id": "shot-06",
+      "frame": 1560,
+      "ssim": 0.991307,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-06.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-006.png"
+    },
+    {
+      "shot_id": "shot-07",
+      "frame": 1750,
+      "ssim": 0.995133,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-07.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-007.png"
+    },
+    {
+      "shot_id": "shot-08",
+      "frame": 1930,
+      "ssim": 0.994762,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-08.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-008.png"
+    },
+    {
+      "shot_id": "shot-09",
+      "frame": 2115,
+      "ssim": 0.99733,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-09.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-009.png"
+    },
+    {
+      "shot_id": "shot-10",
+      "frame": 2200,
+      "ssim": 0.992334,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-10.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-010.png"
+    },
+    {
+      "shot_id": "shot-11",
+      "frame": 2300,
+      "ssim": 0.990234,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-11.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-011.png"
+    },
+    {
+      "shot_id": "shot-12",
+      "frame": 2650,
+      "ssim": 0.992178,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-12.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-012.png"
+    },
+    {
+      "shot_id": "shot-13",
+      "frame": 3110,
+      "ssim": 0.991687,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-13.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-013.png"
+    },
+    {
+      "shot_id": "shot-14",
+      "frame": 3250,
+      "ssim": 0.991678,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-14.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-014.png"
+    },
+    {
+      "shot_id": "shot-15",
+      "frame": 3480,
+      "ssim": 0.994152,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-15.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-015.png"
+    },
+    {
+      "shot_id": "shot-16",
+      "frame": 3650,
+      "ssim": 0.992796,
+      "extracted_image": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2\\frame-16.png",
+      "approved_image": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\ed376b00e31649d68f019f56f7226083\\shot-016.png"
+    }
+  ],
+  "inspection_folder": "C:\\Users\\70pic\\AppData\\Local\\Temp\\videoagents-final-r14-quality-6c6d097d91254e5c851f7275609fa3b2",
+  "guidance_artifact_id": "9cfb5ac3808248c89b1e62ffe3615d91",
+  "new_operations": [
+    {
+      "id": "53c2c9e7f0dc4f9ea3cc6df7adfd3b56",
+      "provider": "llm:editing",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "385328428a954492b96b8c0d56652b49",
+      "provider": "llm:editing",
+      "status": "COMPLETED"
+    }
+  ]
+}
