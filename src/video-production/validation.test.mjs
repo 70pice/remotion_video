@@ -556,6 +556,7 @@ test('context examples keep their visible source and do not mutate legacy shots'
 test('Snapcn phone frame renders real screen media through native phone body', async (t) => {
   const tutorial = await importTypeScript(t, 'src/video-production/phoneTutorial.ts');
   const focus = await importTypeScript(t, 'src/video-production/focusGeometry.ts');
+  const carousel = await importTypeScript(t, 'src/video-production/phoneCarousel.ts');
   const source = await fs.readFile(path.join(root, 'src/video-production/PhoneFrameMaterial.tsx'), 'utf8');
   const compiled = ts.transpileModule(source, {compilerOptions: {
     module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX,
@@ -581,6 +582,7 @@ test('Snapcn phone frame renders real screen media through native phone body', a
     };
     if (name === './phoneTutorial') return tutorial;
     if (name === './focusGeometry') return focus;
+    if (name === './phoneCarousel') return carousel;
     return nodeRequire(name);
   };
   const module = {exports: {}};

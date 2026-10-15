@@ -21,7 +21,7 @@ ALLOWED_PROPS = {
 }
 COMMUNITY_PRESET_PROPS = {
     "content_mode", "asset_fit", "asset_crop", "start_seconds", "end_seconds", "items", "metric", "tutorial_steps", "tutorial_source_size",
-    "focus_steps", "focus_source_size", "component_set", "composition", "rich_content",
+    "focus_steps", "focus_source_size", "component_set", "composition", "rich_content", "media_slides", "carousel_transition_frames",
 }
 
 LAYER_PROP_KEYS = {"items", "before", "highlight", "after", "from_text", "to_text"}
@@ -146,6 +146,10 @@ def _validate_context_example(
 ) -> None:
     if shot.media_usage != "context_example":
         return
+    if "media_slides" in shot.props:
+        for segment in shot_media_segments(shot):
+            _validate_context_example(segment, job, known, context_sources, approved_context_sources)
+        return
     if shot.component_id not in {"image_focus", "video"} | COMMUNITY_COMPONENT_ID_SET:
         raise ValueError("另案示例只能使用图片、视频或原生素材槽组件，不能作为 evidence 证据镜头")
     additionally_approved = bool(shot.asset_src and shot.asset_src in (approved_context_sources or set()))
@@ -234,7 +238,8 @@ def media_coverage_report(
 ) -> dict[str, object]:
     assets_by_src = {asset.timeline_src: asset for asset in job.assets}
     context_sources = _context_example_sources(job)
-    for shot in timeline.shots:
+    media_shots = [segment for shot in timeline.shots for segment in shot_media_segments(shot)]
+    for shot in media_shots:
         _validate_context_example(shot, job, assets_by_src, context_sources, approved_context_sources)
     ranges = _script_segment_ranges(timeline, job)
     # The production requirement is strictly greater than 70%, not merely an
@@ -303,7 +308,7 @@ def media_coverage_report(
     source_evidence_frames = 0
     context_example_frames = 0
     used_video_ranges: dict[str, list[tuple[float, float]]] = {}
-    for shot in timeline.shots:
+    for shot in media_shots:
         if not shot.asset_src or (
             shot.component_id not in MEDIA_COMPONENT_IDS
             and shot.component_id not in COMMUNITY_COMPONENT_ID_SET
@@ -401,6 +406,55 @@ def normalized_rect(value: object, message: str) -> None:
             raise ValueError(message)
     if value["width"] <= 0 or value["height"] <= 0 or value["x"] + value["width"] > 1 or value["y"] + value["height"] > 1:
         raise ValueError(message)
+
+
+def _media_slides(shot) -> list[dict]:
+    props = shot.props
+    if "media_slides" not in props:
+        if "carousel_transition_frames" in props:
+            raise ValueError("图片轮播的过渡帧必须与 media_slides 一起提供")
+        return []
+    if (shot.component_id != "Snapcn-PhoneFrame" or getattr(shot, "set_design", None) is not None
+            or any(key in props for key in ("component_set", "focus_steps", "focus_source_size",
+                                            "tutorial_steps", "tutorial_source_size"))):
+        raise ValueError("图片轮播只允许普通 PhoneFrame，不能与组件套、重点圈选或教学步骤共用")
+    if props.get("content_mode", "auto") not in {"auto", "media"}:
+        raise ValueError("图片轮播必须使用 auto 或 media 内容模式")
+    slides = props["media_slides"]
+    if not isinstance(slides, list) or not 2 <= len(slides) <= 8:
+        raise ValueError("图片轮播必须包含 2 到 8 张图片")
+    previous = -1
+    for index, slide in enumerate(slides):
+        if (not isinstance(slide, dict) or not {"asset_src", "start_frame", "asset_fit"} <= set(slide)
+                or set(slide) - {"asset_src", "start_frame", "asset_fit", "asset_crop"}):
+            raise ValueError("图片轮播项只接受 asset_src/start_frame/asset_fit 和可选 asset_crop")
+        start = slide["start_frame"]
+        if (type(start) is not int or not previous < start < shot.end_frame - shot.start_frame
+                or (index == 0 and (start != 0 or slide["asset_src"] != shot.asset_src))):
+            raise ValueError("图片轮播首项必须从0开始且匹配主素材，后续起点须在镜头内严格递增")
+        if (not isinstance(slide["asset_src"], str) or not re.search(r"\.(png|jpe?g|webp)$", slide["asset_src"], re.I)
+                or not isinstance(slide["asset_fit"], str) or slide["asset_fit"] not in {"contain", "cover"}):
+            raise ValueError("图片轮播必须使用图片路径以及 contain 或 cover")
+        if "asset_crop" in slide:
+            normalized_rect(slide["asset_crop"], "图片轮播裁剪框必须在图片内部且面积非零")
+        previous = start
+    transition = props.get("carousel_transition_frames", 6)
+    if type(transition) is not int or not 0 <= transition <= 15:
+        raise ValueError("图片轮播过渡必须是0到15的整数帧")
+    return slides
+
+
+def shot_media_segments(shot) -> list:
+    """Project displayed image windows for the existing approval/coverage checks."""
+    slides = _media_slides(shot)
+    if not slides:
+        return [shot]
+    props = {key: value for key, value in shot.props.items() if key not in {"media_slides", "carousel_transition_frames"}}
+    return [shot.model_copy(update={
+        "asset_src": slide["asset_src"], "props": props,
+        "start_frame": shot.start_frame + slide["start_frame"],
+        "end_frame": shot.start_frame + slides[index + 1]["start_frame"] if index + 1 < len(slides) else shot.end_frame,
+    }) for index, slide in enumerate(slides)]
 
 
 def _tutorial_source_size(value: object) -> None:
@@ -971,6 +1025,11 @@ def validate_timeline(
         if not re.search(r"\.(wav|mp3|m4a|aac|ogg)$", timeline.audio_src, re.I):
             raise ValueError("分镜音频扩展名不支持")
     for shot in timeline.shots:
+        for slide in _media_slides(shot):
+            safe_media_source(slide["asset_src"], job.job_id)
+            image = known.get(slide["asset_src"])
+            if image is None or not image.mime_type.startswith("image/") or not asset_renderable(image):
+                raise ValueError("图片轮播每项必须来自本任务已导入且可渲染的真实图片")
         _validate_layers(shot)
         _validate_context_example(shot, job, known, context_sources, approved_context_sources)
         if not component_allowed(shot.component_id, job.brief.usage):

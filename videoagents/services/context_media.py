@@ -6,6 +6,7 @@ from videoagents.tools.timeline import (
     _context_example_sources,
     asset_renderable,
     media_coverage_report,
+    shot_media_segments,
     validate_timeline,
 )
 
@@ -15,7 +16,7 @@ def approved_context_sources(repository: Repository, job: Job, timeline: Timelin
     if timeline.presentation == "component_sample":
         return set()
     linked = _context_example_sources(job)
-    requested = {shot.asset_src for shot in timeline.shots
+    requested = {shot.asset_src for original in timeline.shots for shot in shot_media_segments(original)
                  if shot.media_usage == "context_example" and shot.asset_src and shot.asset_src not in linked}
     if not requested:
         return set()

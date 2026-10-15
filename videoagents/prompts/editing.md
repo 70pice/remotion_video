@@ -150,6 +150,12 @@ metric 这些统一安全槽位。预设中的演示内容不能支持本片事�
 更换预设 `component_id` 或调整安全槽位，但不能编造清单外 ID、源码路径、CSS、
 URL、函数或组件实现。
 
+Snapcn-PhoneFrame 普通本体另支持 media_slides（2～8张本任务已导入图片，每项
+asset_src/start_frame/asset_fit，可选已核验asset_crop）和 carousel_transition_frames（0～15，默认6）。
+首项从镜内0帧开始且等于shot.asset_src，后续起点严格递增并在镜内；它在同一外框内换图，
+外框、标题、位置与入场不重启，不与set_design、focus或tutorial混用。
+不能把这种正式轮播合同判作任意props，也不能建议用切镜替代用户要求的固定位置轮播。
+
 对未使用 set_design 的参数化适配器，可建议调整的主字段仅限 shot 的 component_id/title/body/
 asset_src/source_label/accent_color 及对应 props：title.eyebrow、keyword.keyword、
 evidence.highlight{x,y,width,height}、image_focus.focal_x/focal_y 或

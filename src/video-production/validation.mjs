@@ -56,7 +56,7 @@ const expandedRichRules = {
   B16: {items: 3, supporting: 3, metric: 'items'}, B17: {items: 3, supporting: 2, metric: 'items'},
   B18: {items: 2, supporting: 3, numeric: 2, metric: 'supportingAndMaximum'},
 };
-const communityPresetPropKeys = ['content_mode', 'asset_fit', 'asset_crop', 'start_seconds', 'end_seconds', 'items', 'metric', 'tutorial_steps', 'tutorial_source_size', ...focusPropKeys];
+const communityPresetPropKeys = ['content_mode', 'asset_fit', 'asset_crop', 'start_seconds', 'end_seconds', 'items', 'metric', 'tutorial_steps', 'tutorial_source_size', 'media_slides', 'carousel_transition_frames', ...focusPropKeys];
 const productionSetCapabilitiesById = new Map(componentSetCapabilities.sets.map((entry) => [entry.set_id, entry]));
 const productionSetIds = new Set(componentSetCapabilities.sets.map((entry) => entry.set_id));
 
@@ -401,6 +401,38 @@ const validateFocusProps = (shot, name, timeline) => {
       layers[0].start_frame !== 0 || layers[0].end_frame !== duration || layers[0].title !== steps[0].instruction) {
     fail(`${name}: material focus requires one full-duration native title matching the first instruction`);
   }
+};
+
+const validateMediaSlides = (shot, name, jobId) => {
+  const props = object(shot.props, `${name}.props`);
+  if (props.media_slides === undefined) {
+    if (props.carousel_transition_frames !== undefined) fail(`${name}: carousel transition requires media_slides`);
+    return;
+  }
+  if (shot.component_id !== 'Snapcn-PhoneFrame' || shot.set_design !== undefined ||
+      ['component_set', 'focus_steps', 'focus_source_size', 'tutorial_steps', 'tutorial_source_size'].some((key) => key in props)) {
+    fail(`${name}: image carousel requires an ordinary PhoneFrame without component sets, focus or tutorial steps`);
+  }
+  if (!['auto', 'media'].includes(props.content_mode ?? 'auto')) fail(`${name}: carousel content_mode must be auto or media`);
+  const slides = props.media_slides;
+  if (!Array.isArray(slides) || slides.length < 2 || slides.length > 8) fail(`${name}: media_slides requires 2 to 8 images`);
+  let previous = -1;
+  slides.forEach((value, index) => {
+    const slideName = `${name}.props.media_slides[${index}]`;
+    const slide = object(value, slideName);
+    keys(slide, ['asset_src', 'start_frame', 'asset_fit', 'asset_crop'], slideName);
+    integer(slide.start_frame, `${slideName}.start_frame`, 0, shot.end_frame - shot.start_frame - 1);
+    if (slide.start_frame <= previous || (index === 0 && (slide.start_frame !== 0 || slide.asset_src !== shot.asset_src))) {
+      fail(`${slideName}: first slide must match asset_src at frame 0; later starts must strictly increase`);
+    }
+    validateMediaSource(slide.asset_src, jobId, `${slideName}.asset_src`);
+    if (typeof slide.asset_src !== 'string' || !/\.(png|jpe?g|webp)$/i.test(slide.asset_src) ||
+        !['contain', 'cover'].includes(slide.asset_fit)) fail(`${slideName}: slides require an image and contain or cover fit`);
+    if (slide.asset_crop !== undefined) normalizedRect(slide.asset_crop, `${slideName}.asset_crop`, 'asset');
+    previous = slide.start_frame;
+  });
+  integer(props.carousel_transition_frames === undefined ? 6 : props.carousel_transition_frames,
+    `${name}.props.carousel_transition_frames`, 0, 15);
 };
 
 const validateCommunityPresetProps = (shot, name) => {
@@ -863,6 +895,7 @@ export const validateTimeline = (input) => {
         validateRichNoMaterialContent(shot, name, setId, timeline.fps);
       }
     }
+    validateMediaSlides(shot, name, timeline.job_id);
     validateSetDesign(shot, name, timeline);
     if (shot.set_design !== undefined) return;
     validateFocusProps(shot, name, timeline);

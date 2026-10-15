@@ -51,6 +51,8 @@
 
 手机教学需要把当前口令和界面目标绑定：`Snapcn-PhoneFrame` 的生产适配器支持 `tutorial_steps`（连续局部帧、短口令、原始素材归一化目标框）和实测 `tutorial_source_size`，配合一个全时长 `Snapcn-TextReveal` 标题层，按步骤换字并画橙色无填充手绘圈。使用未裁剪的 contain-fit MP4 和竖屏时间轴；时刻与目标依据实际录屏确认，不能把首页当作保存动作。见 [A02 教学版契约](../component-set-demos.md#a02-教学版当前口令与手绘圈同步)。圈是适配器能力，不新增原生组件计数。
 
+同一位置的多图片轮播使用**一个普通 `Snapcn-PhoneFrame` 镜头**：`props.media_slides` 含2～8项，每项为本任务已导入图片的 `asset_src`、镜内局部整数 `start_frame`、`asset_fit=contain/cover`，可选经核验的归一化 `asset_crop`。首项从0开始且路径等于主 `shot.asset_src`；后续起点严格递增，小于镜头总帧数。可选 `carousel_transition_frames` 为0～15整数，默认6；只有手机屏幕内图片交叉淡化，外框、标题、位置和初次入场保持连续。每张图单独校验素材及旁白对应，不与组件套、focus或tutorial共用，不用裁切抹掉关键信息。`Rve-ImageCarousel` 当前只接一张 `asset_src` 的展示面不能代替这项真多图能力；用户要求固定位置轮播时，不拆子镜头或换组件规避。
+
 账号选题先按 [普通人与 AI 镜头组合规则](account-shot-playbooks.md) 判断主题、素材条件与段落任务，
 再使用以下通用场景组合。主题不是组件白名单，完整清单继续保留；实际切镜须交付新信息并换成相关新素材。
 

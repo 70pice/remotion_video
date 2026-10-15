@@ -5,6 +5,7 @@ import {FittedText, muted, productionFont, useLayout, white} from './adapters/la
 import type {TimelineShot} from './types';
 import {phoneScreenSize, tutorialRingPath, tutorialStepAt, tutorialTargetRect, type TutorialSourceSize, type TutorialStep} from './phoneTutorial';
 import {guidedMaterialTop, guidedPhoneHeight, guidedPhoneScale} from './focusGeometry';
+import {phoneCarouselAt, type PhoneCarouselSlide} from './phoneCarousel';
 
 type Crop = {x: number; y: number; width: number; height: number};
 
@@ -47,6 +48,20 @@ const PhoneScreenMedia = ({shot}: {shot: TimelineShot}) => {
   const {fps} = useVideoConfig();
   const frame = useCurrentFrame();
   const props = shot.props as Record<string, unknown>;
+  if (Array.isArray(props.media_slides)) {
+    const slides = props.media_slides as PhoneCarouselSlide[];
+    const transition = typeof props.carousel_transition_frames === 'number' ? props.carousel_transition_frames : 6;
+    const current = phoneCarouselAt(slides, frame, shot.end_frame - shot.start_frame, transition);
+    return <div style={{position: 'absolute', inset: 0, overflow: 'hidden', background: '#050A12'}}>
+      {slides.map((slide, index) => <Img key={`${index}:${slide.asset_src}`}
+        data-phone-carousel-index={index} src={staticFile(slide.asset_src)}
+        style={{position: 'absolute', left: 0, top: 0,
+          ...cropStyleFor(slide.asset_crop ?? null, slide.asset_fit), display: 'block',
+          // Keep the outgoing page opaque underneath the incoming page. This
+          // avoids dimming the screen during the image-only dissolve.
+          opacity: index === current.currentIndex ? current.opacity : index === current.previousIndex ? 1 : 0}} />)}
+    </div>;
+  }
   const src = shot.asset_src ? staticFile(shot.asset_src) : null;
   if (!src) return <PhoneScreenFallback shot={shot} />;
   const crop = isCrop(props.asset_crop) ? props.asset_crop : null;
