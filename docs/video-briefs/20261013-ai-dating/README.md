@@ -1,5 +1,13 @@
 # 本次视频制作输入
 
+2026-10-15 12:13 用户引用“两次纠正已配置、摄影仍停在r12”的消息明确回复“继续吧”，已通过正常
+`restart-unknown --director-only` 保存r13，再从独立维护提交 `dfde322` 经正常 `run` 发起一次摄影。
+新操作 `90912e13e0bd43bba8638c7b0247a099` 当前SUBMITTING，台账确认首次加最多两次结构化纠正。
+原Brief、七段已审文案、12件素材/音频及35笔旧操作保持；没有启动上游节点或确认逐镜与成片。
+本条为启动时点，不代表新方案或PNG已生成。见[r13摄影接续监控](photography-r13-monitoring-20261015.md)、
+[授权要求](photography-r13-authorized-note-20261015.txt)、[启动前复验](photography-r13-authorization-verification-20261015.json)
+及[只读观察记录](photography-r13-monitor-20261015.jsonl)。以下为历史记录。
+
 2026-10-15 用户要求“两次纠正”，独立维护提交 `dfde322` 将Claude结构化尝试上限改为3，即首次加最多两次纠正。
 17项定向回归、Ruff、类型检查、lint及wheel构建通过；真实CLI离线验证第三次可成功、连续三次错误会停止。
 本次仅调整共性代码，未重新提交摄影，当前仍r12 / NEEDS_INPUT。Coding Plan兼容性仍属未确认原因。
