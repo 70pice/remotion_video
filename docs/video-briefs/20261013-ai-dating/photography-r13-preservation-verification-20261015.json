@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-10-15T04:26:46.747101+00:00",
+  "checked_at": "2026-10-15T04:55:34.007072+00:00",
   "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
   "revision": 13,
-  "status": "RUNNING",
+  "status": "NEEDS_INPUT",
   "stage": "director",
   "approved_brief_unchanged": true,
   "approved_script_business_unchanged": true,
@@ -14,8 +14,8 @@
     {
       "operation_id": "1eaeeda9e64049c9abe59f2c922250e2",
       "provider": "llm:director",
-      "status": "SUBMITTING",
-      "body_sha256": "6bf6e762517ecdee1b81e74e129654e00b54c481b29efbb507b3ad944f96cccb"
+      "status": "UNKNOWN",
+      "body_sha256": "29c4376c19fb734e9d7eb041fe5a5c6533aad94dd1921c5c9abd3f4a6f057b9f"
     },
     {
       "operation_id": "90912e13e0bd43bba8638c7b0247a099",
@@ -35,7 +35,7 @@
   "repair_note_characters": 1880,
   "repair_note_sha256": "87a2ccafccd180280e5fbc9d0eb87c6a5e5a1023ee0a9c04d336d57a05a1d867",
   "repair_command_id": "bbfbc337d1c0429480bd58780b71c645",
-  "repair_command_status": "CLAIMED",
+  "repair_command_status": "DONE",
   "repair_answered_input_token": "af9d562131694afaab4d82eec6f7baef",
   "repair_was_not_per_shot_human_confirmation": true
 }

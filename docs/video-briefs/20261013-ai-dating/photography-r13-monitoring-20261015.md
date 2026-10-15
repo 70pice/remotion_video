@@ -85,3 +85,16 @@ QuoteCard实际取body优先，shot-14标题中的封禁主事实没有进入实
 12:26:46只读复验：原Brief、七段文案、12件文件、35笔旧操作与33张历史图保持；r13首次COMPLETED
 候选完整记录保持。当前共两笔摄影操作，新PNG/有效timeline仍0，未授予逐镜审核或发布。
 见[完整保留验证](photography-r13-preservation-verification-20261015.json)与监控JSONL后续观察。
+
+## 排版返工调用的实际终止
+
+12:54:28，任务更新为NEEDS_INPUT / director，摄影操作 `1eaeeda9e64049c9abe59f2c922250e2`
+为UNKNOWN，CLI退出1并报告 `api_error`，没有可用JSON；12:55:23的只读观察取得停止记录。
+当前待办 `4e9a4e5b29d441eab5119ef514a3a47d`，正常命令DONE，启动进程均已结束。
+约28分22秒未达到18000秒节点上限。没有可识别HTTP状态或具体API错误类型，不推断限流、额度、
+供应商内部超时或Coding Plan兼容性。本次实际终止原因不同于r12结构化纠正耗尽。
+
+12:55:34停止后只读复验：原文案、12件文件、35笔旧操作与33张历史PNG保持；r13首轮COMPLETED
+候选SHA仍为 `edad4108a02d9dcc48f8115dfd8e857a7f31a9ca3b2b59fe0fdf5f26e7d227fe`。
+本轮新PNG与有效timeline均为0，未进入逐镜整包确认、剪辑或发布。没有继续提交新付费调用。
+完整原因、证据边界和代码入口见[停止记录](photography-r13-stop-20261015.md)。
