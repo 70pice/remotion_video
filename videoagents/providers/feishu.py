@@ -9,7 +9,11 @@ CLI 的 poll 命令读回决定并走既有 resume 通道。飞书不可用时�
 import json
 import os
 import re
+import shutil
 import subprocess
+import tempfile
+from contextlib import nullcontext
+from pathlib import Path
 from typing import Any
 
 from videoagents.contracts import Asset, Job
@@ -79,11 +83,26 @@ def _run(arguments: list[str], *, timeout: int = 60) -> dict[str, Any]:
     if prefix is None:
         raise FeishuUnavailable("未找到可执行的 lark-cli；请安装完整 CLI 或设置 VIDEOAGENTS_LARK_CLI_EXECUTABLE")
     try:
-        result = subprocess.run([*prefix, *arguments, "--format", "json", "--as", "user"], capture_output=True, text=True,
-                                encoding="utf-8", timeout=timeout, check=False, shell=False,
-                                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
+        # The CLI accepts files under cwd, account temp or ~/files. A runtime
+        # may belong to another worktree: stage exact bytes in its documented
+        # temp root rather than changing the CLI's file-access policy.
+        upload = "+record-upload-attachment" in arguments and "--file" in arguments
+        staging = tempfile.TemporaryDirectory(prefix="videoagents-lark-") if upload else nullcontext(None)
+        with staging as directory:
+            argv = list(arguments)
+            if directory:
+                for index, flag in enumerate(arguments[:-1]):
+                    if flag == "--file":
+                        source = Path(arguments[index + 1])
+                        target = Path(directory) / str(index) / source.name
+                        target.parent.mkdir()
+                        shutil.copyfile(source, target)
+                        argv[index + 1] = str(target)
+            result = subprocess.run([*prefix, *argv, "--format", "json", "--as", "user"], capture_output=True, text=True,
+                                    encoding="utf-8", timeout=timeout, check=False, shell=False,
+                                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
     except (OSError, subprocess.SubprocessError) as exc:
-        raise FeishuUnavailable("lark-cli 无法执行；请检查本机 CLI") from exc
+        raise FeishuUnavailable("lark-cli 无法执行；请检查本机 CLI 和上传文件") from exc
     if result.returncode != 0:
         hint = "请检查用户授权与权限"
         try:
@@ -254,7 +273,7 @@ class FeishuReviewBase:
 
     def _rewrite_table(self, token: str, table: str, key_field: str, records: list[dict[str, Any]],
                        attachments: dict[str, str] | None = None, attachment_field: str = "",
-                       *, preserve_attachments: bool = False) -> None:
+                       *, preserve_attachments: bool = False, require_attachments: bool = False) -> None:
         """Update managed fields by key; keep human fields, comments and old rows."""
         table_id = self._table_id(token, table)
         if table == SCRIPT_TABLE:
@@ -289,12 +308,16 @@ class FeishuReviewBase:
                     continue
                 record_id = by_key.get(key)
                 if not record_id:
+                    if require_attachments:
+                        raise FeishuUnavailable(f"飞书 {table} 的 {key} 记录缺失，无法上传附件")
                     continue
                 try:
                     _run(["base", "+record-upload-attachment", "--base-token", token, "--table-id", table_id,
                           "--record-id", record_id, "--field-id", attachment_field, "--file", path], timeout=180)
-                except FeishuUnavailable:
-                    # Attachment upload failure is non-fatal; paths still surface via the CLI.
+                except FeishuUnavailable as exc:
+                    if require_attachments:
+                        raise FeishuUnavailable(f"飞书 {table} 的 {key} 附件上传失败：{exc}") from exc
+                    # Material paths still surface via the CLI.
                     continue
 
     def sync_script(self, job: Job) -> str:
@@ -386,14 +409,14 @@ class FeishuReviewBase:
             # The manifest stores an Artifact dump (artifact_id/url), not a path;
             # resolve the real file through the repository before uploading.
             artifact_id = image.get("artifact_id")
-            if artifact_id:
-                try:
-                    path, _, _ = self.repo.artifact_path(artifact_id)
-                except (ValueError, OSError):
-                    path = None
-                if path:
-                    attachments[shot_id] = str(path)
-        self._rewrite_table(token, SHOTS_TABLE, "镜头ID", rows, attachments, "代表帧")
+            if not artifact_id:
+                raise FeishuUnavailable(f"逐镜 {shot_id} 缺少代表帧产物")
+            try:
+                path, _, _ = self.repo.artifact_path(artifact_id)
+            except (ValueError, OSError) as exc:
+                raise FeishuUnavailable(f"逐镜 {shot_id} 代表帧文件缺失") from exc
+            attachments[shot_id] = str(path)
+        self._rewrite_table(token, SHOTS_TABLE, "镜头ID", rows, attachments, "代表帧", require_attachments=True)
         return token
 
     def submit_review(self, job: Job, stage: str, pending_token: str, requirements: str) -> None:

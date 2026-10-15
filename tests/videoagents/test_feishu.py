@@ -1,6 +1,9 @@
 """The Feishu review surface: idempotent sync, keyed review rows, decision polling."""
 
 import json
+import tempfile
+from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -512,6 +515,61 @@ def test_sync_shots_uploads_real_artifact_images(lark, tmp_path, job):
     assert uploads, "代表帧 PNG 必须实际上传"
     assert str(png) in uploads[0] and "--field-id 代表帧" in uploads[0]
     assert lark.tables["镜头编排"][0]["fields"]["镜头ID"] == "shot1"
+
+
+@pytest.mark.parametrize("fails", [False, True])
+def test_upload_stages_out_of_tree_bytes_in_allowed_temp_and_cleans_up(tmp_path, monkeypatch, fails):
+    source = tmp_path / "other-worktree" / "frame.png"
+    source.parent.mkdir()
+    source.write_bytes(b"registered-frame-bytes")
+    staged_paths = []
+    monkeypatch.setattr(feishu, "executable_prefix", lambda _: ["lark-cli"])
+
+    def execute(argv, **kwargs):
+        staged = Path(argv[argv.index("--file") + 1])
+        staged_paths.append(staged)
+        assert staged != source
+        assert staged.is_relative_to(Path(tempfile.gettempdir()).resolve())
+        assert staged.name == source.name
+        assert staged.read_bytes() == source.read_bytes()
+        return SimpleNamespace(returncode=2 if fails else 0,
+                               stdout="" if fails else '{"ok": true}', stderr="failure" if fails else "")
+
+    monkeypatch.setattr(feishu.subprocess, "run", execute)
+    arguments = ["base", "+record-upload-attachment", "--file", str(source)]
+    if fails:
+        with pytest.raises(FeishuUnavailable):
+            feishu._run(arguments)
+    else:
+        assert feishu._run(arguments) == {"ok": True}
+    assert source.read_bytes() == b"registered-frame-bytes"
+    assert staged_paths and not staged_paths[0].exists()
+    assert arguments[-1] == str(source)
+
+
+def test_shot_attachment_failure_cannot_report_synced(lark, tmp_path, job, monkeypatch):
+    from videoagents.services.jobs import JobService
+    repo = Repository(tmp_path / "runtime")
+    png = repo.root / "frame.png"
+    png.write_bytes(b"frame")
+    artifact = JobService(repo, tmp_path / "project").register_artifact(job, png, "shot_review_frame", "image/png")
+    base = FeishuReviewBase(repo, "fld123")
+    base.ensure_base(job)
+
+    def failing_upload(arguments, **kwargs):
+        if "+record-upload-attachment" in arguments:
+            raise FeishuUnavailable("upload failed")
+        return lark(arguments, **kwargs)
+
+    monkeypatch.setattr(feishu, "_run", failing_upload)
+    with pytest.raises(FeishuUnavailable, match="shot1"):
+        base.sync_shots(job, {"items": [{"shot_id": "shot1", "image": artifact.model_dump()}]})
+
+
+def test_shot_sync_rejects_missing_frame_instead_of_silently_skipping(lark, tmp_path, job):
+    base = FeishuReviewBase(Repository(tmp_path / "runtime"), "fld123")
+    with pytest.raises(FeishuUnavailable, match="shot1"):
+        base.sync_shots(job, {"items": [{"shot_id": "shot1", "image": {}}]})
 
 
 def test_resubmit_preserves_human_decision_fields(lark, tmp_path, job):
