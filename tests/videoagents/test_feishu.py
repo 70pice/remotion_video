@@ -71,10 +71,13 @@ class FakeLark:
         if "+record-batch-create" in joined:
             table = arguments[arguments.index("--table-id") + 1].removeprefix("tbl_")
             body = json.loads(arguments[arguments.index("--json") + 1])
+            record_ids = []
             for fields in body["create_records"]:
                 self.next_record += 1
-                self.tables[table].append({"record_id": f"rec{self.next_record}", "fields": fields})
-            return {"data": {}}
+                record_id = f"rec{self.next_record}"
+                self.tables[table].append({"record_id": record_id, "fields": fields})
+                record_ids.append(record_id)
+            return {"data": {"record_id_list": record_ids}}
         if "+record-batch-update" in joined:
             table = arguments[arguments.index("--table-id") + 1].removeprefix("tbl_")
             body = json.loads(arguments[arguments.index("--json") + 1])
@@ -515,6 +518,82 @@ def test_sync_shots_uploads_real_artifact_images(lark, tmp_path, job):
     assert uploads, "代表帧 PNG 必须实际上传"
     assert str(png) in uploads[0] and "--field-id 代表帧" in uploads[0]
     assert lark.tables["镜头编排"][0]["fields"]["镜头ID"] == "shot1"
+
+
+@pytest.mark.parametrize("nested_receipt", [False, True])
+def test_sync_split_shots_uses_create_receipt_when_immediate_list_is_stale(
+        lark, tmp_path, job, monkeypatch, nested_receipt):
+    """Base writes can succeed before the new rows appear in record-list."""
+    from copy import deepcopy
+
+    from videoagents.services.jobs import JobService
+
+    repo = Repository(tmp_path / "runtime")
+    png = repo.root / "split-frame.png"
+    png.write_bytes(b"registered-frame")
+    artifact = JobService(repo, tmp_path / "project").register_artifact(job, png, "shot_review_frame", "image/png")
+    base = FeishuReviewBase(repo, "fld123")
+    base.ensure_base(job)
+    original = {"record_id": "old-01", "fields": {"镜头ID": "shot-01", "人工意见": "保留旧镜历史"}}
+    manual = {"record_id": "manual", "fields": {"镜头ID": "", "人工意见": "人工补充"}}
+    unchanged = {"record_id": "old-02", "fields": {"镜头ID": "shot-02", "人工意见": "保留评论"}}
+    lark.tables["镜头编排"] = [deepcopy(original), deepcopy(manual), unchanged]
+    stale = True
+
+    def delayed_visibility(arguments, **kwargs):
+        result = lark(arguments, **kwargs)
+        if "+record-batch-create" in arguments and not nested_receipt:
+            return result["data"]
+        if stale and "+record-list" in arguments:
+            result["data"]["items"] = [row for row in result["data"]["items"]
+                                        if row["record_id"] in {"old-01", "old-02", "manual"}]
+        return result
+
+    monkeypatch.setattr(feishu, "_run", delayed_visibility)
+    manifest = {"items": [{"shot_id": shot_id, "start_frame": index * 30, "end_frame": (index + 1) * 30,
+                           "image": artifact.model_dump()}
+                          for index, shot_id in enumerate(("shot-01-a", "shot-01-b", "shot-02"))]}
+    lark.calls.clear()
+    base.sync_shots(job, manifest)
+    rows = lark.tables["镜头编排"]
+    assert rows[:2] == [original, manual]
+    assert unchanged["fields"]["人工意见"] == "保留评论"
+    current = {row["fields"].get("镜头ID"): row for row in rows}
+    assert current["shot-02"]["record_id"] == "old-02"
+    for shot_id in ("shot-01-a", "shot-01-b", "shot-02"):
+        assert current[shot_id]["fields"]["代表帧"] == [str(png)]
+    assert len([call for call in lark.calls if "+record-batch-create" in call]) == 1
+
+    stale = False
+    lark.calls.clear()
+    base.sync_shots(job, manifest)
+    assert len(rows) == 5
+    assert not any("+record-batch-create" in call or "+record-delete" in call for call in lark.calls)
+    assert rows[:2] == [original, manual]
+    assert repo.get_job(job.job_id) == job
+
+
+@pytest.mark.parametrize("record_ids", [["rec-a"], ["rec-a", "rec-a"], ["", "rec-b"], [123, "rec-b"],
+                                        "rec-a,rec-b", ["old-02", "rec-b"]])
+def test_invalid_create_receipt_never_selects_an_attachment_target(lark, tmp_path, job, monkeypatch, record_ids):
+    base = FeishuReviewBase(Repository(tmp_path / "runtime"), "fld123")
+    base.ensure_base(job)
+    lark.tables["镜头编排"] = [{"record_id": "old-02", "fields": {"镜头ID": "shot-02"}}]
+
+    def invalid_receipt(arguments, **kwargs):
+        result = lark(arguments, **kwargs)
+        if "+record-batch-create" in arguments:
+            return {"data": {"record_id_list": record_ids}}
+        return result
+
+    monkeypatch.setattr(feishu, "_run", invalid_receipt)
+    lark.calls.clear()
+    with pytest.raises(FeishuUnavailable, match="创建回执"):
+        base._rewrite_table("basetoken123", "镜头编排", "镜头ID",
+                            [{"镜头ID": "shot-01-a"}, {"镜头ID": "shot-01-b"}],
+                            {"shot-01-a": "unit-a.png", "shot-01-b": "unit-b.png"},
+                            "代表帧", require_attachments=True)
+    assert not any("+record-upload-attachment" in call for call in lark.calls)
 
 
 @pytest.mark.parametrize("fails", [False, True])

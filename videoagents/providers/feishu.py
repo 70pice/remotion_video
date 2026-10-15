@@ -294,13 +294,24 @@ class FeishuReviewBase:
         if updates:
             _run(["base", "+record-batch-update", "--base-token", token, "--table-id", table_id,
                   "--json", json.dumps({"update_records": updates}, ensure_ascii=False)])
+        created_by_key = {}
         if creates:
-            _run(["base", "+record-batch-create", "--base-token", token, "--table-id", table_id,
-                  "--json", json.dumps({"create_records": creates}, ensure_ascii=False)])
+            result = _run(["base", "+record-batch-create", "--base-token", token, "--table-id", table_id,
+                           "--json", json.dumps({"create_records": creates}, ensure_ascii=False)])
+            data = result if "record_id_list" in result else result.get("data", result)
+            if isinstance(data, dict) and "record_id_list" in data:
+                record_ids = data["record_id_list"]
+                if (not isinstance(record_ids, list) or len(record_ids) != len(creates)
+                        or not all(isinstance(rid, str) and rid.strip() for rid in record_ids)
+                        or len(record_ids) != len(set(record_ids)) or set(record_ids) & set(by_key.values())):
+                    raise FeishuUnavailable(f"飞书 {table} 创建回执的记录ID不完整或重复，停止附件同步")
+                created_by_key = dict(zip((_plain(row[key_field]) for row in creates), record_ids, strict=True))
         if attachments:
             fields = [key_field, attachment_field] if preserve_attachments else [key_field]
             rows = self._list_records(token, table_id, fields)
-            by_key = {_plain(item.get("fields", {}).get(key_field)): item.get("record_id") for item in rows}
+            # Base writes become visible asynchronously. New rows already have
+            # authoritative IDs in the create receipt, even if this list is old.
+            by_key = {_plain(item.get("fields", {}).get(key_field)): item.get("record_id") for item in rows} | created_by_key
             attached = {_plain(item.get("fields", {}).get(key_field)) for item in rows
                         if preserve_attachments and item.get("fields", {}).get(attachment_field)}
             for key, path in attachments.items():
