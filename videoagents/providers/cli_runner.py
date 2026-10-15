@@ -41,6 +41,15 @@ CLAUDE_RESEARCH_TOOLS = {
     "mcp__videoagents_research__screenshot",
 }
 CLAUDE_RESEARCH_METADATA = {"tool_progress", "tool_use_summary", "auth_status"}
+# Fixed result subtypes from the Claude SDK, plus the legacy model error.
+# Never promote errors/result text into a diagnostic or user-facing message.
+CLAUDE_FAILURE_HINTS = {
+    "error_during_execution": "CLI执行失败，具体供应商原因尚未确定",
+    "error_max_turns": "CLI达到本次会话轮次上限，未取得可用结果",
+    "error_max_budget_usd": "CLI达到本次调用预算上限，未取得可用结果",
+    "error_max_structured_output_retries": "CLI未生成有效结构化输出（重试次数已耗尽）",
+    "unrecognized_model": "CLI错误回执报告模型标识无法识别",
+}
 # The CLI transport needs OpenAI's strict schema subset. Business contracts
 # contain defaults/free-form props, so carry their locally validated JSON as a
 # string instead of silently narrowing the actual production contract.
@@ -99,6 +108,18 @@ class CliFailure(Exception):
         self.reason = reason
         self.submitted = submitted
         self.rejected = rejected
+
+    @property
+    def hint(self) -> str:
+        reason_code, separator, details = self.reason.partition("; ")
+        if reason_code not in {"cli_nonzero_exit", "cli_reported_error"} or not separator or len(details) > 1024:
+            return ""
+        try:
+            diagnostic = json.loads(details)
+        except (ValueError, RecursionError):
+            return ""
+        subtype = diagnostic.get("subtype") if isinstance(diagnostic, dict) else None
+        return CLAUDE_FAILURE_HINTS.get(subtype, "") if isinstance(subtype, str) else ""
 
 
 @dataclass(frozen=True)
@@ -409,8 +430,9 @@ def _failure_diagnostic(reason_code: str, provider: str, output: list[str], stdo
             if isinstance(value, dict) and value.get("type") == "result":
                 shape = ("claude_success_result" if value.get("subtype") == "success"
                          and value.get("is_error") is False else "claude_error_result")
-                if value.get("subtype") == "unrecognized_model":
-                    subtype = "unrecognized_model"
+                candidate = value.get("subtype")
+                if isinstance(candidate, str) and candidate in CLAUDE_FAILURE_HINTS:
+                    subtype = candidate
                 structured = value.get("structured_output")
                 if isinstance(structured, dict):
                     inner = structured.get("response_json")
@@ -766,6 +788,12 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 raise CliFailure("incomplete_cli_result" + stderr_note())
             return CliResult(data, usage)
         except CliFailure as exc:
+            if exc.reason == "cli_reported_error" and provider == "claude_code_cli" and not research:
+                stderr_reader.join(timeout=1)
+                exc.reason = _failure_diagnostic(
+                    exc.reason, provider, output, size, exit_code,
+                    sum(len(chunk) for chunk in stderr_tail))
+                exc.args = (exc.reason,)
             if not exc.rejected and exc.submitted:
                 # Attach the captured tail for the operation ledger; the reason
                 # code alone cannot distinguish a crash from a rate limit.

@@ -210,7 +210,8 @@ class JsonModel:
                 # Preserve the job's terminal cancellation instead of routing
                 # the paid-operation receipt into a new input interrupt.
                 raise RenderCancelled("任务已取消") from exc
-            message = "CLI 启动前失败，请检查安装和配置后用新命令重试" if status == "REJECTED" else "CLI 提交后的结果不确定，已暂停并阻止重复调用；请核对 CLI 登录、额度和提交记录"
+            message = ("CLI 启动前失败，请检查安装和配置后用新命令重试" if status == "REJECTED" else
+                       (exc.hint or "CLI未取得可用结果") + "，已暂停并阻止重复调用；请核对失败记录与供应商回执")
             raise CapabilityMissing(message, ["role_models" if status == "REJECTED" else "llm_operation"],
                                     operation_status=status, operation_id=operation["operation_id"]) from exc
         except Exception as exc:
