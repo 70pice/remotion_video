@@ -119,9 +119,7 @@ const CommunityNativeMaterial = ({shot, durationInFrames}: {shot: TimelineShot; 
     const hasEmphasis = shot.layers.some((layer) => layer.role === 'emphasis');
     return <div style={{...shellStyle, top: 520 * unit}}>
       {media({height: (hasEmphasis ? 570 : 790) * unit})}
-      {!src ? primaryCopy : null}
-      {metricBlock}
-      {listBlock}
+      {!src ? primaryCopy : <>{metricBlock}{listBlock}</>}
     </div>;
   }
   if (surface === 'reveal') {
