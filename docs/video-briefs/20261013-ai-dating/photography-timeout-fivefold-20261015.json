@@ -1,0 +1,114 @@
+{
+  "checked_at": "2026-10-15T00:38:34.765923+00:00",
+  "authorization": "用户要求修完后每一个agent超时时间设置为原来的5倍",
+  "quoted_message_id": "om_x100b623588ccaca8de4f345fb33af76",
+  "project": "D:\\remotion_video_unknown_repair_20261015",
+  "runtime": "D:\\remotion_video\\.runtime\\videoagents",
+  "multiplier": 5,
+  "before": {
+    "role_models": {
+      "materials": {
+        "enabled": true,
+        "provider": "codex_cli",
+        "model": "gpt-6.1-sol",
+        "timeout_seconds": 1800,
+        "codex_reasoning_effort": "xhigh"
+      },
+      "screenwriter": {
+        "enabled": true,
+        "provider": "claude_code_cli",
+        "model": "doubao-seed-2-1-pro-260915",
+        "timeout_seconds": 900
+      },
+      "script_reviewer": {
+        "enabled": true,
+        "provider": "claude_code_cli",
+        "model": "glm-5.3[1m]",
+        "timeout_seconds": 900
+      },
+      "voice": {
+        "enabled": true,
+        "provider": "claude_code_cli",
+        "model": "glm-5.3[1m]",
+        "timeout_seconds": 900
+      },
+      "director": {
+        "enabled": true,
+        "provider": "claude_code_cli",
+        "model": "glm-5.3[1m]",
+        "timeout_seconds": 3600
+      },
+      "editing": {
+        "enabled": true,
+        "provider": "claude_code_cli",
+        "model": "glm-5.3[1m]",
+        "timeout_seconds": 900
+      },
+      "review": {
+        "enabled": true,
+        "provider": "claude_code_cli",
+        "model": "glm-5.3[1m]",
+        "timeout_seconds": 900
+      }
+    },
+    "render_timeout_seconds": 1800,
+    "glm_reasoning_effort": "xhigh"
+  },
+  "after": {
+    "role_models": {
+      "materials": {
+        "enabled": true,
+        "provider": "codex_cli",
+        "model": "gpt-6.1-sol",
+        "timeout_seconds": 9000,
+        "codex_reasoning_effort": "xhigh"
+      },
+      "screenwriter": {
+        "enabled": true,
+        "provider": "claude_code_cli",
+        "model": "doubao-seed-2-1-pro-260915",
+        "timeout_seconds": 4500
+      },
+      "script_reviewer": {
+        "enabled": true,
+        "provider": "claude_code_cli",
+        "model": "glm-5.3[1m]",
+        "timeout_seconds": 4500
+      },
+      "voice": {
+        "enabled": true,
+        "provider": "claude_code_cli",
+        "model": "glm-5.3[1m]",
+        "timeout_seconds": 4500
+      },
+      "director": {
+        "enabled": true,
+        "provider": "claude_code_cli",
+        "model": "glm-5.3[1m]",
+        "timeout_seconds": 18000
+      },
+      "editing": {
+        "enabled": true,
+        "provider": "claude_code_cli",
+        "model": "glm-5.3[1m]",
+        "timeout_seconds": 4500
+      },
+      "review": {
+        "enabled": true,
+        "provider": "claude_code_cli",
+        "model": "glm-5.3[1m]",
+        "timeout_seconds": 4500
+      }
+    },
+    "render_timeout_seconds": 9000,
+    "glm_reasoning_effort": "xhigh"
+  },
+  "readback_matches": true,
+  "non_timeout_settings_and_production_tables_unchanged": true,
+  "new_production_submission": false,
+  "production_revision_changed": false,
+  "settings_write_keys": [
+    "role_models",
+    "render_timeout_seconds"
+  ]
+}

@@ -1,5 +1,13 @@
 # 本次视频制作输入
 
+2026-10-15 08:39 按追加要求，所有七个配置角色超时已通过正常CLI设为当前值的5倍并读回：素材30→150分钟、摄影60→300分钟、其他五角色15→75分钟，共享渲染30→150分钟。独立维护HEAD为 `ac5c32d`，包含UNKNOWN诊断及排版修复，设置上限放宽至36000秒；CLI12项、设置/GLM/Codex43项及类型、lint、契约、构建验证通过。正常设置/续跑须从新维护工作区加载代码，旧视频分支仍有7200秒限制；共性代码未混入任务分支。
+
+实际设置之外所有生产数据表和其他设置保持，原UNKNOWN、文案、12件文件及16+17张历史PNG保持。本轮没有新调用或新图；诊断缺陷已修复，但旧供应商具体失败原因仍无法还原，不能声称视频恢复。详见[修复原因、方式和五倍超时验收](photography-unknown-maintenance-20261015.md)、[设置读回](photography-timeout-fivefold-20261015.json)及[变更后产物复验](photography-timeout-postchange-verification-20261015.json)。以下为历史时点。
+
+2026-10-15 08:33 用户要求“先修unknown”，诊断缺陷已在独立维护分支 `maintenance/unknown-classification-20261015` / `cc4fb8e` 修复：已知Claude错误类型不再统一丢成unknown，普通结构化调用的零退出错误也保留安全诊断，并显示具体的固定提示。新增回归修改前10失败、修复后10通过，相关完整回归231项、Ruff、类型检查、lint与wheel构建通过。维护基于含排版修复的 `da5f3c7`，没有修改视频分支共性代码。
+
+本笔旧调用的具体类型当时没有保存，不能据此声称供应商故障已解决；旧UNKNOWN和原提示保持。08:32只读复验当前仍r11 / NEEDS_INPUT / director，原文案、12件素材/音频、前33笔操作及16+17张历史图保持，本轮新增方案/PNG为0。未重发请求或将“先修”当新用量授权。见[UNKNOWN诊断修复验收](photography-unknown-maintenance-20261015.md)与[修复后任务复验](photography-unknown-repair-verification-20261015.json)。以下为历史时点。
+
 2026-10-15 00:18 当前为 r11 / NEEDS_INPUT / director。第二轮摄影操作 `a290785969554baab4bb2cebbbcd9c42` 返回 `cli_nonzero_exit`：退出码1、stdout为Claude错误结果、没有response_json，已停为UNKNOWN；约32分钟退出，未触及3600秒上限。当前只读额度查询HTTP200，两项使用比例3%与45%，均有剩余；这不能解释个别调用失败或证明是否计费。本轮新增有效方案和PNG为0，现有17图仍是上一轮被退回的包，没有成片或逐镜确认。
 
 排版共性修复已在独立维护工作区 `D:\remotion_video_text_capacity_20261015` / `maintenance/video-text-capacity-20261015` 整合至 `da5f3c7`：步骤与翻词按真实槽尺寸量测、容量不足明确报错，大数值尽量整行，关键词去重，竖屏PIP按实际卡宽量测。真实浏览器排版回归及全部时间线129项、相关Python119项、类型检查、lint、组件与路径检查、生产入口bundle通过。未把维护代码混进视频分支，也未用其生成本视频的新图；原七段文案、Brief、12件素材/音频文件、前33笔操作及16+17张历史PNG复验保持。
