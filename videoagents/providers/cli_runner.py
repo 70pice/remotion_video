@@ -33,11 +33,11 @@ MAX_RESEARCH_STREAM_BYTES = 64 * 1024 * 1024
 MAX_AUTH_BYTES = 1024 * 1024
 MAX_STDERR_TAIL_BYTES = 8 * 1024
 # A logical engine operation must not silently multiply retries inside Claude.
-# Keep one correction after an invalid structured submission, not zero.
+# Keep at most two corrections after the initial structured submission.
 # Normal tool turns can still make several requests; this is not a token cap.
 CLAUDE_RETRY_ENV = {
     "CLAUDE_CODE_MAX_RETRIES": "0",
-    "MAX_STRUCTURED_OUTPUT_RETRIES": "2",
+    "MAX_STRUCTURED_OUTPUT_RETRIES": "3",
     "CLAUDE_CODE_NONSTREAMING_TIMEOUT_RETRIES": "0",
 }
 _LOGGER = logging.getLogger(__name__)

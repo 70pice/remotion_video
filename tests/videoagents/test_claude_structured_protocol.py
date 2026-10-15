@@ -73,7 +73,9 @@ def local_claude(tmp_path, monkeypatch):
             assert len(requests) <= 4, "unexpected retry loop in offline fixture"
             mode = state["mode"]
             use_tool = mode != "text-first" or len(requests) > 1
-            invalid = mode == "always-invalid" or (mode == "invalid-first" and len(requests) == 1)
+            invalid = (mode == "always-invalid"
+                       or (mode == "invalid-first" and len(requests) == 1)
+                       or (mode == "invalid-twice" and len(requests) <= 2))
             wire = {"response_json": 123} if invalid else WIRE
             if mode == "invalid-inner-json":
                 wire = {"response_json": "{invalid fixture JSON"}
@@ -190,7 +192,17 @@ def test_valid_wire_cannot_bypass_inner_json_validation(local_claude):
     assert len(requests) == 1
 
 
-def test_production_policy_allows_one_structured_correction(local_claude):
+def test_production_policy_allows_two_structured_corrections(local_claude):
     call, requests = local_claude
-    assert call("invalid-first").data == {"ok": True}
-    assert len(requests) == 2
+    assert call("invalid-twice").data == {"ok": True}
+    assert len(requests) == 3
+
+
+def test_production_policy_stops_after_initial_attempt_and_two_corrections(local_claude):
+    call, requests = local_claude
+    with pytest.raises(CliFailure) as failure:
+        call("always-invalid")
+    diagnostic = json.loads(failure.value.reason.partition("; ")[2])
+    assert diagnostic["subtype"] == "error_max_structured_output_retries"
+    assert diagnostic["reported_structured_attempts"] == 3
+    assert len(requests) == 3
