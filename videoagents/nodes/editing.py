@@ -51,24 +51,42 @@ class DirectorInputError(ValueError):
     """A visual plan issue must return to its owning production node."""
 
 
-def has_unapplied_human_feedback(extras: dict[str, Any]) -> bool:
-    """Only expose revision feedback that still needs an agent response.
-
-    Applied receipts retain the reviewed script/timeline snapshot for audit
-    purposes.  Passing those immutable snapshots back to the editor after the
-    director has already changed ``job.timeline`` lets the model mistake the
-    old reviewed Timeline for the current executable one.
-    """
-
-    feedback = extras.get("human_feedback", {})
-    if type(feedback) is not dict:
-        return False
-    return any(
-        type(item) is dict
-        and item.get("decision") == "revise"
-        and item.get("applied") is not True
-        for item in feedback.values()
-    )
+def editing_visual_review_context(repository: Repository, job: Job) -> dict[str, Any]:
+    """Pass durable visual decisions without any reviewed input snapshots."""
+    reviews, applied = [], []
+    for artifact in job.artifacts:
+        if artifact.revision != job.revision or artifact.kind not in {"stage_review", "human_feedback_applied"}:
+            continue
+        value = json.loads(checked_artifact(repository, job, artifact).read_text(encoding="utf-8"))
+        if value.get("revision") != job.revision or value.get("stage") != "director":
+            continue
+        if artifact.kind == "stage_review" and value.get("node_name") == "director_human_gate":
+            reviews.append((artifact, value))
+        elif (artifact.kind == "human_feedback_applied" and value.get("target") == "director"
+                and value.get("applied") is True):
+            applied.append((artifact, value))
+    result = {}
+    if applied:
+        applied_artifact, committed = applied[-1]
+        match = next(((artifact, value) for artifact, value in reversed(reviews)
+                      if value.get("decision") == "revise"
+                      and value.get("pending_token") == committed.get("pending_token")
+                      and value.get("note") == committed.get("note")), None)
+        if match:
+            artifact, value = match
+            result["applied_director_feedback"] = {
+                **{key: value[key] for key in ("revision", "pending_token", "note")},
+                "review_artifact_id": artifact.artifact_id, "applied_artifact_id": applied_artifact.artifact_id,
+            }
+    if reviews and reviews[-1][1].get("decision") == "confirm" and director_demo_is_approved(repository, job):
+        artifact, value = reviews[-1]
+        result["shot_review_confirmation"] = {
+            **{key: value[key] for key in (
+                "revision", "pending_token", "note", "review_mode", "reviewed_shot_ids",
+                "director_shot_review_artifact_id", "dependency_fingerprint") if key in value},
+            "review_artifact_id": artifact.artifact_id,
+        }
+    return result
 
 
 def compact_timeline_for_editing(timeline: dict[str, Any]) -> dict[str, Any]:
@@ -153,7 +171,9 @@ class EditingNode:
                        } for asset in job.assets
                            if asset.mime_type.startswith(("image/", "video/"))}}
             fields = ("brief", "script", "timeline", "assets", "asset_metadata", "action")
-            if has_unapplied_human_feedback(context.get("extras", {})):
+            visual_review = editing_visual_review_context(self.repo, job)
+            if visual_review:
+                context = {**context, "extras": {"visual_review": visual_review}}
                 fields = (*fields, "extras")
             instruction = editing_prompt(job)
             value = self.model.invoke(context, "editing", instruction,
