@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from videoagents.providers.cli_runner import (
+    CLAUDE_RETRY_ENV,
     GLM_CONTEXT_TOKENS,
     GLM_MODEL,
     CliFailure,
@@ -160,6 +161,13 @@ class JsonModel:
         self.repo.reserve_metric(job_id, revision, "llm_calls", 1, settings["max_llm_calls"])
         ledger = {"command_id": command_id, "revision": revision, "mode": mode,
                   "cli_provider": config["provider"], "model": config["model"]}
+        if config["provider"] == "claude_code_cli":
+            ledger["cli_retry_limits"] = {
+                "api_error_retries": int(CLAUDE_RETRY_ENV["CLAUDE_CODE_MAX_RETRIES"]),
+                "structured_output_attempts": int(CLAUDE_RETRY_ENV["MAX_STRUCTURED_OUTPUT_RETRIES"]),
+                "nonstreaming_timeout_retries": int(CLAUDE_RETRY_ENV["CLAUDE_CODE_NONSTREAMING_TIMEOUT_RETRIES"]),
+                "retry_watchdog": False,
+            }
         if glm_model:
             ledger.update(reasoning_effort=settings["glm_reasoning_effort"], context_tokens=GLM_CONTEXT_TOKENS)
         if codex_effort is not None:

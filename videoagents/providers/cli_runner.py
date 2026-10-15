@@ -32,6 +32,13 @@ MAX_EVENT_BYTES = 4 * 1024 * 1024
 MAX_RESEARCH_STREAM_BYTES = 64 * 1024 * 1024
 MAX_AUTH_BYTES = 1024 * 1024
 MAX_STDERR_TAIL_BYTES = 8 * 1024
+# A logical engine operation must not silently multiply retries inside Claude.
+# Normal tool turns can still make several requests; this is not a token cap.
+CLAUDE_RETRY_ENV = {
+    "CLAUDE_CODE_MAX_RETRIES": "0",
+    "MAX_STRUCTURED_OUTPUT_RETRIES": "1",
+    "CLAUDE_CODE_NONSTREAMING_TIMEOUT_RETRIES": "0",
+}
 _LOGGER = logging.getLogger(__name__)
 GLM_CONTEXT_TOKENS = 1_000_000
 GLM_CAPABILITIES = "effort,xhigh_effort,max_effort,thinking,adaptive_thinking"
@@ -333,6 +340,9 @@ def _cli_environment(provider: str, research: bool, control: Path,
                      model: str = "", glm_reasoning_effort: str = DEFAULT_GLM_REASONING_EFFORT,
                      ) -> tuple[dict[str, str], Path | None]:
     env = _research_environment(research)
+    if provider == "claude_code_cli":
+        env.update(CLAUDE_RETRY_ENV)
+        env.pop("CLAUDE_CODE_RETRY_WATCHDOG", None)
     if provider == "claude_code_cli" and (ark_api_key or zhipu_api_key):
         # Pass the credential only to this child process, never in arguments or graph state.
         env.pop("ANTHROPIC_API_KEY", None)
