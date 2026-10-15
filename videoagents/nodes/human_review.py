@@ -368,4 +368,8 @@ class HumanReviewNode:
         overrides = {"human_decision": receipt, "stage_review_pending": None, "human_review_rounds": rounds}
         if feedback:
             overrides["extras"] = {"human_feedback": feedback}
+            if (state.get("action") == "refresh_shots" and self.node_name == "director_human_gate"
+                    and self.revise_route == "director"):
+                overrides["action"] = "produce"
+                overrides["extras"]["shot_refresh"] = None
         return state_context(self.repo, state, route=route, **overrides)

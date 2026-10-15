@@ -15,6 +15,7 @@ from videoagents.nodes.common import (
 )
 from videoagents.nodes.director_review import (
     SHOT_REVIEW_MODE,
+    checked_artifact,
     checked_review_png,
     current_demo_artifact,
     current_plan_artifact,
@@ -54,7 +55,12 @@ class DirectorDemoNode:
                 "director_plan_artifact_id": plan_artifact.artifact_id,
                 "director_plan_sha256": plan_artifact.sha256,
                 "dependency_fingerprint": dependency_fingerprint(job)}:
-            raise Conflict("刷新镜头绑定的摄影方案或制作输入已变化")
+            if not self._completed_refresh_revision(state, job, plan_artifact, binding):
+                raise Conflict("刷新镜头绑定的摄影方案或制作输入已变化")
+            # Old checkpoints retained refresh_shots after an authorized revise.
+            # Only a committed Director result and its durable receipt end it.
+            state = state_context(self.repo, state, action="produce", extras={"shot_refresh": None})
+            refresh_id = None
         try:
             try:
                 if per_shot:
@@ -93,6 +99,36 @@ class DirectorDemoNode:
                              message="全部镜头的组件选择和真实审核图片已就绪，准备人工审核" if per_shot
                              else "摄影方案和Demo已就绪，准备人工审核", progress=1)
         return state_context(self.repo, state, route="director_human_gate")
+
+    def _completed_refresh_revision(self, state, job, plan_artifact, binding) -> bool:
+        feedback = state.get("extras", {}).get("human_feedback", {}).get("director", {})
+        if (not isinstance(binding, dict) or not isinstance(feedback, dict)
+                or feedback.get("applied") is not True or feedback.get("applied_target") != "director"
+                or feedback.get("decision") != "revise" or feedback.get("target") != "director"
+                or feedback.get("node_name") != "director_human_gate"
+                or plan_artifact.artifact_id == binding.get("director_plan_artifact_id")):
+            return False
+        receipt = next((item for item in job.artifacts if item.kind == "stage_review"
+                        and item.revision == job.revision and item.artifact_id == feedback.get("artifact_id")), None)
+        applied = next((item for item in job.artifacts if item.kind == "human_feedback_applied"
+                        and item.revision == job.revision
+                        and item.artifact_id == feedback.get("applied_artifact_id")), None)
+        if (receipt is None or applied is None
+                or not job.artifacts.index(receipt) < job.artifacts.index(plan_artifact) < job.artifacts.index(applied)):
+            return False
+        recorded = json.loads(checked_artifact(self.repo, job, receipt).read_text(encoding="utf-8"))
+        committed = json.loads(checked_artifact(self.repo, job, applied).read_text(encoding="utf-8"))
+        expected = {"stage": "director", "revision": job.revision,
+                    "pending_token": feedback.get("pending_token"), "note": feedback.get("note")}
+        if (any(recorded.get(key) != value or committed.get(key) != value for key, value in expected.items())
+                or recorded.get("decision") != "revise" or recorded.get("node_name") != "director_human_gate"
+                or recorded.get("review_mode") != SHOT_REVIEW_MODE
+                or recorded.get("thread_id") != state.get("thread_id")
+                or committed.get("applied") is not True or committed.get("target") != "director"):
+            return False
+        reviewed = recorded.get("subject", {}).get("director_shot_review", {})
+        return binding == {key: reviewed.get(key) for key in (
+            "director_plan_artifact_id", "director_plan_sha256", "dependency_fingerprint")}
 
     def render_shots(self, job, *, refresh_command_id: str | None = None) -> None:
         plan_artifact, plan = current_plan_artifact(self.repo, job)

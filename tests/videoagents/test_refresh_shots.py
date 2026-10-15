@@ -1,18 +1,22 @@
 """Refresh unchanged all-shot frames through a new durable graph command."""
 
 import copy
+import json
 import os
 
 import pytest
 from test_director_shot_review import frame_render_double, write_review_package
 from test_director_shot_review import shot_subject as shot_subject
+from test_human_review import tone
 
-from videoagents.contracts import RefreshShotsRequest, RetryFailedRunRequest
+from videoagents.contracts import Alignment, RefreshShotsRequest, RetryFailedRunRequest
 from videoagents.graph import VideoProductionGraph
 from videoagents.main import build_parser
 from videoagents.nodes.common import state_context
+from videoagents.nodes.director import DirectorNode, _performance_payload
 from videoagents.nodes.director_demo import DirectorDemoNode
 from videoagents.nodes.director_review import current_shot_review_artifact, director_demo_is_approved
+from videoagents.nodes.human_review import HumanReviewNode
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState
 from videoagents.storage import Conflict
@@ -21,6 +25,10 @@ from worker.runner import Worker
 
 @pytest.fixture
 def waiting_shots(shot_subject, monkeypatch):
+    return _waiting_shots(shot_subject, monkeypatch)
+
+
+def _waiting_shots(shot_subject, monkeypatch):
     repo, service, job, _, _ = shot_subject
     monkeypatch.setattr("videoagents.providers.llm.JsonModel.call",
                         lambda *a, **k: pytest.fail("refresh must not call a production model"))
@@ -41,6 +49,131 @@ def waiting_shots(shot_subject, monkeypatch):
         graph.execute(command)
     repo.finish(command["command_id"])
     return repo, service, repo.get_job(job.job_id), shot_subject[3]
+
+
+@pytest.fixture
+def refreshed_revision(shot_subject, monkeypatch):
+    repo, service, job, artifact, plan = shot_subject
+    audio = service.upload(job.job_id, tone(4), "unit.wav", "audio", alignment={
+        "origin": "manual", "verified": True,
+        "segments": [{"segment_id": "s1", "text": "第一镜。第二镜。", "start_ms": 0, "end_ms": 4000}],
+    })
+    current = repo.get_job(job.job_id)
+    job = repo.update_job(job.job_id, timeline=job.timeline.model_copy(update={"revision": current.revision}))
+    plan = _performance_payload("UNIT", job, job.timeline,
+        Alignment.model_validate(repo.asset_metadata(audio.asset_id)["alignment"]), review_mode="per_shot_stills")
+    artifact = service.write_json(job, "unit-audio-plan.json", plan, "director_plan")
+    waiting = _waiting_shots((repo, service, repo.get_job(job.job_id), artifact, plan), monkeypatch)
+    renders, plans = [], []
+    monkeypatch.setattr("videoagents.nodes.director_demo.render_shot_reviews", frame_render_double(renders))
+    repo.enqueue(job.job_id, refresh_request(waiting))
+    assert Worker(repo, service.project_root).once()
+    refreshed = repo.get_job(job.job_id)
+
+    def revise(node, current, audio, alignment, duration, research, *, state):
+        plans.append(copy.deepcopy(state))
+        timeline = current.timeline.model_copy(deep=True)
+        timeline.shots[0].title = "UNIT revised first shot"
+        node._last_director_plan = _performance_payload(
+            "model", current, timeline, alignment, review_mode="per_shot_stills")
+        return timeline
+
+    monkeypatch.setattr(DirectorNode, "plan", revise)
+    return repo, service, refreshed, renders, plans
+
+
+def enqueue_revision(repo, job):
+    repo.enqueue(job.job_id, {"action": "resume", "base_revision": job.revision,
+        "pending_token": job.pending_input["pending_token"], "decision": "revise",
+        "note": "UNIT: revise only the first shot and preserve the other approved data.",
+        "idempotency_key": "unit-refreshed-gate-revise"})
+
+
+def test_refreshed_gate_revision_returns_to_normal_photography(refreshed_revision):
+    repo, service, before, renders, plans = refreshed_revision
+    enqueue_revision(repo, before)
+    assert Worker(repo, service.project_root).once()
+    assert len(plans) == 1
+    assert plans[0]["action"] == "produce"
+    assert plans[0]["extras"]["shot_refresh"] is None
+    current = repo.get_job(before.job_id)
+    assert current.status == "NEEDS_HUMAN" and len(renders) == 2
+    assert current.pending_input["pending_token"] != before.pending_input["pending_token"]
+    for name in ("revision", "brief", "script", "assets", "director_requirements"):
+        assert getattr(current, name) == getattr(before, name)
+    assert current.timeline.shots[1] == before.timeline.shots[1]
+    assert current.timeline.captions == before.timeline.captions
+    assert not director_demo_is_approved(repo, current)
+
+
+@pytest.fixture
+def legacy_revision_failure(refreshed_revision, monkeypatch):
+    repo, service, before, renders, plans = refreshed_revision
+    human_review, director_demo = HumanReviewNode.__call__, DirectorDemoNode.__call__
+
+    def legacy_review(node, state):
+        result = human_review(node, state)
+        if result.get("route") == "revise":
+            result["action"] = "refresh_shots"
+            result["extras"]["shot_refresh"] = state["extras"]["shot_refresh"]
+        return result
+
+    def legacy_conflict(*args):
+        raise Conflict("UNIT legacy refresh binding conflict after director committed")
+
+    monkeypatch.setattr(HumanReviewNode, "__call__", legacy_review)
+    monkeypatch.setattr(DirectorDemoNode, "__call__", legacy_conflict)
+    enqueue_revision(repo, before)
+    assert Worker(repo, service.project_root).once()
+    current = repo.get_job(before.job_id)
+    assert current.status == "FAILED" and len(plans) == 1 and len(renders) == 1
+    with repo.connection() as db:
+        failed = db.execute("SELECT command_id FROM commands WHERE job_id=? AND status='FAILED'",
+                            (before.job_id,)).fetchone()[0]
+    monkeypatch.setattr(DirectorDemoNode, "__call__", director_demo)
+    return repo, service, current, renders, plans, failed
+
+
+def test_legacy_refresh_revision_retry_only_renders_committed_plan(legacy_revision_failure):
+    repo, service, before, renders, plans, failed = legacy_revision_failure
+    JobService(repo, service.project_root).retry_failed_run(before.job_id, RetryFailedRunRequest(
+        base_revision=before.revision, retry_command_id=failed, idempotency_key="unit-legacy-refresh-retry"))
+    assert Worker(repo, service.project_root).once()
+    current = repo.get_job(before.job_id)
+    assert current.status == "NEEDS_HUMAN" and len(renders) == 2 and len(plans) == 1
+    assert current.timeline == before.timeline and current.assets == before.assets
+    assert current.pending_input["required_shot_ids"] == ["shot1", "shot2"]
+    assert not director_demo_is_approved(repo, current)
+    with VideoProductionGraph(repo, service.project_root) as graph:
+        state = graph.graph.get_state({"configurable": {"thread_id": current.pending_input["thread_id"]}}).values
+    assert state["action"] == "produce" and state["extras"]["shot_refresh"] is None
+
+
+@pytest.mark.parametrize("changed", ["unapplied", "missing_receipt", "missing_applied", "binding", "thread", "bytes"])
+def test_legacy_refresh_recovery_requires_bound_durable_revision(legacy_revision_failure, changed):
+    repo, service, job, renders, _, _ = legacy_revision_failure
+    with VideoProductionGraph(repo, service.project_root) as graph:
+        with repo.connection() as db:
+            payload = db.execute("SELECT payload FROM commands WHERE job_id=? AND status='FAILED'",
+                                 (job.job_id,)).fetchone()[0]
+        thread = json.loads(payload)["pending_input"]["thread_id"]
+        state = copy.deepcopy(graph.graph.get_state({"configurable": {"thread_id": thread}}).values)
+    feedback = state["extras"]["human_feedback"]["director"]
+    if changed == "unapplied":
+        applied = json.loads(repo.artifact_path(feedback["applied_artifact_id"])[0].read_text(encoding="utf-8"))
+        service.write_json(job, "unit-unapplied.json", {**applied, "applied": False}, "human_feedback_applied")
+    elif changed in {"missing_receipt", "missing_applied"}:
+        kind = "stage_review" if changed == "missing_receipt" else "human_feedback_applied"
+        repo.update_job(job.job_id, artifacts=[item for item in job.artifacts if item.kind != kind])
+    elif changed == "binding":
+        state["extras"]["shot_refresh"]["director_plan_sha256"] = "f" * 64
+    elif changed == "thread":
+        state["thread_id"] = f"job:{job.job_id}:run:unrelated-refresh"
+    else:
+        repo.artifact_path(feedback["applied_artifact_id"])[0].write_text("{}", encoding="utf-8")
+    with pytest.raises(Conflict):
+        DirectorDemoNode(repo, service)(state)
+    assert len(renders) == 1
 
 
 def refresh_request(subject, key="unit-refresh-frames"):
