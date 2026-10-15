@@ -1,0 +1,738 @@
+{
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 15,
+  "operation_id": "b8232e664b9048daa1fb39bd8bfa960a",
+  "user_approved": false,
+  "delivered_to_user": false,
+  "reason_for_photography_correction": [
+    "shot-01-b square image clipped by portrait PhoneFrame cover; reply-for-money text cut at both sides",
+    "shot-01-c double-screen image clipped by portrait cover; claimed key evidence not visible",
+    "shot-02 unrequested keyword highlight overlaps third flow card in actual representative frame"
+  ],
+  "selected_shots": [
+    {
+      "shot_id": "shot-01-a",
+      "start_frame": 0,
+      "end_frame": 83,
+      "component_id": "Snapcn-PhoneFrame",
+      "title": "25000人，聊的是AI",
+      "body": "两周观察窗·至少25000名独立用户",
+      "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/0b61255194854094b26a4a2565504352.png",
+      "source_label": "另案示例｜news.cnr.cn｜浦东警方供图；同类中文界面示意，非报告涉案App，事实见GTG-15001",
+      "media_usage": "context_example",
+      "accent_color": "#8CFFB8",
+      "props": {
+        "content_mode": "media"
+      }
+    },
+    {
+      "shot_id": "shot-01-b",
+      "start_frame": 83,
+      "end_frame": 166,
+      "component_id": "Snapcn-PhoneFrame",
+      "title": "在交友App里聊天",
+      "body": "消息列表与激励提示；同类中文界面示意，非报告涉案App",
+      "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/59cb502d984a4c1fafdfaeadf8fd144a.jpg",
+      "source_label": "另案示例｜time-weekly.com｜时代财经2022；国内同类付费界面示意，非报告涉案App",
+      "media_usage": "context_example",
+      "accent_color": "#5B8CFF",
+      "props": {
+        "content_mode": "media"
+      }
+    },
+    {
+      "shot_id": "shot-01-c",
+      "start_frame": 166,
+      "end_frame": 249,
+      "component_id": "Snapcn-PhoneFrame",
+      "title": "宣传的，全是「真人」",
+      "body": "视频邀请与计价；同类中文界面示意，非报告涉案App",
+      "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/b611b6b73f0f42f6b8ecf01248fcb65d.png",
+      "source_label": "另案示例｜news.cnr.cn｜浦东警方供图；同类中文界面示意，非报告涉案App，事实见GTG-15001",
+      "media_usage": "context_example",
+      "accent_color": "#FFC24B",
+      "props": {
+        "content_mode": "media"
+      }
+    },
+    {
+      "shot_id": "shot-01-d",
+      "start_frame": 249,
+      "end_frame": 330,
+      "component_id": "Snapcn-PhoneFrame",
+      "title": "却让你为心动花钱",
+      "body": "金币不足与充值入口；同类中文界面示意，非报告涉案App",
+      "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/00e534aed0e74d6b9f5cfbfb589d28c3.jpg",
+      "source_label": "另案示例｜time-weekly.com｜时代财经2022；国内同类付费界面示意，非报告涉案App",
+      "media_usage": "context_example",
+      "accent_color": "#FF6B6B",
+      "props": {
+        "content_mode": "media"
+      }
+    },
+    {
+      "shot_id": "shot-02",
+      "start_frame": 330,
+      "end_frame": 735,
+      "component_id": "steps",
+      "title": "一个工作室，二十多款App",
+      "body": "",
+      "asset_src": null,
+      "source_label": "来源：Anthropic 2026年9月威胁报告GTG-15001（中译）",
+      "accent_color": "#5B8CFF",
+      "props": {
+        "items": [
+          {
+            "title": "中国的匿名工作室",
+            "reveal_frame": 0
+          },
+          {
+            "title": "用Claude开发",
+            "reveal_frame": 15
+          },
+          {
+            "title": "做出20多款交友App",
+            "reveal_frame": 30
+          },
+          {
+            "title": "两周至少25000名用户",
+            "reveal_frame": 255
+          }
+        ],
+        "layout": "flow"
+      },
+      "layers": [
+        {
+          "component_id": "Talkcraft-keyword-pop-highlight",
+          "role": "emphasis",
+          "start_frame": 270,
+          "end_frame": 405,
+          "title": "两万五是独立用户数",
+          "body": "",
+          "accent_color": "#8CFFB8",
+          "props": {
+            "highlight": "独立用户数"
+          }
+        }
+      ]
+    }
+  ],
+  "review_manifest": {
+    "schema_version": 1,
+    "mode": "per_shot_stills",
+    "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+    "revision": 15,
+    "director_plan_artifact_id": "ede1e5b5b68c48daa357d5e2bc728905",
+    "director_plan_sha256": "e0e3801714fbda16f9c6dcc2fda4245c95d818b74b363965c4d22bf9589cbb82",
+    "dependency_fingerprint": "8f344b8ad10da5e7323de9b6faca8db0e8905780a490c20cdb1db950493820b0",
+    "timeline_fingerprint": "8f275525f307d4443e3445532d56aff5bcb72613aeaad421f400b64ead754c2d",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "duration_in_frames": 3714,
+    "items": [
+      {
+        "shot_id": "shot-01-a",
+        "review_frame": 45,
+        "component_reason": "轮播首镜沿用已通过的Snapcn-PhoneFrame大图版式与「25000人」重点：警方供图的真实中文界面（真人与充值入口）叠加核心数字，前三秒即成立观看理由；另案示例标识完整，不冒充报告涉案App。",
+        "visual_action": "第0帧大图与标题同场入场，第45帧素材、标题「25000人，聊的是AI」、两周口径小字与来源标识均稳定可读，此后保持到第83帧切下一张轮播图，本镜内画面与字幕同步交付爆点。",
+        "index": 1,
+        "start_frame": 0,
+        "end_frame": 83,
+        "component_id": "Snapcn-PhoneFrame",
+        "set_id": null,
+        "component_ids": [
+          "Snapcn-PhoneFrame"
+        ],
+        "title": "25000人，聊的是AI",
+        "body": "两周观察窗·至少25000名独立用户",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/0b61255194854094b26a4a2565504352.png",
+        "source_label": "另案示例｜news.cnr.cn｜浦东警方供图；同类中文界面示意，非报告涉案App，事实见GTG-15001",
+        "narration": "两周里，至少两万五千名独立用户在",
+        "image": {
+          "artifact_id": "2ff2f568242b40f59e031811afeeb5dd",
+          "kind": "shot_review_frame",
+          "name": "shot-001.png",
+          "mime_type": "image/png",
+          "size_bytes": 1092957,
+          "sha256": "f86d809ee17bae8e01f17745cfc08f6326c5914adeea462eee02c2efad0af01a",
+          "url": "/api/artifacts/2ff2f568242b40f59e031811afeeb5dd",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-01-b",
+        "review_frame": 123,
+        "component_reason": "轮播第二镜同版式换真实素材：心遇消息列表与激励提示截图对应「在交友App上跟AI人设聊天」口播，主体大图保持可读，与首镜构成画面推进而非重复入场。",
+        "visual_action": "第83帧起新图入场，第123帧处消息列表、提示弹窗、标题「在交友App里聊天」与另案示例来源标识同屏可读，持续至第166帧切出，完成第二拍轮播。",
+        "index": 2,
+        "start_frame": 83,
+        "end_frame": 166,
+        "component_id": "Snapcn-PhoneFrame",
+        "set_id": null,
+        "component_ids": [
+          "Snapcn-PhoneFrame"
+        ],
+        "title": "在交友App里聊天",
+        "body": "消息列表与激励提示；同类中文界面示意，非报告涉案App",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/59cb502d984a4c1fafdfaeadf8fd144a.jpg",
+        "source_label": "另案示例｜time-weekly.com｜时代财经2022；国内同类付费界面示意，非报告涉案App",
+        "narration": "在交友App上跟AI人设聊天——而这些App",
+        "image": {
+          "artifact_id": "d3dce561f8784d32bdac7cf1cd969f1b",
+          "kind": "shot_review_frame",
+          "name": "shot-002.png",
+          "mime_type": "image/png",
+          "size_bytes": 1158798,
+          "sha256": "50812a81f77a83157c5bc66b5cd182d748886b5d9e419498dab2fdc1003fc59b",
+          "url": "/api/artifacts/d3dce561f8784d32bdac7cf1cd969f1b",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-01-c",
+        "review_frame": 196,
+        "component_reason": "轮播第三镜在「宣传的全是真人」口播时刻（约173-200帧）展示警方供图中带「真人」标注的视频邀请与100金币/分钟计价界面，黄色accent提示这是待核实的宣传口径；仍为另案示例。",
+        "visual_action": "第166帧起图入场，第196帧正处「全是真人」口播，界面「真人」标签、视频邀请与计价、标题「宣传的，全是『真人』」同屏，黄色强调引导审视该说法，至第249帧切出。",
+        "index": 3,
+        "start_frame": 166,
+        "end_frame": 249,
+        "component_id": "Snapcn-PhoneFrame",
+        "set_id": null,
+        "component_ids": [
+          "Snapcn-PhoneFrame"
+        ],
+        "title": "宣传的，全是「真人」",
+        "body": "视频邀请与计价；同类中文界面示意，非报告涉案App",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/b611b6b73f0f42f6b8ecf01248fcb65d.png",
+        "source_label": "另案示例｜news.cnr.cn｜浦东警方供图；同类中文界面示意，非报告涉案App，事实见GTG-15001",
+        "narration": "App宣传的全是真人。你手机里要有交友软",
+        "image": {
+          "artifact_id": "c23b58b4b49c44e9b3e832554e49959f",
+          "kind": "shot_review_frame",
+          "name": "shot-003.png",
+          "mime_type": "image/png",
+          "size_bytes": 1074028,
+          "sha256": "9e29926833796a9a0ea8b403019fdc5eea36f4a6dff9051d1e2b3654751e2e32",
+          "url": "/api/artifacts/c23b58b4b49c44e9b3e832554e49959f",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-01-d",
+        "review_frame": 289,
+        "component_reason": "轮播第四镜用金币不足、立刻充值1元的真实弹窗对应「却让你为心动花钱」，红色accent表达付费压力；时代财经另案示例，四镜轮播使前11秒每约2.8秒有一次实质画面变化。",
+        "visual_action": "第249帧起弹窗大图入场，第289帧处「金币不足」「立刻充值」按钮与标题「却让你为心动花钱」清楚可读，口播正说「对面可能不是真人」，至第330帧无缝交棒shot-02。",
+        "index": 4,
+        "start_frame": 249,
+        "end_frame": 330,
+        "component_id": "Snapcn-PhoneFrame",
+        "set_id": null,
+        "component_ids": [
+          "Snapcn-PhoneFrame"
+        ],
+        "title": "却让你为心动花钱",
+        "body": "金币不足与充值入口；同类中文界面示意，非报告涉案App",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/00e534aed0e74d6b9f5cfbfb589d28c3.jpg",
+        "source_label": "另案示例｜time-weekly.com｜时代财经2022；国内同类付费界面示意，非报告涉案App",
+        "narration": "软件，别划走：对面可能不是真人，却",
+        "image": {
+          "artifact_id": "49591f345ad54dbf878ae5fbe88b1098",
+          "kind": "shot_review_frame",
+          "name": "shot-004.png",
+          "mime_type": "image/png",
+          "size_bytes": 962980,
+          "sha256": "8e9b75b388cc5676e106b998f294b52f9263c8b0c2d92496d2ca8e6e3d88e871",
+          "url": "/api/artifacts/49591f345ad54dbf878ae5fbe88b1098",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-02",
+        "review_frame": 640,
+        "component_reason": "按返工意见重做：steps流程卡保留「匿名工作室→Claude→20多款App→两周至少25000名用户」四步链条，标题与前三步在本地0/15/30帧到场，开场约0.5秒即有意义信息，不再整幅等待；第四步与Talkcraft-keyword-pop-highlight强调层在「两万五」口播（本地约262帧）出现，口径「独立用户数，非受害人数」与旁白一致。",
+        "visual_action": "第330-360帧标题与框架快速到场；第440-546帧口播逐项讲到工作室、Claude、二十多款App时对应步骤已在场可读；第640帧处四步齐全且强调层正高亮「独立用户数」，覆盖「今年四月两周观察窗」「不是已证实受害人数」整句直至第735帧。",
+        "index": 5,
+        "start_frame": 330,
+        "end_frame": 735,
+        "component_id": "steps",
+        "set_id": null,
+        "component_ids": [
+          "steps",
+          "Talkcraft-keyword-pop-highlight"
+        ],
+        "title": "一个工作室，二十多款App",
+        "body": "",
+        "asset_src": null,
+        "source_label": "来源：Anthropic 2026年9月威胁报告GTG-15001（中译）",
+        "narration": "却在让你为心动花钱。Anthropic的九月威胁报告披露：一个在中国的匿名工作室用Claude做了二十多款交友App，目标用户在美国。两万五是今年四月两周观察窗里的独立用户数，不是已证实受害人数。",
+        "image": {
+          "artifact_id": "8f0f617e848a4abebfcea736a7c99769",
+          "kind": "shot_review_frame",
+          "name": "shot-005.png",
+          "mime_type": "image/png",
+          "size_bytes": 476638,
+          "sha256": "ca3bd62550d6f6ab5b5eada349a62474db1ecb4e2925325190f06d7e3ba6468d",
+          "url": "/api/artifacts/8f0f617e848a4abebfcea736a7c99769",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-03",
+        "review_frame": 855,
+        "component_reason": "维持已审方案：image_focus承载同类付费聊天界面，emphasis层在90-160帧强调「同一个Claude」，承接s2开发与陪聊同源。",
+        "visual_action": "第735帧图入场慢推近，第825-895帧「同一个/Claude」强调层弹出，第855帧素材与强调同屏为代表帧。",
+        "index": 6,
+        "start_frame": 735,
+        "end_frame": 930,
+        "component_id": "image_focus",
+        "set_id": null,
+        "component_ids": [
+          "image_focus",
+          "Talkcraft-keyword-pop-highlight"
+        ],
+        "title": "写App的，也来陪你聊",
+        "body": "同类界面：回复消息能赚钱",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/59cb502d984a4c1fafdfaeadf8fd144a.jpg",
+        "source_label": "另案示例｜time-weekly.com｜时代财经2022；国内同类付费界面示意，非报告涉案App",
+        "narration": "工作室先用Claude写代码做出一款款App，再让同一个Claude扮演交友人设、自主陪聊。那两周，",
+        "image": {
+          "artifact_id": "c43cd8b891e14d27aa925818098f3ac1",
+          "kind": "shot_review_frame",
+          "name": "shot-006.png",
+          "mime_type": "image/png",
+          "size_bytes": 1049160,
+          "sha256": "b0278389ac99a9da28ce65621cd744f3b23cfbaa9f110a1708bdcf14c5ed8f2e",
+          "url": "/api/artifacts/c43cd8b891e14d27aa925818098f3ac1",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-04",
+        "review_frame": 1020,
+        "component_reason": "维持已审方案：data双卡承载报告数字4700+与约236万条，body注明两周窗口与消息量≠受害人数。",
+        "visual_action": "第935帧第一卡出现，第1020帧两张数值卡齐全可读，与口播数字同步。",
+        "index": 7,
+        "start_frame": 930,
+        "end_frame": 1149,
+        "component_id": "data",
+        "set_id": null,
+        "component_ids": [
+          "data"
+        ],
+        "title": "开发的是它，陪聊的也是它",
+        "body": "口径：2026年4月两周观察窗；消息量≠受害人数",
+        "asset_src": null,
+        "source_label": "来源：Anthropic 2026年9月威胁报告GTG-15001（中译）",
+        "narration": "周，四千七百多个AI人设，仅Claude角色就发出约二百三十六万条消息。开发的是它，陪聊的也是它。",
+        "image": {
+          "artifact_id": "d26485c087284eda9d2b0e3aefc2d223",
+          "kind": "shot_review_frame",
+          "name": "shot-007.png",
+          "mime_type": "image/png",
+          "size_bytes": 481091,
+          "sha256": "99f3c87d00025e345b06760e3463ddc6fa5ba146255c96c0d12ce16690121e72",
+          "url": "/api/artifacts/d26485c087284eda9d2b0e3aefc2d223",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-05",
+        "review_frame": 1349,
+        "component_reason": "维持已审方案：comparison左右卡呈现匹配流约三比一，body注明为整个匹配流构成而非个人概率。",
+        "visual_action": "左卡先立，第1312帧起右侧真人零工卡揭示，第1349帧双卡齐全为代表帧。",
+        "index": 8,
+        "start_frame": 1149,
+        "end_frame": 1420,
+        "component_id": "comparison",
+        "set_id": null,
+        "component_ids": [
+          "comparison"
+        ],
+        "title": "对面是谁？约三比一",
+        "body": "口径：整个匹配流构成，非某个人的概率",
+        "asset_src": null,
+        "source_label": "来源：Anthropic 2026年9月威胁报告GTG-15001（中译）",
+        "narration": "对面是谁？报告给的是整个匹配流的构成：大约每四个对象里，三个是AI人设，一个是真人。AI人设自主接住大部分对话；真人零工干",
+        "image": {
+          "artifact_id": "20286400ee5f488e9b71c5c8750593a6",
+          "kind": "shot_review_frame",
+          "name": "shot-008.png",
+          "mime_type": "image/png",
+          "size_bytes": 450850,
+          "sha256": "b4269cbf3004d4537387becd74ced1b40da4704f287bfd54082760cc27d8056f",
+          "url": "/api/artifacts/20286400ee5f488e9b71c5c8750593a6",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-06",
+        "review_frame": 1570,
+        "component_reason": "维持已审方案：A07组件套以真实界面图为素材位，items列真人三项任务，supporting标示意与口径。",
+        "visual_action": "各部件按30/40/95/130帧时序展开，第1570帧素材、标题、任务列表与强调条均在场为代表帧。",
+        "index": 9,
+        "start_frame": 1420,
+        "end_frame": 1637,
+        "component_id": "Talkcraft-slow-push-in",
+        "set_id": "A07",
+        "component_ids": [
+          "Talkcraft-slow-push-in",
+          "Snapcn-TextReveal",
+          "Rve-QuoteCard",
+          "Rve-ProgressSteps",
+          "Snapcn-WordFlip",
+          "Talkcraft-source-converge",
+          "Snapcn-TextHighlight"
+        ],
+        "title": "真人的活：视频、回关、发消息",
+        "body": "报告：真人干更有「真人感」的活；界面为同类中文示意",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/b611b6b73f0f42f6b8ecf01248fcb65d.png",
+        "source_label": "另案示例｜news.cnr.cn｜浦东警方供图；同类中文界面示意，非报告涉案App，事实见GTG-15001",
+        "narration": "干更需要「真人感」的活——自己发消息、接视频通话、回关你的社交账号。你感到的真实感，就是AI加真人这样拼出来的。",
+        "image": {
+          "artifact_id": "a0db4582eca14609b699127f5d1bc9ce",
+          "kind": "shot_review_frame",
+          "name": "shot-009.png",
+          "mime_type": "image/png",
+          "size_bytes": 930876,
+          "sha256": "5075761e1066a08e1c3f9dc8e45158c4c25becc6e5f2d5fbc8aad79c9c359adc",
+          "url": "/api/artifacts/a0db4582eca14609b699127f5d1bc9ce",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-07",
+        "review_frame": 1737,
+        "component_reason": "维持已审方案：LaptopFrame承载腾讯云智能回复同类示例，emphasis层讲报告的一次三条候选并注明差异。",
+        "visual_action": "第1637帧界面入场，第1681-1821帧「一次三条，挑一条就发」强调层在场，第1737帧建议文本与按钮可读。",
+        "index": 10,
+        "start_frame": 1637,
+        "end_frame": 1821,
+        "component_id": "Snapcn-LaptopFrame",
+        "set_id": null,
+        "component_ids": [
+          "Snapcn-LaptopFrame",
+          "Talkcraft-keyword-pop-highlight"
+        ],
+        "title": "真人打字时，AI先拟好回复",
+        "body": "AI拟一条建议，真人点「使用」发出；报告：涉案为一次三条候选",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/caf3d0aead8a48c089e527c33db3237f.png",
+        "source_label": "另案示例｜cloud.tencent.com｜腾讯云官方文档；同类功能示例，非涉案工具",
+        "narration": "怎么不露馅？真人零工打字时，小模型一次给三条候选回复，挑一条就发；",
+        "image": {
+          "artifact_id": "5005ed6d741e407a90464596561102e0",
+          "kind": "shot_review_frame",
+          "name": "shot-010.png",
+          "mime_type": "image/png",
+          "size_bytes": 144307,
+          "sha256": "5e4ff4a0b74e3b623c34eff20785e4f923bf4e0511d5b1884a9263eef9b1e426",
+          "url": "/api/artifacts/5005ed6d741e407a90464596561102e0",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-08",
+        "review_frame": 1941,
+        "component_reason": "维持已审方案：tilt-3d-page承载肖像生成同类示例，emphasis层强调提示词要求不承认自动化。",
+        "visual_action": "第1821帧3D页入场，第1881帧起红色强调「不能承认：我是AI」，第1941帧生成界面与强调同屏。",
+        "index": 11,
+        "start_frame": 1821,
+        "end_frame": 2075,
+        "component_id": "Talkcraft-tilt-3d-page",
+        "set_id": null,
+        "component_ids": [
+          "Talkcraft-tilt-3d-page",
+          "Talkcraft-keyword-pop-highlight"
+        ],
+        "title": "脸和话，都设计成真人",
+        "body": "头像由图像编辑模型生成；提示词要求不承认自动化",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/30495f9cf1854fda97e5e3156891e118.png",
+        "source_label": "另案示例｜training.tencentads.com｜腾讯广告AIGC手册P15；同类功能示例，非涉案工具",
+        "narration": "头像图像由图像编辑模型生成；提示词还要求AI不能承认自己是自动化程序。脸和话，都为了让你信以为真。",
+        "image": {
+          "artifact_id": "f69e6e80ebbc4e299d4b09ee1b4056e1",
+          "kind": "shot_review_frame",
+          "name": "shot-011.png",
+          "mime_type": "image/png",
+          "size_bytes": 469108,
+          "sha256": "ee6381b2ab35a0e716aba3c04dc8f1b4a4cc1e27f011940009027f212a417108",
+          "url": "/api/artifacts/f69e6e80ebbc4e299d4b09ee1b4056e1",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-09",
+        "review_frame": 2125,
+        "component_reason": "维持已审方案：slow-push-in推近陌声收费设置截图，对应聊天与匹配消耗额度的口播。",
+        "visual_action": "第2075帧起对计价行缓慢推近，第2125帧消息/语音/视频价格行可读为代表帧。",
+        "index": 12,
+        "start_frame": 2075,
+        "end_frame": 2163,
+        "component_id": "Talkcraft-slow-push-in",
+        "set_id": null,
+        "component_ids": [
+          "Talkcraft-slow-push-in"
+        ],
+        "title": "聊天和匹配，都消耗额度",
+        "body": "同类界面：消息、语音、视频按金币计价",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/a12818e554a74684bea6e34785c8b85b.png",
+        "source_label": "另案示例｜lanjinger.com｜蓝鲸财经2020；国内同类付费界面示意，非报告涉案App",
+        "narration": "钱怎么走？聊天和匹配消耗额度，额",
+        "image": {
+          "artifact_id": "8cd260b58d764160aec2323f500dc075",
+          "kind": "shot_review_frame",
+          "name": "shot-012.png",
+          "mime_type": "image/png",
+          "size_bytes": 157077,
+          "sha256": "259d1fd50f29515e7b7fc828ad2bb4767f8ca01861dc24ab8de739fdab2b4acb",
+          "url": "/api/artifacts/8cd260b58d764160aec2323f500dc075",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-10",
+        "review_frame": 2208,
+        "component_reason": "维持已审方案：image_focus聚焦金币不足弹窗与充值入口，对应额度用完金币补充。",
+        "visual_action": "第2163帧起推近弹窗，第2208帧「金币不足」与充值按钮清晰可读。",
+        "index": 13,
+        "start_frame": 2163,
+        "end_frame": 2249,
+        "component_id": "image_focus",
+        "set_id": null,
+        "component_ids": [
+          "image_focus"
+        ],
+        "title": "额度用完，金币来补",
+        "body": "金币不足提示与充值入口；报告：用App金币购买补充",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/00e534aed0e74d6b9f5cfbfb589d28c3.jpg",
+        "source_label": "另案示例｜time-weekly.com｜时代财经2022；国内同类付费界面示意，非报告涉案App",
+        "narration": "额度用完，要用App里的金币购买补充；真",
+        "image": {
+          "artifact_id": "747c64cc2ba54223b28f41cf82ba4889",
+          "kind": "shot_review_frame",
+          "name": "shot-013.png",
+          "mime_type": "image/png",
+          "size_bytes": 724075,
+          "sha256": "87dc58c2c7816b23d3374fbad0e12c941ae0965cd896690380526d544222f3d0",
+          "url": "/api/artifacts/747c64cc2ba54223b28f41cf82ba4889",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-11",
+        "review_frame": 2309,
+        "component_reason": "维持已审方案：ImageZoomReveal放大奖励明细，对应零工按完成消息计件。",
+        "visual_action": "第2249帧起逐级放大付费消息记录，第2309帧明细行可读为代表帧。",
+        "index": 14,
+        "start_frame": 2249,
+        "end_frame": 2374,
+        "component_id": "Rve-ImageZoomReveal",
+        "set_id": null,
+        "component_ids": [
+          "Rve-ImageZoomReveal"
+        ],
+        "title": "真人零工：干多少活，拿多少钱",
+        "body": "奖励按条消息记录；报告：按完成的消息、视频、回关计件",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/951152e88def4169af4d1149e3447536.png",
+        "source_label": "另案示例｜finance.ifeng.com｜消费者报道2024；国内同类付费界面示意，非报告涉案App",
+        "narration": "真人零工按自己完成的消息、视频、回关计件拿钱。",
+        "image": {
+          "artifact_id": "a893afc6acb34a46942bf1ea3314caff",
+          "kind": "shot_review_frame",
+          "name": "shot-014.png",
+          "mime_type": "image/png",
+          "size_bytes": 1608112,
+          "sha256": "5562e41963b3f96576ad85066f55e9bb44e9068836597173ba23f4fc380882f2",
+          "url": "/api/artifacts/a893afc6acb34a46942bf1ea3314caff",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-12",
+        "review_frame": 2634,
+        "component_reason": "维持已审方案：data四卡假设测算，各卡detail明确标注假设与非实际收入，末卡算式与口径一致。",
+        "visual_action": "四卡按0/34/100/238帧揭示，第2634帧全部在场，「约25万元」末卡已入场并有非实际收入标注。",
+        "index": 15,
+        "start_frame": 2374,
+        "end_frame": 2782,
+        "component_id": "data",
+        "set_id": null,
+        "component_ids": [
+          "data"
+        ],
+        "title": "假设测算：约25万元（非实际收入）",
+        "body": "",
+        "asset_src": null,
+        "source_label": "假设测算，非报告数据；基数25000人来自Anthropic GTG-15001",
+        "narration": "做个假设测算：如果两周里有一成用户付费、人均充一百元——这两个数都是假设，不是报告数据——按两万五千人算，充值流水大约二十五万元。它是按假设算出来的情景，不是这个工作室实际赚到的钱。",
+        "image": {
+          "artifact_id": "203251647ecd4959b6b17344af12ebc8",
+          "kind": "shot_review_frame",
+          "name": "shot-015.png",
+          "mime_type": "image/png",
+          "size_bytes": 497730,
+          "sha256": "cf89c76e678c1054be0c561b0eaa347423c7560e116d44a5f4de0bda55f35a94",
+          "url": "/api/artifacts/203251647ecd4959b6b17344af12ebc8",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-13",
+        "review_frame": 3102,
+        "component_reason": "维持已审方案：B11套三项后台手法均为报告事实并整体标示意，metric计数3项与items一致。",
+        "visual_action": "分支按60/140/220帧揭示，第300帧起强调条「从心动到起疑」入场，第3102帧全部部件在场为代表帧。",
+        "index": 16,
+        "start_frame": 2782,
+        "end_frame": 3168,
+        "component_id": "Rve-ProgressSteps",
+        "set_id": "B11",
+        "component_ids": [
+          "Rve-ProgressSteps",
+          "Snapcn-TextReveal",
+          "Rve-StatCounter",
+          "Snapcn-TextBuild",
+          "Talkcraft-word-slot-cycle",
+          "Snapcn-TextHighlight"
+        ],
+        "title": "点赞和访客，也能后台造",
+        "body": "报告原文：后台可生成点赞、访客；无真人时放预录；记录起疑用户",
+        "asset_src": null,
+        "source_label": "来源：Anthropic 2026年9月威胁报告GTG-15001（中译）；无原始后台界面，画面均为示意",
+        "narration": "连「有人喜欢你」的感觉也能批量造：点赞、访客记录，后台可以直接生成；该真人接视频却没人时，就放预录内容；系统还会记下开始怀疑「对面是机器人」的用户。从心动到起疑，每一步都在这套设计里。",
+        "image": {
+          "artifact_id": "4fd546e474f648c38b6d41bd420d67cc",
+          "kind": "shot_review_frame",
+          "name": "shot-016.png",
+          "mime_type": "image/png",
+          "size_bytes": 705685,
+          "sha256": "358b1772f47d6325f664f58ff33d75ca753f628dcd82454bcca543cadb669d49",
+          "url": "/api/artifacts/4fd546e474f648c38b6d41bd420d67cc",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-14",
+        "review_frame": 3248,
+        "component_reason": "维持已审方案：QuoteCard呈现封禁与线索共享的处置事实及边界。",
+        "visual_action": "第3168帧卡片入场，第3248帧引用文字与边界说明稳定可读。",
+        "index": 17,
+        "start_frame": 3168,
+        "end_frame": 3330,
+        "component_id": "Rve-QuoteCard",
+        "set_id": null,
+        "component_ids": [
+          "Rve-QuoteCard"
+        ],
+        "title": "Anthropic已封禁相关账号和组织",
+        "body": "Anthropic已封禁相关账号和组织，并把线索同步给相关平台；不等于全部下架或有判决",
+        "asset_src": null,
+        "source_label": "来源：Anthropic 2026年9月威胁报告GTG-15001（译文）",
+        "narration": "Anthropic已封禁相关账号和组织，线索同步给相关平台。我的判断很简",
+        "image": {
+          "artifact_id": "197eb55e037e4b61b39c8615c0349f1e",
+          "kind": "shot_review_frame",
+          "name": "shot-017.png",
+          "mime_type": "image/png",
+          "size_bytes": 628282,
+          "sha256": "4a135d066485cf786b081822fe9387534c0a9e64a4c67cfcb28a0f7d6f289a55",
+          "url": "/api/artifacts/197eb55e037e4b61b39c8615c0349f1e",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-15",
+        "review_frame": 3470,
+        "component_reason": "维持已审方案：comparison先立「明说是AI」再揭示问题做法，回应全片判断标准。",
+        "visual_action": "左卡先立，第3446帧起右卡揭示，第3470帧双卡对照完整为代表帧。",
+        "index": 18,
+        "start_frame": 3330,
+        "end_frame": 3545,
+        "component_id": "comparison",
+        "set_id": null,
+        "component_ids": [
+          "comparison"
+        ],
+        "title": "判断标准：平台敢不敢明说",
+        "body": "",
+        "asset_src": null,
+        "source_label": "判断基于Anthropic GTG-15001披露事实",
+        "narration": "简单：明说是AI、明码标价的陪伴不是骗；宣传真人、隐瞒自动化、用假心动催你充值才是。",
+        "image": {
+          "artifact_id": "06bba0c7cd9f40c2b3a9d085b1c95e77",
+          "kind": "shot_review_frame",
+          "name": "shot-018.png",
+          "mime_type": "image/png",
+          "size_bytes": 449985,
+          "sha256": "191d260031fd247080bbe150bf9a2843e6dd9bcd18ae82406aa61d39c3181798",
+          "url": "/api/artifacts/06bba0c7cd9f40c2b3a9d085b1c95e77",
+          "revision": 15
+        }
+      },
+      {
+        "shot_id": "shot-16",
+        "review_frame": 3645,
+        "component_reason": "维持已审方案：EndCard以中文聊天界面为背景收束「先看清屏幕后面是谁」与转发建议，不新增其他案件或防骗清单。",
+        "visual_action": "第3545帧背景与文字入场，第3645帧标题、转发建议与另案示例标识同屏，收束至第3714帧。",
+        "index": 19,
+        "start_frame": 3545,
+        "end_frame": 3714,
+        "component_id": "RemotionUI-EndCard",
+        "set_id": null,
+        "component_ids": [
+          "RemotionUI-EndCard"
+        ],
+        "title": "先看清屏幕后面是谁",
+        "body": "转给爱用社交App的朋友",
+        "asset_src": "videoagents/08e74bed03e94c6e903c89f7f2fbea64/assets/46256f4f7a2940feafdca5bc5b9547db.png",
+        "source_label": "另案示例｜finance.ifeng.com｜消费者报道2024；同类中文界面示意，非报告涉案App",
+        "narration": "把这条转给你身边爱用社交App的朋友：下次心动前，先看清屏幕后面是谁。",
+        "image": {
+          "artifact_id": "0f419c42035b40b0a9280e291a762a4c",
+          "kind": "shot_review_frame",
+          "name": "shot-019.png",
+          "mime_type": "image/png",
+          "size_bytes": 1652972,
+          "sha256": "bbcb2bac1b5bfde9dbca9e3d0de49af0310d4bcc6985128b94195bbca8c5cafa",
+          "url": "/api/artifacts/0f419c42035b40b0a9280e291a762a4c",
+          "revision": 15
+        }
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\director-plan.json",
+      "sha256": "e0e3801714fbda16f9c6dcc2fda4245c95d818b74b363965c4d22bf9589cbb82"
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\timeline.json",
+      "sha256": "6fdfbbedf83914ba3b188940099f46ffdf4a0c84e537de8bc680475d1fca0236"
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\renders\\d0947b520f0e4e878620812a0c8f6fe8\\preview.mp4",
+      "sha256": "68a14b6b827ac2d90c6281ca7e6ed4b8c85e5cb92bd61f58760ddcb5c7588854"
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\shot-reviews\\11eee93342b64172b2dcc6372ba058c7\\shot-001.png",
+      "sha256": "f86d809ee17bae8e01f17745cfc08f6326c5914adeea462eee02c2efad0af01a"
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\shot-reviews\\11eee93342b64172b2dcc6372ba058c7\\shot-002.png",
+      "sha256": "50812a81f77a83157c5bc66b5cd182d748886b5d9e419498dab2fdc1003fc59b"
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\shot-reviews\\11eee93342b64172b2dcc6372ba058c7\\shot-003.png",
+      "sha256": "9e29926833796a9a0ea8b403019fdc5eea36f4a6dff9051d1e2b3654751e2e32"
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\shot-reviews\\11eee93342b64172b2dcc6372ba058c7\\shot-004.png",
+      "sha256": "8e9b75b388cc5676e106b998f294b52f9263c8b0c2d92496d2ca8e6e3d88e871"
+    },
+    {
+      "path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\15\\shot-reviews\\11eee93342b64172b2dcc6372ba058c7\\shot-005.png",
+      "sha256": "ca3bd62550d6f6ab5b5eada349a62474db1ecb4e2925325190f06d7e3ba6468d"
+    }
+  ],
+  "normal_correction_feedback_file": "visual-r15-opening-fit-overlap-correction-20261015.txt",
+  "original_plan_mode": null
+}
