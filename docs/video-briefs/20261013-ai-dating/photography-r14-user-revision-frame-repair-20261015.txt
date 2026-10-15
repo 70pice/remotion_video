@@ -1,0 +1,11 @@
+继续本次已完成候选6dd7b49d793740f88d6b1bac857c1fe3，不从头制作，不回退到用户已拒绝的旧版。此次是kind=input参数纠正，不是逐镜人工审核通过。用户只要求返工01/02/03/05，其余12镜的实际shots字段和代表帧保持。
+
+返回值中shot_reviews.review_frame必须是全片绝对帧号。你把新改的三镜写成局部帧：shot-02区间[330,735)，却写300；shot-03区间[735,930)，却写150；shot-05区间[1149,1420)，却写210。若沿用你选的镜内时刻，对应绝对帧应分别为630、885、1359。所有16镜逐项核对 start_frame <= review_frame < end_frame。visual_action里也用准确口径。shot-01本身起点0，没有加偏移问题。其它12个review_frame不变。
+
+监督已用只读、离线的内存投影核验：上述三项换算正确时，完整16镜的production_timeline、readability、media_coverage、component_requirements、director_plan均可通过，required_library_components=0。没有写回候选、修改生产库或调用供应商。这表示当前明确结构错误就是代表帧口径，无须推翻四镜修改。实际12个已通过镜头的shots参数全部未变，继续保持。
+
+同时避免可预见的关键词拼接重复：Talkcraft-keyword-pop-highlight会拼接title前缀与props.highlight。新shot-01的title“宣传全是真人”加highlight“真人”，新shot-03的title“让同一个Claude来陪聊”加highlight“同一个Claude”，会把关键词重复拼接。不要继续这样填写完整句子又追加同一关键词。
+
+shot-01用户明确选择历史大App版本，请按已给出的revisions/11/timeline-731ad12c.json里shot-01实际设计复用（Snapcn-PhoneFrame、无套、原props和无多余叠层，F180），保留本轮实测音频、字幕和[0,330)；不要自行又加防御性统计卡或重复关键词层。只复用这一镜，不能把其它镜头退回r11。shot-03保留本次无代码界面的重做，关键词如需保留就按实际绑定去重。shot-02已删大块防御文字，保持这次简化；shot-05继续突出约3个AI:1个真人，删重复说明，不用长免责声明塞屏。
+
+完整返回shots、segment_performances、shot_reviews，再走实际PNG渲染。不得手写通过、跳过校验或进入成片。出图后仅将这四镜新帧交用户复审。

@@ -1,0 +1,98 @@
+[
+  {
+    "shot_id": "shot-01",
+    "old_frame": 285,
+    "new_frame": 210,
+    "same_png_bytes": false
+  },
+  {
+    "shot_id": "shot-02",
+    "old_frame": 710,
+    "new_frame": 630,
+    "same_png_bytes": false
+  },
+  {
+    "shot_id": "shot-03",
+    "old_frame": 870,
+    "new_frame": 885,
+    "same_png_bytes": false
+  },
+  {
+    "shot_id": "shot-04",
+    "old_frame": 1090,
+    "new_frame": 1090,
+    "same_png_bytes": true
+  },
+  {
+    "shot_id": "shot-05",
+    "old_frame": 1350,
+    "new_frame": 1359,
+    "same_png_bytes": false
+  },
+  {
+    "shot_id": "shot-06",
+    "old_frame": 1560,
+    "new_frame": 1560,
+    "same_png_bytes": false
+  },
+  {
+    "shot_id": "shot-07",
+    "old_frame": 1750,
+    "new_frame": 1750,
+    "same_png_bytes": true
+  },
+  {
+    "shot_id": "shot-08",
+    "old_frame": 1930,
+    "new_frame": 1930,
+    "same_png_bytes": true
+  },
+  {
+    "shot_id": "shot-09",
+    "old_frame": 2115,
+    "new_frame": 2115,
+    "same_png_bytes": true
+  },
+  {
+    "shot_id": "shot-10",
+    "old_frame": 2200,
+    "new_frame": 2200,
+    "same_png_bytes": true
+  },
+  {
+    "shot_id": "shot-11",
+    "old_frame": 2300,
+    "new_frame": 2300,
+    "same_png_bytes": true
+  },
+  {
+    "shot_id": "shot-12",
+    "old_frame": 2650,
+    "new_frame": 2650,
+    "same_png_bytes": true
+  },
+  {
+    "shot_id": "shot-13",
+    "old_frame": 3110,
+    "new_frame": 3110,
+    "same_png_bytes": true
+  },
+  {
+    "shot_id": "shot-14",
+    "old_frame": 3250,
+    "new_frame": 3250,
+    "same_png_bytes": true
+  },
+  {
+    "shot_id": "shot-15",
+    "old_frame": 3480,
+    "new_frame": 3480,
+    "same_png_bytes": true
+  },
+  {
+    "shot_id": "shot-16",
+    "old_frame": 3650,
+    "new_frame": 3650,
+    "same_png_bytes": true
+  }
+]

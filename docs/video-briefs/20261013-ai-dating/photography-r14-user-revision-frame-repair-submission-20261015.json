@@ -1,0 +1,9 @@
+{
+  "command_id": "5559e32838f7485eaa5cc38f808c541d",
+  "status": "CLAIMED",
+  "answered_pending_token": "b2088a7d2c2e425e9a3237520f54e935",
+  "note_matches": true,
+  "note_sha256": "7ac20649c510a4f2b60ad68efb0ba2603a70d17a5b999a61a41e15f645c78196",
+  "kind_input_parameter_repair_not_human_approval": true,
+  "operation_id": "a5494b114d0542928a83f4a40159b2cb"
+}

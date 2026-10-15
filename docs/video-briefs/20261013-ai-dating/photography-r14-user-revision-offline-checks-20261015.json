@@ -1,0 +1,29 @@
+{
+  "operation_id": "6dd7b49d793740f88d6b1bac857c1fe3",
+  "no_provider_calls": true,
+  "no_production_state_mutation": true,
+  "required_library_components": 0,
+  "checks": [
+    {
+      "check": "production_timeline",
+      "passed": true
+    },
+    {
+      "check": "readability",
+      "passed": true,
+      "issues": []
+    },
+    {
+      "check": "media_coverage",
+      "passed": true
+    },
+    {
+      "check": "component_requirements",
+      "passed": true
+    },
+    {
+      "check": "director_plan_with_transient_frame_offsets",
+      "passed": true
+    }
+  ]
+}

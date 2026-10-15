@@ -1,0 +1,68 @@
+{
+  "operation_id": "6dd7b49d793740f88d6b1bac857c1fe3",
+  "changed_shot_fields": {
+    "shot-01": [
+      "body",
+      "source_label",
+      "props",
+      "layers"
+    ],
+    "shot-02": [
+      "component_id",
+      "title",
+      "body",
+      "props"
+    ],
+    "shot-03": [
+      "component_id",
+      "title",
+      "body",
+      "asset_src",
+      "source_label",
+      "props",
+      "layers"
+    ],
+    "shot-05": [
+      "component_id",
+      "title",
+      "body",
+      "props"
+    ]
+  },
+  "changed_approved_shots": [],
+  "changed_approved_review_specs": [
+    "shot-04",
+    "shot-06",
+    "shot-07",
+    "shot-08",
+    "shot-09",
+    "shot-10",
+    "shot-11",
+    "shot-12",
+    "shot-13",
+    "shot-14",
+    "shot-15",
+    "shot-16"
+  ],
+  "segment_performances_unchanged": false,
+  "bad_frames": [
+    {
+      "shot_id": "shot-02",
+      "review_frame": 300,
+      "start_frame": 330,
+      "end_frame": 735
+    },
+    {
+      "shot_id": "shot-03",
+      "review_frame": 150,
+      "start_frame": 735,
+      "end_frame": 930
+    },
+    {
+      "shot_id": "shot-05",
+      "review_frame": 210,
+      "start_frame": 1149,
+      "end_frame": 1420
+    }
+  ]
+}

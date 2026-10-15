@@ -1,0 +1,107 @@
+{
+  "checked_at": "2026-10-15T08:15:38.700393+00:00",
+  "job_id": "08e74bed03e94c6e903c89f7f2fbea64",
+  "revision": 14,
+  "status": "NEEDS_HUMAN",
+  "stage": "director",
+  "command": {
+    "command_id": "5ccd40c1c7714770bff09237d56a02a5",
+    "status": "DONE"
+  },
+  "timeline_unchanged": true,
+  "script_unchanged": true,
+  "assets_unchanged": true,
+  "all_43_operations_unchanged": true,
+  "operations_count": 43,
+  "new_model_calls": 0,
+  "pending_token_changed": true,
+  "pending_token": "241bce1e113635fb346bbcf6bb87bfae",
+  "review_mode": "per_shot_stills",
+  "director_plan_unchanged": true,
+  "manifest_path": "D:\\remotion_video\\.runtime\\videoagents\\jobs\\08e74bed03e94c6e903c89f7f2fbea64\\revisions\\14\\shot-reviews\\abb3783203934b85a16d0b419e94acc2\\director-shot-review.json",
+  "frames": [
+    {
+      "shot_id": "shot-01",
+      "same_frame": true,
+      "same_png_bytes": true
+    },
+    {
+      "shot_id": "shot-02",
+      "same_frame": true,
+      "same_png_bytes": true
+    },
+    {
+      "shot_id": "shot-03",
+      "same_frame": true,
+      "same_png_bytes": false
+    },
+    {
+      "shot_id": "shot-04",
+      "same_frame": true,
+      "same_png_bytes": true
+    },
+    {
+      "shot_id": "shot-05",
+      "same_frame": true,
+      "same_png_bytes": true
+    },
+    {
+      "shot_id": "shot-06",
+      "same_frame": true,
+      "same_png_bytes": true
+    },
+    {
+      "shot_id": "shot-07",
+      "same_frame": true,
+      "same_png_bytes": true
+    },
+    {
+      "shot_id": "shot-08",
+      "same_frame": true,
+      "same_png_bytes": true
+    },
+    {
+      "shot_id": "shot-09",
+      "same_frame": true,
+      "same_png_bytes": true
+    },
+    {
+      "shot_id": "shot-10",
+      "same_frame": true,
+      "same_png_bytes": true
+    },
+    {
+      "shot_id": "shot-11",
+      "same_frame": true,
+      "same_png_bytes": true
+    },
+    {
+      "shot_id": "shot-12",
+      "same_frame": true,
+      "same_png_bytes": true
+    },
+    {
+      "shot_id": "shot-13",
+      "same_frame": true,
+      "same_png_bytes": true
+    },
+    {
+      "shot_id": "shot-14",
+      "same_frame": true,
+      "same_png_bytes": true
+    },
+    {
+      "shot_id": "shot-15",
+      "same_frame": true,
+      "same_png_bytes": true
+    },
+    {
+      "shot_id": "shot-16",
+      "same_frame": true,
+      "same_png_bytes": true
+    }
+  ],
+  "renderer_fix_commit": "3d7156d9133f2a08c6b072a0fb59a41216b82dbb",
+  "refresh_entry_commit": "6ab915afe2eb7258a4a625d75c13667525a1ae17",
+  "cli_exit_code": 0
+}
