@@ -19,6 +19,7 @@ from videoagents.contracts import (
     ReplenishMaterialsRequest,
     RestartUnknownRequest,
     RetryFailedRunRequest,
+    VisualRevisionRequest,
 )
 from videoagents.default_config import PROJECT_ROOT
 from videoagents.storage import Conflict, Repository
@@ -84,6 +85,22 @@ class JobService:
         if request.brief is None and request.script is None and request.timeline is None:
             raise ValueError("草稿更新内容不能为空")
         return self.repo.edit_job(job_id, request.base_revision, lambda job: self._edit_draft(job, request))
+
+    def revise_visuals(self, job_id: str, request: VisualRevisionRequest) -> Job:
+        request = VisualRevisionRequest.model_validate(request.model_dump())
+
+        def edit(job: Job) -> Job:
+            from videoagents.services.director_recovery import retained_director_inputs
+
+            job.artifacts = retained_director_inputs(self.repo, job)
+            job.revision += 1
+            job.script = job.script.model_copy(update={"revision": job.revision})
+            job.timeline = job.timeline.model_copy(update={"revision": job.revision})
+            job.script_discussion = job.review = job.pending_input = job.progress = None
+            job.status, job.stage = "DRAFT", "director"
+            return job
+
+        return self.repo.revise_visuals(job_id, request, edit)
 
     def restart_unknown(self, job_id: str, request: RestartUnknownRequest) -> Job:
         request = RestartUnknownRequest.model_validate(request.model_dump())

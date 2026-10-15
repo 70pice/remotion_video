@@ -4,7 +4,7 @@ import json
 import math
 from copy import deepcopy
 
-from videoagents.contracts import Alignment, Artifact, Job, Script, VoiceAdvice
+from videoagents.contracts import Alignment, Artifact, Job, Script, Timeline, VoiceAdvice
 from videoagents.nodes.common import needs_script_revision, needs_voice_revision, validate_context_assets
 from videoagents.nodes.human_review import HumanReviewNode
 from videoagents.nodes.script_review import (
@@ -171,9 +171,11 @@ def verify_director_recovery_inputs(repository: Repository, job: Job) -> dict:
     if not job.script or job.script.revision != job.revision:
         raise Conflict("摄影恢复需要当前已审文案")
     audio = _audio(repository, job)
-    prior = repository.director_restart_receipt(job.job_id, job.revision)
+    visual_revision = repository.visual_revision_receipt(job.job_id, job.revision)
+    prior = visual_revision or repository.director_restart_receipt(job.job_id, job.revision)
     if prior:
-        previous = validate_director_restart(repository, job)
+        previous = (validate_visual_revision(repository, job) if visual_revision
+                    else validate_director_restart(repository, job))
         projection = Job.model_validate(previous["approval_projection"])
         approval = next(item for item in projection.artifacts
                         if item.artifact_id == previous["approval_artifact_id"])
@@ -201,13 +203,18 @@ def verify_director_recovery_inputs(repository: Repository, job: Job) -> dict:
 def validate_director_restart(repository: Repository, job: Job) -> dict:
     """Recheck original evidence before a new run; no approval is synthesized."""
     authorization = repository.director_restart_receipt(job.job_id, job.revision)
+    if (not authorization or authorization.get("acknowledge_possible_usage") is not True
+            or authorization.get("provider") != "llm:director"):
+        raise Conflict("摄影恢复缺少明确的 UNKNOWN 重启授权")
+    return _validate_preserved_director(repository, job, authorization)
+
+
+def _validate_preserved_director(repository: Repository, job: Job, authorization: dict) -> dict:
     try:
         original = Job.model_validate(authorization["previous_job"])
         preserved = authorization["preserved_director"]
-        if (authorization.get("acknowledge_possible_usage") is not True
-                or original.job_id != job.job_id or original.revision + 1 != job.revision
+        if (original.job_id != job.job_id or original.revision + 1 != job.revision
                 or authorization["source_revision"] != original.revision
-                or authorization["provider"] != "llm:director"
                 or original.brief != job.brief or not job.script
                 or job.script.model_copy(update={"revision": original.revision}) != original.script
                 or job.assets != original.assets or job.director_requirements != original.director_requirements):
@@ -240,6 +247,64 @@ def validate_director_restart(repository: Repository, job: Job) -> dict:
         return preserved
     except (KeyError, TypeError, StopIteration, ValueError, NotFound, OSError) as exc:
         raise Conflict("摄影恢复的批准链或媒体凭据缺失或无效") from exc
+
+
+def validate_visual_revision_timeline(baseline: Timeline, current: Timeline, shot_ids: list[str], *,
+                                     require_change: bool = False) -> None:
+    """Keep untouched shots exact; replacements stay inside their original windows."""
+    if baseline.model_dump(exclude={"revision", "shots"}) != current.model_dump(exclude={"revision", "shots"}):
+        raise ValueError("局部视觉返工不能修改音频、字幕、时长或画幅")
+    selected = [shot for shot in baseline.shots if shot.shot_id in shot_ids]
+    untouched = [shot for shot in baseline.shots if shot.shot_id not in shot_ids]
+    current_by_id = {shot.shot_id: shot for shot in current.shots}
+    if any(current_by_id.get(shot.shot_id) != shot for shot in untouched):
+        raise ValueError("局部视觉返工改变了未指定镜头，必须原样保留")
+    untouched_ids = {shot.shot_id for shot in untouched}
+    for shot in current.shots:
+        if shot.shot_id in untouched_ids:
+            continue
+        if not any((shot.shot_id == original.shot_id or shot.shot_id.startswith(original.shot_id + "-"))
+                   and original.start_frame <= shot.start_frame < shot.end_frame <= original.end_frame
+                   for original in selected):
+            raise ValueError("返工镜头必须保留原 ID 或以原 ID 加连字符命名，并位于该镜头原时间窗内")
+    if require_change and baseline.shots == current.shots:
+        raise ValueError("局部视觉返工未产生镜头修改")
+
+
+def validate_visual_revision(repository: Repository, job: Job) -> dict:
+    authorization = repository.visual_revision_receipt(job.job_id, job.revision)
+    if not authorization or authorization.get("kind") != "visual_revision":
+        raise Conflict("局部视觉返工缺少当前版本的持久化收据")
+    preserved = _validate_preserved_director(repository, job, authorization)
+    try:
+        from videoagents.nodes.director_review import director_demo_is_approved
+
+        original = Job.model_validate(authorization["previous_job"])
+        if (original.status != "DRAFT" or original.stage != "complete" or original.pending_input
+                or not original.timeline or not job.timeline
+                or not set(authorization["shot_ids"]) <= {shot.shot_id for shot in original.timeline.shots}
+                or not director_demo_is_approved(repository, original)):
+            raise Conflict("局部视觉返工的原完成版本或整包确认已失效")
+        source_review = next(item for item in original.artifacts
+                             if item.artifact_id == authorization["source_review_artifact_id"])
+        review = _json(repository, original, source_review)
+        if (source_review.kind != "stage_review" or review.get("decision") != "confirm"
+                or review.get("node_name") != "director_human_gate" or review.get("revision") != original.revision):
+            raise Conflict("局部视觉返工缺少原整包人工确认收据")
+        validate_visual_revision_timeline(original.timeline, job.timeline, authorization["shot_ids"])
+    except (KeyError, TypeError, StopIteration, ValueError, NotFound, OSError) as exc:
+        raise Conflict("局部视觉返工的冻结分镜或确认依据已改变") from exc
+    return preserved
+
+
+def visual_revision_context(repository: Repository, job: Job) -> dict | None:
+    """Return only checked business instructions, without old input snapshots."""
+    authorization = repository.visual_revision_receipt(job.job_id, job.revision)
+    if not authorization:
+        return None
+    validate_visual_revision(repository, job)
+    return {key: authorization[key] for key in ("note", "shot_ids", "source_revision", "target_revision",
+            "source_review_artifact_id", "preview", "frame_range")}
 
 
 def _model_identity(repository: Repository) -> dict:

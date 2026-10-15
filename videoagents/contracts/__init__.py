@@ -52,6 +52,7 @@ from .models import (
     Shot,
     ShotLayer,
     Timeline,
+    VisualRevisionRequest,
     VoiceAdvice,
     VoiceSegmentPerformance,
 )
@@ -66,6 +67,7 @@ __all__ = [
     "RunRequest", "RefreshShotsRequest", "Script", "ScriptSegment", "SettingsPatch", "Shot", "ShotLayer", "Timeline",
     "RoleModelConfig", "RoleModels", "ModelFinding", "VoiceAdvice", "VoiceSegmentPerformance",
     "EditingAdvice", "ContentReviewAdvice",
+    "VisualRevisionRequest",
     "ModelCatalog", "ModelChoice",
     "MaterialResearch",
     "ScriptCritique", "ScriptCritiqueIssue", "ScriptDiscussion", "ScriptDiscussionRound", "ScriptRewrite",

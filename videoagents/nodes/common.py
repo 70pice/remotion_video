@@ -266,7 +266,8 @@ def state_context(repository: Repository, state: VideoState, **overrides: Any) -
     if decision and not any(item.get("pending_token") == decision.get("pending_token") for item in history):
         history.append(decision)
     context["human_reviews"] = history
-    authorization = repository.director_restart_receipt(job.job_id, job.revision)
+    visual_revision = repository.visual_revision_receipt(job.job_id, job.revision)
+    authorization = visual_revision or repository.director_restart_receipt(job.job_id, job.revision)
     if authorization:
         # Only business evidence and the new photography note cross into the
         # model context; the approval/recovery ledger stays in SQLite.
@@ -282,6 +283,11 @@ def state_context(repository: Repository, state: VideoState, **overrides: Any) -
                 "sources": [{**item, "asset_ids": [key for key in item.get("asset_ids", []) if key in retained_ids]}
                             for item in research.get("sources", [])]}
         context["extras"] = merge_extras(context["extras"], {"director_note": authorization["note"]})
+        if visual_revision:
+            # Keep the durable instruction, never an old checkpoint's draft.
+            context["extras"] = merge_extras(context["extras"], {"visual_revision": {
+                key: visual_revision[key] for key in ("note", "shot_ids", "source_revision", "target_revision",
+                    "source_review_artifact_id", "preview", "frame_range")}})
     context.update(overrides)
     return clean_handoff(context)
 

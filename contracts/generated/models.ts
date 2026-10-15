@@ -540,6 +540,14 @@ export interface Timeline {
   captions: Array<Caption>;
 }
 
+export interface VisualRevisionRequest {
+  base_revision: number;
+  idempotency_key: string;
+  shot_ids: Array<string>;
+  note: string;
+  preview: boolean;
+}
+
 export interface VoiceAdvice {
   delivery_notes: Array<string>;
   segment_performances: Array<VoiceSegmentPerformance>;

@@ -169,6 +169,11 @@ class VideoProductionGraph(AbstractContextManager):
         if state.get("action") == "refresh_shots":
             return "director_demo"
         job = current_job(self.repo, state)
+        if self.repo.visual_revision_receipt(job.job_id, job.revision):
+            from videoagents.services.director_recovery import validate_visual_revision
+
+            validate_visual_revision(self.repo, job)
+            return "audio_gate"
         if self.repo.director_restart_receipt(job.job_id, job.revision):
             from videoagents.services.director_recovery import validate_director_restart
 

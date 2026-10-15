@@ -86,6 +86,11 @@ def editing_visual_review_context(repository: Repository, job: Job) -> dict[str,
                 "director_shot_review_artifact_id", "dependency_fingerprint") if key in value},
             "review_artifact_id": artifact.artifact_id,
         }
+        from videoagents.services.director_recovery import visual_revision_context
+
+        revision = visual_revision_context(repository, job)
+        if revision:
+            result["visual_revision"] = revision
     return result
 
 
@@ -152,9 +157,16 @@ class EditingNode:
         job = self.repo.update_job(job.job_id, job.revision, status="DRAFT", message="成片已渲染完成，可人工查看后决定是否发布", stage="complete", progress=1)
         return state_context(self.repo, state, route="end")
 
-    def render_video(self, job: Job, mode: str, state: VideoState | None = None) -> None:
+    def render_video(self, job: Job, mode: str, state: VideoState | None = None, *,
+                     frame_range: tuple[int, int] | None = None) -> None:
         if not job.timeline:
             raise ValueError("没有可执行分镜")
+        explicit_range = frame_range is not None
+        if explicit_range and (mode != "preview" or type(frame_range) is not tuple or len(frame_range) != 2
+                or any(type(frame) is not int for frame in frame_range)
+                or not 0 <= frame_range[0] < frame_range[1] <= job.timeline.duration_in_frames
+                or frame_range[1] - frame_range[0] > job.timeline.fps * 30):
+            raise ValueError("动态审核预览需要时间轴内不超过30秒的连续整数帧范围，且只能用于preview")
         metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
         validate_production_timeline(self.repo, job, job.timeline, metadata)
         issues = timeline_readability_issues(job.timeline) if (job.brief.width, job.brief.height, job.brief.fps) == (1080, 1920, 30) else []
@@ -195,11 +207,16 @@ class EditingNode:
             self.service.freeze_asset(asset)
         folder = self.repo.root / "jobs" / job.job_id / "revisions" / str(job.revision) / "renders" / uuid.uuid4().hex
         folder.mkdir(parents=True, exist_ok=True)
-        frame_range = None
         render_metadata = {"dependency_fingerprint": dependency_fingerprint(job)}
         if mode == "preview":
             plan_artifact, plan = current_plan_artifact(self.repo, job)
-            frame_range = (plan["demo"]["start_frame"], plan["demo"]["end_frame"])
+            if frame_range is None:
+                demo = plan.get("demo")
+                if not isinstance(demo, dict):
+                    raise ValueError("逐镜审核方案的动态预览必须指定连续帧范围")
+                frame_range = (demo["start_frame"], demo["end_frame"])
+            if explicit_range:
+                render_metadata["motion_preview"] = True
             render_metadata.update(director_plan_sha256=plan_artifact.sha256, frame_range=list(frame_range))
         timeline_path, output, cover = folder / "timeline.json", folder / f"{mode}.mp4", folder / "cover.png"
         timeline_path.write_text(job.timeline.model_dump_json(indent=2), encoding="utf-8")

@@ -20,6 +20,7 @@ from videoagents.contracts import (
     RestartUnknownRequest,
     RetryFailedRunRequest,
     SettingsPatch,
+    VisualRevisionRequest,
 )
 from videoagents.default_config import PROJECT_ROOT, RUNTIME_ROOT
 from videoagents.nodes.director_review import current_plan_artifact, current_shot_review_artifact
@@ -221,6 +222,25 @@ def cmd_replenish_materials(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_revise_visuals(args: argparse.Namespace) -> int:
+    repo = _repository(args)
+    job = repo.get_job(args.job_id)
+    previous = repo.visual_revision_receipt(job.job_id, key=args.idempotency_key)
+    try:
+        request = VisualRevisionRequest(
+            base_revision=(args.base_revision if args.base_revision is not None else
+                           previous["source_revision"] if previous else job.revision),
+            idempotency_key=args.idempotency_key,
+            shot_ids=[item.strip() for item in args.shot_ids.split(",")],
+            note=Path(args.note_file).read_text(encoding="utf-8-sig"), preview=args.preview,
+        )
+        JobService(repo, PROJECT_ROOT).revise_visuals(job.job_id, request)
+    except (ValueError, OSError) as exc:
+        raise Conflict(str(exc)) from exc
+    _drain(_worker(repo))
+    return _finish(repo, job.job_id)
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     repo = _repository(args)
     if not args.job_id:
@@ -406,6 +426,15 @@ def build_parser() -> argparse.ArgumentParser:
     retry = sub.add_parser("retry", help="失败续跑")
     retry.add_argument("job_id")
     retry.set_defaults(handler=cmd_retry)
+
+    revise = sub.add_parser("revise-visuals", help="成片完成后仅返工指定镜头，新版本停在完整逐镜审核")
+    revise.add_argument("job_id")
+    revise.add_argument("--shot-ids", required=True, help="原镜头 ID，逗号分隔")
+    revise.add_argument("--note-file", required=True, help="UTF-8 视觉返工意见文件")
+    revise.add_argument("--idempotency-key", required=True)
+    revise.add_argument("--base-revision", type=int)
+    revise.add_argument("--preview", action="store_true", help="另渲染选中镜头范围的动态预览（最多 30 秒）")
+    revise.set_defaults(handler=cmd_revise_visuals)
 
     refresh = sub.add_parser("refresh-shots", help="同一摄影方案重渲全部代表帧，重新等待整包人工审核")
     refresh.add_argument("job_id")

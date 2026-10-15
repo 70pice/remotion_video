@@ -80,6 +80,22 @@ class DirectorDemoNode:
             current = self.repo.get_job(job.job_id)
             if per_shot:
                 current_shot_review_artifact(self.repo, current)
+                from videoagents.services.director_recovery import visual_revision_context
+
+                visual_revision = visual_revision_context(self.repo, current)
+                if visual_revision and visual_revision["preview"]:
+                    frame_range = visual_revision["frame_range"]
+                    preview = next((item for item in reversed(current.artifacts) if item.kind == "preview"
+                                    and item.revision == current.revision), None)
+                    metadata = self.repo.artifact_metadata(preview.artifact_id) if preview else {}
+                    if (not preview or metadata.get("motion_preview") is not True
+                            or metadata.get("director_plan_sha256") != plan_artifact.sha256
+                            or metadata.get("dependency_fingerprint") != dependency_fingerprint(current)
+                            or metadata.get("frame_range") != frame_range):
+                        self.renderer.render_video(current, "preview", state=state, frame_range=tuple(frame_range))
+                    else:
+                        checked_artifact(self.repo, current, preview)
+                    current = self.repo.get_job(job.job_id)
             else:
                 current_demo_artifact(self.repo, current)
         except (CapabilityMissing, ValueError, TimeoutError, OSError) as exc:

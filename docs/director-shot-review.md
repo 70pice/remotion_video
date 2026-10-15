@@ -20,6 +20,20 @@
 
 输入、音频对齐或草稿revision变化后，逐镜审核包与帧产物失效。人工确认只授予当前版本完整渲染资格，仍不授予发布资格。渲染由已有Worker独占、超时与取消机制管理，无新依赖或外部服务。
 
+### 成片后的局部摄影返工（2026-10-15）
+
+对 `DRAFT / complete` 且没有待办或活动命令的任务，通过正常 CLI 保存意见并推进一个 revision：
+
+```powershell
+videoagents revise-visuals JOB_ID --base-revision 14 --shot-ids shot-01,shot-02 --note-file feedback.txt --idempotency-key visual-revision-unique-key --preview
+```
+
+只修改指定原镜头，未指定镜头逐字段冻结；指定镜头可以在自己的原时间窗内拆镜，新 ID 使用原 ID 加连字符后缀。保留已批准文案、素材、真实配音及字幕，重新经过摄影和完整逐镜审核门。旧成片、图片包及视觉确认不会作为新版本的批准。
+
+`--preview` 是可选的动态审看：使用原生产渲染器输出指定原镜头包围区间，连续范围最多30秒，绑定当前版本、摄影方案与输入指纹。它帮助检查轮播和入场，不替代完整逐镜人工确认，也不授予成片或发布许可。默认仍只产逐镜 PNG。
+
+同一幂等键与相同参数重放不会另起 revision 或重复提交摄影。运行中、当前版本存在未决提交、旧 base revision、修改文案或音频的意见，以及无有效原整包确认均会拒绝；失败使用已有续跑入口，不能另起同任务重头制作。
+
 ## 回归验证
 
 - `tests/videoagents/test_shot_review_contract.py`、`test_director_shot_review.py` 覆盖每镜设计、完整图片包、当前版本及文件指纹校验。

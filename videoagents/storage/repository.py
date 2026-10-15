@@ -19,6 +19,7 @@ from videoagents.contracts import (
     RefreshShotsRequest,
     ReplenishMaterialsRequest,
     RestartUnknownRequest,
+    VisualRevisionRequest,
 )
 
 
@@ -174,6 +175,74 @@ class Repository:
             self.check_editable(db, job, base_revision)
             updated = transform(job)
             return self._save(db, Job.model_validate(updated.model_dump()), "revision")
+
+    def visual_revision_receipt(self, job_id: str, revision: int | None = None, *, key: str | None = None) -> dict[str, Any] | None:
+        with self.connection() as db:
+            rows = db.execute("SELECT key,value FROM job_inputs WHERE job_id=? AND key LIKE 'visual_revision:%'",
+                              (job_id,)).fetchall()
+        return next((receipt for row in rows if (key is None or row["key"] == "visual_revision:" + key)
+                     and (receipt := json.loads(row["value"]))
+                     and (revision is None or receipt.get("target_revision") == revision)), None)
+
+    def revise_visuals(self, job_id: str, request: VisualRevisionRequest, transform: Any) -> Job:
+        """Save the scoped revision and its normal graph command in one transaction."""
+        from videoagents.nodes.common import needs_script_revision, needs_voice_revision
+        from videoagents.nodes.director_review import current_plan_artifact, director_demo_is_approved
+        from videoagents.services.director_recovery import verify_director_recovery_inputs
+
+        key = "visual_revision:" + request.idempotency_key
+        digest = fingerprint(request.model_dump())
+        with self.connection(immediate=True) as db:
+            job = self._get(db, job_id)
+            previous = db.execute("SELECT value FROM job_inputs WHERE job_id=? AND key=?", (job_id, key)).fetchone()
+            if previous:
+                receipt = json.loads(previous[0])
+                if receipt["request_hash"] != digest or job.revision != receipt["target_revision"]:
+                    raise Conflict("视觉返工幂等请求已改变或属于旧版本")
+                return job
+            self.check_editable(db, job, request.base_revision)
+            if job.status != "DRAFT" or job.stage != "complete" or job.pending_input or not job.timeline or not job.script:
+                raise Conflict("仅已完成且没有待办的任务可发起局部视觉返工")
+            if db.execute("SELECT 1 FROM commands WHERE job_id=? AND idempotency_key=?",
+                          (job_id, request.idempotency_key)).fetchone():
+                raise Conflict("同一个幂等键不能用于不同请求")
+            unsettled = db.execute("SELECT body FROM operations WHERE job_id=? AND status IN ('SUBMITTING','UNKNOWN')",
+                                   (job_id,)).fetchall()
+            if any(self._operation_revision(row["body"], job.revision) == job.revision for row in unsettled):
+                raise Conflict("当前版本仍有未决提交，不能发起视觉返工")
+            if needs_script_revision(request.note) or needs_voice_revision(request.note):
+                raise Conflict("局部视觉返工不能修改已审文案或音频")
+            if not set(request.shot_ids) <= {shot.shot_id for shot in job.timeline.shots}:
+                raise Conflict("返工镜头 ID 不属于当前分镜")
+            selected = [shot for shot in job.timeline.shots if shot.shot_id in request.shot_ids]
+            frame_range = [min(shot.start_frame for shot in selected), max(shot.end_frame for shot in selected)]
+            if request.preview and frame_range[1] - frame_range[0] > job.timeline.fps * 30:
+                raise Conflict("局部动态预览范围不能超过 30 秒")
+            _, plan = current_plan_artifact(self, job)
+            if plan.get("review_mode") != "per_shot_stills" or not director_demo_is_approved(self, job):
+                raise Conflict("局部视觉返工需要当前完整逐镜包的真实人工确认")
+            source_review = next(artifact for artifact in reversed(job.artifacts)
+                                 if artifact.kind == "stage_review" and artifact.revision == job.revision
+                                 and json.loads(self.artifact_path(artifact.artifact_id)[0].read_text(encoding="utf-8")).get(
+                                     "node_name") == "director_human_gate")
+            command_id = uuid.uuid4().hex
+            receipt = {"kind": "visual_revision", **request.model_dump(), "request_hash": digest,
+                       "source_revision": job.revision, "target_revision": job.revision + 1,
+                       "previous_job": job.model_dump(), "preserved_director": verify_director_recovery_inputs(self, job),
+                       "source_review_artifact_id": source_review.artifact_id, "frame_range": frame_range,
+                       "command_id": command_id, "created_at": now()}
+            updated = Job.model_validate(transform(job).model_dump())
+            if updated.revision != receipt["target_revision"] or updated.status != "DRAFT":
+                raise Conflict("视觉返工只能保存一个新版草稿")
+            payload = {"action": "produce", "base_revision": updated.revision, "idempotency_key": request.idempotency_key}
+            db.execute("INSERT INTO job_inputs VALUES(?,?,?)", (job_id, key, dumps(receipt)))
+            db.execute("INSERT INTO commands(command_id,job_id,idempotency_key,payload,payload_hash,status,created_at) "
+                       "VALUES(?,?,?,?,?,'PENDING',?)",
+                       (command_id, job_id, request.idempotency_key, dumps(payload), fingerprint(payload), now()))
+            updated.status, updated.message = "QUEUED", "局部视觉返工已保存新版，等待摄影与完整逐镜审核"
+            return self._save(db, updated, "visual_revision_queued", {
+                field: receipt[field] for field in ("source_revision", "target_revision", "shot_ids", "note",
+                    "source_review_artifact_id", "frame_range", "preview", "command_id")})
 
     def restart_unknown(self, job_id: str, request: RestartUnknownRequest, transform: Any) -> Job:
         """Authorize one new revision atomically; never settle or replay the old call."""

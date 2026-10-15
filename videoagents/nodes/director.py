@@ -602,6 +602,9 @@ class DirectorNode:
         repair_issues = list(external_repair_issues)
         required_components = _required_library_components(job)
         previous_plan = load_current_director_plan(self.repo, job) if job.timeline else None
+        visual_revision = self.repo.visual_revision_receipt(job.job_id, job.revision)
+        scoped_rebuild = bool(visual_revision and previous_plan is None)
+        rebuilding = rebuilding or scoped_rebuild
         review_upgrade = bool(previous_plan and previous_plan.get("review_mode") != "per_shot_stills"
                               and job.timeline.presentation != "component_sample")
         if review_upgrade and not model_available:
@@ -710,6 +713,8 @@ class DirectorNode:
             )
             # 实测基线只作为本次摄影输入；模型输出校验通过前不写入共享 state。
             reviewed_timeline = feedback.get("timeline") if feedback and type(feedback.get("timeline")) is dict else None
+            if visual_revision and reviewed_timeline is None:
+                reviewed_timeline = job.timeline.model_dump()
             if review_upgrade and reviewed_timeline is None:
                 reviewed_timeline = job.timeline.model_dump()
             if repair_issues and not rebuilding and job.timeline is not None:
@@ -776,6 +781,14 @@ class DirectorNode:
                     "operation_id": continuation["operation_id"], "result": continuation["result"],
                 }
             instruction = director_prompt(job.brief.usage)
+            if visual_revision:
+                instruction += ("\n\n本次为受限的局部视觉返工：读取 extras.visual_revision 与 director_note。"
+                    "timeline 是已通过完整逐镜审核的原分镜基线；只可修改 shot_ids 指定的原镜头。"
+                    "未指定镜头的全部字段（包括 ID、起止帧、组件、素材、props、layers）必须原样保留。"
+                    "允许在各指定原镜头自己的时间窗内拆成连续短镜头，不能跨越原窗口；"
+                    "拆镜 ID 使用原 ID 加连字符后缀，例如 shot-01-a、shot-01-b，明确可追溯。"
+                    "保留文案、真实音频、字幕与总帧数；须发生实际画面修改，返回完整的 shots、"
+                    "segment_performances 和每一镜的 shot_reviews，仍需完整校验与全包逐镜人工审核。")
             if continuation:
                 instruction += ("\n\n本次沿已证明来源的完成候选续修，不能从空白重做。"
                     "以 extras.timeline_repair_candidate 为底稿，修复明确列出的问题，保留无问题镜头、"
@@ -815,6 +828,12 @@ class DirectorNode:
             # 字幕、画幅和总帧数保持程序实测值，连续覆盖由 Timeline 校验。
             resolved_shots = resolve_component_set_shots(plan.shots, job.assets, asset_metadata)
             timeline = Timeline.model_validate({**timeline.model_dump(), "shots": [shot.model_dump() for shot in resolved_shots]})
+        if visual_revision:
+            from videoagents.services.director_recovery import validate_visual_revision_timeline
+
+            original = Timeline.model_validate(visual_revision["previous_job"]["timeline"])
+            validate_visual_revision_timeline(original, timeline, visual_revision["shot_ids"],
+                                              require_change=scoped_rebuild)
         context_sources = validate_production_timeline(self.repo, job, timeline, asset_metadata)
         issues = timeline_readability_issues(timeline) if production_portrait(job) else []
         if issues:

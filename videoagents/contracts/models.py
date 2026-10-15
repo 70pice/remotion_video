@@ -639,6 +639,28 @@ class RestartUnknownRequest(Contract):
         return value.strip()
 
 
+class VisualRevisionRequest(Contract):
+    base_revision: int = Field(ge=1)
+    idempotency_key: str = Field(min_length=8, max_length=200)
+    shot_ids: list[str] = Field(min_length=1, max_length=1000)
+    note: str = Field(min_length=10, max_length=30000)
+    preview: bool = False
+
+    @field_validator("shot_ids")
+    @classmethod
+    def distinct_shots(cls, value: list[str]) -> list[str]:
+        if any(not item.strip() or item != item.strip() for item in value) or len(set(value)) != len(value):
+            raise ValueError("返工镜头 ID 必须非空且不能重复")
+        return value
+
+    @field_validator("note")
+    @classmethod
+    def meaningful_note(cls, value: str) -> str:
+        if len(value.strip()) < 10:
+            raise ValueError("视觉返工意见至少需要 10 个字符")
+        return value.strip()
+
+
 class RunRequest(Contract):
     base_revision: int = Field(ge=1)
     action: Literal["produce", "voice", "storyboard", "preview", "final", "review"]
