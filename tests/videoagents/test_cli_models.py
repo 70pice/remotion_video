@@ -275,6 +275,7 @@ def test_claude_failure_supports_sdk_error_receipt_variants(
 @pytest.mark.parametrize("terminal,expected_hint", [
     ("aborted_streaming", "响应流被中止"),
     ("structured_output_retry_exhausted", "结构化输出重试"),
+    ("api_error", "API错误，未提供可识别的HTTP状态"),
 ])
 def test_claude_terminal_reason_explains_failure_without_inventing_upstream_cause(
     tmp_path, monkeypatch, terminal, expected_hint,
