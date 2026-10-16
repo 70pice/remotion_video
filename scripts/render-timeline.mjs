@@ -65,7 +65,7 @@ const resolveMediaBinary = async (name, overrideEnv, buildArguments, verify) => 
     } catch {
       continue;
     }
-    if (!stat.isFile() || !(stat.mode & 0o111)) continue;
+    if (!stat.isFile() || (process.platform !== 'win32' && !(stat.mode & 0o111))) continue;
     const executable = await fs.realpath(candidate);
     if (seen.has(executable)) continue;
     seen.add(executable);
@@ -288,7 +288,8 @@ const videoProbe = async (file, source) => {
 
 export const validateLocalInputs = async (timeline) => {
   validateTimeline(timeline);
-  const sources = [...new Set([timeline.audio_src, ...timeline.shots.map((shot) => shot.asset_src)].filter(Boolean))];
+  const sources = [...new Set([timeline.audio_src, ...timeline.shots.flatMap((shot) =>
+    [shot.asset_src, ...(shot.props.media_slides ?? []).map((slide) => slide.asset_src)])].filter(Boolean))];
   if (!sources.length) return {files: [], videoMetadata: {}};
   // Same acceptance as validateTimeline: the `video` adapter and community
   // presets (whose media slots render MP4 via OffthreadVideo) may consume

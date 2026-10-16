@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   AbsoluteFill,
+  cancelRender,
   continueRender,
   delayRender,
   Easing,
@@ -238,11 +239,21 @@ export interface WordFlipProps {
   /** Design-system token overrides. */
   theme?: Partial<SnapCnTheme>;
   mode?: "light" | "dark";
+  /** Production-only two-line layout; standalone animation stays unchanged. */
+  productionCompact?: boolean;
+  slotWidth?: number;
+  slotHeight?: number;
 }
 
 const FONT_FAMILY = "-apple-system, BlinkMacSystemFont, sans-serif";
 
-export function WordFlip({
+export function WordFlip(props: WordFlipProps) {
+  const key = props.productionCompact ? JSON.stringify([props.words, props.prefix, props.suffix,
+    props.fontFamily, props.theme?.fontFamily, props.fontWeight, props.fontSize, props.slotWidth, props.slotHeight]) : undefined;
+  return <WordFlipContent key={key} {...props} />;
+}
+
+function WordFlipContent({
   prefix = "Looking For A",
   words = ["Modern", "Stunning", "Minimal"],
   suffix = "Portfolio",
@@ -268,6 +279,9 @@ export function WordFlip({
   className,
   theme,
   mode,
+  productionCompact = false,
+  slotWidth,
+  slotHeight,
 }: WordFlipProps) {
   const frame = useCurrentFrame() * speed;
   const { fps } = useVideoConfig();
@@ -290,6 +304,10 @@ export function WordFlip({
   const [metrics, setMetrics] = useState<{
     widths: number[];
     baseline: number;
+    fontSize?: number;
+    heights?: number[];
+    baselines?: number[];
+    blockHeight?: number;
   } | null>(null);
   const [handle] = useState(() => delayRender("word-flip: measuring the slot"));
   const wordRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -301,15 +319,63 @@ export function WordFlip({
       continueRender(handle);
       return;
     }
+    if (productionCompact) {
+      let cancelled = false;
+      const measure = async () => {
+        await document.fonts.ready;
+        if (cancelled) return;
+        if (!slotWidth || !slotHeight || slotWidth <= 0 || slotHeight <= 0 || !Number.isFinite(slotWidth + slotHeight)
+          || prefix || suffix || words.length === 0 || words.some((word) => !word.trim())) {
+          throw new Error("WordFlip production layout requires a positive slot width/height, words, and empty prefix/suffix.");
+        }
+        const probe = document.createElement("span");
+        const width = slotWidth - 2 - 48;
+        Object.assign(probe.style, {position: "fixed", display: "block", left: "-10000px", top: "0",
+          visibility: "hidden", width: `${width}px`, fontFamily: face, fontWeight: String(fontWeight),
+          lineHeight: "1.35", letterSpacing: "-0.02em", whiteSpace: "normal", textWrap: "balance", textAlign: "center"});
+        document.body.append(probe);
+        try {
+          // 42px is the phone-readable floor for this emphasized text. Measure
+          // every word, reserve motion margins, and allow at most two lines.
+          for (let size = Math.max(42, Math.min(62, Math.floor(fontSize / 2) * 2)); size >= 42; size -= 2) {
+            probe.style.fontSize = `${size}px`;
+            const readings = words.map((word) => {
+              probe.textContent = word;
+              const range = document.createRange();
+              range.selectNodeContents(probe);
+              const rects = Array.from(range.getClientRects());
+              const box = probe.getBoundingClientRect();
+              const baselineMark = document.createElement("span");
+              Object.assign(baselineMark.style, {display: "inline-block", width: "0", height: "0"});
+              probe.append(baselineMark);
+              return {height: Math.max(box.height, range.getBoundingClientRect().height), baseline: baselineMark.offsetTop,
+                fits: rects.length <= 2 && rects.every((rect) => rect.left >= box.left - 0.5 && rect.right <= box.right + 0.5)};
+            });
+            const blockHeight = Math.max(...readings.map((reading) => reading.height));
+            if (width > 0 && readings.every((reading) => reading.fits) && blockHeight <= slotHeight - 2 - 32) {
+              setMetrics({widths: words.map(() => width), baseline: readings[0].baseline,
+                fontSize: size, heights: readings.map((reading) => reading.height),
+                baselines: readings.map((reading) => reading.baseline), blockHeight});
+              return;
+            }
+          }
+          throw new Error(`WordFlip production slot ${Math.round(slotWidth)}x${Math.round(slotHeight)} cannot fit its words at 42px with at most two lines. Increase this slot or split the words.`);
+        } finally {
+          probe.remove();
+        }
+      };
+      measure().catch((error: Error) => {if (!cancelled) cancelRender(error);});
+      return () => {cancelled = true; continueRender(handle);};
+    }
     const widths = words.map((_, i) => wordRefs.current[i]?.offsetWidth ?? 0);
     const baseline = baselineRef.current?.offsetTop ?? 0;
     if (widths.length > 0 && widths.every((w) => w > 0)) {
       setMetrics({ widths, baseline });
     }
-  }, [metrics, handle, words]);
+  }, [metrics, handle, words, productionCompact, slotWidth, slotHeight, face, fontWeight, fontSize, prefix, suffix]);
 
   const scales = metrics ? fitScales(metrics.widths) : words.map(() => 1);
-  const slotWidth = metrics ? Math.max(...metrics.widths) : 0;
+  const wordSlotWidth = metrics ? Math.max(...metrics.widths) : 0;
   const baseline = metrics?.baseline ?? 0;
 
   // ---------------------------------------------------------------------------
@@ -325,7 +391,10 @@ export function WordFlip({
   const schedule = { typingEnd, pause, cycle, wordCount: words.length, loop };
   const { index: entering, local } = wordAt(frame, schedule);
 
-  const em = fontSize;
+  const em = metrics?.fontSize ?? fontSize;
+  // Keep the original flip schedule/curves. Compact slots reserve the actual
+  // measured block and bound its travel, rather than clipping the resting copy.
+  const travel = productionCompact ? Math.max(0, ((slotHeight ?? 0) - 2 - (metrics?.blockHeight ?? 0)) / 2 - 8) : Infinity;
   const outgoing = entering - 1;
   const enterStart = Math.max(0, exitDuration - overlap);
 
@@ -334,7 +403,7 @@ export function WordFlip({
     const t = interpolate(localFrame, [0, exitDuration], [0, 1], CLAMP);
     const p = easeInBack(t);
     return {
-      y: p * m.exitY * em,
+      y: p * Math.max(-travel, Math.min(travel, m.exitY * em)),
       rotate: p * m.rotate,
       scale: 1 + p * (m.scale - 1),
       blur: easeInBackSpeed(t) * m.blur * em,
@@ -354,7 +423,7 @@ export function WordFlip({
       { ...CLAMP, easing: Easing.bezier(0.2, 0.6, 0.35, 1) },
     );
     return {
-      y: (1 - p) * m.enterY * em,
+      y: (1 - p) * Math.max(-travel, Math.min(travel, m.enterY * em)),
       rotate: -(1 - p) * m.rotate,
       scale: m.scale + p * (1 - m.scale),
       blur: (1 - p) * m.blur * em,
@@ -381,13 +450,17 @@ export function WordFlip({
     : ({ willChange: "transform, opacity, filter" } as const);
 
   const lineStyle: React.CSSProperties = {
-    fontSize,
+    fontSize: em,
     fontWeight,
     color: fill,
     letterSpacing: "-0.02em",
     fontFamily: face,
-    lineHeight: 1.25,
-    whiteSpace: "pre",
+    lineHeight: productionCompact ? 1.35 : 1.25,
+    whiteSpace: productionCompact ? "normal" : "pre",
+    width: productionCompact ? wordSlotWidth : undefined,
+    display: productionCompact ? "block" : undefined,
+    textAlign: productionCompact ? "center" : undefined,
+    textWrap: productionCompact ? "balance" : undefined,
     // Hinting re-snaps every stem to the pixel grid as the size slides, so the
     // letterforms change shape frame to frame. Off, the type reads a shade
     // softer — that is the absence of a lie, not blur.
@@ -461,6 +534,7 @@ export function WordFlip({
   return (
     <AbsoluteFill
       className={className}
+      data-word-flip-ready={Boolean(metrics)}
       style={{
         alignItems: "center",
         justifyContent: "center",
@@ -509,7 +583,7 @@ export function WordFlip({
 
       <span style={lineStyle}>
         {prefixChars.map((ch, i) => typedChar(ch, i))}
-        {showCaret && caretInPrefix && <Caret />}{" "}
+        {showCaret && caretInPrefix && <Caret />}{!productionCompact && " "}
         {/*
           The slot. Fixed width from the widest word, so it is reserved before the
           first word ever arrives — during typing it is the gap the reference
@@ -520,14 +594,16 @@ export function WordFlip({
           style={{
             display: "inline-block",
             position: "relative",
-            width: slotWidth || undefined,
-            perspective: perspective * em,
+            width: wordSlotWidth || undefined,
+            height: productionCompact ? metrics?.blockHeight : undefined,
+            perspective: (productionCompact ? Math.max(40, perspective) : perspective) * em,
             verticalAlign: "baseline",
           }}
         >
           {/* In-flow strut: gives the inline-block its height and its baseline. */}
-          <span aria-hidden style={{ visibility: "hidden" }}>
-            {words[0] ?? ""}
+          <span aria-hidden style={{ visibility: "hidden", display: productionCompact ? "block" : undefined,
+            height: productionCompact ? metrics?.blockHeight : undefined }}>
+            {productionCompact ? "" : words[0] ?? ""}
           </span>
 
           {words.map((w, i) => {
@@ -537,19 +613,20 @@ export function WordFlip({
               <span
                 // biome-ignore lint/suspicious/noArrayIndexKey: words are positional
                 key={i}
+                data-word-flip-word={i}
                 style={{
                   ...wordPaint,
                   ...gpu,
                   position: "absolute",
                   left: 0,
-                  top: 0,
+                  top: productionCompact ? ((metrics?.blockHeight ?? 0) - (metrics?.heights?.[i] ?? 0)) / 2 : 0,
                   display: "inline-block",
-                  width: "max-content",
+                  width: productionCompact ? wordSlotWidth : "max-content",
                   // Everything pivots on the baseline. Anywhere else and the
                   // glyph origins climb the pixel grid in whole-pixel jumps as
                   // the scale moves the baseline, and the word sits still, jumps,
                   // sits still.
-                  transformOrigin: `0px ${baseline}px`,
+                  transformOrigin: productionCompact ? `${wordSlotWidth / 2}px ${metrics?.baselines?.[i] ?? baseline}px` : `0px ${baseline}px`,
                   transform: `translateY(${s.y}px) rotateX(${s.rotate}deg) scale(${
                     scales[i] * s.scale
                   })`,
@@ -561,7 +638,7 @@ export function WordFlip({
               </span>
             );
           })}
-        </span>{" "}
+        </span>{!productionCompact && " "}
         {suffixChars.map((ch, i) => typedChar(ch, prefix.length + i))}
         {showCaret && !caretInPrefix && <Caret />}
       </span>
