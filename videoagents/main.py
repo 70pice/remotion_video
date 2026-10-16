@@ -12,12 +12,22 @@ import time
 from pathlib import Path
 from typing import Any
 
-from videoagents.contracts import Brief, RetryFailedRunRequest, SettingsPatch
+from videoagents.contracts import (
+    Brief,
+    MaterialSelectionRequest,
+    RefreshShotsRequest,
+    ReplenishMaterialsRequest,
+    RestartUnknownRequest,
+    RetryFailedRunRequest,
+    SettingsPatch,
+    VisualRevisionRequest,
+)
 from videoagents.default_config import PROJECT_ROOT, RUNTIME_ROOT
-from videoagents.nodes.director_review import current_shot_review_artifact
+from videoagents.nodes.director_review import current_plan_artifact, current_shot_review_artifact
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.storage import Conflict, NotFound, Repository
+from videoagents.storage.repository import fingerprint
 from worker.runner import Worker
 
 
@@ -70,6 +80,26 @@ def cmd_create(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_restart_unknown(args: argparse.Namespace) -> int:
+    repo = _repository(args)
+    try:
+        brief = json.loads(Path(args.brief).read_text(encoding="utf-8")) if args.brief else None
+        materials_note = (Path(args.materials_note_file).read_text(encoding="utf-8")
+                          if args.materials_note_file else args.materials_note)
+        request = RestartUnknownRequest.model_validate({
+            "base_revision": repo.get_job(args.job_id).revision, "operation_id": args.operation_id,
+            "acknowledge_possible_usage": args.acknowledge_possible_usage, "note": args.note, "brief": brief,
+            "rebuild_script": args.rebuild_script,
+            "materials_only": args.materials_only, "materials_note": materials_note,
+            "director_only": args.director_only,
+        })
+        job = JobService(repo, PROJECT_ROOT).restart_unknown(args.job_id, request)
+    except (ValueError, OSError) as exc:
+        raise Conflict(str(exc)) from exc
+    emit(_job_summary(job))
+    return 0
+
+
 def cmd_run(args: argparse.Namespace) -> int:
     repo = _repository(args)
     job = repo.get_job(args.job_id)
@@ -96,6 +126,32 @@ def cmd_retry(args: argparse.Namespace) -> int:
     return _finish(repo, args.job_id)
 
 
+def cmd_refresh_shots(args: argparse.Namespace) -> int:
+    repo = _repository(args)
+    job = repo.get_job(args.job_id)
+    with repo.connection() as db:
+        existing = db.execute("SELECT payload FROM commands WHERE job_id=? AND idempotency_key=?",
+                              (job.job_id, args.idempotency_key)).fetchone()
+    if existing:
+        saved = json.loads(existing["payload"])
+        if saved.get("action") != "refresh_shots":
+            raise Conflict("同一个幂等键不能用于不同请求")
+        request = RefreshShotsRequest.model_validate(
+            {key: saved[key] for key in RefreshShotsRequest.model_fields})
+    else:
+        try:
+            plan, _ = current_plan_artifact(repo, job)
+            request = RefreshShotsRequest(base_revision=job.revision,
+                pending_token=(job.pending_input or {}).get("pending_token", "0" * 32),
+                director_plan_artifact_id=plan.artifact_id, director_plan_sha256=plan.sha256,
+                idempotency_key=args.idempotency_key)
+        except ValueError as exc:
+            raise Conflict(str(exc)) from exc
+    repo.enqueue(job.job_id, {"action": "refresh_shots", **request.model_dump()})
+    _drain(_worker(repo))
+    return _finish(repo, job.job_id)
+
+
 def cmd_resume(args: argparse.Namespace) -> int:
     repo = _repository(args)
     job = repo.get_job(args.job_id)
@@ -112,6 +168,77 @@ def cmd_resume(args: argparse.Namespace) -> int:
     repo.enqueue(job.job_id, payload)
     _drain(_worker(repo))
     return _finish(repo, args.job_id)
+
+
+def cmd_select_materials(args: argparse.Namespace) -> int:
+    repo = _repository(args)
+    job = repo.get_job(args.job_id)
+    try:
+        request = MaterialSelectionRequest(
+            base_revision=job.revision,
+            pending_token=(job.pending_input or {}).get("pending_token", "0" * 32),
+            idempotency_key="cli-material-selection",
+            note=Path(args.note_file).read_text(encoding="utf-8") if args.note_file else args.note,
+            accepted_asset_ids=args.accept_asset or [], rejected_asset_ids=args.reject_asset or [],
+        )
+    except (ValueError, OSError) as exc:
+        raise Conflict(str(exc)) from exc
+    identity = request.model_dump(exclude={"pending_token", "idempotency_key"})
+    key = args.idempotency_key or "cli-select-materials-" + fingerprint(identity)[:32]
+    # A repeated selection must reuse its original token after the new gate
+    # opens. Repository.enqueue still compares the full original request hash.
+    with repo.connection() as db:
+        existing = db.execute("SELECT payload FROM commands WHERE job_id=? AND idempotency_key=?",
+                              (job.job_id, key)).fetchone()
+    if existing:
+        previous = json.loads(existing[0])
+        if previous.get("action") != "resume" or any(previous.get(field) != value for field, value in identity.items()):
+            raise Conflict("同一个幂等键不能用于不同素材取舍")
+        request = request.model_copy(update={"pending_token": previous["pending_token"]})
+    request = request.model_copy(update={"idempotency_key": key})
+    repo.enqueue(job.job_id, {"action": "resume", **request.model_dump()})
+    _drain(_worker(repo))
+    return _finish(repo, job.job_id)
+
+
+def cmd_replenish_materials(args: argparse.Namespace) -> int:
+    repo = _repository(args)
+    job = repo.get_job(args.job_id)
+    previous = repo.materials_replenishment_receipt(job.job_id, args.idempotency_key)
+    try:
+        request = ReplenishMaterialsRequest(
+            base_revision=previous["source_revision"] if previous else job.revision,
+            pending_token=(previous["previous_pending_input"] if previous else job.pending_input or {}).get(
+                "pending_token", "0" * 32),
+            idempotency_key=args.idempotency_key, note=args.note,
+            materials_note=(Path(args.materials_note_file).read_text(encoding="utf-8")
+                            if args.materials_note_file else args.materials_note),
+            retained_asset_ids=args.retain_asset,
+        )
+        job = JobService(repo, PROJECT_ROOT).replenish_materials(job.job_id, request)
+    except (ValueError, OSError) as exc:
+        raise Conflict(str(exc)) from exc
+    emit(_job_summary(job))
+    return 0
+
+
+def cmd_revise_visuals(args: argparse.Namespace) -> int:
+    repo = _repository(args)
+    job = repo.get_job(args.job_id)
+    previous = repo.visual_revision_receipt(job.job_id, key=args.idempotency_key)
+    try:
+        request = VisualRevisionRequest(
+            base_revision=(args.base_revision if args.base_revision is not None else
+                           previous["source_revision"] if previous else job.revision),
+            idempotency_key=args.idempotency_key,
+            shot_ids=[item.strip() for item in args.shot_ids.split(",")],
+            note=Path(args.note_file).read_text(encoding="utf-8-sig"), preview=args.preview,
+        )
+        JobService(repo, PROJECT_ROOT).revise_visuals(job.job_id, request)
+    except (ValueError, OSError) as exc:
+        raise Conflict(str(exc)) from exc
+    _drain(_worker(repo))
+    return _finish(repo, job.job_id)
 
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -192,6 +319,49 @@ def cmd_poll(args: argparse.Namespace) -> int:
     return _finish(repo, args.job_id)
 
 
+def cmd_sync_review(args: argparse.Namespace) -> int:
+    """Mirror the current human gate without reading a decision or advancing it."""
+    from videoagents.providers.feishu import (
+        REVIEW_STAGE_SCRIPT,
+        REVIEW_STAGE_SCRIPT_ONLY,
+        REVIEW_STAGE_SHOTS,
+        FeishuReviewBase,
+        FeishuUnavailable,
+    )
+
+    repo = _repository(args)
+    job = repo.get_job(args.job_id)
+    pending = job.pending_input
+    if job.status != "NEEDS_HUMAN" or not pending:
+        emit({"error": "任务没有当前人工审核待办", "status": job.status})
+        return 2
+    node = pending.get("node_name")
+    if node not in {"script_human_gate", "human_review_script", "director_human_gate"} or (
+            node == "director_human_gate" and pending.get("review_mode") != "per_shot_stills"):
+        emit({"error": "当前待办不支持飞书同步", "status": job.status})
+        return 2
+    settings = SettingsService(repo).internal()
+    base = FeishuReviewBase(repo, settings.get("feishu_folder_token", ""), allow_root_creation=args.root)
+    try:
+        if node == "script_human_gate":
+            base.sync_script(job)
+            stage = REVIEW_STAGE_SCRIPT_ONLY
+        elif node == "human_review_script":
+            base.sync_script_and_assets(job)
+            stage = REVIEW_STAGE_SCRIPT
+        else:
+            _, manifest = current_shot_review_artifact(repo, job, validate_components=False)
+            base.sync_shots(job, manifest)
+            stage = REVIEW_STAGE_SHOTS
+        base.submit_review(job, stage, pending["pending_token"],
+                           "\n".join(pending["confirmation_requirements"]))
+    except (FeishuUnavailable, ValueError) as exc:
+        emit({"error": str(exc), "status": job.status})
+        return 2
+    emit({**_job_summary(job), "synced": True})
+    return 0
+
+
 def cmd_cancel(args: argparse.Namespace) -> int:
     repo = _repository(args)
     job = repo.cancel(args.job_id)
@@ -257,6 +427,48 @@ def build_parser() -> argparse.ArgumentParser:
     retry.add_argument("job_id")
     retry.set_defaults(handler=cmd_retry)
 
+    revise = sub.add_parser("revise-visuals", help="成片完成后仅返工指定镜头，新版本停在完整逐镜审核")
+    revise.add_argument("job_id")
+    revise.add_argument("--shot-ids", required=True, help="原镜头 ID，逗号分隔")
+    revise.add_argument("--note-file", required=True, help="UTF-8 视觉返工意见文件")
+    revise.add_argument("--idempotency-key", required=True)
+    revise.add_argument("--base-revision", type=int)
+    revise.add_argument("--preview", action="store_true", help="另渲染选中镜头范围的动态预览（最多 30 秒）")
+    revise.set_defaults(handler=cmd_revise_visuals)
+
+    refresh = sub.add_parser("refresh-shots", help="同一摄影方案重渲全部代表帧，重新等待整包人工审核")
+    refresh.add_argument("job_id")
+    refresh.add_argument("--idempotency-key", required=True, help="本次逐镜刷新唯一键；重放同键不重复渲染")
+    refresh.set_defaults(handler=cmd_refresh_shots)
+
+    restart = sub.add_parser("restart-unknown", help="明确接受可能计费后保存新版草稿，不自动执行")
+    restart.add_argument("job_id")
+    restart.add_argument("--operation-id", required=True, help="当前 UNKNOWN 编剧、素材或摄影模型操作 ID")
+    restart.add_argument("--acknowledge-possible-usage", action="store_true", required=True,
+                         help="明确承认旧提交可能已消耗额度")
+    restart.add_argument("--note", required=True, help="用户授权依据与重启说明")
+    restart.add_argument("--brief", default="", help="可选：新版完整 Brief JSON 文件")
+    scope = restart.add_mutually_exclusive_group()
+    scope.add_argument("--rebuild-script", action="store_true",
+                         help="素材 UNKNOWN 时明确弃用已完成文案，新版本重走编剧与素材")
+    scope.add_argument("--materials-only", action="store_true", help="素材 UNKNOWN 时保留已审文案，仅重采素材")
+    scope.add_argument("--director-only", action="store_true",
+                       help="摄影 UNKNOWN 时保留联合批准与真实音频；note 同时提供最新摄影要求")
+    material_notes = restart.add_mutually_exclusive_group()
+    material_notes.add_argument("--materials-note", default="", help="仅交给素材角色的采集要求")
+    material_notes.add_argument("--materials-note-file", default="", help="UTF-8 素材采集要求文件")
+    restart.set_defaults(handler=cmd_restart_unknown)
+
+    replenish = sub.add_parser("replenish-materials", help="联合待审时保留已审文案与指定素材，授权新版补采；随后 run")
+    replenish.add_argument("job_id")
+    replenish.add_argument("--retain-asset", action="append", required=True, help="显式导入保留素材的完整ID，可重复指定")
+    replenish.add_argument("--note", required=True, help="用户补采授权依据")
+    replenish_notes = replenish.add_mutually_exclusive_group(required=True)
+    replenish_notes.add_argument("--materials-note", help="仅交给素材角色的补采要求")
+    replenish_notes.add_argument("--materials-note-file", help="UTF-8 素材补采要求文件")
+    replenish.add_argument("--idempotency-key", required=True, help="本次补采授权的唯一键；重复相同命令复用授权")
+    replenish.set_defaults(handler=cmd_replenish_materials)
+
     resume = sub.add_parser("resume", help="回复人工审核(飞书不可用时的兜底入口)")
     resume.add_argument("job_id")
     resume.add_argument("--decision", required=True, choices=["confirm", "revise", "cancel"])
@@ -265,9 +477,24 @@ def build_parser() -> argparse.ArgumentParser:
     resume.add_argument("--idempotency-key", default="")
     resume.set_defaults(handler=cmd_resume)
 
+    selection = sub.add_parser("select-materials", help="部分保留/拒绝素材；整包审核仍待审，不调用生产模型")
+    selection.add_argument("job_id")
+    selection.add_argument("--accept-asset", action="append", help="保留的完整素材ID，可重复指定")
+    selection.add_argument("--reject-asset", action="append", help="不采用的完整素材ID，可重复指定")
+    selection_note = selection.add_mutually_exclusive_group(required=True)
+    selection_note.add_argument("--note", help="素材取舍说明，最多3000字符")
+    selection_note.add_argument("--note-file", help="UTF-8 素材取舍说明文件")
+    selection.add_argument("--idempotency-key", default="")
+    selection.set_defaults(handler=cmd_select_materials)
+
     poll = sub.add_parser("poll", help="读取飞书审核记录中的人工决定并续跑")
     poll.add_argument("job_id")
     poll.set_defaults(handler=cmd_poll)
+
+    sync = sub.add_parser("sync-review", help="仅同步当前人工审核资料到飞书，不续跑")
+    sync.add_argument("job_id")
+    sync.add_argument("--root", action="store_true", help="明确允许未配置文件夹时在用户云空间根目录创建 Base")
+    sync.set_defaults(handler=cmd_sync_review)
 
     status = sub.add_parser("status", help="任务状态;不带 job_id 列出全部")
     status.add_argument("job_id", nargs="?", default="")

@@ -22,6 +22,7 @@ from videoagents.nodes.common import (
     start_stage,
     state_context,
 )
+from videoagents.nodes.script_review import SCRIPT_REVIEW_NODE
 from videoagents.prompts import load_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.services.jobs import JobService
@@ -77,7 +78,7 @@ class ScreenwriterNode:
             if issues:
                 raise ValueError("；".join(issues))
             self.save(job, script)
-            return state_context(self.repo, state, route="materials", gate_issues=[])
+            return state_context(self.repo, state, route=SCRIPT_REVIEW_NODE, gate_issues=[])
         except (CapabilityMissing, ValueError) as exc:
             return request_input(self.repo, state, "script", [str(exc)], getattr(exc, "fields", ["script"]), exc)
 
@@ -118,7 +119,7 @@ class ScreenwriterNode:
         script = script.model_copy(update={"origin": script.origin or "model", "revision": job.revision})
         job = self.repo.update_job(job.job_id, job.revision, script=script,
                                    status="RUNNING", stage="script",
-                                   message="文案段落与口播已生成，交素材节点按画面需求清单采集",
+                                   message="文案段落与口播已生成，等待人工确认后再采集素材",
                                    expected_event_id=current.latest_event_id)
         self.service.write_json(job, "script.json", script.model_dump(), "script")
         return job
@@ -144,7 +145,7 @@ class ScreenwriterNode:
 
     def write(self, job: Job, context: dict[str, Any]) -> Script:
         brief = Brief.model_validate(context["brief"])
-        # Historical ready-to-read scripts skip research and go straight to materials.
+        # Ready-to-read scripts skip research, but still require human approval.
         if brief.script_text.strip():
             chunks = [item.strip() for item in re.split(r"\n+", brief.script_text) if item.strip()]
             if len(chunks) == 1 and len(chunks[0]) > 72:
@@ -176,7 +177,7 @@ class ScreenwriterNode:
     def rewrite(self, job: Job, context: dict[str, Any], feedback: dict[str, Any]) -> Script:
         if type(feedback.get("script")) is dict:
             context = {**context, "script": feedback["script"]}
-        fields = ("brief", "script", "research", "assets")
+        fields = ("brief", "script", "research", "assets", "settings")
         if context.get("extras", {}).get("human_feedback"):
             fields = (*fields, "extras")
         folder, audit_path = self._research_directory(job)

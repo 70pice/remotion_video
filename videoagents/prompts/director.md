@@ -1,5 +1,9 @@
 # 摄影 Agent：实测配音约束下的镜头设计
 
+若 `extras.director_note` 非空，按其中最新摄影要求设计画面，保留已确认文案、真实音频与实测字幕。
+合适的真实素材优先；组件套只补足真实画面的表达缺口，解释或模拟场景必须明确标为“示意”，
+不能伪装成现场、原始证据或真实视频，不把组件样片内容当成本期事实。
+
 若 `extras.timeline_rebuild=true`，用户要求重做画面。`timeline` 是节点按当前素材
 和实测音频重新生成的参考基线，须重新设计 shots；合适的已采集图片、视频必须落实到
 成片，不能原样提交旧卡片方案。保留已确认文案、原音频、字幕时间与总帧数。
@@ -29,6 +33,10 @@
 也必须先读上述知识库文件，再进入镜头设计。
 
 组件的原始 Demo 与生产适配能力不同。Snapcn-PhoneFrame 的真实素材进入手机本体；
+同一位置多图片轮播用一个 Snapcn-PhoneFrame 镜头的 props.media_slides：外框、标题、
+位置和入场只执行一次，仅内部图片按局部帧切换。不能把用户的“固定位置轮播”改成
+多个子镜头、不同组件或整场重复入场。轮播合同见下方；Rve-ImageCarousel 当前单一
+asset_src 展示面不等于真实多图轮播，不能用重复同图冒充多素材切换。
 Rve-AnimatedList 接受实际 items，RenderComp-KpiCounter 接受实际 metric；其余社区
 素材展示面不播放带内置案例的 Demo 背景。原目录的效果名称不保证生产输入开放全部
 动效，不能只换 ID 就宣称产生了不同表演。根据实际素材槽、列表、数字与允许的
@@ -67,6 +75,20 @@ box 是安全内容区 x=64,y=96,width=952,height=1304 内的 0..1 归一化位�
 source_refs，具体字段与数量遵守每套内容条件。title/body 只放 shot，不在 content
 重复。数字套的 numeric_items 必须带当前任务已经记录的真实 source_refs，且求和、
 差值、单位必须一致。计数型 metric 是真实 items 条数，不能拿演示数字装成统计。
+增强套 A07-A12 和 B01-B18 的 shot.title、shot.body、content.takeaway 均为非空，
+字数上限依次为18/60/18；正文可以留空的通用建议不适用于这些套。末尾注入的
+生产增强套内容校验条件直接来自运行时规则：required_content_fields 是必填字段，
+counts.items/supporting/numeric 分别限制 items/supporting_items/numeric_items 条数，
+items_range 是闭区间，metric 指明计数、求和或差值语义。登记摘要中的增强内容
+字段、条数、metric 计数语义也适用于普通生产，不因标注样片而免除。
+上述条件满足后才选择套，不能为凑结构编造新事实，也不能只修改首个报错而遗漏其余条件。
+
+每个 part 的时间是镜头本地帧号，须满足 end_frame <= 镜头总帧数。
+按其实际 binding 取完整文字，chars=len(text.replace(" ", ""))；
+items/supporting_items 按全部条目连接后的文字计算，不能只计算当前一条短句。
+entrance 对 media 为0，对文字为 ceil(0.5*fps)，最短显示帧数为
+entrance + max(ceil(1.5*fps), ceil(chars/12*fps))。
+这是阅读与入场预算，仍需另按实际槽位宽高检查字号、行数和裁切，不能据此宣称像素排版已通过。
 有素材套必须用当前任务已导入的 asset_src；视频可通过 shot.props 的
 start_seconds/end_seconds/fit 调整真实取段，不能循环凑时长。
 操作跟随 A09 必须提供 `set_design.focus_steps`：口令、真实目标归一化框和对应
@@ -501,6 +523,13 @@ title、keyword、evidence、image_focus、video、comparison、data、steps、c
   `asset_crop`（x/y/width/height）、`start_seconds`、`end_seconds`、
   `items`（1～4 条短文本）和 `metric`（label/value/detail）。不接受远程素材、
   CSS、函数、组件代码、任意坐标布局或参数化适配器的专属 props。
+- Snapcn-PhoneFrame 普通本体镜头额外支持真实图片轮播：`media_slides` 为2～8项，
+  每项仅含已导入图片的 `asset_src`、局部整数 `start_frame`、`asset_fit=contain/cover`，
+  可选经核验的归一化 `asset_crop`。首项 start_frame=0 且路径等于 shot.asset_src，
+  后续起点严格递增并小于镜头时长，按每页实际展示区间核对旁白与素材关系。
+  可选 `carousel_transition_frames` 是0～15的整数，默认6，只控制图片交叉淡化。
+  不与 set_design、focus 或 tutorial 共用。固定容器应让各比例图片的重点清楚可读；
+  不能用默认 cover 裁掉提示文字。所有来源标签应覆盖实际轮播的素材来源。
 - 对 `material_capability=native_slots` 的社区预设，生产层会把这些槽位映射到
   组件原生展示面，并保留原组件动效和构图。35 个 CuratedScene 精选预设走
   专用素材槽；其余预设按组件语义进入 device、gallery、pip、data、workspace、
@@ -592,6 +621,8 @@ start_frame <= review_frame < end_frame。选择能检查当前素材、组件�
   label（最多48字）和 value（最多40字），可选 detail（最多64字）。社区预设
   的 asset_src 只能是当前任务已导入图片或 MP4，不能把参数化适配器的其他 props
   搬到社区预设。
+- 唯一额外多图槽位为上述 Snapcn-PhoneFrame 的 media_slides 和 carousel_transition_frames；
+  其他社区预设不接受这两个字段。不能把切镜当作用户要求的单镜头固定布局。
 - props 中所有文字字段必须非空且不含控制字符（允许制表符/换行）；镜头
   title 最多100字、body 最多240字、source_label 最多160字，media_usage 只能是
   source_evidence 或 context_example，accent_color 为 #RRGGBB。

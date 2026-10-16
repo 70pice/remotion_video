@@ -16,6 +16,7 @@ from videoagents.nodes.gates import timeline_readability_issues
 from videoagents.nodes.reviewers import dependency_fingerprint
 from videoagents.prompts import load_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
+from videoagents.services.context_media import validate_production_timeline
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.state import VideoState
@@ -23,7 +24,7 @@ from videoagents.storage import Repository
 from videoagents.storage.repository import fingerprint
 from videoagents.tools.component_sets import allowed_component_set_templates
 from videoagents.tools.components import native_component_capabilities
-from videoagents.tools.timeline import asset_renderable, validate_timeline
+from videoagents.tools.timeline import asset_renderable
 from worker.process_manager import render
 
 PROMPT = load_prompt("editing")
@@ -50,24 +51,47 @@ class DirectorInputError(ValueError):
     """A visual plan issue must return to its owning production node."""
 
 
-def has_unapplied_human_feedback(extras: dict[str, Any]) -> bool:
-    """Only expose revision feedback that still needs an agent response.
+def editing_visual_review_context(repository: Repository, job: Job) -> dict[str, Any]:
+    """Pass durable visual decisions without any reviewed input snapshots."""
+    reviews, applied = [], []
+    for artifact in job.artifacts:
+        if artifact.revision != job.revision or artifact.kind not in {"stage_review", "human_feedback_applied"}:
+            continue
+        value = json.loads(checked_artifact(repository, job, artifact).read_text(encoding="utf-8"))
+        if value.get("revision") != job.revision or value.get("stage") != "director":
+            continue
+        if artifact.kind == "stage_review" and value.get("node_name") == "director_human_gate":
+            reviews.append((artifact, value))
+        elif (artifact.kind == "human_feedback_applied" and value.get("target") == "director"
+                and value.get("applied") is True):
+            applied.append((artifact, value))
+    result = {}
+    if applied:
+        applied_artifact, committed = applied[-1]
+        match = next(((artifact, value) for artifact, value in reversed(reviews)
+                      if value.get("decision") == "revise"
+                      and value.get("pending_token") == committed.get("pending_token")
+                      and value.get("note") == committed.get("note")), None)
+        if match:
+            artifact, value = match
+            result["applied_director_feedback"] = {
+                **{key: value[key] for key in ("revision", "pending_token", "note")},
+                "review_artifact_id": artifact.artifact_id, "applied_artifact_id": applied_artifact.artifact_id,
+            }
+    if reviews and reviews[-1][1].get("decision") == "confirm" and director_demo_is_approved(repository, job):
+        artifact, value = reviews[-1]
+        result["shot_review_confirmation"] = {
+            **{key: value[key] for key in (
+                "revision", "pending_token", "note", "review_mode", "reviewed_shot_ids",
+                "director_shot_review_artifact_id", "dependency_fingerprint") if key in value},
+            "review_artifact_id": artifact.artifact_id,
+        }
+        from videoagents.services.director_recovery import visual_revision_context
 
-    Applied receipts retain the reviewed script/timeline snapshot for audit
-    purposes.  Passing those immutable snapshots back to the editor after the
-    director has already changed ``job.timeline`` lets the model mistake the
-    old reviewed Timeline for the current executable one.
-    """
-
-    feedback = extras.get("human_feedback", {})
-    if type(feedback) is not dict:
-        return False
-    return any(
-        type(item) is dict
-        and item.get("decision") == "revise"
-        and item.get("applied") is not True
-        for item in feedback.values()
-    )
+        revision = visual_revision_context(repository, job)
+        if revision:
+            result["visual_revision"] = revision
+    return result
 
 
 def compact_timeline_for_editing(timeline: dict[str, Any]) -> dict[str, Any]:
@@ -133,11 +157,18 @@ class EditingNode:
         job = self.repo.update_job(job.job_id, job.revision, status="DRAFT", message="成片已渲染完成，可人工查看后决定是否发布", stage="complete", progress=1)
         return state_context(self.repo, state, route="end")
 
-    def render_video(self, job: Job, mode: str, state: VideoState | None = None) -> None:
+    def render_video(self, job: Job, mode: str, state: VideoState | None = None, *,
+                     frame_range: tuple[int, int] | None = None) -> None:
         if not job.timeline:
             raise ValueError("没有可执行分镜")
+        explicit_range = frame_range is not None
+        if explicit_range and (mode != "preview" or type(frame_range) is not tuple or len(frame_range) != 2
+                or any(type(frame) is not int for frame in frame_range)
+                or not 0 <= frame_range[0] < frame_range[1] <= job.timeline.duration_in_frames
+                or frame_range[1] - frame_range[0] > job.timeline.fps * 30):
+            raise ValueError("动态审核预览需要时间轴内不超过30秒的连续整数帧范围，且只能用于preview")
         metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
-        validate_timeline(job.timeline, job, metadata)
+        validate_production_timeline(self.repo, job, job.timeline, metadata)
         issues = timeline_readability_issues(job.timeline) if (job.brief.width, job.brief.height, job.brief.fps) == (1080, 1920, 30) else []
         if issues:
             raise DirectorInputError("；".join(issues))
@@ -152,7 +183,9 @@ class EditingNode:
                        } for asset in job.assets
                            if asset.mime_type.startswith(("image/", "video/"))}}
             fields = ("brief", "script", "timeline", "assets", "asset_metadata", "action")
-            if has_unapplied_human_feedback(context.get("extras", {})):
+            visual_review = editing_visual_review_context(self.repo, job)
+            if visual_review:
+                context = {**context, "extras": {"visual_review": visual_review}}
                 fields = (*fields, "extras")
             instruction = editing_prompt(job)
             value = self.model.invoke(context, "editing", instruction,
@@ -174,11 +207,16 @@ class EditingNode:
             self.service.freeze_asset(asset)
         folder = self.repo.root / "jobs" / job.job_id / "revisions" / str(job.revision) / "renders" / uuid.uuid4().hex
         folder.mkdir(parents=True, exist_ok=True)
-        frame_range = None
         render_metadata = {"dependency_fingerprint": dependency_fingerprint(job)}
         if mode == "preview":
             plan_artifact, plan = current_plan_artifact(self.repo, job)
-            frame_range = (plan["demo"]["start_frame"], plan["demo"]["end_frame"])
+            if frame_range is None:
+                demo = plan.get("demo")
+                if not isinstance(demo, dict):
+                    raise ValueError("逐镜审核方案的动态预览必须指定连续帧范围")
+                frame_range = (demo["start_frame"], demo["end_frame"])
+            if explicit_range:
+                render_metadata["motion_preview"] = True
             render_metadata.update(director_plan_sha256=plan_artifact.sha256, frame_range=list(frame_range))
         timeline_path, output, cover = folder / "timeline.json", folder / f"{mode}.mp4", folder / "cover.png"
         timeline_path.write_text(job.timeline.model_dump_json(indent=2), encoding="utf-8")

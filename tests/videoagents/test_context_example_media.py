@@ -112,11 +112,16 @@ def test_context_usage_never_relaxes_task_media_path_ownership():
         validate_timeline(Timeline.model_validate(raw), job)
 
 
-def test_context_video_ranges_cannot_repeat_to_inflate_media_coverage():
+@pytest.mark.parametrize("approved_only", [False, True])
+def test_context_video_ranges_cannot_repeat_to_inflate_media_coverage(approved_only):
     job, raw = scene_fixture()
     video = job.assets[1]
     video.mime_type = "video/mp4"
     video.timeline_src = "videoagents/context-test/assets/profile.mp4"
+    if approved_only:
+        video.source_url = "https://context.example/similar-product"
+        job.script.segments[1].asset_ids.remove(video.asset_id)
+        raw["shots"][0]["source_label"] = "另案示例｜context.example｜同类示意｜非涉案"
     second = copy.deepcopy(raw["shots"][0])
     second.update(shot_id="scene-again", start_frame=60, end_frame=120)
     raw["shots"] = [raw["shots"][0], second]
@@ -125,4 +130,31 @@ def test_context_video_ranges_cannot_repeat_to_inflate_media_coverage():
         shot["asset_src"] = video.timeline_src
         shot["props"] = {"start_seconds": 0, "end_seconds": 2, "fit": "contain"}
     with pytest.raises(ValueError, match="重复使用相同截取区间"):
-        media_coverage_report(Timeline.model_validate(raw), job, {video.asset_id: {"duration_seconds": 4}})
+        media_coverage_report(Timeline.model_validate(raw), job, {video.asset_id: {"duration_seconds": 4}},
+                              approved_context_sources={video.timeline_src} if approved_only else None)
+
+
+def test_approved_context_keeps_video_duration_and_task_path_constraints():
+    job, raw = scene_fixture()
+    video = job.assets[1]
+    video.mime_type = "video/mp4"
+    video.timeline_src = "videoagents/context-test/assets/profile.mp4"
+    video.source_url = "https://context.example/similar-product"
+    job.script.segments[1].asset_ids.remove(video.asset_id)
+    shot = raw["shots"][0]
+    shot.update(component_id="video", asset_src=video.timeline_src,
+                source_label="另案示例｜context.example｜同类示意｜非涉案")
+    shot["props"] = {"start_seconds": 0, "end_seconds": 2, "fit": "contain"}
+    proof = {video.timeline_src}
+    validate_timeline(Timeline.model_validate(raw), job, {video.asset_id: {"duration_seconds": 2}},
+                      approved_context_sources=proof)
+    shot["props"]["start_seconds"], shot["props"]["end_seconds"] = 1, 3
+    with pytest.raises(ValueError, match="实测时长"):
+        validate_timeline(Timeline.model_validate(raw), job, {video.asset_id: {"duration_seconds": 2}},
+                          approved_context_sources=proof)
+    shot["props"]["start_seconds"], shot["props"]["end_seconds"] = 0, 2
+    video.timeline_src = "videoagents/other-job/assets/profile.mp4"
+    shot["asset_src"] = video.timeline_src
+    with pytest.raises(ValueError, match="路径不属于"):
+        validate_timeline(Timeline.model_validate(raw), job, {video.asset_id: {"duration_seconds": 2}},
+                          approved_context_sources={video.timeline_src})

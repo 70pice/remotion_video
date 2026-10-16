@@ -19,14 +19,16 @@
 - 失败:`videoagents retry <job_id>`;连续失败读任务 message 与产物路径定位,属代码问题的转操作者。
 - 取消/删除:`cancel` / `delete`(delete 仅限已取消且未完成的任务)。
 
-## 两个人工门(决定永远是人做,你是记录员和呈递者)
+## 三个人工门(决定永远是人做,你是记录员和呈递者)
 
-1. **文案与素材门**(编剧+素材之后):引擎已把 文案表/素材清单表/审核记录 同步到该视频的飞书 Base。
+1. **文案门**(编剧之后、素材之前):把口播全文与来源交给人，尚未采集素材时也必须暂停待审。飞书配置可用时同步文案表与审核记录；不可用时在对话呈递并走 `resume`。确认后才允许素材节点执行，要求改稿则返回编剧，不能把返工要求记成通过。
+2. **文案与素材门**(编剧+素材之后):引擎已把 文案表/素材清单表/审核记录 同步到该视频的飞书 Base。
    - 把口播全文贴进对话给人看;素材缺口(limitations)要明说,不粉饰。
    - 人在飞书把「审核记录」结论改为 通过/需修改(需修改必须填意见),或直接口头告诉你。
    - 口头意见 → 你整理成明确修改要求后 `videoagents resume <job_id> --decision revise --note "<意见>"`;
      通过 → `videoagents poll <job_id>` 从飞书读回并续跑(poll 也可作为两种方式的统一入口)。
-2. **逐镜门**(摄影之后):`videoagents shots` 的 PNG 路径给人(人可在飞书「镜头编排」表里看附件);
+   - 只取舍部分素材 → `videoagents select-materials <job_id> --reject-asset <完整ID> --accept-asset <完整ID> --note-file <UTF-8文件>`；两种ID参数均可重复或只用一种。仍停在本门待审，不能据此启动配音；见 [素材部分取舍](../videoagents-material-selection.md)。
+3. **逐镜门**(摄影之后):`videoagents shots` 的 PNG 路径给人(人可在飞书「镜头编排」表里看附件);
    整包确认才继续:飞书结论通过 → `poll`(自动带全部镜头 ID),或 `resume --decision confirm
    --note ... --shot-ids <全部>`。
 

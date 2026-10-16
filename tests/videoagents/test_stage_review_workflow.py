@@ -130,6 +130,9 @@ def run_or_resume(pipeline, decision=None, note="UNIT：已核对当前阶段内
 def test_default_flow_requires_director_demo_approval_before_rendering(staged_pipeline):
     _, _, _, calls, _ = staged_pipeline
     current, checkpoint = run_or_resume(staged_pipeline)
+    assert current.pending_input["node_name"] == "script_human_gate"
+    assert calls["materials"] == calls["voice"] == 0
+    current, checkpoint = run_or_resume(staged_pipeline, "confirm")
     assert current.pending_input["node_name"] == "human_review_script"
     assert checkpoint.interrupts and calls["voice"] == calls["director"] == calls["director_demo"] == calls["editing"] == 0
 
@@ -138,12 +141,12 @@ def test_default_flow_requires_director_demo_approval_before_rendering(staged_pi
     assert checkpoint.interrupts
     assert calls["voice"] == calls["director"] == calls["director_demo"] == 1
     assert calls["editing"] == 0
-    assert len(checkpoint.values["human_reviews"]) == 1
+    assert len(checkpoint.values["human_reviews"]) == 2
 
     current, checkpoint = run_or_resume(staged_pipeline, "confirm")
     assert not checkpoint.interrupts
     assert calls["editing"] == 1
-    assert len(checkpoint.values["human_reviews"]) == 2
+    assert len(checkpoint.values["human_reviews"]) == 3
     assert current.status == "DRAFT" and current.stage == "render" and current.progress == 1
     assert current.review is None
 
@@ -151,6 +154,7 @@ def test_default_flow_requires_director_demo_approval_before_rendering(staged_pi
 def test_director_demo_revise_returns_to_director_and_requires_fresh_demo_approval(staged_pipeline):
     _, _, _, calls, feedback_seen = staged_pipeline
     run_or_resume(staged_pipeline)
+    run_or_resume(staged_pipeline, "confirm")
     current, _ = run_or_resume(staged_pipeline, "confirm")
     token = current.pending_input["pending_token"]
     before = calls.copy()
@@ -173,7 +177,7 @@ def test_script_revise_returns_to_writer_and_requires_a_fresh_approval(staged_pi
     before = calls.copy()
     note = "UNIT：请根据 script 当前内容修改画面或表达，重新审核。"
     current, checkpoint = run_or_resume(staged_pipeline, "revise", note)
-    assert current.pending_input["node_name"] == "human_review_script" and checkpoint.interrupts
+    assert current.pending_input["node_name"] == "script_human_gate" and checkpoint.interrupts
     assert current.pending_input["pending_token"] != token
     assert calls["screenwriter"] == before["screenwriter"] + 1
     assert feedback_seen[-1] == ("screenwriter", "script", note)

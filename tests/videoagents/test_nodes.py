@@ -61,8 +61,8 @@ def test_screenwriter_node_saves_output_and_routes_without_a_graph(tmp_path):
 
     result = ScreenwriterNode(repo, service)(state)
     saved = repo.get_job(job.job_id)
-    # The writer comes first now: a user script flows straight to materials.
-    assert result["route"] == "materials" and not result["gate_issues"]
+    # A supplied script still requires the same explicit pre-collection approval.
+    assert result["route"] == "script_human_gate" and not result["gate_issues"]
     assert saved.stage == "script" and saved.status == "RUNNING"
     assert saved.script.segments[0].narration == job.brief.script_text
     artifact = next(item for item in saved.artifacts if item.kind == "script")

@@ -11,6 +11,7 @@ from videoagents.providers.llm import JsonModel
 from videoagents.services.jobs import JobService
 from videoagents.services.settings import SettingsService
 from videoagents.storage import Repository
+from videoagents.tools.sources import MAX_SOURCE_TEXT_CHARS
 from worker.process_manager import RenderCancelled
 
 URL = "https://example.com/muse"
@@ -87,6 +88,33 @@ def test_skills_ingests_real_files_freezes_results_and_removes_tool_artifacts(se
     assert node(state(saved))["research"] == first["research"]
     assert len(calls) == 1
     assert not calls[0]["audit_path"].is_relative_to(calls[0]["research_directory"])
+
+
+@pytest.mark.parametrize("prefix_length", [228000, 300000])
+def test_skills_preserves_bounded_late_source_text_in_shared_research(setup, monkeypatch, prefix_length):
+    repo, _, node, job = setup
+    evidence = "CASE-0001: 1,200 accounts, 36,000 messages, $3.45."
+    text = "a" * prefix_length + evidence
+    body = text.encode("utf-8")
+
+    def replace_source(data, folder):
+        (folder / "source.txt").write_bytes(body)
+        data["sources"][0]["sha256"] = hashlib.sha256(body).hexdigest()
+
+    calls = install_output(monkeypatch, node, mutate=replace_source)
+
+    result = node(state(job))
+
+    source = result["research"]["sources"][0]
+    assert source["text"] == text[:MAX_SOURCE_TEXT_CHARS]
+    if prefix_length < MAX_SOURCE_TEXT_CHARS:
+        assert evidence in source["text"]
+    path, _, owner = repo.artifact_path(source["artifact_id"])
+    assert owner == job.job_id
+    assert path.read_bytes() == body
+    assert source["sha256"] == hashlib.sha256(body).hexdigest()
+    assert node(state(repo.get_job(job.job_id)))["research"] == result["research"]
+    assert len(calls) == 1
 
 
 def test_skills_strips_browser_only_url_fragments_before_validation(setup, monkeypatch):

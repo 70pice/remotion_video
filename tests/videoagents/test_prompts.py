@@ -68,6 +68,7 @@ def _field_env(function: ast.FunctionDef | ast.AsyncFunctionDef) -> dict[str, tu
 
 PROMPT_FILES = [
     "materials",
+    "materials-restart",
     "screenwriter",
     "screenwriter-rewrite",
     "voice",

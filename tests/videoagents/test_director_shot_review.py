@@ -311,3 +311,27 @@ def test_graph_waits_for_all_shots_and_resume_forwards_explicit_review_ids(shot_
     assert current.status == "DRAFT" and current.stage == "complete"
     assert len(rendered) == 1 and final_calls == [job.job_id]
     assert director_demo_is_approved(repo, current)
+
+
+def test_refresh_shots_forces_same_plan_once_and_reuses_published_package(shot_subject, monkeypatch):
+    repo, service, _, plan_artifact, _ = shot_subject
+    job, old_review, _ = write_review_package(shot_subject)
+    timeline = job.timeline.model_dump()
+    calls = []
+    monkeypatch.setattr("videoagents.nodes.director_demo.render_shot_reviews", frame_render_double(calls))
+    monkeypatch.setattr(EditingNode, "render_video", lambda *a, **k: pytest.fail("refresh rendered video"))
+    state = node_state(repo, job)
+    state.update(action="refresh_shots", run_id="unit-refresh-command")
+    node = DirectorDemoNode(repo, service)
+    result = node(state)
+    current = repo.get_job(job.job_id)
+    review, _ = current_shot_review_artifact(repo, current)
+    assert len(calls) == 1
+    assert review.artifact_id != old_review.artifact_id
+    assert repo.artifact_metadata(review.artifact_id)["refresh_command_id"] == state["run_id"]
+    assert current.timeline.model_dump() == timeline
+    assert plan_artifact in current.artifacts
+    assert result["route"] == "director_human_gate"
+    assert node(result)["route"] == "director_human_gate"
+    assert len(calls) == 1
+    assert not director_demo_is_approved(repo, current)
