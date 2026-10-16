@@ -67,7 +67,8 @@ def public_transport(*, local_provider: bool = False) -> httpx.HTTPTransport:
     return transport
 
 
-def safe_get(url: str, *, max_bytes: int = 20 * 1024 * 1024) -> tuple[bytes, str, str]:
+def safe_get(url: str, *, max_bytes: int = 20 * 1024 * 1024,
+             preserve_content_type: bool = False) -> tuple[bytes, str, str]:
     with httpx.Client(timeout=30, follow_redirects=False, trust_env=False, transport=public_transport()) as client:
         for _ in range(6):
             validate_url(url)
@@ -82,5 +83,8 @@ def safe_get(url: str, *, max_bytes: int = 20 * 1024 * 1024) -> tuple[bytes, str
                     data.extend(chunk)
                     if len(data) > max_bytes:
                         raise ValueError("下载文件超过限制")
-                return bytes(data), response.headers.get("content-type", "").split(";")[0], url
+                content_type = response.headers.get("content-type", "")
+                if not preserve_content_type:
+                    content_type = content_type.split(";")[0]
+                return bytes(data), content_type, url
     raise ValueError("来源重定向次数超过限制")

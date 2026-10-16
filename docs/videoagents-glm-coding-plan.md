@@ -1,15 +1,25 @@
 # GLM Coding Plan 与 Claude Code
 
-2026-10-13 的生产模型约定：七个模型角色 `materials`、`screenwriter`、`script_reviewer`、`voice`、`director`、`editing`、`review` 均使用 Claude Code CLI 的 `glm-5.3[1m]`，最高推理 `max`，上下文窗口 `1,000,000` tokens。保留 `review` 的配置兼容性，不因此新增生产图节点。实际语音合成继续使用已配置的字节 TTS；`voice` 角色负责其表演指导。
+2026-10-13 的生产模型约定：七个模型角色 `materials`、`screenwriter`、`script_reviewer`、`voice`、`director`、`editing`、`review` 均使用 Claude Code CLI 的 `glm-5.3[1m]`，默认最高推理 `max`，上下文窗口 `1,000,000` tokens。用户明确选择 extra high 时，通过公开 Settings 字段 `glm_reasoning_effort` 设置为 `xhigh`，所有 GLM 角色与配音指导统一采用该档位。`xhigh` 与 `max` 是不同档位，旧安装未设置该字段时仍使用 `max`。保留 `review` 的配置兼容性，不因此新增生产图节点。实际语音合成继续使用已配置的字节 TTS；`voice` 角色负责其表演指导。
 
 GPT-6.1 Sol 由操作者会话负责监控任务事件、定位失败、修复共性代码并通过现有补充/续跑入口推进。模型角色的替换不代表新增全天守护进程，也不绕过文案人工确认和逐镜 PNG 审核。
+
+2026-10-14 起支持用户为单个生产角色明确覆盖 Codex 路由。例如素材角色可通过 SettingsPatch 设置
+`role_models.materials` 为 `{"provider":"codex_cli","model":"gpt-6.1-sol","codex_reasoning_effort":"xhigh"}`。
+该字段只对 Codex CLI 生效，在结构化与研究调用中均显式传入 `-c model_reasoning_effort="xhigh"`，不依赖
+全局 Codex 配置。可选档位为 `none`、`minimal`、`low`、`medium`、`high`、`xhigh`、`max`；具体模型是否接受
+某档位由 CLI 与模型决定，不自动降档。未设置时保持原行为与旧请求指纹；显式设置时档位进入请求指纹和
+操作台账，同角色同版本的 `UNKNOWN` / `SUBMITTING` 屏障仍优先阻断。其他角色及 GLM 档位不受此覆盖影响。
+参数依据见 [Codex 配置参考](https://learn.chatgpt.com/docs/config-file/config-reference)，模型支持见
+[GPT-6.1 Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol)。
 
 ## 本机配置
 
 1. 使用当前 Claude Code 安装方式升级。已有 WinGet 安装使用 `winget upgrade --id Anthropic.ClaudeCode --exact`；升级后用 `claude --version` 验证实际版本。智谱接入文档要求至少 2.1.140，具体以当前安装器和 CLI 行为为准。
 2. 在系统设置中填入智谱 Coding Plan API Key。密钥按平台加密保存在运行数据库：Windows 使用当前账户的 DPAPI，macOS 使用 Keychain（服务名 `VideoAgents`），其他平台回退 base64；公开 Settings 仅返回是否已配置，旧的 `local:` 记录仍可读取。密钥不写入角色输入、命令参数、仓库或工具审计。
 3. 七个角色启用 Claude Code CLI、选择 `glm-5.3[1m]`。新安装的角色默认值已统一；已有数据库保留原配置，需通过 Settings 服务修改。旧豆包 Claude 兼容路由仍可明确选择，GLM 路由不会因豆包 Key 已存在而改用豆包。GLM 子进程默认使用智谱官方 endpoint `https://open.bigmodel.cn/api/anthropic`，需要覆盖时设置 `VIDEOAGENTS_ZHIPU_BASE_URL` 环境变量。
-4. 确认搜索入口、截图能力及原有字节 TTS 配置仍可用，随后通过任务 API 发起生产。仅修改模型配置不能证明真实工具调用或最终视频制作已完成。
+4. 通过 `videoagents settings set glm_reasoning_effort xhigh` 更新推理档位，再用 `videoagents settings get` 回读。字段只接受 `xhigh` 或 `max`；模型与 1M 上下文保持原约定。
+5. 确认搜索入口、截图能力及原有字节 TTS 配置仍可用，随后通过 `videoagents` CLI 发起生产。仅修改模型配置不能证明真实工具调用或最终视频制作已完成。
 
 macOS 等价说明：Claude Code 按所用包管理器（npm、brew 等）安装与升级，同样以 `claude --version` 验证；下文的 `%USERPROFILE%\.claude\settings.json` 对应 `~/.claude/settings.json`；`winget upgrade` 替换为所用包管理器的升级命令。项目保存在运行数据库中的密钥在 macOS 使用 Keychain（服务名 `VideoAgents`），同样只进入本机私有配置。
 
@@ -30,14 +40,14 @@ macOS 等价说明：Claude Code 按所用包管理器（npm、brew 等）安装
     "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "1000000",
     "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL_SUPPORTED_CAPABILITIES": "effort,max_effort,thinking,adaptive_thinking",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL_SUPPORTED_CAPABILITIES": "effort,max_effort,thinking,adaptive_thinking",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL_SUPPORTED_CAPABILITIES": "effort,max_effort,thinking,adaptive_thinking"
+    "ANTHROPIC_DEFAULT_OPUS_MODEL_SUPPORTED_CAPABILITIES": "effort,xhigh_effort,max_effort,thinking,adaptive_thinking",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL_SUPPORTED_CAPABILITIES": "effort,xhigh_effort,max_effort,thinking,adaptive_thinking",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL_SUPPORTED_CAPABILITIES": "effort,xhigh_effort,max_effort,thinking,adaptive_thinking"
   }
 }
 ```
 
-关闭旧的 `CLAUDE_CODE_DISABLE_1M_CONTEXT`，处理已有 OAuth、API Key 或其他云路由与上述认证的冲突。自定义模型的能力声明用于让 Claude 真正发送推理档位；持续的 `max` 使用 `CLAUDE_CODE_EFFORT_LEVEL`，单次调用使用 `--effort max`，不要把不接受 `max` 的 `effortLevel` 设置当作等效配置。项目为 GLM 子进程显式注入这些参数，因其隔离运行不读取用户全局 Settings，不依赖全局文件偶然生效。
+关闭旧的 `CLAUDE_CODE_DISABLE_1M_CONTEXT`，处理已有 OAuth、API Key 或其他云路由与上述认证的冲突。自定义模型的能力声明用于让 Claude 真正发送推理档位；持续档位使用 `CLAUDE_CODE_EFFORT_LEVEL`，单次调用使用 `--effort max` 或 `--effort xhigh`。选择 `xhigh` 时，独立 Claude 配置的环境变量也改为 `xhigh`，并保留 `xhigh_effort` 能力声明。不要把不接受 `max` 的 `effortLevel` 设置当作等效配置。项目按 `glm_reasoning_effort` 为 GLM 子进程同时注入参数与环境变量，因其隔离运行不读取用户全局 Settings，不依赖全局文件偶然生效。操作台账与请求指纹记录所选档位，切换档位不会误复用另一档的已完成结果，也不能绕过同角色同版本的 `UNKNOWN` 提交屏障。
 
 `[1m]` 用于 Claude 的上下文选择，调用供应商时可去掉后缀。1M 是上下文窗口；自动压缩会为输出等保留空间，不意味着每次请求都能输入整整 1M tokens。GLM-5.3 本体是文本模型，不能把图片输入、Flash 变体或某次短请求成功当成整窗实测。
 
@@ -58,6 +68,12 @@ Claude 材料研究只挂载项目的 `videoagents_research` stdio MCP。内置�
 工具返回 `source` 或 `visual` 字段中的清单条目供模型汇总为 `MaterialResearch`，额外正文、图片线索和实测媒体元数据仅辅助研究。素材节点再次验证来源关联、文件、散列及媒体，将最终产物冻结后交给下游。搜索结果、流媒体页面、视频链接和截图动画不能作为已取得的真实视频。无法取得的正文、视频、字幕或语义检查写入 `limitations`，走现有人工补充入口；无合适视频不算失败。
 
 显式选择 Codex CLI 的旧研究路径保留，其权限、工具和搜索预算方式见 [素材研究节点](videoagents-materials.md)。两条路径不共享其他任务的素材与状态。
+
+CLI 传输为研究会话单独设置累计 stdout 预算 64 MiB；每条 NDJSON 记录仍限制为 4 MiB，最终 `response_json` 的 UTF-8 字节数也独立限制为 4 MiB。非研究结构化调用的累计 stdout 上限继续为 4 MiB。研究事件逐条解析后丢弃正文，只保存脱敏审计摘要，读取队列最多保留四条记录。无限输出、超长单条记录和过大的最终响应仍触发 `cli_output_limit`；提交后的此类失败仍记录为 `UNKNOWN` 并阻断自动重放，预算修复不会改变已有未知提交的状态。
+
+Claude Code 2.1.292 的已安装事件 schema 与[官方 Agent SDK 类型参考](https://code.claude.com/docs/en/agent-sdk/typescript#sdktoolprogressmessage)均定义了 `tool_progress`、`tool_use_summary`、`auth_status`。研究流对这三种元数据明示校验字段类型和有界标识符，工具进度仍只接受本研究 MCP 工具或 `StructuredOutput`；审计仅记录事件类型、标识符、受控状态和允许的工具名，丢弃工具摘要、认证输出及错误正文。未知类型和非法字段继续阻断；拒绝审计只保留有界类型标签，不保存事件正文。元数据不代替成功结构化结果、零退出码或完整终态，也不触发登录和新增工具权限。
+
+协议兼容修复不用于推断既有失败的根因：仅有 `unexpected_cli_event` 和脱敏审计时，不能还原被拒事件的原始类型。已有 `UNKNOWN` 提交保持阻断，不因此补丁自动改状态或重发。
 
 ## 验证与恢复
 

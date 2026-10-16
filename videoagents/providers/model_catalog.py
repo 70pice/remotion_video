@@ -115,8 +115,8 @@ class ModelCatalogService:
             return ModelCatalog(
                 provider=provider, status="ready", fetched_at="",
                 models=[ModelChoice(
-                    id=DEFAULT_SCRIPT_MODEL, display_name="GLM-5.3 · 1M · max",
-                    description="智谱 Coding Plan：1,000,000 tokens 上下文，最高 max 推理；需配置智谱 API Key。",
+                    id=DEFAULT_SCRIPT_MODEL, display_name="GLM-5.3 · 1M",
+                    description="智谱 Coding Plan：1,000,000 tokens 上下文；推理由 glm_reasoning_effort 选择 xhigh 或 max，默认 max。需配置智谱 API Key。",
                     is_default=True,
                 )],
                 message="按智谱官方文档提供的模型选项，并非实时账号目录；未验证当前密钥的调用权限。仍可填写其他 Claude Code 支持的模型 ID。",

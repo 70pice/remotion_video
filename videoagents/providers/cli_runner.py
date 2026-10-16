@@ -1,31 +1,151 @@
 """Noninteractive, isolated CLI transports. No shell strings or model SDKs."""
 
 import json
+import logging
+import math
 import os
 import queue
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import threading
 import time
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from uuid import UUID
 
+from videoagents.default_config import DEFAULT_GLM_REASONING_EFFORT
 from videoagents.default_config import DEFAULT_SCRIPT_MODEL as GLM_MODEL
 from worker.process_manager import terminate_tree
 from worker.windows_job import WindowsJob
 
 MAX_OUTPUT_BYTES = 4 * 1024 * 1024
+# Research emits fetched tool content and thinking before its business result.
+# Bound each NDJSON event separately and discard it after projection; the
+# larger cumulative budget does not enlarge the final structured response.
+MAX_EVENT_BYTES = 4 * 1024 * 1024
+MAX_RESEARCH_STREAM_BYTES = 64 * 1024 * 1024
 MAX_AUTH_BYTES = 1024 * 1024
 MAX_STDERR_TAIL_BYTES = 8 * 1024
+# A logical engine operation must not silently multiply retries inside Claude.
+# Keep at most two corrections after the initial structured submission.
+# Normal tool turns can still make several requests; this is not a token cap.
+CLAUDE_RETRY_ENV = {
+    "CLAUDE_CODE_MAX_RETRIES": "0",
+    "MAX_STRUCTURED_OUTPUT_RETRIES": "3",
+    "CLAUDE_CODE_NONSTREAMING_TIMEOUT_RETRIES": "0",
+}
+_LOGGER = logging.getLogger(__name__)
 GLM_CONTEXT_TOKENS = 1_000_000
-GLM_CAPABILITIES = "effort,max_effort,thinking,adaptive_thinking"
+GLM_CAPABILITIES = "effort,xhigh_effort,max_effort,thinking,adaptive_thinking"
 CLAUDE_RESEARCH_TOOLS = {
     "mcp__videoagents_research__skill", "mcp__videoagents_research__search",
     "mcp__videoagents_research__source", "mcp__videoagents_research__visual",
     "mcp__videoagents_research__screenshot",
+}
+CLAUDE_RESEARCH_METADATA = {"tool_progress", "tool_use_summary", "auth_status"}
+# Fixed result subtypes from the Claude SDK, plus the legacy model error.
+# Never persist errors/result prose; diagnostic codes use fixed allowlists.
+CLAUDE_FAILURE_HINTS = {
+    "error_during_execution": "CLI执行失败，具体供应商原因尚未确定",
+    "error_max_turns": "CLI达到本次会话轮次上限，未取得可用结果",
+    "error_max_budget_usd": "CLI达到本次调用预算上限，未取得可用结果",
+    "error_max_structured_output_retries": "CLI未生成有效结构化输出（重试次数已耗尽）",
+    "unrecognized_model": "CLI错误回执报告模型标识无法识别",
+}
+API_ERROR_TYPES = {
+    "invalid_request_error", "authentication_error", "billing_error", "permission_error",
+    "not_found_error", "rate_limit_error", "api_error", "overloaded_error", "request_too_large",
+    "conflict_error", "timeout_error",
+}
+# Fixed kinds exposed by the installed Claude Code SDK's result.api_error.
+# Arbitrary api_error_code identifiers and free-form error text remain private.
+CLAUDE_API_ERROR_HINTS = {
+    "max_output_tokens": "CLI报告达到输出Token上限，未取得完整结果",
+    "dlp_request_denied": "CLI报告请求被数据防泄漏策略拒绝",
+    "claude_code_version_too_old": "CLI报告客户端版本低于接口要求",
+    "safety_monitor_blocked": "CLI报告请求被安全监控阻止",
+    "effort_requires_thinking": "CLI报告推理档位要求启用相应思考设置",
+    "advisor_incompatible": "CLI报告顾问模式不兼容",
+    "tool_history_mismatch": "CLI报告工具调用历史不匹配",
+    "autocompact_thrashing": "CLI报告上下文自动压缩反复触发",
+    "pdf_too_large": "CLI报告PDF过大",
+    "pdf_password_protected": "CLI报告PDF受密码保护",
+    "media_removed": "CLI报告媒体已移除",
+    "no_response": "CLI报告未取得响应，具体中断位置尚未确定",
+    "tls_untrusted_ca": "CLI报告TLS证书不受信任",
+    "gateway_content_type": "CLI报告网关响应内容类型异常",
+    "provider_credentials": "CLI报告供应商凭据问题",
+    "gateway_signin_required": "CLI报告网关需要登录",
+    "gateway_session_expired": "CLI报告网关会话过期",
+    "api_key_auth_disabled": "CLI报告API密钥认证被禁用",
+    "org_disabled_credential": "CLI报告组织已禁用凭据",
+    "invalid_credential_header": "CLI报告凭据请求头无效",
+    "model_requires_usage_credits": "CLI报告该模型需要用量额度",
+    "long_context_credits_required": "CLI报告长上下文需要相应用量额度",
+    "consent_unanswered": "CLI报告授权同意尚未回答",
+    "no_allowed_fallback": "CLI报告没有获准使用的备用模型",
+    "model_substitution_disabled": "CLI报告模型替换被禁用",
+    "field_not_granted": "CLI报告请求字段未获授权",
+    "usage_limit_reached": "CLI报告达到用量限制，具体额度范围尚未确定",
+}
+HTTP_FAILURE_HINTS = {
+    400: "CLI报告接口拒绝请求（HTTP 400），具体参数原因尚未确定",
+    401: "CLI报告接口认证失败（HTTP 401）",
+    402: "CLI报告接口账单错误（HTTP 402）",
+    403: "CLI报告接口权限不足（HTTP 403）",
+    404: "CLI报告接口资源不存在（HTTP 404）",
+    408: "CLI报告接口请求超时（HTTP 408）",
+    409: "CLI报告接口请求冲突（HTTP 409）",
+    413: "CLI报告接口请求过大（HTTP 413）",
+    422: "CLI报告接口无法处理请求（HTTP 422），具体参数原因尚未确定",
+    429: "CLI报告接口限制请求（HTTP 429），尚不能区分限流与额度原因",
+    500: "CLI报告接口内部错误（HTTP 500）",
+    502: "CLI报告接口网关错误（HTTP 502）",
+    503: "CLI报告接口暂不可用（HTTP 503）",
+    504: "CLI报告接口网关超时（HTTP 504）",
+    529: "CLI报告接口过载（HTTP 529）",
+}
+TRANSPORT_FAILURE_MESSAGES = {
+    "Connection error.": "connection_error",
+    "Request timed out.": "request_timeout",
+    "Stream closed": "stream_closed",
+    "Connection lost mid-response": "stream_closed",
+    "The response stream was malformed": "malformed_stream",
+    "Unexpected end of JSON input": "unexpected_json_end",
+}
+TRANSPORT_FAILURE_HINTS = {
+    "connection_error": "CLI报告连接错误，尚不能区分本机网络与供应商中断",
+    "request_timeout": "CLI报告请求超时，尚不能确定发生在哪一端",
+    "stream_closed": "CLI报告响应流提前关闭，未取得完整结果",
+    "malformed_stream": "CLI报告响应流格式错误，未取得完整结果",
+    "unexpected_json_end": "CLI报告JSON读取到意外结尾，具体截断原因尚未确定",
+}
+CLAUDE_TERMINAL_HINTS = {
+    "completed": "CLI报告本轮会话结束，但未取得可用结果，失败原因尚未确定",
+    "max_turns": "CLI报告达到会话轮次上限",
+    "tool_deferred": "CLI报告工具执行被延期",
+    "aborted_streaming": "CLI报告响应流被中止",
+    "aborted_tools": "CLI报告工具执行被中止",
+    "hook_stopped": "CLI报告被停止钩子终止",
+    "stop_hook_prevented": "CLI报告停止钩子阻止结束",
+    "background_requested": "CLI报告请求转为后台执行",
+    "blocking_limit": "CLI报告达到阻断限制，具体限制尚未确定",
+    "rapid_refill_breaker": "CLI报告快速重填保护触发，具体原因尚未确定",
+    "prompt_too_long": "CLI报告输入过长",
+    "image_error": "CLI报告图片处理错误",
+    "model_error": "CLI报告模型错误，供应商具体原因尚未确定",
+    "api_error": "CLI报告API错误，未提供可识别的HTTP状态",
+    "malformed_tool_use_exhausted": "CLI报告无效工具调用的重试次数已耗尽",
+    "budget_exhausted": "CLI报告本次调用预算耗尽",
+    "structured_output_retry_exhausted": "CLI报告结构化输出重试次数已耗尽",
+    "tool_deferred_unavailable": "CLI报告延期工具不可用",
+    "turn_setup_failed": "CLI报告会话轮次初始化失败",
 }
 # The CLI transport needs OpenAI's strict schema subset. Business contracts
 # contain defaults/free-form props, so carry their locally validated JSON as a
@@ -86,6 +206,34 @@ class CliFailure(Exception):
         self.submitted = submitted
         self.rejected = rejected
 
+    @property
+    def hint(self) -> str:
+        reason_code, separator, details = self.reason.partition("; ")
+        if reason_code not in {"cli_nonzero_exit", "cli_reported_error"} or not separator or len(details) > 1024:
+            return ""
+        try:
+            diagnostic = json.loads(details)
+        except (ValueError, RecursionError):
+            return ""
+        if not isinstance(diagnostic, dict):
+            return ""
+        status, kind = diagnostic.get("reported_http_status"), diagnostic.get("reported_error_kind")
+        if type(status) is int and status in HTTP_FAILURE_HINTS:
+            return HTTP_FAILURE_HINTS[status]
+        if isinstance(kind, str) and kind in TRANSPORT_FAILURE_HINTS:
+            return TRANSPORT_FAILURE_HINTS[kind]
+        typed_error = diagnostic.get("reported_api_error")
+        if isinstance(typed_error, str) and typed_error in CLAUDE_API_ERROR_HINTS:
+            return CLAUDE_API_ERROR_HINTS[typed_error]
+        if diagnostic.get("reported_structured_error") == "response_json_not_string":
+            return "CLI报告 response_json 类型错误：要求字符串，结构化尝试已耗尽"
+        terminal = diagnostic.get("reported_terminal_reason")
+        if isinstance(terminal, str) and terminal != "completed" and terminal in CLAUDE_TERMINAL_HINTS:
+            return CLAUDE_TERMINAL_HINTS[terminal]
+        subtype = diagnostic.get("subtype")
+        subtype_hint = CLAUDE_FAILURE_HINTS.get(subtype, "") if isinstance(subtype, str) else ""
+        return subtype_hint or (CLAUDE_TERMINAL_HINTS["completed"] if terminal == "completed" else "")
+
 
 @dataclass(frozen=True)
 class CliResult:
@@ -94,14 +242,15 @@ class CliResult:
 
 
 def executable_prefix(provider: str) -> list[str] | None:
-    """Resolve npm Windows shims to Node, never execute .cmd through a shell."""
+    """Resolve npm Windows shims to a native binary or Node without a shell."""
     names = {"codex_cli": ("codex", "@openai/codex/bin/codex.js"),
              "claude_code_cli": ("claude", "@anthropic-ai/claude-code/cli.js"),
-             "trae_cli": ("traecli", "")}
+             "trae_cli": ("traecli", ""),
+             "lark_cli": ("lark-cli", "@larksuite/cli/bin/lark-cli.exe")}
     if provider not in names:
         return None
     name, entry = names[provider]
-    configured = os.getenv("VIDEOAGENTS_" + name.upper() + "_EXECUTABLE")
+    configured = os.getenv("VIDEOAGENTS_" + name.upper().replace("-", "_") + "_EXECUTABLE")
     found = configured or shutil.which(name)
     if not found and os.name == "nt" and name in {"claude", "traecli"}:
         candidate = Path.home() / ".local" / "bin" / (name + ".exe")
@@ -117,10 +266,13 @@ def executable_prefix(provider: str) -> list[str] | None:
         return None
     if os.name != "nt" or path.suffix.lower() == ".exe":
         return [str(path)]
-    node = shutil.which("node")
     script = path if path.suffix.lower() in {".js", ".mjs"} else path.parent / "node_modules" / entry
-    if entry and node and script.is_file():
-        return [node, str(script)]
+    if entry and script.is_file():
+        if script.suffix.lower() == ".exe":
+            return [str(script)]
+        node = shutil.which("node")
+        if node:
+            return [node, str(script)]
     return None
 
 
@@ -130,7 +282,9 @@ def cli_availability() -> dict[str, dict[str, bool]]:
 
 
 def build_arguments(provider: str, prefix: list[str], model: str, directory: Path, schema: Path, *,
-                    research: bool = False, mcp_config: Path | None = None) -> list[str]:
+                    research: bool = False, mcp_config: Path | None = None,
+                    glm_reasoning_effort: str = DEFAULT_GLM_REASONING_EFFORT,
+                    codex_reasoning_effort: str | None = None) -> list[str]:
     if provider == "codex_cli":
         args = [*prefix, "-a", "never", "exec"]
         if research:
@@ -152,6 +306,10 @@ def build_arguments(provider: str, prefix: list[str], model: str, directory: Pat
             args.extend(["--disable", feature])
         if model:
             args.extend(["--model", model])
+        if codex_reasoning_effort is not None:
+            if codex_reasoning_effort not in {"none", "minimal", "low", "medium", "high", "xhigh", "max"}:
+                raise CliFailure("invalid_codex_reasoning_effort", submitted=False)
+            args.extend(["-c", "model_reasoning_effort=" + json.dumps(codex_reasoning_effort)])
         return [*args, "-"]
     if provider == "trae_cli":
         state = directory / ".trae-state"
@@ -187,7 +345,9 @@ def build_arguments(provider: str, prefix: list[str], model: str, directory: Pat
         if model:
             args.extend(["--model", model])
         if model.lower().removesuffix("[1m]") == "glm-5.3":
-            args.extend(["--effort", "max"])
+            if glm_reasoning_effort not in {"xhigh", "max"}:
+                raise CliFailure("invalid_glm_reasoning_effort", submitted=False)
+            args.extend(["--effort", glm_reasoning_effort])
         return args
     raise CliFailure("unsupported_cli", submitted=False)
 
@@ -214,8 +374,12 @@ def _research_environment(research: bool) -> dict[str, str]:
 
 def _cli_environment(provider: str, research: bool, control: Path,
                      ark_api_key: str | None = None, zhipu_api_key: str | None = None,
-                     model: str = "") -> tuple[dict[str, str], Path | None]:
+                     model: str = "", glm_reasoning_effort: str = DEFAULT_GLM_REASONING_EFFORT,
+                     ) -> tuple[dict[str, str], Path | None]:
     env = _research_environment(research)
+    if provider == "claude_code_cli":
+        env.update(CLAUDE_RETRY_ENV)
+        env.pop("CLAUDE_CODE_RETRY_WATCHDOG", None)
     if provider == "claude_code_cli" and (ark_api_key or zhipu_api_key):
         # Pass the credential only to this child process, never in arguments or graph state.
         env.pop("ANTHROPIC_API_KEY", None)
@@ -230,7 +394,7 @@ def _cli_environment(provider: str, research: bool, control: Path,
             env.pop("CLAUDE_CODE_DISABLE_1M_CONTEXT", None)
             env["ANTHROPIC_MODEL"] = GLM_MODEL
             env["CLAUDE_CODE_SUBAGENT_MODEL"] = GLM_MODEL
-            env["CLAUDE_CODE_EFFORT_LEVEL"] = "max"
+            env["CLAUDE_CODE_EFFORT_LEVEL"] = glm_reasoning_effort
             env["CLAUDE_CODE_MAX_CONTEXT_TOKENS"] = str(GLM_CONTEXT_TOKENS)
             env["CLAUDE_CODE_AUTO_COMPACT_WINDOW"] = str(GLM_CONTEXT_TOKENS)
             env["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] = "1"
@@ -295,12 +459,13 @@ def _audit_summary(event: dict[str, Any]) -> dict[str, Any] | None:
     return None
 
 
-def _write_audit(handle, event: dict[str, Any]) -> None:
-    if handle is None:
-        return
-    summary = _audit_summary(event)
-    if summary is not None:
+def _write_audit_record(handle, summary: dict[str, Any] | None) -> None:
+    if handle is not None and summary is not None:
         handle.write(json.dumps(summary, ensure_ascii=False) + "\n")
+
+
+def _write_audit(handle, event: dict[str, Any]) -> None:
+    _write_audit_record(handle, _audit_summary(event))
 
 
 def _codex_event(line: str, *, research: bool = False, audit_handle=None) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
@@ -339,6 +504,8 @@ def _business_object(envelope: Any) -> dict[str, Any]:
     for _ in range(2):
         if not isinstance(envelope, dict) or set(envelope) != {"response_json"} or not isinstance(envelope["response_json"], str):
             raise CliFailure("missing_structured_output")
+        if len(envelope["response_json"].encode("utf-8")) > MAX_OUTPUT_BYTES:
+            raise CliFailure("cli_output_limit")
         result = json.loads(envelope["response_json"])
         if not isinstance(result, dict):
             raise CliFailure("non_object_output")
@@ -366,15 +533,185 @@ def _claude_result(output: str) -> CliResult:
     return CliResult(_business_object(value.get("structured_output")), value.get("usage"))
 
 
+def _reported_failure_details(messages: Any, source: str) -> dict[str, Any]:
+    """Recognize bounded error headers; retain codes only, never error prose."""
+    if not isinstance(messages, list):
+        return {}
+    for message in reversed(messages[-16:]):
+        if not isinstance(message, str) or len(message) > MAX_STDERR_TAIL_BYTES:
+            continue
+        message = message.strip()
+        # Match the installed CLI's fixed validation header and wire-schema path
+        # exactly. Arbitrary paths, values and extra error text are not retained.
+        structured = re.fullmatch(
+            r"Failed to provide valid structured output after ([1-9][0-9]{0,2}) attempts"
+            r" — last StructuredOutput error: Output does not match required schema: "
+            r"/response_json: must be string", message)
+        if structured:
+            return {"reported_structured_error": "response_json_not_string",
+                    "reported_structured_attempts": int(structured[1]), "error_detail_source": source}
+        match = re.fullmatch(r"API Error: ([45][0-9]{2})(?:\s+(.*))?", message, re.DOTALL)
+        if match and int(match[1]) in HTTP_FAILURE_HINTS:
+            details = {"reported_http_status": int(match[1]), "reported_error_kind": "http_error",
+                       "error_detail_source": source}
+            try:
+                body = json.loads(match[2] or "")
+            except (ValueError, RecursionError):
+                pass
+            else:
+                error = body.get("error") if isinstance(body, dict) and body.get("type") == "error" else None
+                kind = error.get("type") if isinstance(error, dict) else None
+                if isinstance(kind, str) and kind in API_ERROR_TYPES:
+                    details["reported_error_kind"] = kind
+            return details
+        kind = TRANSPORT_FAILURE_MESSAGES.get(message.removeprefix("API Error: ").removeprefix("Error: "))
+        if kind:
+            return {"reported_error_kind": kind, "error_detail_source": source}
+    return {}
+
+
+def _failure_diagnostic(reason_code: str, provider: str, output: list[str], stdout_bytes: int,
+                        exit_code: int | None, stderr_tail_bytes: int,
+                        stderr_tail: list[bytes] | None = None) -> str:
+    """Project a failed process into fixed diagnostics, never its response text."""
+    shape, subtype, response_shape = "empty", "unknown", "absent"
+    reported_details, terminal_details, typed_details = {}, {}, {}
+    if provider == "claude_code_cli" and output:
+        try:
+            value = json.loads("\n".join(output))
+        except (TypeError, ValueError, RecursionError):
+            shape = "invalid_json"
+        else:
+            if isinstance(value, dict) and value.get("type") == "result":
+                shape = ("claude_success_result" if value.get("subtype") == "success"
+                         and value.get("is_error") is False else "claude_error_result")
+                candidate = value.get("subtype")
+                if isinstance(candidate, str) and (candidate in CLAUDE_FAILURE_HINTS or candidate == "success"):
+                    subtype = candidate
+                if value.get("is_error") is True:
+                    typed_error = value.get("api_error")
+                    if isinstance(typed_error, str) and typed_error in CLAUDE_API_ERROR_HINTS:
+                        typed_details = {"reported_api_error": typed_error,
+                                         "typed_error_source": "claude_result_api_error"}
+                    terminal = value.get("terminal_reason")
+                    if isinstance(terminal, str) and terminal in CLAUDE_TERMINAL_HINTS:
+                        terminal_details = {"reported_terminal_reason": terminal}
+                    errors = value.get("errors")
+                    reported_details = _reported_failure_details(
+                        [errors] if isinstance(errors, str) else errors, "claude_result_errors")
+                    if not reported_details:
+                        reported_details = _reported_failure_details([value.get("result")], "claude_result_error_text")
+                    status = value.get("api_error_status")
+                    if type(status) is int and status in HTTP_FAILURE_HINTS:
+                        kind = (reported_details.get("reported_error_kind", "http_error")
+                                if reported_details.get("reported_http_status") == status else "http_error")
+                        reported_details = {"reported_http_status": status, "reported_error_kind": kind,
+                                            "error_detail_source": "claude_result_api_error_status"}
+                structured = value.get("structured_output")
+                if isinstance(structured, dict):
+                    inner = structured.get("response_json")
+                    if isinstance(inner, str):
+                        try:
+                            response_shape = "json_object" if isinstance(json.loads(inner), dict) else "json_other"
+                        except (ValueError, RecursionError):
+                            response_shape = "invalid_json"
+            else:
+                shape = "other_json"
+    elif stdout_bytes:
+        shape = "event_stream"
+    if not reported_details and provider == "claude_code_cli" and stderr_tail:
+        stderr_lines = b"".join(stderr_tail)[-MAX_STDERR_TAIL_BYTES:].decode("utf-8", errors="replace").splitlines()
+        reported_details = _reported_failure_details(stderr_lines, "stderr")
+    return reason_code + "; " + json.dumps({
+        "exit_code": exit_code, "stdout_bytes": stdout_bytes,
+        "stdout_shape": shape, "subtype": subtype,
+        "response_json_shape": response_shape, "stderr_tail_bytes": stderr_tail_bytes,
+        **reported_details, **terminal_details, **typed_details,
+    }, sort_keys=True)
+
+
+def _cli_identifier(value: Any) -> bool:
+    return isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", value) is not None
+
+
+def _claude_metadata_summary(event: dict[str, Any]) -> dict[str, Any]:
+    """Validate known SDK metadata; never persist auth output or free text."""
+    kind = event["type"]
+    event_id = event.get("uuid")
+    try:
+        valid_uuid = isinstance(event_id, str) and str(UUID(event_id)) == event_id.lower()
+    except ValueError:
+        valid_uuid = False
+    if not valid_uuid or not _cli_identifier(event.get("session_id")):
+        raise CliFailure("invalid_cli_event")
+    summary = {"type": kind, "event_id": event_id}
+    if kind == "tool_progress":
+        name, elapsed = event.get("tool_name"), event.get("elapsed_time_seconds")
+        if not isinstance(name, str):
+            raise CliFailure("invalid_cli_event")
+        if name not in CLAUDE_RESEARCH_TOOLS | {"StructuredOutput"}:
+            raise CliFailure("unexpected_tool_event")
+        if (not _cli_identifier(event.get("tool_use_id"))
+                or "parent_tool_use_id" not in event
+                or (event["parent_tool_use_id"] is not None and not _cli_identifier(event["parent_tool_use_id"]))
+                or type(elapsed) not in {int, float} or elapsed < 0
+                or (isinstance(elapsed, float) and not math.isfinite(elapsed))
+                or ("task_id" in event and not _cli_identifier(event["task_id"]))
+                or ("heartbeat" in event and not isinstance(event["heartbeat"], bool))
+                or ("subagent_type" in event and not isinstance(event["subagent_type"], str))):
+            raise CliFailure("invalid_cli_event")
+        if "subagent_retry" in event:
+            retry = event["subagent_retry"]
+            if (not isinstance(retry, dict) or not _cli_identifier(retry.get("agent_id"))
+                    or any(type(retry.get(key)) is not int or retry[key] < 0
+                           for key in ("attempt", "max_retries", "retry_delay_ms"))
+                    or "error_status" not in retry
+                    or (retry["error_status"] is not None and type(retry["error_status"]) is not int)
+                    or not isinstance(retry.get("error_category"), str)):
+                raise CliFailure("invalid_cli_event")
+        return {**summary, "status": "in_progress", "tool_name": name, "tool_use_id": event["tool_use_id"]}
+    if kind == "tool_use_summary":
+        ids = event.get("preceding_tool_use_ids")
+        if (not isinstance(event.get("summary"), str) or not isinstance(ids, list)
+                or not all(_cli_identifier(value) for value in ids)
+                or ("timestamp" in event and not isinstance(event["timestamp"], str))):
+            raise CliFailure("invalid_cli_event")
+        return {**summary, "status": "reported"}
+    if (not isinstance(event.get("isAuthenticating"), bool) or not isinstance(event.get("output"), list)
+            or not all(isinstance(value, str) for value in event["output"])
+            or ("error" in event and not isinstance(event["error"], str))):
+        raise CliFailure("invalid_cli_event")
+    status = "failed" if event.get("error") else "authenticating" if event["isAuthenticating"] else "idle"
+    return {**summary, "status": status}
+
+
+def _claude_event_rejected(audit_handle, kind: Any) -> None:
+    # Preserve a bounded discriminator for future diagnosis, never the event
+    # body, auth text, summary, source content, or arbitrary error message.
+    event_type = kind if isinstance(kind, str) and re.fullmatch(r"[a-z][a-z0-9_]{0,63}", kind) else "invalid"
+    _write_audit_record(audit_handle, {"type": "cli.event.rejected", "event_type": event_type, "status": "rejected"})
+
+
 def _claude_research_event(line: str, audit_handle=None) -> CliResult | None:
     event = json.loads(line)
     if not isinstance(event, dict):
         raise CliFailure("invalid_cli_event")
     kind = event.get("type")
+    if not isinstance(kind, str):
+        _claude_event_rejected(audit_handle, kind)
+        raise CliFailure("invalid_cli_event")
     if kind == "result":
         result = _claude_result(line)
         _write_audit(audit_handle, {"type": "turn.completed", "status": "completed"})
         return result
+    if kind in CLAUDE_RESEARCH_METADATA:
+        try:
+            summary = _claude_metadata_summary(event)
+        except CliFailure:
+            _claude_event_rejected(audit_handle, kind)
+            raise
+        _write_audit_record(audit_handle, summary)
+        return None
     if kind == "assistant":
         message = event.get("message", {})
         if not isinstance(message, dict) or not isinstance(message.get("content"), list):
@@ -400,19 +737,55 @@ def _claude_research_event(line: str, audit_handle=None) -> CliResult | None:
                     "type": "mcp_tool_call", "status": "failed" if block.get("is_error") else "completed",
                 }})
     elif kind not in {"system", "rate_limit_event"}:
+        _claude_event_rejected(audit_handle, kind)
         raise CliFailure("unexpected_cli_event")
     return None
+
+
+def _cleanup_cli_resource(cleanup: Callable[[], Any], phase: str, *, attempts: int = 1) -> None:
+    """A cleanup lock must not overwrite the submitted call's result or failure."""
+    for attempt in range(attempts):
+        try:
+            cleanup()
+            return
+        except PermissionError:
+            if attempt + 1 < attempts:
+                time.sleep(0.05)
+                continue
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+        break
+    # Known phase labels only: no exception text, credential or temporary path.
+    _LOGGER.warning("CLI cleanup incomplete (%s)", phase)
+
+
+@contextmanager
+def _cli_control_directory(parent: Path | None) -> Iterator[str]:
+    directory = tempfile.TemporaryDirectory(prefix=".videoagents-cli-", dir=parent)
+    try:
+        yield directory.name
+    finally:
+        control = Path(directory.name)
+        # Remove credentials separately even if a Windows SQLite/descendant lock
+        # prevents deleting the rest of the isolated home.
+        for auth in (control / "codex-home" / "auth.json", control / "trae-home" / "cli" / "auth.json"):
+            _cleanup_cli_resource(lambda: auth.unlink(missing_ok=True), "staged_auth", attempts=3)
+        _cleanup_cli_resource(directory.cleanup, "control_directory", attempts=3)
 
 
 def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema: dict[str, Any],
             cancelled=lambda: False, *, research_directory: Path | None = None,
             audit_path: Path | None = None, ark_api_key: str | None = None,
-            zhipu_api_key: str | None = None, research_context: dict[str, Any] | None = None) -> CliResult:
+            zhipu_api_key: str | None = None, research_context: dict[str, Any] | None = None,
+            glm_reasoning_effort: str = DEFAULT_GLM_REASONING_EFFORT,
+            codex_reasoning_effort: str | None = None, research_role: str = "materials") -> CliResult:
     if cancelled():
         raise CliFailure("cli_cancelled", submitted=False)
     research = research_directory is not None
     if research and provider not in {"codex_cli", "claude_code_cli"}:
         raise CliFailure("unsupported_research_cli", submitted=False)
+    if research and research_role not in {"materials", "screenwriter"}:
+        raise CliFailure("unsupported_research_role", submitted=False)
     if research and provider == "claude_code_cli" and not research_context:
         raise CliFailure("missing_research_tool_config", submitted=False)
     prefix = executable_prefix(provider)
@@ -424,31 +797,35 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
     # lives below the system temporary directory. Research mode needs those
     # helpers for command_execution, so keep the isolated control directory
     # next to the durable job revision instead of under /tmp. The randomized
-    # directory is still outside the model-writable research workspace and is
-    # removed in full after the call.
+    # directory is still outside the model-writable research workspace. Cleanup
+    # runs after the call without changing its accepted result or failure reason.
     control_parent = research_directory.parent if research_directory is not None else None
-    with tempfile.TemporaryDirectory(prefix=".videoagents-cli-", dir=control_parent) as temporary:
+    with _cli_control_directory(control_parent) as temporary:
         control = Path(temporary)
         directory = research_directory if research else control
         schema = control / "output-schema.json"
         schema.write_text(json.dumps(WIRE_SCHEMA, ensure_ascii=False), encoding="utf-8")
         source = control / "input.txt"
         prefix_text = ""
+        research_task = ("这是编剧节点的证据研究任务。" if research_role == "screenwriter" else
+                         "这是素材节点的工具研究任务。")
+        research_goal = ("按用户配置的平台与预算读取并核验来源正文，为本角色写作提供证据；不采集画面。"
+                         if research_role == "screenwriter" else
+                         "按用户配置的平台与预算收集可核验来源、图片或截图线索并采集画面。")
         if research and provider == "codex_cli":
             prefix_text = (
-                "这是素材节点的工具研究任务。你可以使用已安装的研究 skill、web_search、shell 命令和工作区文件，"
+                research_task + "你可以使用已安装的研究 skill、web_search、shell 命令和工作区文件，"
                 "但只在当前工作目录写入研究过程文件；不要读取密钥，不要把工具日志放进最终 JSON。"
-                "优先使用 agent-reach 等检索 skill，并按用户配置的平台与预算收集可核验来源、图片或截图线索。\n"
+                "优先使用 agent-reach 等检索 skill。" + research_goal + "\n"
             )
         elif research:
             prefix_text = (
-                "这是素材节点的工具研究任务。只使用 videoagents_research MCP 工具读取技能、搜索公开资料并采集来源与画面。"
-                "按用户配置的平台与预算收集可核验来源、图片或截图线索；不要把工具日志放进最终 JSON。\n"
+                research_task + "只使用本次启用的 videoagents_research MCP 工具。"
+                + research_goal + "不要把工具日志放进最终 JSON。\n"
             )
         transport_prompt = (prefix_text + prompt + "\n业务 JSON schema：\n" + json.dumps(output_schema, ensure_ascii=False)
                             + '\n最终传输格式必须为 {"response_json":"业务 JSON 对象序列化后的字符串"}。'
                             + "response_json 内的对象遵循上面的业务 schema，外层仅有 response_json 一个字段。")
-        source.write_text(transport_prompt, encoding="utf-8")
         mcp_config = None
         if research and provider == "claude_code_cli":
             mcp_config = control / "research-mcp.json"
@@ -463,11 +840,23 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 "env": {"PYTHONPATH": str(Path(__file__).resolve().parents[2]),
                        "ANTHROPIC_AUTH_TOKEN": "", "ANTHROPIC_API_KEY": "", "CLAUDE_CODE_OAUTH_TOKEN": ""}}
             mcp_config.write_text(json.dumps({"mcpServers": {"videoagents_research": research_server}}), encoding="utf-8")
-            transport_prompt += ("\n本次只使用 videoagents_research MCP 工具读取技能、搜索公开资料并采集来源与画面。"
+            transport_prompt += ("\n本次只使用启用的 videoagents_research MCP 工具。" + research_goal +
                                  "工具会保存文件并返回真实路径及 SHA256；不使用 shell 或读取本机任意路径。")
-            source.write_text(transport_prompt, encoding="utf-8")
-        args = build_arguments(provider, prefix, model, directory, schema, research=research, mcp_config=mcp_config)
-        environment, staged_auth = _cli_environment(provider, research, control, ark_api_key, zhipu_api_key, model)
+        if provider == "claude_code_cli":
+            transport_prompt += (
+                "\n最终使用 Claude Code 内部 StructuredOutput 工具提交传输对象；"
+                "它仅提交结构化结果，不属于上述禁止的外部业务工具。"
+                "response_json 的值必须是字符串：先将完整业务 JSON 对象序列化，再放入该字段，"
+                "不能直接传嵌套对象、数组或 Markdown 代码块。"
+                '例如业务对象 {"ok":true} 应提交 {"response_json":"{\\"ok\\":true}"}。'
+                "此输出提交例外不授权检索、shell、文件或额外 MCP 工具。"
+            )
+        source.write_text(transport_prompt, encoding="utf-8")
+        args = build_arguments(provider, prefix, model, directory, schema, research=research, mcp_config=mcp_config,
+                               glm_reasoning_effort=glm_reasoning_effort,
+                               codex_reasoning_effort=codex_reasoning_effort)
+        environment, staged_auth = _cli_environment(provider, research, control, ark_api_key, zhipu_api_key, model,
+                                                    glm_reasoning_effort)
         job = WindowsJob()
         audit_handle = None
         try:
@@ -487,10 +876,12 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                     raise CliFailure("cli_launch_failed", submitted=False) from exc
         except BaseException:
             if audit_handle is not None:
-                audit_handle.close()
-            job.close()
+                _cleanup_cli_resource(audit_handle.close, "audit")
+            _cleanup_cli_resource(job.close, "job")
             raise
-        lines: queue.Queue = queue.Queue(maxsize=64)
+        # At most four raw events await projection, rather than retaining an
+        # entire research transcript or up to 64 maximum-sized events.
+        lines: queue.Queue = queue.Queue(maxsize=4)
         stopped = threading.Event()
         stderr_tail: list[bytes] = []
         def enqueue(line):
@@ -502,7 +893,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                     continue
         def read():
             try:
-                while not stopped.is_set() and (line := process.stdout.readline(MAX_OUTPUT_BYTES + 1)):
+                while not stopped.is_set() and (line := process.stdout.readline(MAX_EVENT_BYTES + 1)):
                     enqueue(line)
             finally:
                 enqueue(None)
@@ -517,11 +908,12 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
             except (OSError, ValueError):
                 pass
         def stderr_note() -> str:
-            text = b"".join(stderr_tail[-16:]).decode("utf-8", errors="replace").strip()
-            return ("; stderr: " + text[-1200:]) if text else ""
+            tail_bytes = sum(len(chunk) for chunk in stderr_tail)
+            return f"; stderr_tail_bytes={tail_bytes}" if tail_bytes else ""
         reader = threading.Thread(target=read, daemon=True)
         stderr_reader = threading.Thread(target=read_stderr, daemon=True)
-        data, usage, output, size, completed, last_agent_message = None, None, [], 0, False, None
+        data, usage, output, size, completed, last_agent_message, exit_code = None, None, [], 0, False, None, None
+        stream_limit = MAX_RESEARCH_STREAM_BYTES if research else MAX_OUTPUT_BYTES
         try:
             job.assign(process)
             reader.start()
@@ -539,7 +931,7 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 if line is None:
                     break
                 size += len(line)
-                if size > MAX_OUTPUT_BYTES:
+                if len(line) > MAX_EVENT_BYTES or size > stream_limit:
                     raise CliFailure("cli_output_limit")
                 decoded = line.decode("utf-8", errors="strict").strip()
                 if not decoded:
@@ -570,7 +962,10 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 # EOF right at the deadline is still a timeout, not bad output.
                 raise CliFailure("cli_timeout") from exc
             if exit_code != 0:
-                raise CliFailure("cli_nonzero_exit" + stderr_note())
+                stderr_reader.join(timeout=1)
+                raise CliFailure(_failure_diagnostic(
+                    "cli_nonzero_exit", provider, output, size, exit_code,
+                    sum(len(chunk) for chunk in stderr_tail), stderr_tail))
             if provider == "claude_code_cli" and not research:
                 return _claude_result("\n".join(output))
             if last_agent_message is not None:
@@ -579,6 +974,12 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 raise CliFailure("incomplete_cli_result" + stderr_note())
             return CliResult(data, usage)
         except CliFailure as exc:
+            if exc.reason == "cli_reported_error" and provider == "claude_code_cli" and not research:
+                stderr_reader.join(timeout=1)
+                exc.reason = _failure_diagnostic(
+                    exc.reason, provider, output, size, exit_code,
+                    sum(len(chunk) for chunk in stderr_tail), stderr_tail)
+                exc.args = (exc.reason,)
             if not exc.rejected and exc.submitted:
                 # Attach the captured tail for the operation ledger; the reason
                 # code alone cannot distinguish a crash from a rate limit.
@@ -586,17 +987,22 @@ def run_cli(provider: str, model: str, timeout: int, prompt: str, output_schema:
                 if note and "stderr" not in str(exc):
                     exc.args = (str(exc) + note,)
             raise
-        except Exception as exc:
-            raise CliFailure("invalid_cli_output" + stderr_note()) from exc
+        except Exception:
+            if exit_code is not None:
+                stderr_reader.join(timeout=1)
+            raise CliFailure(_failure_diagnostic(
+                "invalid_cli_output", provider, output, size, exit_code,
+                sum(len(chunk) for chunk in stderr_tail), stderr_tail)) from None
         finally:
             stopped.set()
-            terminate_tree(process)
-            job.close()
+            _cleanup_cli_resource(lambda: terminate_tree(process), "process_tree")
+            _cleanup_cli_resource(job.close, "job")
+            _cleanup_cli_resource(lambda: process.wait(timeout=1), "process_wait")
             if reader.ident:
-                reader.join(timeout=1)
+                _cleanup_cli_resource(lambda: reader.join(timeout=1), "stdout_reader")
             if stderr_reader.ident:
-                stderr_reader.join(timeout=1)
-            process.stdout.close()
-            process.stderr.close()
+                _cleanup_cli_resource(lambda: stderr_reader.join(timeout=1), "stderr_reader")
+            _cleanup_cli_resource(process.stdout.close, "stdout")
+            _cleanup_cli_resource(process.stderr.close, "stderr")
             if audit_handle is not None:
-                audit_handle.close()
+                _cleanup_cli_resource(audit_handle.close, "audit")
