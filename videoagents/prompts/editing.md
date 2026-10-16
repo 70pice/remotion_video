@@ -16,6 +16,19 @@
 
 ## 已采集素材必须落实到成片
 
+`script.segments[].visual_need` 是早期的画面采集需求，其中的界面类型、素材形式和
+画面偏好不是冻结的事实要求。后续人工逐镜意见优先于早期 visual_need 的画面偏好；
+以 `extras.visual_review.applied_director_feedback` 中已由摄影落实的真实意见和
+`shot_review_confirmation` 中对当前整包的确认作为视觉取舍依据。
+如果同时提供 `extras.visual_review.visual_revision`，其中是已核验的成片后局部返工意见、
+原确认依据和指定镜头范围；它与当前整包确认共同约束本次修改，不是旧时间轴快照。
+例如用户明确不要编程或编译器画面、改用与旁白对应的收益界面，当前分镜已落实并
+经整包确认时，不能仅因早期 visual_need 提过编程视频，或素材库仍有该视频，
+就判为遗漏素材、强制放回已被用户排除的画面。先核对当前旁白与所选素材是否对应。
+人工视觉取舍并不豁免真实风险检查：事实误导、来源或案例混用、素材不对应、不可渲染、
+片段越界、字幕或阅读时长等有当前输入证据的实质问题，仍须按下文规则阻断；
+不能把“整包已确认”作为自动通过条件，也不能修改冻结文案、音频或 timeline。
+
 按已确认 script 的段落、source_refs/asset_ids、assets.source_url 和素材描述，
 核对前面素材节点已经下载并导入的图片、视频是否出现在对应镜头的 asset_src。
 与当前旁白对应、可用于制作且能承载镜头的素材必须加入最终成片；真实视频
@@ -47,13 +60,15 @@ action=preview 是预览，action=final 或 produce 是成片制作，两者都�
 塞入 CLI，`timeline.caption_summary.windows` 按 shot_id 提供从当前正式字幕
 机械投影出的精确起止毫秒与对应文字；原始 Timeline 和字幕本身没有被修改。
 
-有 `extras.human_feedback` 时，核对重做的分镜是否回应用户对画面、证据、
+`extras.visual_review` 只提供从真实审核收据与摄影应用回执提取的意见文字、绑定信息，
+以及当前有效逐镜整包的确认；不包含旧 script 或 timeline 快照。
+有这些意见时，核对重做的分镜是否回应用户对画面、证据、
 可读性和节奏的反馈；不要把“再次渲染”当作“已经修改”。只检查你能从
 当前输入核验的变化，不能宣称看过上一版或已经试听。旁白、语速、音乐或
 字幕样式等超出本节点能力的修改要求，须明确指出缺口，不能假装预检已修复。
 
-`timeline` 是当前待渲染分镜的唯一现状来源；`extras.human_feedback` 只提供
-返工验收条件和被审核快照，不能替代、覆盖或回忆成“当前 timeline”。核对
+`timeline` 是当前待渲染分镜的唯一现状来源；`extras.visual_review` 只提供
+返工验收条件和人工视觉取舍，不能替代、覆盖或回忆成“当前 timeline”。核对
 返工时必须重新从当前 `timeline.shots` 按实际数组内容读取每个 shot_id、
 start_frame、end_frame、component_id 和相关 props，再与反馈要求逐项比较。
 凡是 finding 声称“当前仍为某个旧帧区间/旧字段”，该数值必须与当前
@@ -134,6 +149,12 @@ metric 这些统一安全槽位。预设中的演示内容不能支持本片事�
 复杂数据、步骤同步或双栏对比时，改用上面的参数化适配器。可建议在生产清单内
 更换预设 `component_id` 或调整安全槽位，但不能编造清单外 ID、源码路径、CSS、
 URL、函数或组件实现。
+
+Snapcn-PhoneFrame 普通本体另支持 media_slides（2～8张本任务已导入图片，每项
+asset_src/start_frame/asset_fit，可选已核验asset_crop）和 carousel_transition_frames（0～15，默认6）。
+首项从镜内0帧开始且等于shot.asset_src，后续起点严格递增并在镜内；它在同一外框内换图，
+外框、标题、位置与入场不重启，不与set_design、focus或tutorial混用。
+不能把这种正式轮播合同判作任意props，也不能建议用切镜替代用户要求的固定位置轮播。
 
 对未使用 set_design 的参数化适配器，可建议调整的主字段仅限 shot 的 component_id/title/body/
 asset_src/source_label/accent_color 及对应 props：title.eyebrow、keyword.keyword、

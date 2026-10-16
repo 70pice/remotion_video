@@ -1,9 +1,11 @@
 """The editing Agent gets exact shot semantics without raw word-caption bloat."""
 
+import copy
+
 import pytest
 
 from videoagents.contracts import Asset, Brief, Script, ScriptSegment, Timeline
-from videoagents.nodes.editing import EditingNode, compact_timeline_for_editing, has_unapplied_human_feedback
+from videoagents.nodes.editing import EditingNode, compact_timeline_for_editing
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState, job_context
 from videoagents.storage import Repository
@@ -44,33 +46,9 @@ def test_compact_timeline_for_editing_keeps_shots_and_projects_caption_windows()
     assert timeline["captions"][0]["text"] == "第一句"
 
 
-def test_editing_only_receives_unapplied_human_feedback():
-    reviewed_timeline = {"shots": [{"shot_id": "shot-old"}]}
-    applied = {
-        "human_feedback": {
-            "render": {
-                "decision": "revise",
-                "applied": True,
-                "timeline": reviewed_timeline,
-            }
-        }
-    }
-    pending = {
-        "human_feedback": {
-            "render": {
-                "decision": "revise",
-                "applied": False,
-                "timeline": reviewed_timeline,
-            }
-        }
-    }
-
-    assert not has_unapplied_human_feedback(applied)
-    assert has_unapplied_human_feedback(pending)
-    assert not has_unapplied_human_feedback({"human_feedback": []})
-
-
-def test_editing_model_receives_renderable_visual_metadata_without_audio_alignment_or_mutating_inputs(tmp_path, monkeypatch):
+@pytest.mark.parametrize("review", ["applied", "unapplied", "wrong-token", "wrong-revision", "unapproved"])
+def test_editing_model_receives_renderable_visual_metadata_without_audio_alignment_or_mutating_inputs(
+        tmp_path, monkeypatch, review):
     repo = Repository(tmp_path / "runtime")
     service = JobService(repo, tmp_path / "project")
     job = repo.create_job(Brief(topic="Muse", target_seconds=2, width=240, height=426, fps=15))
@@ -115,6 +93,29 @@ def test_editing_model_receives_renderable_visual_metadata_without_audio_alignme
     repo.update_asset_metadata(blocked.asset_id, {"width": 800, "height": 600, "origin": "materials"})
     original_script = job.script.model_dump()
     original_timeline = job.timeline.model_dump()
+    note = "UNIT: 不用编程界面，使用已选收益图，旁白与音频保持不变。"
+    revision = job.revision - 1 if review == "wrong-revision" else job.revision
+    receipt = service.write_json(job, "unit-visual-revise.json", {
+        "stage": "director", "node_name": "director_human_gate", "revision": revision,
+        "review_mode": "per_shot_stills", "pending_token": "unit-visual-choice", "decision": "revise", "note": note,
+        "subject": {"timeline": {"shots": [{"shot_id": "OLD-SNAPSHOT-MUST-NOT-LEAK"}]},
+                    "script": {"title": "OLD-SCRIPT-MUST-NOT-LEAK"}},
+    }, "stage_review")
+    applied = service.write_json(job, "unit-visual-applied.json", {
+        "stage": "director", "target": "director", "revision": revision,
+        "pending_token": "unit-unrelated-token" if review == "wrong-token" else "unit-visual-choice",
+        "note": note, "applied": review != "unapplied",
+    }, "human_feedback_applied")
+    confirmation = service.write_json(job, "unit-current-shot-confirmation.json", {
+        "stage": "director", "node_name": "director_human_gate", "revision": job.revision,
+        "review_mode": "per_shot_stills", "pending_token": "unit-current-package", "decision": "confirm",
+        "note": "UNIT: 当前全部逐镜图已确认，继续成片。", "reviewed_shot_ids": ["shot-1"],
+        "director_shot_review_artifact_id": "unit-current-package-artifact", "dependency_fingerprint": "unit-bound-current-plan",
+        "subject": {"timeline": {"shots": [{"shot_id": "OLD-CONFIRMATION-SNAPSHOT"}]}},
+    }, "stage_review")
+    # Keep both immutable review receipts, as the real HumanReviewNode does.
+    job = repo.update_job(job.job_id, artifacts=[receipt, applied, confirmation])
+    monkeypatch.setattr("videoagents.nodes.editing.director_demo_is_approved", lambda *a: review != "unapproved")
     node = EditingNode(repo, service)
     monkeypatch.setattr(node.model, "available", lambda role: True)
     monkeypatch.setattr("videoagents.nodes.editing.render", lambda *args, **kwargs: pytest.fail("blocking preflight reached render"))
@@ -130,7 +131,10 @@ def test_editing_model_receives_renderable_visual_metadata_without_audio_alignme
     monkeypatch.setattr(node.model, "call", call)
     state = VideoState(**job_context(job), run_id="unit-editing-context", action="produce",
                        asset_metadata={audio.asset_id: {"alignment": {"origin": "state copy should not leak"}},
-                                       video.asset_id: {"duration_seconds": 99, "alignment": {"origin": "state leak"}}})
+                                       video.asset_id: {"duration_seconds": 99, "alignment": {"origin": "state leak"}}},
+                       extras={"human_feedback": {"director": {
+                           "decision": "revise", "note": "UNTRUSTED-CHECKPOINT-NOTE", "applied": True,
+                           "timeline": copy.deepcopy(original_timeline)}}, "unrelated": "MUST-NOT-LEAK"})
 
     with pytest.raises(ValueError, match="剪辑模型预检未通过"):
         node.render_video(job, "final", state=state)
@@ -156,6 +160,20 @@ def test_editing_model_receives_renderable_visual_metadata_without_audio_alignme
     }
     assert all("alignment" not in metadata for metadata in context["asset_metadata"].values())
     assert "captions" not in context["timeline"]
+    visual_review = context["extras"]["visual_review"]
+    if review == "applied" or review == "unapproved":
+        assert visual_review["applied_director_feedback"]["note"] == note
+        assert visual_review["applied_director_feedback"]["review_artifact_id"] == receipt.artifact_id
+        assert visual_review["applied_director_feedback"]["applied_artifact_id"] == applied.artifact_id
+    else:
+        assert "applied_director_feedback" not in visual_review
+    if review != "unapproved":
+        assert visual_review["shot_review_confirmation"]["pending_token"] == "unit-current-package"
+        assert visual_review["shot_review_confirmation"]["reviewed_shot_ids"] == ["shot-1"]
+    else:
+        assert "shot_review_confirmation" not in visual_review
+    assert "OLD-" not in repr(context) and "MUST-NOT-LEAK" not in repr(context)
+    assert "UNTRUSTED-CHECKPOINT-NOTE" not in repr(context)
     assert repo.get_job(job.job_id).script.model_dump() == original_script
     assert repo.get_job(job.job_id).timeline.model_dump() == original_timeline
 

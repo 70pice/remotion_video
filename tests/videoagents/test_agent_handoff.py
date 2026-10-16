@@ -266,6 +266,14 @@ def test_production_graph_clears_each_completed_role_before_real_input_pause(tmp
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "produce", "idempotency_key": "unit-clear"})
     with VideoProductionGraph(repo, service.project_root) as production:
         result = production.execute(repo.claim(12345))
+        assert visited == ["script"]
+        assert repo.get_job(job.job_id).pending_input["node_name"] == "script_human_gate"
+        config = {"configurable": {"thread_id": repo.get_job(job.job_id).pending_input["thread_id"]}}
+        pending = production.graph.get_state(config).interrupts[0]
+        from langgraph.types import Command
+        result = production.graph.invoke(Command(resume={pending.id: {
+            "decision": "confirm", "note": "UNIT：核对文案及来源，允许素材采集。",
+            "pending_token": pending.value["pending_token"]}}), config)
         assert visited == ["script", "materials"]
         assert result["extras"] == {"final_summary": "素材已核验"}
         assert result["script"]["segments"][0]["narration"] == job.brief.script_text

@@ -68,6 +68,43 @@ def test_rewrite_keeps_human_direction_after_feedback_is_applied(tmp_path, monke
     assert context["extras"]["human_feedback"]["script"]["applied"] is applied
 
 
+def test_rewrite_passes_public_research_settings_to_actual_model_boundary(tmp_path, monkeypatch):
+    import json
+
+    from videoagents.contracts import SettingsPatch
+    from videoagents.providers.cli_runner import CliResult
+    from videoagents.services.settings import SettingsService
+
+    repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(role_models={"screenwriter": {
+        "provider": "claude_code_cli", "model": "fixture",
+    }}))
+    job = repo.create_job(Brief(topic="报告解读"))
+    original = Script(title="旧稿", origin="model", revision=1,
+                      segments=[ScriptSegment(segment_id="s1", narration="旧口播。")])
+    feedback = {"script": original.model_dump(), "note": "改写"}
+    public = {"research_platforms": ["web", "zhihu"], "research_max_searches": 4,
+              "research_max_sources": 6, "research_download_images": False, "capture_enabled": False}
+    context = {"job_id": job.job_id, "revision": 1, "brief": job.brief.model_dump(),
+               "script": original.model_dump(), "research": {}, "assets": [],
+               "settings": {**public, "ark_api_key": "UNIT-SECRET", "voice_api_key": "UNIT-VOICE",
+                            "cli_availability": {"fixture": True}}}
+    captured = []
+    def transport(_provider, _model, _timeout, prompt, _schema, **kwargs):
+        captured.append((prompt, kwargs))
+        revised = original.model_dump()
+        revised["segments"][0]["narration"] = "新口播。"
+        return CliResult({"script": revised, "response": "已修改"})
+    monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda _: ["fixture"])
+    monkeypatch.setattr("videoagents.providers.llm.run_cli", transport)
+    ScreenwriterNode(repo, JobService(repo, tmp_path)).rewrite(job, context, feedback)
+    prompt, kwargs = captured[0]
+    payload = json.loads(prompt.split("\n上下文：\n", 1)[1])
+    assert payload["settings"] == public
+    assert "UNIT-SECRET" not in prompt and "UNIT-VOICE" not in prompt and "cli_availability" not in prompt
+    assert kwargs["research_context"]["tools"] == ["skill", "search", "source"]
+
+
 def test_user_script_does_not_bind_first_video_to_every_paragraph(tmp_path):
     repository = Repository(tmp_path / "runtime")
     job = repository.create_job(Brief(topic="测试", script_text="第一段任务。\n第二段边界。"))

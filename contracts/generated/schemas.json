@@ -2501,6 +2501,69 @@
       "title": "MaterialResearch",
       "type": "object"
     },
+    "MaterialSelectionRequest": {
+      "additionalProperties": false,
+      "description": "A partial materials decision; it cannot confirm a production gate.",
+      "properties": {
+        "base_revision": {
+          "minimum": 1,
+          "title": "Base Revision",
+          "type": "integer"
+        },
+        "pending_token": {
+          "maxLength": 100,
+          "minLength": 16,
+          "title": "Pending Token",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "maxLength": 200,
+          "minLength": 8,
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "decision": {
+          "const": "select_materials",
+          "default": "select_materials",
+          "title": "Decision",
+          "type": "string"
+        },
+        "note": {
+          "maxLength": 3000,
+          "minLength": 1,
+          "title": "Note",
+          "type": "string"
+        },
+        "accepted_asset_ids": {
+          "items": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 400,
+          "title": "Accepted Asset Ids",
+          "type": "array"
+        },
+        "rejected_asset_ids": {
+          "items": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 400,
+          "title": "Rejected Asset Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "base_revision",
+        "pending_token",
+        "idempotency_key",
+        "note"
+      ],
+      "title": "MaterialSelectionRequest",
+      "type": "object"
+    },
     "ModelChoice": {
       "additionalProperties": false,
       "properties": {
@@ -2586,6 +2649,167 @@
         "fetched_at"
       ],
       "title": "ModelCatalog",
+      "type": "object"
+    },
+    "RefreshShotsRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "base_revision": {
+          "minimum": 1,
+          "title": "Base Revision",
+          "type": "integer"
+        },
+        "pending_token": {
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Pending Token",
+          "type": "string"
+        },
+        "director_plan_artifact_id": {
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Director Plan Artifact Id",
+          "type": "string"
+        },
+        "director_plan_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Director Plan Sha256",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "maxLength": 200,
+          "minLength": 8,
+          "title": "Idempotency Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "base_revision",
+        "pending_token",
+        "director_plan_artifact_id",
+        "director_plan_sha256",
+        "idempotency_key"
+      ],
+      "title": "RefreshShotsRequest",
+      "type": "object"
+    },
+    "ReplenishMaterialsRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "base_revision": {
+          "minimum": 1,
+          "title": "Base Revision",
+          "type": "integer"
+        },
+        "pending_token": {
+          "maxLength": 100,
+          "minLength": 16,
+          "title": "Pending Token",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "maxLength": 200,
+          "minLength": 8,
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "note": {
+          "maxLength": 3000,
+          "minLength": 1,
+          "title": "Note",
+          "type": "string"
+        },
+        "materials_note": {
+          "maxLength": 30000,
+          "minLength": 1,
+          "title": "Materials Note",
+          "type": "string"
+        },
+        "retained_asset_ids": {
+          "items": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 400,
+          "minItems": 1,
+          "title": "Retained Asset Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "base_revision",
+        "pending_token",
+        "idempotency_key",
+        "note",
+        "materials_note",
+        "retained_asset_ids"
+      ],
+      "title": "ReplenishMaterialsRequest",
+      "type": "object"
+    },
+    "RestartUnknownRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "base_revision": {
+          "minimum": 1,
+          "title": "Base Revision",
+          "type": "integer"
+        },
+        "operation_id": {
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "acknowledge_possible_usage": {
+          "const": true,
+          "title": "Acknowledge Possible Usage",
+          "type": "boolean"
+        },
+        "note": {
+          "maxLength": 3000,
+          "minLength": 1,
+          "title": "Note",
+          "type": "string"
+        },
+        "brief": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Brief"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "rebuild_script": {
+          "default": false,
+          "title": "Rebuild Script",
+          "type": "boolean"
+        },
+        "materials_only": {
+          "default": false,
+          "title": "Materials Only",
+          "type": "boolean"
+        },
+        "materials_note": {
+          "default": "",
+          "maxLength": 30000,
+          "title": "Materials Note",
+          "type": "string"
+        },
+        "director_only": {
+          "default": false,
+          "title": "Director Only",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "base_revision",
+        "operation_id",
+        "acknowledge_possible_usage",
+        "note"
+      ],
+      "title": "RestartUnknownRequest",
       "type": "object"
     },
     "ResumeRequest": {
@@ -2732,10 +2956,31 @@
         },
         "timeout_seconds": {
           "default": 900,
-          "maximum": 1800,
+          "maximum": 36000,
           "minimum": 30,
           "title": "Timeout Seconds",
           "type": "integer"
+        },
+        "codex_reasoning_effort": {
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "minimal",
+                "low",
+                "medium",
+                "high",
+                "xhigh",
+                "max"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Codex Reasoning Effort"
         }
       },
       "title": "RoleModelConfig",
@@ -2878,6 +3123,22 @@
           ],
           "default": null,
           "title": "Role Models"
+        },
+        "glm_reasoning_effort": {
+          "anyOf": [
+            {
+              "enum": [
+                "xhigh",
+                "max"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Glm Reasoning Effort"
         },
         "script_discussion_enabled": {
           "anyOf": [
@@ -3266,7 +3527,7 @@
         "render_timeout_seconds": {
           "anyOf": [
             {
-              "maximum": 7200,
+              "maximum": 36000,
               "minimum": 30,
               "type": "integer"
             },
@@ -3279,6 +3540,50 @@
         }
       },
       "title": "SettingsPatch",
+      "type": "object"
+    },
+    "VisualRevisionRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "base_revision": {
+          "minimum": 1,
+          "title": "Base Revision",
+          "type": "integer"
+        },
+        "idempotency_key": {
+          "maxLength": 200,
+          "minLength": 8,
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "shot_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "minItems": 1,
+          "title": "Shot Ids",
+          "type": "array"
+        },
+        "note": {
+          "maxLength": 30000,
+          "minLength": 10,
+          "title": "Note",
+          "type": "string"
+        },
+        "preview": {
+          "default": false,
+          "title": "Preview",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "base_revision",
+        "idempotency_key",
+        "shot_ids",
+        "note"
+      ],
+      "title": "VisualRevisionRequest",
       "type": "object"
     },
     "VoiceSegmentPerformance": {

@@ -237,6 +237,8 @@ def test_unavailable_error_and_other_provider_are_sanitized(local_cache, monkeyp
     assert claude.fetched_at == ""
     assert "官方文档" in claude.message and "未验证" in claude.message
     assert "1,000,000" in claude.models[0].description and "max" in claude.models[0].description
+    assert claude.models[0].display_name == "GLM-5.3 · 1M"
+    assert "glm_reasoning_effort" in claude.models[0].description and "xhigh" in claude.models[0].description
     monkeypatch.setattr(model_catalog, "executable_prefix", lambda _: None)
     missing_cli = service.get("codex_cli", refresh=True)
     assert missing_cli.status == "unavailable" and missing_cli.models == []

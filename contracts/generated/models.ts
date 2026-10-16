@@ -276,6 +276,16 @@ export interface MaterialResearch {
   limitations: Array<string>;
 }
 
+export interface MaterialSelectionRequest {
+  base_revision: number;
+  pending_token: string;
+  idempotency_key: string;
+  decision?: "select_materials";
+  note: string;
+  accepted_asset_ids?: Array<string>;
+  rejected_asset_ids?: Array<string>;
+}
+
 export interface MaterialSourceFile {
   url: string;
   title: string;
@@ -317,6 +327,35 @@ export interface ModelFinding {
   blocking: boolean;
 }
 
+export interface RefreshShotsRequest {
+  base_revision: number;
+  pending_token: string;
+  director_plan_artifact_id: string;
+  director_plan_sha256: string;
+  idempotency_key: string;
+}
+
+export interface ReplenishMaterialsRequest {
+  base_revision: number;
+  pending_token: string;
+  idempotency_key: string;
+  note: string;
+  materials_note: string;
+  retained_asset_ids: Array<string>;
+}
+
+export interface RestartUnknownRequest {
+  base_revision: number;
+  operation_id: string;
+  acknowledge_possible_usage: true;
+  note: string;
+  brief?: Brief | null;
+  rebuild_script?: boolean;
+  materials_only?: boolean;
+  materials_note?: string;
+  director_only?: boolean;
+}
+
 export interface ResumeRequest {
   base_revision: number;
   decision: "confirm" | "revise" | "cancel";
@@ -348,6 +387,7 @@ export interface RoleModelConfig {
   provider: "codex_cli" | "trae_cli" | "claude_code_cli";
   model: string;
   timeout_seconds: number;
+  codex_reasoning_effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max" | null;
 }
 
 export interface RoleModels {
@@ -426,6 +466,7 @@ export interface ScriptSegment {
 
 export interface SettingsPatch {
   role_models?: Partial<Record<"materials" | "screenwriter" | "script_reviewer" | "voice" | "director" | "editing" | "review", Partial<RoleModelConfig>>> | null;
+  glm_reasoning_effort?: "xhigh" | "max" | null;
   script_discussion_enabled?: boolean | null;
   script_discussion_max_rounds?: number | null;
   feishu_folder_token?: string | null;
@@ -497,6 +538,14 @@ export interface Timeline {
   audio_src: string | null;
   shots: Array<Shot>;
   captions: Array<Caption>;
+}
+
+export interface VisualRevisionRequest {
+  base_revision: number;
+  idempotency_key: string;
+  shot_ids: Array<string>;
+  note: string;
+  preview: boolean;
 }
 
 export interface VoiceAdvice {

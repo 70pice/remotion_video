@@ -74,6 +74,14 @@ def test_worker_graph_renders_every_shot_and_waits_for_human(tmp_path, monkeypat
     repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "produce", "idempotency_key": "SMOKE-produce"})
     assert Worker(repo, project).once()
     paused = repo.get_job(job.job_id)
+    assert paused.status == "NEEDS_HUMAN" and paused.pending_input["node_name"] == "script_human_gate", paused.message
+    repo.enqueue(job.job_id, {
+        "base_revision": paused.revision, "pending_token": paused.pending_input["pending_token"],
+        "decision": "confirm", "note": "SMOKE ONLY: approve fixture script before material collection.",
+        "idempotency_key": "SMOKE-fixture-pre-materials-confirm", "action": "resume",
+    })
+    assert Worker(repo, project).once()
+    paused = repo.get_job(job.job_id)
     assert paused.status == "NEEDS_HUMAN" and paused.pending_input["node_name"] == "human_review_script", paused.message
     repo.enqueue(job.job_id, {
         "base_revision": paused.revision, "pending_token": paused.pending_input["pending_token"],

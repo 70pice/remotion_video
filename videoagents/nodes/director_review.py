@@ -194,3 +194,23 @@ def director_demo_is_approved(repository: Repository, job: Job) -> bool:
         return receipt.get("dependency_fingerprint") == director_review_fingerprint(repository, job)
     except ValueError:
         return False
+
+
+def validate_shot_refresh(repository: Repository, job: Job, request: dict, pending: dict) -> None:
+    """Refresh only the exact unchanged subject of a current all-shots gate."""
+    if (pending.get("kind") != "stage_review" or pending.get("stage") != "director"
+            or pending.get("node_name") != "director_human_gate"
+            or pending.get("review_mode") != SHOT_REVIEW_MODE
+            or pending.get("revision") != job.revision
+            or request.get("pending_token") != pending.get("pending_token")):
+        raise Conflict("刷新镜头必须绑定当前摄影逐镜审核待办")
+    try:
+        plan_artifact, plan = current_plan_artifact(repository, job)
+        inputs = director_review_fingerprint(repository, job)
+    except ValueError as exc:
+        raise Conflict(str(exc)) from exc
+    if (plan.get("review_mode") != SHOT_REVIEW_MODE
+            or request.get("director_plan_artifact_id") != plan_artifact.artifact_id
+            or request.get("director_plan_sha256") != plan_artifact.sha256
+            or pending.get("dependency_fingerprint") != inputs):
+        raise Conflict("待刷新的摄影方案、审核包或制作输入已变化")

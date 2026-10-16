@@ -4,12 +4,14 @@ import ipaddress
 import json
 import shutil
 import uuid
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 from urllib.parse import urldefrag, urlparse
 
 from videoagents.contracts import Asset, Job, MaterialResearch
 from videoagents.nodes.common import agent_state, request_input, start_stage, state_context
+from videoagents.nodes.script_review import script_before_materials_is_approved
 from videoagents.prompts import load_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
 from videoagents.providers.network import validate_url
@@ -19,27 +21,34 @@ from videoagents.state import VideoState
 from videoagents.storage import Conflict, Repository
 from videoagents.storage.repository import fingerprint, now
 from videoagents.tools.media import decode_check, detect_media, probe, sha256, video_metadata
+from videoagents.tools.sources import MAX_SOURCE_TEXT_CHARS
 from worker.process_manager import RenderCancelled
 
 # 研究行为仅由素材角色自己的 Markdown Prompt 定义。
 # CLI provider 只负责执行与接收最终 JSON；业务输入只从共享 VideoState 读取。
 PROMPT = load_prompt("materials")
+RESTART_PROMPT = PROMPT + "\n\n" + load_prompt("materials-restart")
 
 
-def collection_fingerprint(job: Job) -> str:
+def collection_fingerprint(job: Job, materials_note: str = "", imported_research: dict | None = None) -> str:
     """Bind the research cache to what the collection is supposed to gather.
 
     The writer now runs first and may revise after materials finished; a new
     script with new citations or visual needs must invalidate the frozen
     package so the collector runs again before the human gate.
     """
-    return fingerprint({
+    inputs = {
         "source_urls": sorted(job.brief.source_urls),
         "segments": [{"segment_id": segment.segment_id,
                       "source_refs": sorted(segment.source_refs),
                       "visual_need": segment.visual_need}
                      for segment in (job.script.segments if job.script else [])],
-    })
+    }
+    if materials_note:
+        inputs["materials_note"] = materials_note
+    if imported_research:
+        inputs["imported_research"] = imported_research
+    return fingerprint(inputs)
 
 
 class MaterialsNode:
@@ -51,6 +60,9 @@ class MaterialsNode:
         job = start_stage(self.repo, state, "materials", "素材节点正在按文案清单核验来源并采集真实画面")
         try:
             research = self.collect(job, state)
+            if (self.repo.materials_restart_receipt(job.job_id, job.revision)
+                    and not script_before_materials_is_approved(self.repo, self.active(job))):
+                raise Conflict("仅素材重启的原文案批准依据已失效")
             return state_context(self.repo, state, route="human_review_script", research=research, gate_issues=[])
         except (CapabilityMissing, ValueError) as exc:
             return request_input(self.repo, state, "materials", [str(exc)], getattr(exc, "fields", ["source_urls", "assets"]), exc)
@@ -168,13 +180,23 @@ class MaterialsNode:
     def collect(self, job: Job, state: VideoState | None = None) -> dict:
         """复用已完成研究，否则直接启动素材模型，再保存其最终产出。"""
         job = self.active(job)
+        restart = self.repo.materials_restart_receipt(job.job_id, job.revision)
+        materials_note = restart["materials_note"] if restart else ""
+        imported_research = restart.get("imported_research") if restart else None
         frozen = self.saved_json(job, "research")
         if (frozen is not None and frozen.get("status", "COMPLETED") == "COMPLETED"
-                and frozen.get("collection_fingerprint") == collection_fingerprint(job)):
+                and frozen.get("collection_fingerprint") == collection_fingerprint(job, materials_note, imported_research)):
             return frozen
         folder = self.repo.root / "jobs" / job.job_id / "revisions" / str(job.revision) / "skills-research"
         folder.mkdir(parents=True, exist_ok=True)
         context = agent_state(self.repo, job, state)
+        fields = ("brief", "script", "assets", "settings")
+        if materials_note:
+            # Pass only collection requirements, never unrelated handoff extras.
+            context = {**context, "extras": {"materials_note": materials_note}}
+            if imported_research:
+                context["extras"].update(imported_research=imported_research, imported_assets=restart["imported_assets"])
+            fields = (*fields, "extras")
         # sink 在模型可写目录之外；每次调用独立命名，避免重放覆盖已登记记录。
         audit_path = folder.parent / f"material-tool-events-{uuid.uuid4().hex[:12]}.jsonl"
         def register_audit_snapshot() -> None:
@@ -187,7 +209,7 @@ class MaterialsNode:
                     artifacts=[item for item in current.artifacts if item.kind != "material_tool_audit"] + [artifact])
 
         try:
-            output = self.model.invoke(context, "materials", PROMPT, fields=("brief", "script", "assets", "settings"),
+            output = self.model.invoke(context, "materials", RESTART_PROMPT if materials_note else PROMPT, fields=fields,
                 output_schema=MaterialResearch.model_json_schema(), research_directory=folder, audit_path=audit_path)
         except BaseException:
             # Best effort only: a persistence failure here must never replace
@@ -224,7 +246,7 @@ class MaterialsNode:
                 raise ValueError("技能来源正文必须是 UTF-8 文本") from exc
             if not text:
                 raise ValueError("技能来源正文为空")
-            files[item.text_file], texts[item.url] = path, text[:16000]
+            files[item.text_file], texts[item.url] = path, text[:MAX_SOURCE_TEXT_CHARS]
         for item in bundle.visuals:
             if item.source_url not in urls:
                 raise ValueError("技能画面没有关联已读取的来源")
@@ -262,9 +284,12 @@ class MaterialsNode:
                 raise Conflict("冻结的技能输出文件已改变")
             return target
 
-        research = {"schema_version": "3", "status": "COMPLETED", "sources": [], "visuals": [],
+        restart = self.repo.materials_restart_receipt(job.job_id, job.revision)
+        imported = deepcopy(restart.get("imported_research", {})) if restart else {}
+        research = {"schema_version": "3", "status": "COMPLETED", "sources": imported.get("sources", []),
+                    "visuals": imported.get("visuals", []),
                     "limitations": list(bundle.limitations), "collected_at": now()}
-        if not bundle.visuals and (settings["capture_enabled"] or settings["research_download_images"]):
+        if not bundle.visuals and not research["visuals"] and (settings["capture_enabled"] or settings["research_download_images"]):
             research["limitations"].append("本次未取得真实图片或截图，摄影仍需补充画面素材。")
         for item in bundle.sources:
             existing = next((artifact for artifact in self.active(job).artifacts
@@ -289,7 +314,10 @@ class MaterialsNode:
                 self.repo.update_job(job.job_id, job.revision, expected_event_id=current.latest_event_id,
                                      artifacts=current.artifacts + [artifact])
             receipt = {**receipt, "asset_ids": []}
-            research["sources"].append(receipt)
+            if not any(value["url"] == item.url for value in research["sources"]):
+                # Keep imported source bytes/bindings when the collector rereads
+                # that page. The new read still has its own artifact/manifest.
+                research["sources"].append(receipt)
         sources = {item["url"]: item for item in research["sources"]}
         for item in bundle.visuals:
             _, extension = detect_media(files[item.file].read_bytes(), files[item.file])
@@ -299,15 +327,19 @@ class MaterialsNode:
             else:
                 asset = self.attach_image(job, path, item.source_url,
                     "capture" if item.kind == "screenshot" else "source_image", item.description, item.image_url)
-            self.add_visual(research, sources[item.source_url], asset, item.kind, item.image_url, item.media_url,
-                            usage=job.brief.usage)
+            if not any(value["asset_id"] == asset.asset_id for value in research["visuals"]):
+                self.add_visual(research, sources[item.source_url], asset, item.kind, item.image_url, item.media_url,
+                                usage=job.brief.usage)
         current = self.active(job)
+        restart = self.repo.materials_restart_receipt(job.job_id, job.revision)
         known_urls = list(dict.fromkeys(current.brief.source_urls + urls))[:50]
-        if known_urls != current.brief.source_urls:
+        if not restart and known_urls != current.brief.source_urls:
             self.repo.update_job(job.job_id, job.revision, expected_event_id=current.latest_event_id,
                                 brief=current.brief.model_copy(update={"source_urls": known_urls}))
         self.service.write_json(self.active(job), "material-skill-manifest.json", bundle.model_dump(), "material_skill_manifest")
-        research = {**research, "collection_fingerprint": collection_fingerprint(self.active(job))}
+        research = {**research, "collection_fingerprint": collection_fingerprint(
+            self.active(job), restart["materials_note"] if restart else "",
+            restart.get("imported_research") if restart else None)}
         self.service.write_json(self.active(job), "research.json", research, "research")
         return research
 

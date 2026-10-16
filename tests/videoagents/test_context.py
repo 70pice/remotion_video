@@ -113,7 +113,7 @@ def test_screenwriter_returns_latest_job_context_after_saving_script_and_artifac
     result = ScreenwriterNode(repo, service)(state)
     saved = repo.get_job(job.job_id)
 
-    assert result["route"] == "materials"
+    assert result["route"] == "script_human_gate"
     assert result["status"] == saved.status == "RUNNING"
     assert result["stage"] == saved.stage == "script"
     assert result["brief"] == saved.brief.model_dump()

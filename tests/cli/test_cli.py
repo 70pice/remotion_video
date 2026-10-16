@@ -8,6 +8,9 @@ import struct
 import wave
 import zlib
 
+import pytest
+from pydantic import ValidationError
+
 from videoagents.contracts import Brief, SettingsPatch
 from videoagents.main import build_parser
 from videoagents.nodes.editing import EditingNode
@@ -76,6 +79,55 @@ def test_create_status_settings_and_shots_listing(tmp_path, capsys):
     assert patched["research_max_searches"] == 5
 
 
+@pytest.mark.parametrize("timeout_seconds", [29, 3600, 7200, 9000, 18000, 36000, 36001])
+def test_settings_cli_role_timeout_limits_preserve_other_settings(tmp_path, capsys, timeout_seconds):
+    runtime = tmp_path / "runtime"
+    settings = SettingsService(Repository(runtime))
+    assert all(role["timeout_seconds"] == 900 for role in settings.internal()["role_models"].values())
+    settings.patch(SettingsPatch(role_models={"director": {
+        "provider": "codex_cli", "model": "gpt-6.1-sol", "codex_reasoning_effort": "xhigh",
+    }}))
+    original = settings.internal()
+    argv = ["--runtime-dir", str(runtime), "settings", "set", "role_models",
+            json.dumps({"director": {"timeout_seconds": timeout_seconds}})]
+    if not 30 <= timeout_seconds <= 36000:
+        with pytest.raises(ValidationError):
+            run_cli(argv)
+        assert settings.internal() == original
+        return
+    assert run_cli(argv) == 0
+    public = json.loads(capsys.readouterr().out)
+    expected = original["role_models"]
+    expected["director"]["timeout_seconds"] = timeout_seconds
+    assert public["role_models"] == expected
+    assert SettingsService(Repository(runtime)).internal() == original
+
+
+def test_settings_cli_extended_timeouts_apply_to_all_roles_and_render(tmp_path, capsys):
+    runtime = tmp_path / "runtime"
+    settings = SettingsService(Repository(runtime))
+    settings.patch(SettingsPatch(role_models={
+        "materials": {"timeout_seconds": 1800, "provider": "codex_cli", "model": "gpt-6.1-sol",
+                      "codex_reasoning_effort": "xhigh"},
+        "director": {"timeout_seconds": 3600},
+    }))
+    original = settings.internal()
+    role_updates = {role: {"timeout_seconds": config["timeout_seconds"] * 5}
+                    for role, config in original["role_models"].items()}
+    run_cli(["--runtime-dir", str(runtime), "settings", "set", "role_models", json.dumps(role_updates)])
+    run_cli(["--runtime-dir", str(runtime), "settings", "set", "render_timeout_seconds",
+             str(original["render_timeout_seconds"] * 5)])
+    capsys.readouterr()
+    expected = {**original, "role_models": {
+        role: {**config, **role_updates[role]} for role, config in original["role_models"].items()
+    }, "render_timeout_seconds": original["render_timeout_seconds"] * 5}
+    assert settings.internal() == expected
+    for invalid in (29, 36001):
+        with pytest.raises(ValidationError):
+            run_cli(["--runtime-dir", str(runtime), "settings", "set", "render_timeout_seconds", str(invalid)])
+        assert settings.internal() == expected
+
+
 def test_run_pauses_at_script_gate_resume_confirms_and_shots_list(tmp_path, monkeypatch, capsys):
     runtime = tmp_path / "runtime"
     project = tmp_path / "project"
@@ -125,7 +177,13 @@ def test_run_pauses_at_script_gate_resume_confirms_and_shots_list(tmp_path, monk
     assert paused["status"] == "NEEDS_HUMAN" and paused["stage"] == "script", paused
     run_cli([*argv_tail, "status", job.job_id])
     detail = json.loads(capsys.readouterr().out)
-    assert detail["pending_input"]["node_name"] == "human_review_script"
+    assert detail["pending_input"]["node_name"] == "script_human_gate"
+
+    run_cli([*argv_tail, "resume", job.job_id, "--decision", "confirm",
+             "--note", "CLI TEST：先确认文案与来源，允许素材采集。"])
+    collected = json.loads(capsys.readouterr().out)
+    assert collected["stage"] == "script" and collected["status"] == "NEEDS_HUMAN"
+    assert repo.get_job(job.job_id).pending_input["node_name"] == "human_review_script"
 
     run_cli([*argv_tail, "resume", job.job_id, "--decision", "confirm",
              "--note", "CLI TEST：确认文案与素材，继续制作。"])
@@ -192,6 +250,11 @@ def test_run_failure_returns_nonzero_with_clean_json_stdout(tmp_path, monkeypatc
     monkeypatch.setattr(MaterialsNode, "__call__", boom)
     from videoagents.main import build_parser
     args = build_parser().parse_args(["--runtime-dir", str(runtime), "run", job.job_id])
+    rc = args.handler(args)
+    out = capsys.readouterr().out
+    assert rc == 0 and json.loads(out)["status"] == "NEEDS_HUMAN"
+    args = build_parser().parse_args(["--runtime-dir", str(runtime), "resume", job.job_id,
+                                     "--decision", "confirm", "--note", "UNIT：确认文案并进入素材采集。"])
     rc = args.handler(args)
     out = capsys.readouterr().out
     assert rc == 1, out

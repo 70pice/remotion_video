@@ -1,4 +1,4 @@
-"""Materials-only stdio MCP bridge; models choose inputs, never local paths."""
+"""Role-scoped stdio MCP bridge; models choose inputs, never local paths."""
 
 from __future__ import annotations
 
@@ -23,6 +23,29 @@ TOOL_NAMES = frozenset({"skill", "search", "source", "visual", "screenshot"})
 MAX_MESSAGE_BYTES = 64 * 1024
 MAX_WORKSPACE_BYTES = 256 * 1024 * 1024
 PROTOCOL_VERSIONS = ("2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25")
+# Only literal codes raised by this bridge are public; never stringify an exception.
+ERROR_RECOVERY = {
+    "research_skill_unavailable": "Use search and source directly, or choose another installed catalogue skill; do not retry the missing skill.",
+    "research_skill_too_large": "Skip this skill and use search and source directly; report the missing guidance as a limitation.",
+    "research_platform_disabled": "Use only configured research_platforms from the input settings; do not retry a disabled platform.",
+    "unknown_research_platform": "Choose a supported platform identifier from the configured research_platforms.",
+    "research_search_budget_exhausted": "Stop search calls. Use already read evidence and report remaining limitations in the final business result.",
+    "research_source_budget_exhausted": "Stop fetching new sources. Use already read evidence and report remaining limitations in the final business result.",
+    "research_download_budget_exhausted": "Stop source downloads and visual captures. Use existing files and report remaining limitations in the final business result.",
+    "research_images_disabled": "Skip image downloads because settings disable them; use permitted evidence and report the image gap.",
+    "research_screenshots_disabled": "Skip screenshots because settings disable them; use permitted evidence and report the screenshot gap.",
+    "source_text_empty": "Try another accessible public HTML or plain-text source; do not treat the empty page as evidence.",
+    "visual_source_not_read": "Read the source with the source tool before requesting its visual or screenshot.",
+    "visual_not_video": "Use a direct playable video file from a read source, or report the video gap; a webpage is not a downloaded video.",
+    "visual_not_decodable_image": "Use another valid image from a read source, or report the image gap.",
+    "screenshot_size_invalid": "Skip this screenshot and report the gap; do not repeat the same oversized or empty capture.",
+    "invalid_research_arguments": "Correct the arguments to match the advertised tool input schema before retrying.",
+    "unknown_research_tool": "Use only tools advertised by tools/list for this role; unavailable tools cannot be enabled by a request.",
+    "inactive_research_revision": "Stop all research calls. The task revision is inactive; report the blocked revision without changing job state.",
+    "invalid_research_workspace": "Stop research calls and report the workspace configuration failure; do not choose another local path.",
+    "linked_research_workspace": "Stop research calls and report the workspace boundary failure; do not follow or replace links.",
+    "linked_research_file": "Stop research calls and report the file boundary failure; do not follow or replace links.",
+}
 
 
 def _schema(properties: dict, required: list[str]) -> dict:
@@ -301,11 +324,13 @@ def serve(bridge: ResearchBridge, incoming: BinaryIO, outgoing: TextIO) -> None:
                             payload = bridge.call(params.get("name"), params.get("arguments", {}))
                         result = {"content": [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}]}
                     except Exception as exc:
-                        # No traceback (it may echo fetched content), but the
-                        # class name lets the model tell a budget stop from a
-                        # bad URL from an internal bug instead of blind retries.
-                        result = {"isError": True, "content": [{"type": "text", "text":
-                            f"Research tool failed ({type(exc).__name__}); check source access, settings, budget and active revision."}]}
+                        code = exc.args[0] if (type(exc) is ValueError and len(exc.args) == 1
+                                             and type(exc.args[0]) is str) else None
+                        if code not in ERROR_RECOVERY:
+                            code = "research_tool_failed"
+                        payload = {"error_code": code, "recovery": ERROR_RECOVERY.get(code,
+                            "Report the failed tool as a limitation; avoid blind retries. Check source access, settings, budget and active revision.")}
+                        result = {"isError": True, "content": [{"type": "text", "text": json.dumps(payload)}]}
                 else:
                     response = _error(identity, -32601, "Method not found")
                 if result is not None:

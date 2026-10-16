@@ -5,6 +5,7 @@ import os
 import sys
 
 import pytest
+from pydantic import ValidationError
 
 from videoagents.contracts import SettingsPatch
 from videoagents.providers import cli_runner
@@ -20,7 +21,8 @@ def fixture_cli(tmp_path, monkeypatch, code):
     monkeypatch.setattr(cli_runner, "executable_prefix", lambda provider: [sys.executable, "-u", str(path)])
 
 
-def test_glm_credentials_and_max_1m_are_child_only(tmp_path, monkeypatch):
+@pytest.mark.parametrize("effort", [None, "xhigh"])
+def test_glm_credentials_and_selected_effort_1m_are_child_only(tmp_path, monkeypatch, effort):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "ambient-other-key")
     monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "ambient-oauth")
     monkeypatch.setenv("ANTHROPIC_BASE_URL", "https://unwanted.invalid")
@@ -34,14 +36,16 @@ def test_glm_credentials_and_max_1m_are_child_only(tmp_path, monkeypatch):
     code += "v['capabilities']=os.getenv('ANTHROPIC_CUSTOM_MODEL_OPTION_SUPPORTED_CAPABILITIES')\n"
     code += "v['args']=sys.argv[1:]\nprint(json.dumps({'type':'result','subtype':'success','structured_output':{'response_json':json.dumps(v)}}))\n"
     fixture_cli(tmp_path, monkeypatch, code)
-    data = run_cli("claude_code_cli", GLM_MODEL, 5, "fixture", {"type": "object"}, zhipu_api_key="fake-zhipu-secret").data
+    kwargs = {"glm_reasoning_effort": effort} if effort is not None else {}
+    data = run_cli("claude_code_cli", GLM_MODEL, 5, "fixture", {"type": "object"},
+                   zhipu_api_key="fake-zhipu-secret", **kwargs).data
     assert data["authenticated"] and not data["conflicts"]
     assert data["ANTHROPIC_BASE_URL"] == "https://open.bigmodel.cn/api/anthropic"
-    assert data["CLAUDE_CODE_EFFORT_LEVEL"] == "max"
+    assert data["CLAUDE_CODE_EFFORT_LEVEL"] == (effort or "max")
     assert data["CLAUDE_CODE_AUTO_COMPACT_WINDOW"] == data["CLAUDE_CODE_MAX_CONTEXT_TOKENS"] == "1000000"
     assert data["models"] == [GLM_MODEL] * 4
-    assert {"max_effort", "thinking", "adaptive_thinking"} <= set(data["capabilities"].split(","))
-    assert data["args"][data["args"].index("--effort") + 1] == "max"
+    assert {"xhigh_effort", "max_effort", "thinking", "adaptive_thinking"} <= set(data["capabilities"].split(","))
+    assert data["args"][data["args"].index("--effort") + 1] == (effort or "max")
     assert "fake-zhipu-secret" not in repr(data)
     assert os.environ["CLAUDE_CODE_EFFORT_LEVEL"] == "low"
     assert os.environ["ANTHROPIC_API_KEY"] == "ambient-other-key"
@@ -60,10 +64,11 @@ def test_glm_missing_key_and_wrong_model_fail_before_reserving(tmp_path, monkeyp
         assert db.execute("SELECT COUNT(*) FROM operations").fetchone()[0] == 0
 
 
-def test_all_roles_receive_glm_max_1m_and_materials_context(tmp_path, monkeypatch):
+@pytest.mark.parametrize("effort", ["max", "xhigh"])
+def test_all_roles_receive_glm_selected_effort_1m_and_materials_context(tmp_path, monkeypatch, effort):
     repo = Repository(tmp_path / "runtime")
     settings = SettingsService(repo)
-    settings.patch(SettingsPatch(zhipu_api_key="fake-private-key"))
+    settings.patch(SettingsPatch(zhipu_api_key="fake-private-key", glm_reasoning_effort=effort))
     monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *a: ["fixture"])
     calls = []
     def invoke(provider, model, timeout, prompt, schema, **kwargs):
@@ -77,6 +82,7 @@ def test_all_roles_receive_glm_max_1m_and_materials_context(tmp_path, monkeypatc
     for provider, model, prompt, kwargs in calls:
         assert (provider, model) == ("claude_code_cli", GLM_MODEL)
         assert kwargs["zhipu_api_key"] == "fake-private-key"
+        assert kwargs["glm_reasoning_effort"] == effort
         assert "fake-private-key" not in prompt
     assert calls[0][3]["research_context"] == {"runtime": str(repo.root), "job_id": "fixture", "revision": 1}
     with repo.connection() as db:
@@ -84,7 +90,73 @@ def test_all_roles_receive_glm_max_1m_and_materials_context(tmp_path, monkeypatc
     for row in rows:
         assert "fake-private-key" not in row[0]
         ledger = json.loads(row[0])
-        assert ledger["reasoning_effort"] == "max" and ledger["context_tokens"] == 1_000_000
+        assert ledger["reasoning_effort"] == effort and ledger["context_tokens"] == 1_000_000
+
+
+def test_glm_effort_settings_roundtrip_and_invalid_rejection(tmp_path):
+    settings = SettingsService(Repository(tmp_path / "runtime"))
+    assert settings.public()["glm_reasoning_effort"] == "max"
+    patch = SettingsPatch.model_validate_json('{"glm_reasoning_effort":"xhigh"}')
+    assert settings.patch(patch)["glm_reasoning_effort"] == "xhigh"
+    assert SettingsService(Repository(tmp_path / "runtime")).internal()["glm_reasoning_effort"] == "xhigh"
+    settings.patch(SettingsPatch(glm_reasoning_effort="max"))
+    with pytest.raises(ValidationError):
+        SettingsPatch.model_validate_json('{"glm_reasoning_effort":"extra high"}')
+    assert settings.internal()["glm_reasoning_effort"] == "max"
+
+
+def test_invalid_glm_effort_is_rejected_before_child_launch(tmp_path, monkeypatch):
+    fixture_cli(tmp_path, monkeypatch, "raise AssertionError('must not launch')")
+    with pytest.raises(CliFailure, match="invalid_glm_reasoning_effort") as error:
+        run_cli("claude_code_cli", GLM_MODEL, 5, "fixture", {}, zhipu_api_key="fake",
+                glm_reasoning_effort="high")
+    assert error.value.submitted is False
+
+
+def test_effort_changes_fingerprint_and_replays_only_matching_result(tmp_path, monkeypatch):
+    repo = Repository(tmp_path / "runtime")
+    settings = SettingsService(repo)
+    settings.patch(SettingsPatch(zhipu_api_key="fake"))
+    monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *a: ["fixture"])
+    efforts = []
+    def invoke(*args, **kwargs):
+        effort = kwargs["glm_reasoning_effort"]
+        efforts.append(effort)
+        return CliResult({"effort": effort})
+    monkeypatch.setattr("videoagents.providers.llm.run_cli", invoke)
+    model = JsonModel(repo)
+    assert model.call("fixture", 1, "screenwriter", "test", {}) == {"effort": "max"}
+    settings.patch(SettingsPatch(glm_reasoning_effort="xhigh"))
+    assert model.call("fixture", 1, "screenwriter", "test", {}) == {"effort": "xhigh"}
+    assert model.call("fixture", 1, "screenwriter", "test", {}) == {"effort": "xhigh"}
+    settings.patch(SettingsPatch(glm_reasoning_effort="max"))
+    assert model.call("fixture", 1, "screenwriter", "test", {}) == {"effort": "max"}
+    assert efforts == ["max", "xhigh"]
+    with repo.connection() as db:
+        rows = db.execute("SELECT input_hash,body FROM operations").fetchall()
+    assert len(rows) == len({row[0] for row in rows}) == 2
+    assert {json.loads(row[1])["reasoning_effort"] for row in rows} == {"max", "xhigh"}
+
+
+@pytest.mark.parametrize("status", ["SUBMITTING", "UNKNOWN"])
+def test_effort_change_cannot_bypass_unsettled_submission(tmp_path, monkeypatch, status):
+    repo = Repository(tmp_path / "runtime")
+    settings = SettingsService(repo)
+    settings.patch(SettingsPatch(zhipu_api_key="fake"))
+    ledger = {"revision": 1, "reasoning_effort": "max", "context_tokens": 1_000_000}
+    operation = repo.start_operation("fixture", "old-request", "llm:screenwriter", ledger)
+    if status == "UNKNOWN":
+        repo.finish_operation(operation["operation_id"], status, ledger)
+    settings.patch(SettingsPatch(glm_reasoning_effort="xhigh"))
+    monkeypatch.setattr("videoagents.providers.llm.run_cli", lambda *a, **k: pytest.fail("must not resubmit"))
+    with pytest.raises(CapabilityMissing) as error:
+        JsonModel(repo).call("fixture", 1, "screenwriter", "test", {})
+    assert error.value.operation_status == "UNKNOWN"
+    assert error.value.operation_id == operation["operation_id"]
+    with repo.connection() as db:
+        rows = db.execute("SELECT status,body FROM operations").fetchall()
+    assert len(rows) == 1 and rows[0][0] == status
+    assert json.loads(rows[0][1])["reasoning_effort"] == "max"
 
 
 def test_claude_research_stream_projects_tool_audit_and_final_result(tmp_path, monkeypatch):

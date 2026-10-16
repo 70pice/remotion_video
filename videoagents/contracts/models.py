@@ -575,6 +575,92 @@ class DraftRequest(Contract):
     timeline: Timeline | None = None
 
 
+class ReplenishMaterialsRequest(Contract):
+    base_revision: int = Field(ge=1)
+    pending_token: str = Field(min_length=16, max_length=100)
+    idempotency_key: str = Field(min_length=8, max_length=200)
+    note: str = Field(min_length=1, max_length=3000)
+    materials_note: str = Field(min_length=1, max_length=30000)
+    retained_asset_ids: list[Annotated[str, Field(min_length=1, max_length=100)]] = Field(
+        min_length=1, max_length=400,
+    )
+
+    @field_validator("note", "materials_note")
+    @classmethod
+    def nonblank_collection_note(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("补采授权与素材要求不能为空")
+        return value.strip()
+
+    @field_validator("retained_asset_ids")
+    @classmethod
+    def unique_retained_assets(cls, value: list[str]) -> list[str]:
+        if len(value) != len(set(value)) or any(not item.strip() for item in value):
+            raise ValueError("保留素材ID不能为空或重复")
+        return sorted(value)
+
+
+class RestartUnknownRequest(Contract):
+    base_revision: int = Field(ge=1)
+    operation_id: str = Field(pattern=r"^[a-f0-9]{32}$")
+    acknowledge_possible_usage: Literal[True]
+    note: str = Field(min_length=1, max_length=3000)
+    brief: Brief | None = None
+    rebuild_script: bool = Field(default=False, strict=True)
+    materials_only: bool = Field(default=False, strict=True)
+    materials_note: str = Field(default="", max_length=30000)
+    director_only: bool = Field(default=False, strict=True)
+
+    @model_validator(mode="after")
+    def restart_scope(self):
+        if self.director_only and (self.rebuild_script or self.materials_only or self.brief is not None):
+            raise ValueError("只重做摄影不能同时重写文案、重采素材或修改 Brief")
+        if self.materials_only and (self.rebuild_script or self.brief is not None):
+            raise ValueError("只重采素材不能同时重写文案或修改 Brief")
+        if self.materials_only and not self.materials_note.strip():
+            raise ValueError("只重采素材需要明确的素材采集要求")
+        if self.materials_note and not self.materials_only:
+            raise ValueError("素材采集要求只能用于 materials_only 重启")
+        self.materials_note = self.materials_note.strip()
+        return self
+
+    @field_validator("acknowledge_possible_usage", mode="before")
+    @classmethod
+    def explicit_acknowledgement(cls, value: Any) -> Any:
+        if value is not True:
+            raise ValueError("必须明确承认旧提交可能已消耗额度")
+        return value
+
+    @field_validator("note")
+    @classmethod
+    def nonblank_note(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("授权说明不能为空")
+        return value.strip()
+
+
+class VisualRevisionRequest(Contract):
+    base_revision: int = Field(ge=1)
+    idempotency_key: str = Field(min_length=8, max_length=200)
+    shot_ids: list[str] = Field(min_length=1, max_length=1000)
+    note: str = Field(min_length=10, max_length=30000)
+    preview: bool = False
+
+    @field_validator("shot_ids")
+    @classmethod
+    def distinct_shots(cls, value: list[str]) -> list[str]:
+        if any(not item.strip() or item != item.strip() for item in value) or len(set(value)) != len(value):
+            raise ValueError("返工镜头 ID 必须非空且不能重复")
+        return value
+
+    @field_validator("note")
+    @classmethod
+    def meaningful_note(cls, value: str) -> str:
+        if len(value.strip()) < 10:
+            raise ValueError("视觉返工意见至少需要 10 个字符")
+        return value.strip()
+
+
 class RunRequest(Contract):
     base_revision: int = Field(ge=1)
     action: Literal["produce", "voice", "storyboard", "preview", "final", "review"]
@@ -594,6 +680,14 @@ class RunRequest(Contract):
 class RetryFailedRunRequest(Contract):
     base_revision: int = Field(ge=1)
     retry_command_id: str = Field(min_length=1, max_length=100, pattern=r"^[a-f0-9]{32}$")
+    idempotency_key: str = Field(min_length=8, max_length=200)
+
+
+class RefreshShotsRequest(Contract):
+    base_revision: int = Field(ge=1)
+    pending_token: str = Field(pattern=r"^[a-f0-9]{32}$")
+    director_plan_artifact_id: str = Field(pattern=r"^[a-f0-9]{32}$")
+    director_plan_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     idempotency_key: str = Field(min_length=8, max_length=200)
 
 
@@ -992,6 +1086,39 @@ class ComponentDemoRequest(Contract):
 
 
 
+class MaterialSelectionRequest(Contract):
+    """A partial materials decision; it cannot confirm a production gate."""
+
+    base_revision: int = Field(ge=1)
+    pending_token: str = Field(min_length=16, max_length=100)
+    idempotency_key: str = Field(min_length=8, max_length=200)
+    decision: Literal["select_materials"] = "select_materials"
+    note: str = Field(min_length=1, max_length=3000)
+    accepted_asset_ids: list[Annotated[str, Field(min_length=1, max_length=100)]] = Field(
+        default_factory=list, max_length=400,
+    )
+    rejected_asset_ids: list[Annotated[str, Field(min_length=1, max_length=100)]] = Field(
+        default_factory=list, max_length=400,
+    )
+
+    @field_validator("accepted_asset_ids", "rejected_asset_ids")
+    @classmethod
+    def unique_material_ids(cls, value: list[str]) -> list[str]:
+        if len(value) != len(set(value)) or any(not item.strip() for item in value):
+            raise ValueError("素材ID不能为空或重复")
+        return sorted(value)
+
+    @model_validator(mode="after")
+    def partial_selection(self):
+        if not self.note.strip():
+            raise ValueError("素材取舍需填写说明")
+        if not self.accepted_asset_ids and not self.rejected_asset_ids:
+            raise ValueError("至少指定一个保留或不采用的素材")
+        if set(self.accepted_asset_ids) & set(self.rejected_asset_ids):
+            raise ValueError("同一个素材不能同时保留与不采用")
+        return self
+
+
 class ResumeRequest(Contract):
     base_revision: int = Field(ge=1)
     decision: Literal["confirm", "revise", "cancel"]
@@ -1046,7 +1173,10 @@ class RoleModelConfig(Contract):
     enabled: bool = False
     provider: ModelProvider = "codex_cli"
     model: str = Field(default="", max_length=200)
-    timeout_seconds: int = Field(default=900, ge=30, le=1800)
+    timeout_seconds: int = Field(default=900, ge=30, le=36000)
+    codex_reasoning_effort: Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"] | None = Field(
+        default=None, exclude_if=lambda value: value is None,
+    )
 
 
 class RoleModels(Contract):
@@ -1160,6 +1290,7 @@ class MaterialResearch(Contract):
 
 class SettingsPatch(Contract):
     role_models: dict[RoleId, RoleModelConfig] | None = None
+    glm_reasoning_effort: Literal["xhigh", "max"] | None = None
     script_discussion_enabled: bool | None = None  # 兼容旧客户端；执行时始终开启讨论。
     script_discussion_max_rounds: int | None = Field(default=None, ge=1, le=5)
     feishu_folder_token: str | None = Field(default=None, max_length=200)  # 每个视频的飞书表格建在该文件夹下
@@ -1189,7 +1320,7 @@ class SettingsPatch(Contract):
     capture_enabled: bool | None = None
     max_llm_calls: int | None = Field(default=None, ge=1, le=100)
     max_voice_chars: int | None = Field(default=None, ge=1, le=100000)
-    render_timeout_seconds: int | None = Field(default=None, ge=30, le=7200)
+    render_timeout_seconds: int | None = Field(default=None, ge=30, le=36000)
 
     @field_validator("research_platforms")
     @classmethod

@@ -12,6 +12,7 @@ from videoagents.nodes.common import (
     current_job,
     needs_script_revision,
     needs_voice_revision,
+    render_text_fit_issues,
     stage_feedback,
     state_context,
 )
@@ -100,11 +101,20 @@ class AwaitInputNode:
             raise Conflict("恢复决定无效")
         # Input confirmations always rerun the responsible stage and its gates.
         target = {"materials": "materials", "script": "screenwriter", "voice": "voice", "director": "director", "render": "editing"}[pending["stage"]]
+        layout_repair = False
         if pending.get("retry_node") == "director_demo":
-            target = "director_demo"
+            # Older checkpoints tagged copy-fit failures as render-only retries.
+            # Confirm still repairs the frozen plan through the photography node;
+            # it does not approve the shots or replay a provider submission.
+            layout_repair = (state.get("action") != "refresh_shots"
+                and pending.get("stage") == "director"
+                and set(pending.get("fields") or []) == {"render"}
+                and not pending.get("operation_status")
+                and render_text_fit_issues(pending.get("issues") or []))
+            target = "director" if layout_repair else "director_demo"
         if target == "voice" and _legacy_director_voice_false_positive(pending, state):
             target = "director"
         if target == "director" and _stale_editing_preflight(self.repo, job, pending):
             target = "editing"
-        return state_context(self.repo, state, route=target, human_decision={**pending, **decision})
-
+        return state_context(self.repo, state, route=target, human_decision={**pending, **decision},
+                             **({"gate_issues": pending["issues"]} if layout_repair else {}))

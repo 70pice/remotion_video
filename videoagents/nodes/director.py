@@ -23,6 +23,7 @@ from videoagents.nodes.common import (
 from videoagents.nodes.gates import timeline_readability_issues
 from videoagents.prompts import render as render_prompt
 from videoagents.providers.llm import CapabilityMissing, JsonModel
+from videoagents.services.context_media import approved_context_sources, validate_production_timeline
 from videoagents.services.jobs import JobService
 from videoagents.state import VideoState
 from videoagents.storage import Repository
@@ -42,10 +43,13 @@ from videoagents.tools.components import (
 )
 from videoagents.tools.media import sha256
 from videoagents.tools.timeline import (
+    B_RICH_EXPECTED_KEYS,
+    B_RICH_RULES,
+    MATERIAL_RICH_EXPECTED_KEYS,
+    MATERIAL_RICH_RULES,
     asset_renderable,
     media_coverage_report,
     validate_media_coverage,
-    validate_timeline,
 )
 
 COMPONENT_PROPS_EXAMPLES = {
@@ -453,8 +457,22 @@ def director_prompt(usage: str) -> str:
     # One immutable mapping drives the director, validator, renderer and counts.
     # It contains geometry/timing shapes, never sample content or asset paths.
     templates = allowed_component_set_templates(usage)
+    content_contracts = {}
+    for set_id in templates:
+        rules = B_RICH_RULES if set_id in B_RICH_RULES else MATERIAL_RICH_RULES
+        if set_id not in rules:
+            continue
+        keys = B_RICH_EXPECTED_KEYS if set_id in B_RICH_RULES else MATERIAL_RICH_EXPECTED_KEYS
+        content_contracts[set_id] = {
+            "nonempty_shot_fields": ["title", "body"],
+            "max_chars": {"shot.title": 18, "shot.body": 60, "content.takeaway": 18},
+            "required_content_fields": sorted(keys[set_id] - {"title", "body"}),
+            "counts": rules[set_id],
+        }
     return prompt + "\n\n生产组件套固定部件与默认布局（可调整 parts，不可替换内部组件 ID）：\n" + json.dumps(
         list(templates.values()), ensure_ascii=False, separators=(",", ":")
+    ) + "\n\n生产增强套内容校验条件：\n" + json.dumps(
+        content_contracts, ensure_ascii=False, separators=(",", ":")
     )
 
 
@@ -569,7 +587,8 @@ class DirectorNode:
         return "director_demo"
 
     def plan(self, job: Job, audio: Asset, alignment: Alignment, duration: float,
-             research: dict | None = None, state: VideoState | None = None) -> Timeline:
+             research: dict | None = None, state: VideoState | None = None, *,
+             restore_candidate: bool = True) -> Timeline:
         self._last_director_plan = None
         asset_metadata = {asset.asset_id: self.repo.asset_metadata(asset.asset_id) for asset in job.assets}
         model_available = self.model.available("director")
@@ -583,12 +602,16 @@ class DirectorNode:
         repair_issues = list(external_repair_issues)
         required_components = _required_library_components(job)
         previous_plan = load_current_director_plan(self.repo, job) if job.timeline else None
+        visual_revision = self.repo.visual_revision_receipt(job.job_id, job.revision)
+        scoped_rebuild = bool(visual_revision and previous_plan is None)
+        rebuilding = rebuilding or scoped_rebuild
         review_upgrade = bool(previous_plan and previous_plan.get("review_mode") != "per_shot_stills"
                               and job.timeline.presentation != "component_sample")
         if review_upgrade and not model_available:
             raise CapabilityMissing("旧摄影方案需要启用摄影模型，为每个镜头重新设计组件理由和审核代表帧",
                                     ["role_models", "director_plan"])
         if not rebuilding and feedback and job.timeline and type(feedback.get("timeline")) is dict and job.timeline.model_dump() != feedback["timeline"]:
+            validate_production_timeline(self.repo, job, job.timeline, asset_metadata)
             self._last_director_plan = load_current_director_plan(self.repo, job) or _performance_payload(
                 "existing_timeline", job, job.timeline, alignment, review_mode="per_shot_stills")
             return job.timeline
@@ -597,7 +620,7 @@ class DirectorNode:
         if feedback and not model_available:
             raise CapabilityMissing("人工返工需要摄影模型读取审核意见并重新规划镜头；请启用摄影模型或提供新的人工分镜", ["role_models", "timeline"])
         if job.timeline and not feedback and not rebuilding:
-            validate_timeline(job.timeline, job, asset_metadata)
+            validate_production_timeline(self.repo, job, job.timeline, asset_metadata)
             expected = [(item.text, item.start_ms, item.end_ms) for item in alignment.segments]
             actual = [(item.text, item.start_ms, item.end_ms) for item in job.timeline.captions]
             if expected != actual or job.timeline.audio_src != audio.timeline_src:
@@ -690,16 +713,38 @@ class DirectorNode:
             )
             # 实测基线只作为本次摄影输入；模型输出校验通过前不写入共享 state。
             reviewed_timeline = feedback.get("timeline") if feedback and type(feedback.get("timeline")) is dict else None
+            if visual_revision and reviewed_timeline is None:
+                reviewed_timeline = job.timeline.model_dump()
             if review_upgrade and reviewed_timeline is None:
                 reviewed_timeline = job.timeline.model_dump()
             if repair_issues and not rebuilding and job.timeline is not None:
                 reviewed_timeline = job.timeline.model_dump()
             planning_timeline = Timeline.model_validate(reviewed_timeline) if reviewed_timeline else timeline
+            continuation = None
+            if restore_candidate and not rebuilding and not feedback:
+                from videoagents.services.director_recovery import director_repair_candidate
+
+                continuation = director_repair_candidate(self.repo, job)
+                if continuation:
+                    repair_issues = list(dict.fromkeys([*repair_issues, *continuation["repair_issues"]]))
+                    latest = self.repo.latest_completed_operation(job.job_id, "llm:director", job.revision)
+                    if latest and external_repair_issues:
+                        continuation = {"operation_id": latest["operation_id"], "result": latest["result"]}
+                    try:
+                        # Candidate shots are only a model repair draft. Do not
+                        # resolve components or commit them as a production plan.
+                        planning_timeline = Timeline.model_validate({**timeline.model_dump(),
+                            "shots": continuation["result"]["shots"]})
+                    except ValueError:
+                        # A malformed candidate stays available in extras for
+                        # repair; measured baseline remains the contract carrier.
+                        pass
             coverage = media_coverage_report(
                 planning_timeline,
                 job,
                 asset_metadata,
                 validate_relationships=False,
+                approved_context_sources=approved_context_sources(self.repo, job, planning_timeline),
             )
             model_state = {**context, "timeline": planning_timeline.model_dump(),
                            # 音频对齐已在 timeline.captions 提供，避免在素材元信息中重复发送。
@@ -713,13 +758,47 @@ class DirectorNode:
                            } for asset in job.assets},
                            "extras": {**context.get("extras", {}),
                                       "media_coverage": coverage, "timeline_repair_issues": repair_issues}}
+            # A confirm note supplements this input repair; it is not a
+            # human-review approval or permission to reuse an older response.
+            model_state["extras"].pop("timeline_repair_note", None)
+            decision = context.get("human_decision") or {}
+            note = decision.get("note")
+            repair_note = (note if external_repair_issues and pending.get("kind") == "input"
+                and pending.get("stage") == "director" and pending.get("pending_token")
+                and decision.get("decision") == "confirm"
+                and decision.get("pending_token") == pending["pending_token"]
+                and isinstance(note, str) and note.strip() else None)
+            if repair_note is not None:
+                model_state["extras"]["timeline_repair_note"] = repair_note
             if repair_issues:
                 candidate = self.repo.latest_completed_operation(job.job_id, "llm:director", job.revision)
                 if candidate and isinstance(candidate["result"].get("shots"), list):
                     model_state["extras"]["timeline_repair_candidate"] = {
                         "operation_id": candidate["operation_id"], "result": candidate["result"],
                     }
+            if continuation:
+                model_state["extras"]["timeline_repair_candidate"] = {
+                    "operation_id": continuation["operation_id"], "result": continuation["result"],
+                }
             instruction = director_prompt(job.brief.usage)
+            if visual_revision:
+                instruction += ("\n\n本次为受限的局部视觉返工：读取 extras.visual_revision 与 director_note。"
+                    "timeline 是已通过完整逐镜审核的原分镜基线；只可修改 shot_ids 指定的原镜头。"
+                    "未指定镜头的全部字段（包括 ID、起止帧、组件、素材、props、layers）必须原样保留。"
+                    "允许在各指定原镜头自己的时间窗内拆成连续短镜头，不能跨越原窗口；"
+                    "拆镜 ID 使用原 ID 加连字符后缀，例如 shot-01-a、shot-01-b，明确可追溯。"
+                    "保留文案、真实音频、字幕与总帧数；须发生实际画面修改，返回完整的 shots、"
+                    "segment_performances 和每一镜的 shot_reviews，仍需完整校验与全包逐镜人工审核。")
+            if continuation:
+                instruction += ("\n\n本次沿已证明来源的完成候选续修，不能从空白重做。"
+                    "以 extras.timeline_repair_candidate 为底稿，修复明确列出的问题，保留无问题镜头、"
+                    "素材和组件组合；确需改变相邻边界或发现其他校验问题时，在 visual_action 中说明"
+                    "受影响镜头及理由。候选尚未通过校验或人审；返回完整 shots、segment_performances、"
+                    "shot_reviews，仍需完整校验与逐镜代表帧人工审核。")
+            if repair_note is not None:
+                instruction += ("\n\n阅读 extras.timeline_repair_note 中本次待办确认的补充修复要求；"
+                    "业务修复要求以该新意见为准，优先于 extras.director_note 中较早的意见。"
+                    "保留文案、实测音频及字幕，仍须完整输出校验和逐镜人工审核；确认意见不代表审核通过。")
             if coverage["required"]:
                 instruction += ("\n\n本次提交的硬约束：图片/视频镜头至少覆盖 "
                                 f"{coverage['target_frames']} 帧（全片 {total} 帧），"
@@ -749,12 +828,18 @@ class DirectorNode:
             # 字幕、画幅和总帧数保持程序实测值，连续覆盖由 Timeline 校验。
             resolved_shots = resolve_component_set_shots(plan.shots, job.assets, asset_metadata)
             timeline = Timeline.model_validate({**timeline.model_dump(), "shots": [shot.model_dump() for shot in resolved_shots]})
-        validate_timeline(timeline, job, asset_metadata)
+        if visual_revision:
+            from videoagents.services.director_recovery import validate_visual_revision_timeline
+
+            original = Timeline.model_validate(visual_revision["previous_job"]["timeline"])
+            validate_visual_revision_timeline(original, timeline, visual_revision["shot_ids"],
+                                              require_change=scoped_rebuild)
+        context_sources = validate_production_timeline(self.repo, job, timeline, asset_metadata)
         issues = timeline_readability_issues(timeline) if production_portrait(job) else []
         if issues:
             raise ValueError("；".join(issues))
         if model_available:
-            validate_media_coverage(timeline, job, asset_metadata)
+            validate_media_coverage(timeline, job, asset_metadata, approved_context_sources=context_sources)
         validate_component_requirements(timeline, job.brief.usage, required_components)
         self._last_director_plan = _performance_payload(
             "model" if model_available and model_segment_performances is not None and model_shot_reviews is not None

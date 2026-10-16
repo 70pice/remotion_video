@@ -152,6 +152,7 @@ def test_cancellation_between_active_check_and_material_commit_is_rejected(tmp_p
     with pytest.raises(Conflict):
         MaterialsNode(repo, service).attach_image(job, image, "https://example.com/muse", "source_image", "Muse")
     current = repo.get_job(job.job_id)
+
     assert current.status == "CANCELLED"
     assert current.assets == [] and current.artifacts == []
 
@@ -191,6 +192,13 @@ def test_pause_and_resume_reruns_writer_then_materials(tmp_path, monkeypatch):
     assert Worker(repo, service.project_root).once()
     current = repo.get_job(job.job_id)
 
+    assert attempts == ["screenwriter", "screenwriter"]
+    assert current.pending_input["node_name"] == "script_human_gate"
+    repo.enqueue(job.job_id, {"base_revision": job.revision, "action": "resume", "decision": "confirm",
+                              "note": "UNIT：确认文案来源后再采集素材。", "idempotency_key": "unit-script-confirm",
+                              "pending_token": current.pending_input["pending_token"]})
+    assert Worker(repo, service.project_root).once()
+    current = repo.get_job(job.job_id)
     assert attempts == ["screenwriter", "screenwriter", "materials"]
     # The writer reran on resume and finished; materials then paused again.
     assert current.script is not None and current.script.title == "Muse"
@@ -214,7 +222,8 @@ def test_actual_graph_invokes_screenwriter_before_materials(tmp_path, monkeypatc
     def writer(self, state):
         calls.append("screenwriter")
         self.repo.update_job(state["job_id"], state["revision"], status="RUNNING", stage="script",
-                             message="unit writer")
+                             message="unit writer", script=Script(title="UNIT", revision=state["revision"],
+                                segments=[ScriptSegment(segment_id="s1", narration="UNIT script.")]))
         return state_context(self.repo, state, route="materials", gate_issues=[])
 
     monkeypatch.setattr("videoagents.nodes.materials.MaterialsNode.__call__", materials)
@@ -223,6 +232,14 @@ def test_actual_graph_invokes_screenwriter_before_materials(tmp_path, monkeypatc
     command = repo.claim(12345)
     with VideoProductionGraph(repo, service.project_root) as graph:
         graph.execute(command)
+        assert calls == ["screenwriter"]
+        pending = repo.get_job(job.job_id).pending_input
+        assert pending["node_name"] == "script_human_gate"
+        from langgraph.types import Command
+        config = {"configurable": {"thread_id": pending["thread_id"]}}
+        paused = graph.graph.get_state(config).interrupts[0]
+        graph.graph.invoke(Command(resume={paused.id: {"decision": "confirm",
+            "note": "UNIT：先审核文案，再准许采集素材。", "pending_token": pending["pending_token"]}}), config)
 
     # The writer designs the script first; materials then verifies and pauses
     # at the combined script+materials human gate.
@@ -270,7 +287,7 @@ def test_screenwriter_draft_reads_brief_and_settings_and_tamper_is_blocked(tmp_p
     result = ScreenwriterNode(repo, service)(state_context(repo, state_for(repo.get_job(job.job_id))))
     current = repo.get_job(job.job_id)
 
-    assert result["route"] == "materials"
+    assert result["route"] == "script_human_gate"
     assert calls[0][0] == "screenwriter"
 
     research_artifact = next(item for item in current.artifacts if item.kind == "research")

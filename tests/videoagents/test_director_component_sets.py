@@ -96,6 +96,44 @@ def _line_for(summary: str, set_id: str) -> str:
     return next(line for line in summary.splitlines() if line.lstrip().startswith(f"- {set_id} "))
 
 
+def test_production_prompt_scopes_optional_body_away_from_rich_component_sets():
+    prompt = director.director_prompt("personal")
+
+    assert "A07-A12 和 B01-B18" in prompt
+    assert "shot.title、shot.body、content.takeaway 均为非空" in prompt
+    assert "18/60/18" in prompt
+    assert "正文可以留空的通用建议不适用于这些套" in prompt
+    assert "字段、条数、metric 计数语义也适用于普通生产" in prompt
+
+
+def test_production_prompt_explains_actual_component_part_reading_budget():
+    prompt = director.director_prompt("personal")
+
+    assert "chars=len(text.replace(\" \", \"\"))" in prompt
+    assert "entrance + max(ceil(1.5*fps), ceil(chars/12*fps))" in prompt
+    assert "end_frame <= 镜头总帧数" in prompt
+    assert "items/supporting_items 按全部条目连接后的文字计算" in prompt
+
+
+def test_production_prompt_uses_current_validator_content_counts(monkeypatch):
+    from videoagents.tools.timeline import B_RICH_RULES, MATERIAL_RICH_RULES
+
+    marker = "\n\n生产增强套内容校验条件：\n"
+    prompt = director.director_prompt("personal")
+    assert marker in prompt
+    contracts = json.loads(prompt.split(marker)[1])
+    for set_id, rule in {**B_RICH_RULES, **MATERIAL_RICH_RULES}.items():
+        assert contracts[set_id]["counts"] == json.loads(json.dumps(rule))
+        assert contracts[set_id]["nonempty_shot_fields"] == ["title", "body"]
+    assert contracts["B12"]["required_content_fields"] == ["items", "metric", "supporting_items", "takeaway"]
+    assert contracts["A07"]["required_content_fields"] == ["items", "supporting_items", "takeaway"]
+    assert contracts["B03"]["counts"] == {"items": 2, "numeric": 2}
+
+    monkeypatch.setitem(B_RICH_RULES, "B12", {**B_RICH_RULES["B12"], "items": 7})
+    changed = json.loads(director.director_prompt("personal").split(marker)[1])
+    assert changed["B12"]["counts"]["items"] == 7
+
+
 def test_component_set_registry_injects_unique_director_guidance_for_all_thirty_sets(tmp_path):
     path = tmp_path / "component-set-registry.json"
     _write_registry(path, _registry_payload(suffix="unique"))

@@ -38,6 +38,10 @@ def test_structured_subprocess_and_utf8_stdin(tmp_path, monkeypatch, provider):
     result = run_cli(provider, "model ;$(touch secret)", 5, "中文输入", {"type": "object"})
     assert "中文输入" in result.data["text"] and "业务 JSON schema" in result.data["text"]
     assert result.usage == {"output_tokens": 2}
+    if provider == "claude_code_cli":
+        assert "StructuredOutput" in result.data["text"]
+        assert "response_json 的值必须是字符串" in result.data["text"]
+        assert "不授权检索、shell、文件或额外 MCP 工具" in result.data["text"]
 
 
 def test_claude_ark_credential_is_child_environment_only(tmp_path, monkeypatch):
@@ -64,8 +68,425 @@ def test_codex_failures_are_unknown_and_sanitized(tmp_path, monkeypatch, code, r
     fixture_cli(tmp_path, monkeypatch, code)
     with pytest.raises(CliFailure) as failure:
         run_cli("codex_cli", "", 5, "fixture", {"type": "object"})
-    assert failure.value.reason == reason and failure.value.submitted
+    assert failure.value.reason.split("; ", 1)[0] == reason and failure.value.submitted
     assert "secret" not in str(failure.value)
+
+
+@pytest.mark.parametrize("payload,shape,subtype,inner_shape", [
+    ({"type": "result", "subtype": "unrecognized_model", "is_error": True,
+      "errors": [{"message": "UNIT-secret-error https://secret.invalid"}],
+      "result": "UNIT-secret-result 中文业务内容",
+      "usage": {"token": "UNIT-secret-usage"},
+      "structured_output": {"response_json": '{"token":"UNIT-secret-business 中文业务内容"}'}},
+     "claude_error_result", "unrecognized_model", "json_object"),
+    ({"type": "result", "subtype": "UNIT-secret-subtype", "is_error": True,
+      "structured_output": {"response_json": "UNIT-secret-inner"}},
+     "claude_error_result", "unknown", "invalid_json"),
+])
+def test_nonzero_claude_result_diagnostic_is_bounded_and_redacted(
+    tmp_path, monkeypatch, payload, shape, subtype, inner_shape,
+):
+    code = f"print(json.dumps({payload!r}))\n"
+    code += "print('UNIT-secret-stderr', file=sys.stderr)\nsys.exit(23)\n"
+    fixture_cli(tmp_path, monkeypatch, code)
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {"type": "object"})
+    reason = failure.value.reason
+    assert reason.startswith("cli_nonzero_exit; ") and failure.value.submitted
+    diagnostic = json.loads(reason.removeprefix("cli_nonzero_exit; "))
+    assert set(diagnostic) == {"exit_code", "stdout_bytes", "stdout_shape", "subtype",
+                               "response_json_shape", "stderr_tail_bytes"}
+    assert (diagnostic["exit_code"], diagnostic["stdout_shape"], diagnostic["subtype"],
+            diagnostic["response_json_shape"]) == (23, shape, subtype, inner_shape)
+    assert diagnostic["stdout_bytes"] > 0 and diagnostic["stderr_tail_bytes"] > 0
+    assert "UNIT-secret" not in reason and "UNIT-secret" not in str(failure.value)
+    assert "secret.invalid" not in reason and "中文业务内容" not in reason
+
+
+def test_nonzero_claude_invalid_outer_json_is_distinct_from_inner_json(tmp_path, monkeypatch):
+    fixture_cli(tmp_path, monkeypatch, "print('UNIT-secret-invalid-json')\nsys.exit(9)")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {"type": "object"})
+    assert json.loads(failure.value.reason.removeprefix("cli_nonzero_exit; ")) == {
+        "exit_code": 9, "stdout_bytes": len("UNIT-secret-invalid-json" + os.linesep),
+        "stdout_shape": "invalid_json", "subtype": "unknown",
+        "response_json_shape": "absent", "stderr_tail_bytes": 0,
+    }
+    assert "UNIT-secret" not in str(failure.value)
+
+
+@pytest.mark.parametrize("subtype", [
+    "error_during_execution", "error_max_turns", "error_max_budget_usd",
+    "error_max_structured_output_retries",
+])
+@pytest.mark.parametrize("exit_code", [0, 1])
+def test_claude_known_error_subtype_survives_real_process_failure(tmp_path, monkeypatch, subtype, exit_code):
+    payload = {"type": "result", "subtype": subtype, "is_error": True,
+               "errors": ["UNIT-secret-error https://secret.invalid"],
+               "result": "UNIT-secret-result", "usage": {"token": "UNIT-secret-usage"}}
+    fixture_cli(tmp_path, monkeypatch, f"print(json.dumps({payload!r}))\nsys.exit({exit_code})")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {"type": "object"})
+    prefix = "cli_nonzero_exit" if exit_code else "cli_reported_error"
+    assert failure.value.reason.startswith(prefix + "; ")
+    diagnostic = json.loads(failure.value.reason.removeprefix(prefix + "; "))
+    assert diagnostic["subtype"] == subtype
+    assert diagnostic["exit_code"] == exit_code
+    assert diagnostic["stdout_shape"] == "claude_error_result"
+    assert diagnostic["response_json_shape"] == "absent"
+    assert failure.value.submitted and not failure.value.rejected
+    assert "UNIT-secret" not in failure.value.reason and "secret.invalid" not in str(failure.value)
+
+
+@pytest.mark.parametrize("exit_code", [0, 1])
+@pytest.mark.parametrize("suffix,recognized", [("", True), (" UNIT-secret", False)])
+def test_claude_wire_schema_error_keeps_only_fixed_cause(tmp_path, monkeypatch, exit_code, suffix, recognized):
+    message = ("Failed to provide valid structured output after 2 attempts — last StructuredOutput error: "
+               "Output does not match required schema: /response_json: must be string" + suffix)
+    payload = {"type": "result", "subtype": "error_max_structured_output_retries", "is_error": True,
+               "terminal_reason": "structured_output_retry_exhausted", "errors": [message]}
+    fixture_cli(tmp_path, monkeypatch, f"print(json.dumps({payload!r}))\nsys.exit({exit_code})")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {})
+    diagnostic = json.loads(failure.value.reason.partition("; ")[2])
+    if recognized:
+        assert diagnostic["reported_structured_error"] == "response_json_not_string"
+        assert diagnostic["reported_structured_attempts"] == 2
+        assert "response_json" in failure.value.hint and "字符串" in failure.value.hint
+    else:
+        assert "reported_structured_error" not in diagnostic
+        assert "reported_structured_attempts" not in diagnostic
+    assert message not in failure.value.reason and "UNIT-secret" not in failure.value.reason
+    assert failure.value.submitted and not failure.value.rejected
+
+
+def test_plain_role_prompt_does_not_forbid_internal_output_submission(tmp_path, monkeypatch):
+    repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(role_models={"director": {
+        "enabled": True, "provider": "claude_code_cli", "model": "fixture-model",
+    }}))
+    monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *_: ["fixture"])
+    def transport(provider, model, timeout, prompt, schema, **kwargs):
+        assert "不调用工具。" not in prompt and "这是无工具" not in prompt
+        assert "不读取本机文件、不调用外部工具" in prompt
+        return CliResult({"ok": True})
+    monkeypatch.setattr("videoagents.providers.llm.run_cli", transport)
+    assert JsonModel(repo).call("fixture-job", 1, "director", "fixture", {}) == {"ok": True}
+
+
+@pytest.mark.parametrize("exit_code", [0, 1])
+def test_structured_output_failure_has_specific_gate_message_and_still_blocks_replay(tmp_path, monkeypatch, exit_code):
+    payload = {"type": "result", "subtype": "error_max_structured_output_retries", "is_error": True,
+               "errors": ["UNIT-secret-provider-error"]}
+    fixture_cli(tmp_path, monkeypatch, f"print(json.dumps({payload!r}))\nsys.exit({exit_code})")
+    monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *_: ["fixture"])
+    repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(role_models={"director": {
+        "enabled": True, "provider": "claude_code_cli", "model": "fixture-model",
+    }}))
+    model = JsonModel(repo)
+    with pytest.raises(CapabilityMissing) as failure:
+        model.call("fixture-job", 1, "director", "fixture", {})
+    assert failure.value.operation_status == "UNKNOWN"
+    assert "结构化输出" in str(failure.value) and "重试次数" in str(failure.value)
+    assert "UNIT-secret" not in str(failure.value)
+    with repo.connection() as db:
+        rows = db.execute("SELECT status,body FROM operations").fetchall()
+    assert len(rows) == 1 and rows[0][0] == "UNKNOWN" and "UNIT-secret" not in rows[0][1]
+    prefix = "cli_nonzero_exit" if exit_code else "cli_reported_error"
+    assert json.loads(json.loads(rows[0][1])["reason"].removeprefix(prefix + "; "))["subtype"] == payload["subtype"]
+    monkeypatch.setattr(cli_runner, "executable_prefix", lambda *_: pytest.fail("UNKNOWN must not replay CLI"))
+    with pytest.raises(CapabilityMissing) as repeat:
+        model.call("fixture-job", 1, "director", "fixture", {})
+    assert repeat.value.operation_id == failure.value.operation_id
+
+
+@pytest.mark.parametrize("exit_code", [0, 1])
+@pytest.mark.parametrize("status,error_type,expected_hint", [
+    (401, "authentication_error", "认证失败"),
+    (429, "rate_limit_error", "429"),
+    (500, "api_error", "500"),
+])
+def test_claude_api_failure_keeps_reported_cause_without_error_text(
+    tmp_path, monkeypatch, exit_code, status, error_type, expected_hint,
+):
+    api_error = {"type": "error", "error": {"type": error_type,
+                 "message": "UNIT-secret-provider-message https://secret.invalid"}}
+    payload = {"type": "result", "subtype": "error_during_execution", "is_error": True,
+               "errors": [f"API Error: {status} {json.dumps(api_error)}"]}
+    fixture_cli(tmp_path, monkeypatch, f"print(json.dumps({payload!r}))\nsys.exit({exit_code})")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {})
+    diagnostic = json.loads(failure.value.reason.partition("; ")[2])
+    assert diagnostic["reported_http_status"] == status
+    assert diagnostic["reported_error_kind"] == error_type
+    assert diagnostic["error_detail_source"] == "claude_result_errors"
+    assert expected_hint in failure.value.hint
+    assert "UNIT-secret" not in failure.value.reason and "secret.invalid" not in failure.value.hint
+    assert failure.value.submitted and not failure.value.rejected
+
+
+def test_claude_stderr_connection_failure_reaches_model_gate_and_blocks_replay(tmp_path, monkeypatch):
+    payload = {"type": "result", "subtype": "error_during_execution", "is_error": True,
+               "errors": ["UNIT-secret-opaque-error"]}
+    fixture_cli(tmp_path, monkeypatch, f"print(json.dumps({payload!r}))\n"
+                "print('Error: Connection error.', file=sys.stderr)\nsys.exit(1)")
+    monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *_: ["fixture"])
+    repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(role_models={"director": {
+        "enabled": True, "provider": "claude_code_cli", "model": "fixture-model",
+    }}))
+    model = JsonModel(repo)
+    with pytest.raises(CapabilityMissing) as failure:
+        model.call("fixture-job", 1, "director", "fixture", {})
+    assert "连接错误" in str(failure.value)
+    with repo.connection() as db:
+        status, body = db.execute("SELECT status,body FROM operations").fetchone()
+    diagnostic = json.loads(json.loads(body)["reason"].partition("; ")[2])
+    assert status == "UNKNOWN" and diagnostic["reported_error_kind"] == "connection_error"
+    assert diagnostic["error_detail_source"] == "stderr" and "UNIT-secret" not in body
+    monkeypatch.setattr(cli_runner, "executable_prefix", lambda *_: pytest.fail("UNKNOWN must not replay"))
+    with pytest.raises(CapabilityMissing) as repeat:
+        model.call("fixture-job", 1, "director", "fixture", {})
+    assert repeat.value.operation_id == failure.value.operation_id
+
+
+@pytest.mark.parametrize("payload,expected_status,expected_source", [
+    ({"is_error": True, "errors": "API Error: 429 UNIT-secret", "subtype": "error_during_execution"},
+     429, "claude_result_errors"),
+    ({"is_error": True, "result": "API Error: 500 UNIT-secret", "subtype": "success"},
+     500, "claude_result_error_text"),
+    ({"is_error": True, "api_error_status": 401, "terminal_reason": "api_error"},
+     401, "claude_result_api_error_status"),
+])
+def test_claude_failure_supports_sdk_error_receipt_variants(
+    tmp_path, monkeypatch, payload, expected_status, expected_source,
+):
+    payload = {"type": "result", **payload}
+    fixture_cli(tmp_path, monkeypatch, f"print(json.dumps({payload!r}))\nsys.exit(1)")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {})
+    diagnostic = json.loads(failure.value.reason.partition("; ")[2])
+    assert diagnostic["reported_http_status"] == expected_status
+    assert diagnostic["error_detail_source"] == expected_source
+    assert "UNIT-secret" not in failure.value.reason
+
+
+@pytest.mark.parametrize("terminal,expected_hint", [
+    ("aborted_streaming", "响应流被中止"),
+    ("structured_output_retry_exhausted", "结构化输出重试"),
+    ("api_error", "API错误，未提供可识别的HTTP状态"),
+])
+def test_claude_terminal_reason_explains_failure_without_inventing_upstream_cause(
+    tmp_path, monkeypatch, terminal, expected_hint,
+):
+    payload = {"type": "result", "is_error": True, "terminal_reason": terminal}
+    fixture_cli(tmp_path, monkeypatch, f"print(json.dumps({payload!r}))\nsys.exit(1)")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {})
+    diagnostic = json.loads(failure.value.reason.partition("; ")[2])
+    assert diagnostic["reported_terminal_reason"] == terminal
+    assert "reported_http_status" not in diagnostic and expected_hint in failure.value.hint
+
+
+@pytest.mark.parametrize("kind,expected_hint", [
+    ("max_output_tokens", "输出Token上限"),
+    ("no_response", "未取得响应"),
+    ("effort_requires_thinking", "思考设置"),
+])
+@pytest.mark.parametrize("exit_code", [0, 1])
+def test_claude_typed_api_error_survives_without_http_status(
+    tmp_path, monkeypatch, kind, expected_hint, exit_code,
+):
+    # Installed CLI can emit subtype=success with is_error=True for API failures.
+    payload = {"type": "result", "subtype": "success", "is_error": True,
+               "terminal_reason": "api_error", "api_error": kind,
+               "api_error_code": "UNIT-secret-code", "result": "UNIT-secret-body"}
+    fixture_cli(tmp_path, monkeypatch, f"print(json.dumps({payload!r}))\nsys.exit({exit_code})")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {})
+    diagnostic = json.loads(failure.value.reason.partition("; ")[2])
+    assert diagnostic["reported_api_error"] == kind
+    assert diagnostic["subtype"] == "success"
+    assert diagnostic["stdout_shape"] == "claude_error_result"
+    assert diagnostic["typed_error_source"] == "claude_result_api_error"
+    assert "reported_http_status" not in diagnostic
+    assert expected_hint in failure.value.hint
+    assert "UNIT-secret" not in failure.value.reason
+
+
+def test_claude_typed_api_error_preserves_http_failure_precedence(tmp_path, monkeypatch):
+    payload = {"type": "result", "subtype": "success", "is_error": True,
+               "terminal_reason": "api_error", "api_error": "provider_credentials",
+               "api_error_status": 401, "result": "UNIT-secret-body"}
+    fixture_cli(tmp_path, monkeypatch, f"print(json.dumps({payload!r}))\nsys.exit(1)")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {})
+    diagnostic = json.loads(failure.value.reason.partition("; ")[2])
+    assert diagnostic["reported_http_status"] == 401
+    assert diagnostic["reported_api_error"] == "provider_credentials"
+    assert diagnostic["error_detail_source"] == "claude_result_api_error_status"
+    assert "HTTP 401" in failure.value.hint and "UNIT-secret" not in failure.value.reason
+
+
+@pytest.mark.parametrize("exit_code", [0, 1])
+def test_claude_typed_api_error_reaches_ledger_and_blocks_replay(tmp_path, monkeypatch, exit_code):
+    payload = {"type": "result", "subtype": "success", "is_error": True,
+               "terminal_reason": "api_error", "api_error": "max_output_tokens",
+               "api_error_code": "UNIT-secret-code", "result": "UNIT-secret-body"}
+    fixture_cli(tmp_path, monkeypatch, f"print(json.dumps({payload!r}))\nsys.exit({exit_code})")
+    monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *_: ["fixture"])
+    repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(role_models={"director": {
+        "enabled": True, "provider": "claude_code_cli", "model": "fixture-model",
+    }}))
+    model = JsonModel(repo)
+    with pytest.raises(CapabilityMissing) as failure:
+        model.call("fixture-job", 1, "director", "fixture", {})
+    assert failure.value.operation_status == "UNKNOWN" and "输出Token上限" in str(failure.value)
+    with repo.connection() as db:
+        rows = db.execute("SELECT status,body FROM operations").fetchall()
+    assert len(rows) == 1 and rows[0][0] == "UNKNOWN"
+    diagnostic = json.loads(json.loads(rows[0][1])["reason"].partition("; ")[2])
+    assert diagnostic["reported_api_error"] == "max_output_tokens" and "UNIT-secret" not in rows[0][1]
+    monkeypatch.setattr(cli_runner, "executable_prefix", lambda *_: pytest.fail("UNKNOWN must not replay"))
+    with pytest.raises(CapabilityMissing) as repeat:
+        model.call("fixture-job", 1, "director", "fixture", {})
+    assert repeat.value.operation_id == failure.value.operation_id
+
+
+@pytest.mark.parametrize("payload", [
+    {"is_error": True, "terminal_reason": "UNIT-secret-terminal", "api_error_status": "401",
+     "errors": ["End", "UNIT-secret API Error: 401", {"message": "API Error: 401"}]},
+    {"is_error": False, "subtype": "success", "api_error_status": 401, "terminal_reason": "api_error",
+     "api_error": "max_output_tokens", "api_error_code": "UNIT-secret-code",
+     "errors": ["API Error: 401 UNIT-secret"], "result": "API Error: 401 UNIT-secret"},
+    {"is_error": True, "api_error": "UNIT-secret-kind", "api_error_code": "UNIT-secret-code"},
+    {"is_error": True, "api_error": {"kind": "max_output_tokens", "message": "UNIT-secret"}},
+])
+def test_untrusted_or_nonerror_fields_are_not_promoted_to_reported_causes(tmp_path, monkeypatch, payload):
+    payload = {"type": "result", **payload}
+    fixture_cli(tmp_path, monkeypatch, f"print(json.dumps({payload!r}))\nsys.exit(1)")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {})
+    diagnostic = json.loads(failure.value.reason.partition("; ")[2])
+    assert not any(key.startswith("reported_") or key == "error_detail_source" for key in diagnostic)
+    assert "UNIT-secret" not in failure.value.reason and "401" not in failure.value.hint
+
+
+@pytest.mark.parametrize("error_text,kind", [
+    ("API Error: Connection lost mid-response", "stream_closed"),
+    ("API Error: The response stream was malformed", "malformed_stream"),
+    ("Error: Unexpected end of JSON input", "unexpected_json_end"),
+])
+def test_stream_and_parser_symptoms_do_not_invent_http_errors(tmp_path, monkeypatch, error_text, kind):
+    payload = {"type": "result", "is_error": True, "errors": [error_text]}
+    fixture_cli(tmp_path, monkeypatch, f"print(json.dumps({payload!r}))\nsys.exit(1)")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {})
+    diagnostic = json.loads(failure.value.reason.partition("; ")[2])
+    assert diagnostic["reported_error_kind"] == kind
+    assert "reported_http_status" not in diagnostic
+
+
+def test_completed_terminal_label_does_not_hide_specific_failure(tmp_path, monkeypatch):
+    payload = {"type": "result", "is_error": True, "terminal_reason": "completed",
+               "subtype": "error_max_structured_output_retries"}
+    fixture_cli(tmp_path, monkeypatch, f"print(json.dumps({payload!r}))\nsys.exit(1)")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {})
+    assert "结构化输出" in failure.value.hint and "重试次数" in failure.value.hint
+
+
+@pytest.mark.parametrize("inner", [False, True])
+def test_nonzero_deep_json_keeps_exit_failure_and_safe_shape(tmp_path, monkeypatch, inner):
+    deep = "[" * 10_000 + "0" + "]" * 10_000
+    code = (f"print(json.dumps({{'type':'result','subtype':'unrecognized_model','is_error':True,"
+            f"'structured_output':{{'response_json':{deep!r}}}}}))\n"
+            if inner else f"print({deep!r})\n")
+    fixture_cli(tmp_path, monkeypatch, code + "sys.exit(19)\n")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {"type": "object"})
+    assert failure.value.reason.startswith("cli_nonzero_exit; ")
+    diagnostic = json.loads(failure.value.reason.removeprefix("cli_nonzero_exit; "))
+    assert diagnostic["exit_code"] == 19
+    assert diagnostic["response_json_shape" if inner else "stdout_shape"] == "invalid_json"
+
+
+def test_nonzero_ambiguous_error_flag_is_not_reported_as_success(tmp_path, monkeypatch):
+    fixture_cli(tmp_path, monkeypatch,
+                "print(json.dumps({'type':'result','subtype':'success','is_error':'false'}))\nsys.exit(11)")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {"type": "object"})
+    diagnostic = json.loads(failure.value.reason.removeprefix("cli_nonzero_exit; "))
+    assert diagnostic["stdout_shape"] == "claude_error_result"
+
+
+@pytest.mark.parametrize("output,outer_shape,inner_shape", [
+    ("UNIT-secret-invalid-json", "invalid_json", "absent"),
+    (json.dumps({"type": "result", "subtype": "success", "is_error": False,
+                 "structured_output": {"response_json": "UNIT-secret-invalid-inner"}}),
+     "claude_success_result", "invalid_json"),
+])
+def test_zero_exit_invalid_output_has_safe_shape_and_real_exit_code(
+    tmp_path, monkeypatch, output, outer_shape, inner_shape,
+):
+    fixture_cli(tmp_path, monkeypatch, f"print({output!r})\n")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {"type": "object"})
+    assert failure.value.reason.startswith("invalid_cli_output; ")
+    diagnostic = json.loads(failure.value.reason.removeprefix("invalid_cli_output; "))
+    assert diagnostic["exit_code"] == 0 and diagnostic["stdout_shape"] == outer_shape
+    assert diagnostic["response_json_shape"] == inner_shape
+    assert "UNIT-secret" not in failure.value.reason
+
+
+def test_invalid_event_before_wait_has_unknown_exit_code(tmp_path, monkeypatch):
+    fixture_cli(tmp_path, monkeypatch, "print('UNIT-secret-invalid-event')\n")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("codex_cli", "", 5, "fixture", {"type": "object"})
+    diagnostic = json.loads(failure.value.reason.removeprefix("invalid_cli_output; "))
+    assert diagnostic["exit_code"] is None and diagnostic["stdout_shape"] == "event_stream"
+    assert "UNIT-secret" not in failure.value.reason
+
+
+def test_nonzero_success_envelope_stays_unknown_and_never_replays(tmp_path, monkeypatch):
+    code = "value={'response_json':json.dumps({'secret':'UNIT-secret-business'})}\n"
+    code += "print(json.dumps({'type':'result','subtype':'success','is_error':False,"
+    code += "'structured_output':value,'usage':{'secret':'UNIT-secret-usage'}}))\nsys.exit(7)\n"
+    fixture_cli(tmp_path, monkeypatch, code)
+    monkeypatch.setattr("videoagents.providers.llm.executable_prefix", lambda *_: ["fixture"])
+    repo = Repository(tmp_path / "runtime")
+    SettingsService(repo).patch(SettingsPatch(role_models={"screenwriter": {
+        "enabled": True, "provider": "claude_code_cli", "model": "fixture-model",
+    }}))
+    model = JsonModel(repo)
+    with pytest.raises(CapabilityMissing) as failure:
+        model.call("fixture-job", 1, "screenwriter", "fixture", {})
+    assert failure.value.operation_status == "UNKNOWN"
+    with repo.connection() as db:
+        rows = db.execute("SELECT status,body FROM operations").fetchall()
+    assert len(rows) == 1 and rows[0][0] == "UNKNOWN"
+    reason = json.loads(rows[0][1])["reason"]
+    assert reason.startswith("cli_nonzero_exit; ")
+    diagnostic = json.loads(reason.removeprefix("cli_nonzero_exit; "))
+    assert diagnostic["exit_code"] == 7 and diagnostic["stdout_shape"] == "claude_success_result"
+    assert "UNIT-secret" not in rows[0][1]
+    monkeypatch.setattr(cli_runner, "executable_prefix", lambda *_: pytest.fail("UNKNOWN must not replay CLI"))
+    with pytest.raises(CapabilityMissing) as retry:
+        model.call("fixture-job", 1, "screenwriter", "fixture", {})
+    assert retry.value.operation_id == failure.value.operation_id
+
+
+def test_invalid_output_does_not_echo_stderr_text(tmp_path, monkeypatch):
+    fixture_cli(tmp_path, monkeypatch,
+                "print('UNIT-secret-invalid')\nprint('https://secret.invalid/中文', file=sys.stderr)")
+    with pytest.raises(CliFailure) as failure:
+        run_cli("claude_code_cli", "", 5, "fixture", {"type": "object"})
+    assert failure.value.reason.startswith("invalid_cli_output; ")
+    diagnostic = json.loads(failure.value.reason.removeprefix("invalid_cli_output; "))
+    assert diagnostic["exit_code"] == 0 and diagnostic["stderr_tail_bytes"] > 0
+    assert "UNIT-secret" not in str(failure.value) and "secret.invalid" not in str(failure.value)
 
 
 @pytest.mark.parametrize("notification", [
@@ -123,7 +544,7 @@ def test_codex_notification_does_not_hide_terminal_failure(tmp_path, monkeypatch
     fixture_cli(tmp_path, monkeypatch, "print(json.dumps({'type':'error','message':'secret notification'}))\n" + ending)
     with pytest.raises(CliFailure) as failure:
         run_cli("codex_cli", "", 0.2 if reason == "cli_timeout" else 5, "fixture", {"type": "object"})
-    assert failure.value.reason == reason and failure.value.submitted
+    assert failure.value.reason.split("; ", 1)[0] == reason and failure.value.submitted
     assert "secret" not in str(failure.value)
 
 
@@ -154,7 +575,7 @@ def test_codex_valid_output_still_requires_completed_turn_and_zero_exit(tmp_path
     fixture_cli(tmp_path, monkeypatch, code)
     with pytest.raises(CliFailure) as failure:
         run_cli("codex_cli", "", 5, "fixture", {"type": "object"})
-    assert failure.value.reason == reason and failure.value.submitted
+    assert failure.value.reason.split("; ", 1)[0] == reason and failure.value.submitted
     assert "secret" not in str(failure.value)
 
 

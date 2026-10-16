@@ -1,6 +1,8 @@
 """Save actual source HTML/text and optionally browser screenshots."""
 
 import asyncio
+import codecs
+from email.message import Message
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
@@ -8,6 +10,52 @@ from urllib.parse import urljoin, urlparse
 from videoagents.providers.network import safe_get, validate_url
 from videoagents.storage.repository import now
 from videoagents.tools.media import sha256
+
+MAX_SOURCE_TEXT_CHARS = 256 * 1024
+
+
+def _charset(content_type: str) -> str | None:
+    header = Message()
+    header["content-type"] = content_type
+    return header.get_content_charset()
+
+
+class _CharsetExtractor(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.encodings: list[str] = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag != "meta":
+            return
+        attributes = dict(attrs)
+        encoding = attributes.get("charset")
+        if not encoding and (attributes.get("http-equiv") or "").lower() == "content-type":
+            encoding = _charset(attributes.get("content") or "")
+        if encoding:
+            self.encodings.append(encoding)
+
+
+def _decode_source(content: bytes, content_type: str) -> str:
+    # BOM wins, then the HTTP declaration, then HTML meta, with UTF-8 as default.
+    for signatures, encoding in (
+        ((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE), "utf-32"),
+        ((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE), "utf-16"),
+        ((codecs.BOM_UTF8,), "utf-8-sig"),
+    ):
+        if content.startswith(signatures):
+            return content.decode(encoding, errors="replace")
+    parser = _CharsetExtractor()
+    if content_type.split(";")[0].strip().lower() != "text/plain":
+        parser.feed(content[:16384].decode("latin-1"))
+    for encoding in (_charset(content_type), *parser.encodings, "utf-8"):
+        if encoding:
+            try:
+                return content.decode(encoding, errors="replace")
+            except (LookupError, UnicodeError):
+                # Unknown/non-text labels cannot disable the UTF-8 default.
+                continue
+    return content.decode("utf-8", errors="replace")
 
 
 class TextExtractor(HTMLParser):
@@ -47,10 +95,12 @@ class TextExtractor(HTMLParser):
 
 
 def fetch_source(url: str, path: Path) -> dict:
-    content, content_type, final_url = safe_get(url, max_bytes=3 * 1024 * 1024)
+    content, content_type_header, final_url = safe_get(url, max_bytes=3 * 1024 * 1024,
+                                                     preserve_content_type=True)
+    content_type = content_type_header.split(";")[0].strip().lower()
     if content_type not in {"text/html", "text/plain", "application/xhtml+xml"}:
         raise ValueError("首版来源读取只支持 HTML/纯文本；PDF 等请上传截图并补人工核验")
-    text = content.decode("utf-8", errors="replace")
+    text = _decode_source(content, content_type_header)
     parser = TextExtractor()
     parser.feed(text)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -62,7 +112,7 @@ def fetch_source(url: str, path: Path) -> dict:
         if parsed.scheme in {"http", "https"} and parsed.hostname and not parsed.username and not parsed.password:
             images.append({"url": image_url, "source_url": url, "description": item["description"][:1000]})
     return {"url": url, "final_url": final_url, "content_type": content_type, "retrieved_at": now(),
-            "sha256": sha256(path), "text": "\n".join(parser.parts)[:16000],
+            "sha256": sha256(path), "text": "\n".join(parser.parts)[:MAX_SOURCE_TEXT_CHARS],
             "title": " ".join(parser.title)[:500], "images": images}
 
 
