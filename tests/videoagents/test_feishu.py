@@ -608,7 +608,8 @@ def test_upload_stages_out_of_tree_bytes_in_allowed_temp_and_cleans_up(tmp_path,
         staged = Path(argv[argv.index("--file") + 1])
         staged_paths.append(staged)
         assert staged != source
-        assert staged.is_relative_to(Path(tempfile.gettempdir()).resolve())
+        # macOS exposes the same temp directory through /var and /private/var.
+        assert staged.resolve().is_relative_to(Path(tempfile.gettempdir()).resolve())
         assert staged.name == source.name
         assert staged.read_bytes() == source.read_bytes()
         return SimpleNamespace(returncode=2 if fails else 0,
